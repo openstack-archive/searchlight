@@ -1,0 +1,36 @@
+*.pyc
+*.log
+.glance-venv
+.venv
+.testrepository/
+.tox
+.coverage*
+cover/*
+covhtml
+nosetests.xml
+coverage.xml
+glance.sqlite
+AUTHORS
+ChangeLog
+build
+doc/source/api
+dist
+*.egg
+glance.egg-info
+tests.sqlite
+glance/versioninfo
+
+# Swap files range from .saa to .swp
+*.s[a-w][a-p]
+
+# Files created by doc build
+doc/source/api
+
+# IDE files
+.project
+.pydevproject
+.idea
+.e4p
+.eric5project/
+.issues/
+.ropeproject

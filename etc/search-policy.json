@@ -1,0 +1,8 @@
+{
+    "context_is_admin":  "role:admin",
+    "default": "",
+
+    "catalog_index": "role:admin",
+    "catalog_search": "",
+    "catalog_plugins": ""
+}

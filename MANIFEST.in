@@ -1,0 +1,17 @@
+include run_tests.sh ChangeLog
+include README.rst builddeb.sh
+include MANIFEST.in pylintrc
+include AUTHORS
+include run_tests.py
+include HACKING.rst
+include LICENSE
+include ChangeLog
+include babel.cfg tox.ini
+include openstack-common.conf
+include searchlight/openstack/common/README
+graft doc
+graft etc
+graft searchlight/locale
+graft searchlight/tests
+graft tools
+global-exclude *.pyc
