@@ -18,6 +18,7 @@ import oslo_messaging
 
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import base
+from . import serialize_glance_image
 
 LOG = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class ImageHandler(base.NotificationBase):
 
     def create(self, payload):
         id = payload['id']
-        payload = self.format_image(payload)
+        payload = serialize_glance_image(payload)
         self.engine.create(
             index=self.index_name,
             doc_type=self.document_type,
@@ -53,7 +54,7 @@ class ImageHandler(base.NotificationBase):
 
     def update(self, payload):
         id = payload['id']
-        payload = self.format_image(payload)
+        payload = serialize_glance_image(payload)
         doc = {"doc": payload}
         self.engine.update(
             index=self.index_name,
@@ -69,15 +70,3 @@ class ImageHandler(base.NotificationBase):
             doc_type=self.document_type,
             id=id
         )
-
-    def format_image(self, payload):
-        visibility = 'public' if payload['is_public'] else 'private'
-        payload['visibility'] = visibility
-
-        payload.update(payload.get('properties', '{}'))
-
-        for key in payload.keys():
-            if key in self.image_delete_keys:
-                del payload[key]
-
-        return payload

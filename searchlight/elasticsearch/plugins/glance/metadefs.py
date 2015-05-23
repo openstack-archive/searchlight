@@ -17,13 +17,19 @@ import copy
 
 import six
 
-from searchlight.elasticsearch.plugins import base
-from searchlight.elasticsearch.plugins import metadefs_notification_handler
+import glance.db
+from glance.db.sqlalchemy import models_metadef as models
+from glance.search.plugins import base
+from glance.search.plugins import indexing_clients
+from glance.search.plugins import metadefs_notification_handler
+from . import serialize_glance_metadef
 
 
 class MetadefIndex(base.IndexBase):
     def __init__(self):
         super(MetadefIndex, self).__init__()
+
+        self.db_api = glance.db.get_api()
 
     def get_index_name(self):
         return 'glance'
@@ -114,87 +120,7 @@ class MetadefIndex(base.IndexBase):
         ]
 
     def get_objects(self):
-        # TODO:Use Glance API instead of db
-        return namespaces
-
-    def get_namespace_resource_types(self, namespace_id, resource_types):
-        # TODO:Use Glance API instead of db
-        return resource_associations
-
-    def get_namespace_properties(self, namespace_id):
-        # TODO:Use Glance API instead of db
-        return list(properties)
-
-    def get_namespace_objects(self, namespace_id):
-        # TODO:Use Glance API instead of db
-        return list(namespace_objects)
-
-    def get_namespace_tags(self, namespace_id):
-        # TODO:Use Glance API instead of db
-        return list(namespace_tags)
-
-    def serialize(self, obj):
-        object_docs = [self.serialize_object(ns_obj) for ns_obj in obj.objects]
-        property_docs = [self.serialize_property(prop.name, prop.json_schema)
-                         for prop in obj.properties]
-        resource_type_docs = [self.serialize_namespace_resource_type(rt)
-                              for rt in obj.resource_types]
-        tag_docs = [self.serialize_tag(tag) for tag in obj.tags]
-        namespace_doc = self.serialize_namespace(obj)
-        namespace_doc.update({
-            'objects': object_docs,
-            'properties': property_docs,
-            'resource_types': resource_type_docs,
-            'tags': tag_docs,
-        })
-        return namespace_doc
-
-    def serialize_namespace(self, namespace):
-        return {
-            'namespace': namespace.namespace,
-            'display_name': namespace.display_name,
-            'description': namespace.description,
-            'visibility': namespace.visibility,
-            'protected': namespace.protected,
-            'owner': namespace.owner,
-        }
-
-    def serialize_object(self, obj):
-        obj_properties = obj.json_schema
-        property_docs = []
-        for name, schema in six.iteritems(obj_properties):
-            property_doc = self.serialize_property(name, schema)
-            property_docs.append(property_doc)
-
-        document = {
-            'name': obj.name,
-            'description': obj.description,
-            'properties': property_docs,
-        }
-        return document
-
-    def serialize_property(self, name, schema):
-        document = copy.deepcopy(schema)
-        document['property'] = name
-
-        if 'default' in document:
-            document['default'] = str(document['default'])
-        if 'enum' in document:
-            document['enum'] = map(str, document['enum'])
-
-        return document
-
-    def serialize_namespace_resource_type(self, ns_resource_type):
-        return {
-            'name': ns_resource_type['name'],
-            'prefix': ns_resource_type['prefix'],
-            'properties_target': ns_resource_type['properties_target']
-        }
-
-    def serialize_tag(self, tag):
-        return {
-            'name': tag.name
-        }
+        return list(indexing_clients.get_glanceclient().metadefs_namespace.list())
 
     def get_notification_handler(self):
         return metadefs_notification_handler.MetadefHandler(

@@ -20,6 +20,7 @@ from oslo_log import log as logging
 import stevedore
 
 from searchlight.common import config
+from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight import i18n
 
 
@@ -31,6 +32,8 @@ _LE = i18n._LE
 def main():
     try:
         logging.register_options(CONF)
+        openstack_clients.register_cli_opts()
+
         cfg_files = cfg.find_config_files(project='searchlight',
                                           prog='searchlight-api')
         config.parse_args(default_config_files=cfg_files)

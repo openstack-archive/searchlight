@@ -18,8 +18,8 @@ import six
 from oslo_log import log as logging
 import oslo_messaging
 
-from searchlight.common import utils
-from searchlight.elasticsearch.plugins import base
+from glance.common import utils
+from glance.search.plugins import base
 
 LOG = logging.getLogger(__name__)
 

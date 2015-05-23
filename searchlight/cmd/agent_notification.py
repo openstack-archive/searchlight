@@ -13,12 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight import listener
 from searchlight.openstack.common import service as os_service
 from searchlight import service
 
 
 def main():
+    openstack_clients.register_cli_opts()
+
     service.prepare_service()
     launcher = os_service.ProcessLauncher()
     launcher.launch_service(

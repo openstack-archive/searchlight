@@ -18,7 +18,8 @@ from oslo_utils import timeutils
 from searchlight.api import policy
 from searchlight.common import property_utils
 from searchlight.elasticsearch.plugins import base
-from searchlight.elasticsearch.plugins import images_notification_handler
+from . import images_notification_handler
+from . import serialize_glance_image
 
 
 class ImageIndex(base.IndexBase):
@@ -110,45 +111,26 @@ class ImageIndex(base.IndexBase):
         return result
 
     def get_objects(self):
-        #TODO:  Get objects from Glance API.
-        return images
+        from searchlight.elasticsearch.plugins import openstack_clients
+        # Images include their properties and tags. Members are different
+        return openstack_clients.get_glanceclient().images.list()
 
     def serialize(self, obj):
-        visibility = 'public' if obj.is_public else 'private'
-        members = []
-        for member in obj.members:
-            if member.status == 'accepted' and member.deleted == 0:
-                members.append(member.member)
-
-        document = {
-            'id': obj.id,
-            'name': obj.name,
-            'tags': obj.tags,
-            'disk_format': obj.disk_format,
-            'container_format': obj.container_format,
-            'size': obj.size,
-            'virtual_size': obj.virtual_size,
-            'status': obj.status,
-            'visibility': visibility,
-            'checksum': obj.checksum,
-            'min_disk': obj.min_disk,
-            'min_ram': obj.min_ram,
-            'owner': obj.owner,
-            'protected': obj.protected,
-            'members': members,
-            'created_at': timeutils.isotime(obj.created_at),
-            'updated_at': timeutils.isotime(obj.updated_at)
-        }
-        for image_property in obj.properties:
-            document[image_property.name] = image_property.value
-
-        return document
+        return serialize_glance_image(obj)
 
     def get_notification_handler(self):
         return images_notification_handler.ImageHandler(
             self.engine,
             self.get_index_name(),
             self.get_document_type()
+        )
+
+    # TODO (sjmc7): These functions really belong to the notification handler,
+    # not this class
+    def get_notification_topics_exchanges(self):
+        # TODO (sjmc7): More importantly, this should come from config
+        return (
+            ('notifications', 'glance')
         )
 
     def get_notification_supported_events(self):
