@@ -20,7 +20,7 @@ import webob.exc
 from searchlight.common import exception
 from searchlight.common import utils
 import searchlight.gateway
-import searchlight.search
+import searchlight.elasticsearch
 from searchlight.api.v1 import search as search
 from searchlight.tests.unit import base
 import searchlight.tests.unit.utils as unit_test_utils
@@ -77,7 +77,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_search_all_repo(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.search = mock.Mock(return_value="{}")
         query = {"match_all": {}}
         index = "glance"
@@ -92,7 +92,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_search_forbidden(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.search = mock.Mock(side_effect=exception.Forbidden)
 
         query = {"match_all": {}}
@@ -108,7 +108,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_search_not_found(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.search = mock.Mock(side_effect=exception.NotFound)
 
         query = {"match_all": {}}
@@ -124,7 +124,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_search_duplicate(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.search = mock.Mock(side_effect=exception.Duplicate)
 
         query = {"match_all": {}}
@@ -140,7 +140,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_search_internal_server_error(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.search = mock.Mock(side_effect=Exception)
 
         query = {"match_all": {}}
@@ -169,7 +169,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_index_repo_complete(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
@@ -183,7 +183,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_index_repo_minimal(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
@@ -193,7 +193,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_index_forbidden(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=exception.Forbidden)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
@@ -204,7 +204,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_index_not_found(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=exception.NotFound)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
@@ -215,7 +215,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_index_duplicate(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=exception.Duplicate)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
@@ -226,7 +226,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_index_exception(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=Exception)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
@@ -243,14 +243,14 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_plugins_info_repo(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.plugins_info = mock.Mock(return_value="{}")
         self.search_controller.plugins_info(request)
         repo.plugins_info.assert_called_once_with()
 
     def test_plugins_info_forbidden(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.plugins_info = mock.Mock(side_effect=exception.Forbidden)
 
         self.assertRaises(
@@ -259,7 +259,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_plugins_info_not_found(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.plugins_info = mock.Mock(side_effect=exception.NotFound)
 
         self.assertRaises(webob.exc.HTTPNotFound,
@@ -267,7 +267,7 @@ class TestSearchController(base.IsolatedUnitTest):
 
     def test_plugins_info_internal_server_error(self):
         request = unit_test_utils.get_fake_request()
-        repo = glance.search.CatalogSearchRepo
+        repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.plugins_info = mock.Mock(side_effect=Exception)
 
         self.assertRaises(webob.exc.HTTPInternalServerError,
