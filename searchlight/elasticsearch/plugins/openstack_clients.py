@@ -15,8 +15,9 @@
 
 import glanceclient
 from keystoneclient.v2_0 import client as keystonev2client
-from oslo_config import cfg
 import os
+from oslo_config import cfg
+
 
 def register_cli_opts():
     CLI_OPTS = [
@@ -51,8 +52,8 @@ def register_cli_opts():
                    help='Region name to use for OpenStack service endpoints.'),
         cfg.StrOpt('os-endpoint-type',
                    default=os.environ.get('OS_ENDPOINT_TYPE', 'publicURL'),
-                   help='Type of endpoint in Identity service catalog to use for '
-                        'communication with OpenStack services.'),
+                   help='Type of endpoint in Identity service catalog to '
+                        'use for communication with OpenStack services.'),
         cfg.BoolOpt('insecure',
                     default=False,
                     help='Disables X.509 certificate validation when an '
@@ -62,6 +63,7 @@ def register_cli_opts():
 
 
 client_cache = {}
+
 
 def memoized(fn):
     """A poor-mans memoizer for instantiating openstack clients.
@@ -84,11 +86,12 @@ EXCEPTION_LIST = (
 def clear_cache_on_unauthorized(fn):
     """Provide a wrapper that clears cached openstack clients on auth failures
     (which will happen in long-running processes as keystone tokens become
-    invalid)."""
+    invalid).
+    """
     def wrapper(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except EXCEPTION_LIST, e:
+        except EXCEPTION_LIST:
             client_cache.clear()
             return fn(*args, **kwargs)
     return wrapper

@@ -17,11 +17,11 @@ import mock
 from oslo_serialization import jsonutils
 import webob.exc
 
+from searchlight.api.v1 import search as search
 from searchlight.common import exception
 from searchlight.common import utils
-import searchlight.gateway
 import searchlight.elasticsearch
-from searchlight.api.v1 import search as search
+import searchlight.gateway
 from searchlight.tests.unit import base
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils

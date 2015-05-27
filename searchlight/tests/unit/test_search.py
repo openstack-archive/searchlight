@@ -22,7 +22,6 @@ from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
 from searchlight.elasticsearch.plugins import openstack_clients
-#import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
 
@@ -75,7 +74,6 @@ def _image_fixture(image_id, **kwargs):
     """Simulates a v2 image (which is just a dictionary)
     """
     extra_properties = kwargs.pop('extra_properties', {})
-    convert_to_obj = kwargs.pop('convert_to_obj', False)
 
     image = {
         'id': image_id,
@@ -99,7 +97,8 @@ def _image_fixture(image_id, **kwargs):
         'updated_at': DATE1,
     }
     image.update(kwargs)
-    image['properties'] = [{'name': k, 'value': v} for k, v in extra_properties.iteritems()]
+    image['properties'] = [{'name': k, 'value': v}
+                           for k, v in extra_properties.iteritems()]
     return image
 
 
@@ -171,11 +170,14 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
 
         self.plugin = images_plugin.ImageIndex()
 
-        mock_ks_client = mock.Mock(
-            auth_token='auth token',
+        mock_ks_client = mock.Mock()
+        mock_ks_client.service_catalog.url_for.return_value = \
+            'http://localhost/glance/v2'
+        patched_ks_client = mock.patch.object(
+            openstack_clients,
+            'get_keystoneclient',
+            return_value=mock_ks_client
         )
-        mock_ks_client.service_catalog.url_for.return_value = 'http://localhost/glance/v2'
-        patched_ks_client = mock.patch.object(openstack_clients, 'get_keystoneclient', return_value=mock_ks_client)
         patched_ks_client.start()
         self.addCleanup(patched_ks_client.stop)
 
@@ -197,13 +199,12 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             UUID3, owner=TENANT2, checksum=CHECKSUM, name='complex', size=256,
             is_public=True, status='active',
         )
-        self.members_image_members=[
+        self.members_image_members = [
             {'member': TENANT1, 'deleted': False, 'status': 'accepted'},
             {'member': TENANT2, 'deleted': False, 'status': 'accepted'},
             {'member': TENANT3, 'deleted': True, 'status': 'accepted'},
             {'member': TENANT4, 'deleted': False, 'status': 'pending'},
         ]
-
 
         self.images = [self.simple_image, self.tagged_image,
                        self.complex_image, self.members_image]
@@ -234,7 +235,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'created_at': DATE1,
             'updated_at': DATE1
         }
-        with mock.patch('glanceclient.v2.image_members.Controller.list', return_value=[]):
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=[]):
             serialized = self.plugin.serialize(self.simple_image)
         self.assertEqual(expected, serialized)
 
@@ -258,7 +260,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'created_at': DATE1,
             'updated_at': DATE1
         }
-        with mock.patch('glanceclient.v2.image_members.Controller.list', return_value=[]):
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=[]):
             serialized = self.plugin.serialize(self.tagged_image)
         self.assertEqual(expected, serialized)
 
@@ -285,7 +288,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'updated_at': DATE1
         }
 
-        with mock.patch('glanceclient.v2.image_members.Controller.list', return_value=[]):
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=[]):
             serialized = self.plugin.serialize(self.complex_image)
         self.assertEqual(expected, serialized)
 
@@ -311,7 +315,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'updated_at': DATE1
         }
 
-        with mock.patch('glanceclient.v2.image_members.Controller.list', return_value=self.members_image_members):
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=self.members_image_members):
             serialized = self.plugin.serialize(self.members_image)
         self.assertEqual(expected, serialized)
 
@@ -321,10 +326,14 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             [], [], [], self.members_image_members
         ]
         with mock.patch('glanceclient.v2.images.Controller.list',
-                               return_value=self.images) as mock_get:
+                        return_value=self.images) as mock_get:
             with mock.patch('glanceclient.v2.image_members.Controller.list',
                             side_effect=image_member_mocks):
-                with mock.patch.object(self.plugin, 'save_documents') as mock_save:
+                # This is not testing the elasticsearch call, just
+                # that the documents being indexed are as expected
+                with mock.patch.object(
+                        self.plugin,
+                        'save_documents') as mock_save:
                     self.plugin.setup_data()
 
                     mock_get.assert_called_once_with()
@@ -395,8 +404,10 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'min_ram': None,
                             'visibility': 'public',
                             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
-                            'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
-                                        '2c014f32-55eb-467d-8fcb-4bd706012f81'],
+                            'members': [
+                                '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                                '2c014f32-55eb-467d-8fcb-4bd706012f81'
+                            ],
                             'min_disk': None,
                             'virtual_size': None,
                             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
@@ -422,7 +433,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         self._create_tags()
         self._create_objects()
 
-        #self.plugin = metadefs_plugin.MetadefIndex()
+        # self.plugin = metadefs_plugin.MetadefIndex()
 
     def _create_namespaces(self):
         self.namespaces = [

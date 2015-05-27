@@ -18,7 +18,7 @@ import oslo_messaging
 
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import base
-from . import serialize_glance_image
+from searchlight.elasticsearch.plugins.glance import serialize_glance_image
 
 LOG = logging.getLogger(__name__)
 

@@ -13,15 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import re
-
 from oslo_concurrency import lockutils
 from oslo_config import cfg
 from oslo_log import log as logging
-from oslo_utils import excutils
-from oslo_utils import units
 
-from searchlight.common import exception
 from searchlight.common import wsgi
 from searchlight import i18n
 

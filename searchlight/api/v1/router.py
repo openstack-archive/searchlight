@@ -13,8 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from searchlight.common import wsgi
 from searchlight.api.v1 import search
+from searchlight.common import wsgi
 
 
 class API(wsgi.Router):

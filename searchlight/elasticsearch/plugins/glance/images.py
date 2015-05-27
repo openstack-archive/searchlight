@@ -13,13 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_utils import timeutils
-
 from searchlight.api import policy
 from searchlight.common import property_utils
 from searchlight.elasticsearch.plugins import base
-from . import images_notification_handler
-from . import serialize_glance_image
+from searchlight.elasticsearch.plugins.glance \
+    import images_notification_handler
+from searchlight.elasticsearch.plugins.glance import serialize_glance_image
 
 
 class ImageIndex(base.IndexBase):
@@ -125,10 +124,10 @@ class ImageIndex(base.IndexBase):
             self.get_document_type()
         )
 
-    # TODO (sjmc7): These functions really belong to the notification handler,
+    # TODO(sjmc7): These functions really belong to the notification handler,
     # not this class
     def get_notification_topics_exchanges(self):
-        # TODO (sjmc7): More importantly, this should come from config
+        # TODO(sjmc7): More importantly, this should come from config
         return (
             ('notifications', 'glance')
         )

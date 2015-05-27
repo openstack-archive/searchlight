@@ -68,7 +68,8 @@ class PropertyRules(object):
         self.rules = []
         self.prop_exp_mapping = {}
         self.policies = []
-        self.policy_enforcer = policy_enforcer or searchlight.api.policy.Enforcer()
+        self.policy_enforcer = (policy_enforcer or
+                                searchlight.api.policy.Enforcer())
         self.prop_prot_rule_format = CONF.property_protection_rule_format
         self.prop_prot_rule_format = self.prop_prot_rule_format.lower()
         self._load_rules()

@@ -13,16 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
-from glanceclient.v1.images import Image as v1_image
 import glanceclient.exc
+from glanceclient.v1.images import Image as v1_image
 import logging
 import six
-from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins import openstack_clients
+from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
+_ = i18n._
+_LW = i18n._LW
 
 
 def serialize_glance_image(image):
@@ -44,19 +45,22 @@ def serialize_glance_image(image):
         members = g_client.image_members.list(image['id'])
         if using_v1:
             members = [member.to_dict() for member in members]
-    except glanceclient.exc.HTTPForbidden, e:
-        LOG.warning("Could not list image members for %s; forbidden", image['id'])
+    except glanceclient.exc.HTTPForbidden:
+        LOG.warning(_LW("Could not list image members for %s; forbidden") %
+                    image['id'])
         members = []
         pass
 
-    fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file', 'locations']
+    fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
+                        'locations']
     extra_properties = image.pop('properties', [])
-    document = dict((k, v) for k, v in image.iteritems()
+    document = dict((k, v) for k, v in six.iteritems(image)
                     if k not in fields_to_ignore)
 
     document['members'] = [
-       member['member'] for member in members
-       if (member['status'] == 'accepted' and member['deleted'] == 0)]
+        member['member'] for member in members
+        if (member['status'] == 'accepted' and member['deleted'] == 0)]
+
     for kv in extra_properties:
         document[kv['name']] = kv['value']
 

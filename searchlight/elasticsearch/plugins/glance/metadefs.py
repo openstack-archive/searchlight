@@ -13,23 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import copy
-
-import six
-
-import glance.db
-from glance.db.sqlalchemy import models_metadef as models
-from glance.search.plugins import base
-from glance.search.plugins import indexing_clients
-from glance.search.plugins import metadefs_notification_handler
-from . import serialize_glance_metadef
+from searchlight.elasticsearch.plugins import base
+from searchlight.elasticsearch.plugins.glance \
+    import metadefs_notification_handler
+# from searchlight.elasticsearch.plugins.glance import serialize_glance_metadef
 
 
 class MetadefIndex(base.IndexBase):
     def __init__(self):
         super(MetadefIndex, self).__init__()
-
-        self.db_api = glance.db.get_api()
 
     def get_index_name(self):
         return 'glance'
@@ -120,7 +112,9 @@ class MetadefIndex(base.IndexBase):
         ]
 
     def get_objects(self):
-        return list(indexing_clients.get_glanceclient().metadefs_namespace.list())
+        from searchlight.elasticsearch.plugins import openstack_clients
+        gc = openstack_clients.get_glanceclient()
+        return list(gc.metadefs_namespace.list())
 
     def get_notification_handler(self):
         return metadefs_notification_handler.MetadefHandler(

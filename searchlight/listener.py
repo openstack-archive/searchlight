@@ -15,10 +15,10 @@
 
 from oslo_config import cfg
 from oslo_log import log as logging
-# TODO: Figure this out better. The glance plugin uses the API policy module
-# as the enforcer for property_utils
-from oslo_policy import opts as oslo_policy_opts
 import oslo_messaging
+# TODO(sjmc7): Figure this out better. The glance plugin uses the API
+# policy module as the enforcer for property_utils
+from oslo_policy import opts as oslo_policy_opts
 import stevedore
 
 from searchlight import i18n
@@ -41,7 +41,8 @@ class NotificationEndpoint(object):
             try:
                 event_list = plugin.obj.get_notification_supported_events()
                 for event in event_list:
-                    LOG.debug("Registering event '%s' for plugin '%s'", event, plugin.name)
+                    LOG.debug("Registering event '%s' for plugin '%s'",
+                              event, plugin.name)
                     self.notification_target_map[event.lower()] = plugin.obj
             except Exception as e:
                 LOG.error(_LE("Failed to retrieve supported notification"
@@ -54,10 +55,11 @@ class NotificationEndpoint(object):
         for plugin in self.plugins:
             for plugin_topic in plugin.get_notification_topic_exchanges():
                 if isinstance(plugin_topic, basestring):
-                    # TODO (sjmc7): Keep this in or not?
-                    raise Exception(_LE("Plugin %s should return a list of" +
-                        "topic exchange pairs", plugin.__class__.__name__))
-                topics_exchanges.add(plugin_topics)
+                    # TODO(sjmc7): Keep this in or not?
+                    raise Exception(
+                        _LE("Plugin %s should return a list of topic exchange"
+                            "pairs") % plugin.__class__.__name__)
+                topics_exchanges.add(plugin_topic)
 
         return topics_exchanges
 
@@ -65,7 +67,8 @@ class NotificationEndpoint(object):
         event_type_l = event_type.lower()
         if event_type_l in self.notification_target_map:
             plugin = self.notification_target_map[event_type_l]
-            LOG.debug("Processing event '%s' with plugin '%s'", event_type_l, plugin.name)
+            LOG.debug("Processing event '%s' with plugin '%s'",
+                      event_type_l, plugin.name)
             handler = plugin.get_notification_handler()
             handler.process(
                 ctxt,
@@ -83,7 +86,7 @@ class ListenerService(os_service.Service):
     def start(self):
         super(ListenerService, self).start()
         transport = oslo_messaging.get_transport(cfg.CONF)
-        # TODO (sjmc7): This needs to come from the plugins, and from config
+        # TODO(sjmc7): This needs to come from the plugins, and from config
         # options rather than hardcoded. Refactor this out to a function
         # returning the set of topic,exchange pairs
         targets = [

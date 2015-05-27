@@ -19,13 +19,8 @@ import abc
 from oslo_config import cfg
 from oslo_log import log as logging
 import oslo_messaging
-from oslo_utils import excutils
-from oslo_utils import timeutils
 import six
-import webob
 
-from searchlight.common import exception
-from searchlight.common import utils
 from searchlight import i18n
 
 _ = i18n._

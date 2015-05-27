@@ -16,7 +16,6 @@
 from oslo_log import log as logging
 
 from searchlight.api import policy
-from searchlight.common import exception
 import searchlight.elasticsearch
 
 LOG = logging.getLogger(__name__)

@@ -16,8 +16,6 @@
 
 """Policy Engine For Searchlight"""
 
-import copy
-
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_policy import policy
