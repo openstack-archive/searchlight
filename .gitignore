@@ -1,6 +1,6 @@
 *.pyc
 *.log
-.glance-venv
+.searchlight-venv
 .venv
 .testrepository/
 .tox

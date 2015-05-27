@@ -39,9 +39,10 @@ from searchlight.common import property_utils
 from searchlight.common import utils
 from searchlight.common import wsgi
 from searchlight import context
+from searchlight.elasticsearch.plugins import openstack_clients
 
 CONF = cfg.CONF
-
+openstack_clients.register_cli_opts()
 
 class BaseTestCase(testtools.TestCase):
 
@@ -80,7 +81,7 @@ class BaseTestCase(testtools.TestCase):
             property_utils.CONFIG.remove_section(section)
 
     def _copy_data_file(self, file_name, dst_dir):
-        src_file_name = os.path.join('searchlight.tests/etc', file_name)
+        src_file_name = os.path.join('searchlight/tests/etc', file_name)
         shutil.copy(src_file_name, dst_dir)
         dst_file_name = os.path.join(dst_dir, file_name)
         return dst_file_name

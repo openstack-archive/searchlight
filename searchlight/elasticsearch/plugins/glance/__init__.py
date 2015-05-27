@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import copy
+from glanceclient.v1.images import Image as v1_image
 import glanceclient.exc
 import logging
 import six
@@ -26,28 +27,37 @@ LOG = logging.getLogger(__name__)
 
 def serialize_glance_image(image):
     g_client = openstack_clients.get_glanceclient()
-    # If this came from notifications it'll either be an image id
-    # or a dictionary. Either way, there's not enough information.
+    using_v1 = False
+
+    # If we're being asked to index an ID, retrieve the full image information
     if isinstance(image, basestring):
         image = g_client.images.get(image)
-    elif isinstance(image, dict):
-        # Not sure this is necessary - does the 'list image' API
-        # return everything we need?
-        image = g_client.images.get(image['id'])
+
+    # If a v1 image, convert to dict so we can iterate over its properties
+    if isinstance(image, v1_image):
+        using_v1 = True
+        image = image.to_dict()
+    else:
+        image['visibility'] = 'public' if image.pop('is_public') else 'private'
 
     try:
-        members = list(g_client.image_members.list(image.id))
+        members = g_client.image_members.list(image['id'])
+        if using_v1:
+            members = [member.to_dict() for member in members]
     except glanceclient.exc.HTTPForbidden, e:
-        LOG.warning("Could not list image members for %s; forbidden", image.id)
+        LOG.warning("Could not list image members for %s; forbidden", image['id'])
         members = []
         pass
 
-    fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file']
+    fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file', 'locations']
+    extra_properties = image.pop('properties', [])
     document = dict((k, v) for k, v in image.iteritems()
                     if k not in fields_to_ignore)
 
     document['members'] = [
-        member.member for member in members
-        if (member.status == 'accepted' and member.deleted == 0)]
+       member['member'] for member in members
+       if (member['status'] == 'accepted' and member['deleted'] == 0)]
+    for kv in extra_properties:
+        document[kv['name']] = kv['value']
 
     return document

@@ -114,7 +114,7 @@ function run_tests {
     if [ "$testropts" = "" ] && [ "$testrargs" = "" ]; then
       # Default to running all tests if specific test is not
       # provided.
-      testrargs="discover ./glance/tests"
+      testrargs="discover ./searchlight/tests"
     fi
     ${wrapper} python -m testtools.run $testropts $testrargs
 
@@ -134,7 +134,7 @@ function run_tests {
   set +e
   testrargs=`echo "$testrargs" | sed -e's/^\s*\(.*\)\s*$/\1/'`
   TESTRTESTS="$TESTRTESTS --testr-args='--subunit --concurrency $concurrency $testropts $testrargs'"
-  if [ setup.cfg -nt glance.egg-info/entry_points.txt ]
+  if [ setup.cfg -nt searchlight.egg-info/entry_points.txt ]
   then
     ${wrapper} python setup.py egg_info
   fi
@@ -156,7 +156,7 @@ function run_tests {
     echo "Generating coverage report in covhtml/"
     # Don't compute coverage for common code, which is tested elsewhere
     ${wrapper} coverage combine
-    ${wrapper} coverage html --include='glance/*' --omit='glance/openstack/common/*' -d covhtml -i
+    ${wrapper} coverage html --include='searchlight/*' --omit='searchlight/openstack/common/*' -d covhtml -i
   fi
 
   return $RESULT
