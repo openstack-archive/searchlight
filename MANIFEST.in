@@ -1,4 +1,3 @@
-include run_tests.sh ChangeLog
 include README.rst builddeb.sh
 include MANIFEST.in pylintrc
 include AUTHORS
