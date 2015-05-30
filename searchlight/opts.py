@@ -3,6 +3,7 @@ import itertools
 import searchlight.common.wsgi
 import searchlight.common.property_utils
 import searchlight.common.config
+import searchlight.elasticsearch
 
 
 def list_opts():
@@ -13,8 +14,7 @@ def list_opts():
                          searchlight.common.wsgi.eventlet_opts,
                          searchlight.common.property_utils.property_opts,
                          searchlight.common.config.common_opts)),
-        ('paste_deploy',
-         searchlight.common.config.paste_deploy_opts),
-        ('profiler',
-         searchlight.common.wsgi.profiler_opts),
+        ('elasticsearch', searchlight.elasticsearch.search_opts),
+        ('paste_deploy', searchlight.common.config.paste_deploy_opts),
+        ('profiler', searchlight.common.wsgi.profiler_opts),
     ]
