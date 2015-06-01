@@ -545,3 +545,8 @@ class HttplibWsgiAdapter(object):
         response = self.req.get_response(self.app)
         return FakeHTTPResponse(response.status_code, response.headers,
                                 response.body)
+
+
+class DictObj(object):
+    def __init__(self, **entries):
+        self.__dict__.update(entries)
