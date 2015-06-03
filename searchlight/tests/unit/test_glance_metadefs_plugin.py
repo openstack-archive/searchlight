@@ -59,17 +59,17 @@ def _namespace_fixture(**kwargs):
         'schema': '/v2/schemas/metadefs/namespace',
         'resource_type_associations': [],
         'tags': [],
-        'objects': []
+        'objects': [],
+        'properties': {}
     }
     obj.update(kwargs)
     return obj
 
 
-def _property_fixture(name, **kwargs):
+def _property_fixture(title, **kwargs):
     obj = {
-        'name': name,
         'description': None,
-        'title': None,
+        'title': title,
         'type': 'string'
     }
     obj.update(kwargs)
@@ -80,7 +80,7 @@ def _object_fixture(name, **kwargs):
     obj = {
         'name': name,
         'description': None,
-        'properties': []
+        'properties': {}
     }
     obj.update(kwargs)
     return obj
@@ -161,25 +161,30 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
 
     def _create_properties(self):
         properties = [
-            _property_fixture(name=PROPERTY1, title='title1'),
-            _property_fixture(name=PROPERTY2, title='title2'),
-            _property_fixture(name=PROPERTY3, title='title3')
+            _property_fixture('title1'),
+            _property_fixture('title2'),
+            _property_fixture('title3')
         ]
 
-        self.namespaces[0]['properties'] = properties[:1]
-        self.namespaces[1]['properties'] = properties[1:]
+        self.namespaces[0]['properties'] = {
+            PROPERTY1: properties[0]
+        }
+        self.namespaces[1]['properties'] = {
+            PROPERTY2: properties[1],
+            PROPERTY3: properties[2]
+        }
 
     def _create_objects(self):
         objects = [
             _object_fixture(name=OBJECT1,
-                               description='desc1',
-                               properties=[_property_fixture(
-                                   name='property1',
-                                   type='string',
-                                   enum=['value1', 'value2'],
-                                   default='value1',
-                                   title='something title')]
-                           ),
+                            description='desc1',
+                            properties={
+                                'property1': _property_fixture(
+                                    'something title',
+                                    type='string',
+                                    enum=['value1', 'value2'],
+                                    default='value1')
+                            }),
             _object_fixture(name=OBJECT2,
                             description='desc2'),
             _object_fixture(name=OBJECT3,
@@ -289,6 +294,50 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         ns = list(self._list_namespaces())[0]
         with mock.patch('glanceclient.v2.metadefs.NamespaceController.get',
                                return_value=self._get_namespace(ns['namespace'])):
+            serialized = self.plugin.serialize(ns)
+        self.assertEqual(expected, serialized)
+
+    def test_serialize_no_tags(self):
+        ns = copy.deepcopy(list(self._list_namespaces())[0])
+        return_value = self._get_namespace(0)
+        del return_value['tags']
+
+        expected = {
+            'namespace': 'namespace1',
+            'display_name': '1',
+            'description': 'desc1',
+            'visibility': 'private',
+            'protected': True,
+            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'objects': [{
+                'description': 'desc1',
+                'name': 'Object1',
+                'properties': [{
+                    'default': 'value1',
+                    'description': None,
+                    'enum': ['value1', 'value2'],
+                    'name': 'property1',
+                    'type': 'string',
+                    'title': 'something title'
+                }]
+            }],
+            'resource_types': [{
+                # TODO(sjmc7): Removing these because i'm not sure we
+                # have access to them
+                #'prefix': 'p1',
+                'name': 'ResourceType1',
+                #'properties_target': None
+            }],
+            'properties': [{
+                'name': 'Property1',
+                'title': 'title1',
+                'type': 'string',
+                'description': None
+            }],
+            'tags': [],
+        }
+        with mock.patch('glanceclient.v2.metadefs.NamespaceController.get',
+                               return_value=return_value):
             serialized = self.plugin.serialize(ns)
         self.assertEqual(expected, serialized)
 
