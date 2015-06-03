@@ -60,8 +60,8 @@ class MetadefIndex(base.IndexBase):
                         'name': {'type': 'string'},
                         # TODO(sjmc7): add these back in? They don't seem
                         # to be accessible via the API
-                        #'prefix': {'type': 'string'},
-                        #'properties_target': {'type': 'string'},
+                        # 'prefix': {'type': 'string'},
+                        # 'properties_target': {'type': 'string'},
                     },
                 },
                 'objects': {

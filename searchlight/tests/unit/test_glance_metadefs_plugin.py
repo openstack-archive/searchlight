@@ -15,7 +15,6 @@
 
 import copy
 import mock
-import unittest
 
 from searchlight.elasticsearch.plugins.glance import metadefs as md_plugin
 from searchlight.elasticsearch.plugins import openstack_clients
@@ -139,24 +138,24 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
     def _create_namespaces(self):
         self.namespaces = [
             _namespace_fixture(namespace=NAMESPACE1,
-                                  display_name='1',
-                                  description='desc1',
-                                  visibility='private',
-                                  protected=True,
-                                  owner=TENANT1,
-                                  resource_type_associations=[
-                                      {"name": RESOURCE_TYPE1}
-                                  ]),
+                               display_name='1',
+                               description='desc1',
+                               visibility='private',
+                               protected=True,
+                               owner=TENANT1,
+                               resource_type_associations=[
+                                   {"name": RESOURCE_TYPE1}
+                               ]),
             _namespace_fixture(namespace=NAMESPACE2,
-                                  display_name='2',
-                                  description='desc2',
-                                  visibility='public',
-                                  protected=False,
-                                  owner=TENANT1,
-                                  resource_type_associations=[
-                                      {"name": RESOURCE_TYPE2},
-                                      {"name": RESOURCE_TYPE3}
-                                  ]),
+                               display_name='2',
+                               description='desc2',
+                               visibility='public',
+                               protected=False,
+                               owner=TENANT1,
+                               resource_type_associations=[
+                                   {"name": RESOURCE_TYPE2},
+                                   {"name": RESOURCE_TYPE3}
+                               ]),
         ]
 
     def _create_properties(self):
@@ -194,16 +193,6 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         self.namespaces[0]['objects'] = objects[:1]
         self.namespaces[1]['objects'] = objects[1:]
 
-    def ___create_resource_types(self):
-        self.resource_types = [
-            _resource_type_fixture(name=RESOURCE_TYPE1,
-                                      protected=False),
-            _resource_type_fixture(name=RESOURCE_TYPE2,
-                                      protected=False),
-            _resource_type_fixture(name=RESOURCE_TYPE3,
-                                      protected=True),
-        ]
-
     def _create_namespace_resource_types(self):
         namespace_resource_types = [
             _namespace_resource_type_fixture(
@@ -232,7 +221,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
 
     def _get_namespace(self, namespace):
         """The 'get' namespace API call returns everything (objects, properties,
-        resource type allocations) whereas 'list' does not"""
+        resource type allocations) whereas 'list' does not.
+        """
         if isinstance(namespace, int):
             return self.namespaces[namespace]
         else:
@@ -241,7 +231,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
 
     def _list_namespaces(self):
         """Return a stripped down copy of namespaces, minus tags, properties,
-        objects, similar to glanceclient"""
+        objects, similar to glanceclient.
+        """
         for namespace in self.namespaces:
             ns_copy = copy.deepcopy(namespace)
             del ns_copy['tags']
@@ -278,9 +269,9 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             'resource_types': [{
                 # TODO(sjmc7): Removing these because i'm not sure we
                 # have access to them
-                #'prefix': 'p1',
+                # 'prefix': 'p1',
                 'name': 'ResourceType1',
-                #'properties_target': None
+                # 'properties_target': None
             }],
             'properties': [{
                 'name': 'Property1',
@@ -293,7 +284,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
 
         ns = list(self._list_namespaces())[0]
         with mock.patch('glanceclient.v2.metadefs.NamespaceController.get',
-                               return_value=self._get_namespace(ns['namespace'])):
+                        return_value=self._get_namespace(ns['namespace'])):
             serialized = self.plugin.serialize(ns)
         self.assertEqual(expected, serialized)
 
@@ -324,9 +315,9 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             'resource_types': [{
                 # TODO(sjmc7): Removing these because i'm not sure we
                 # have access to them
-                #'prefix': 'p1',
+                # 'prefix': 'p1',
                 'name': 'ResourceType1',
-                #'properties_target': None
+                # 'properties_target': None
             }],
             'properties': [{
                 'name': 'Property1',
@@ -337,7 +328,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             'tags': [],
         }
         with mock.patch('glanceclient.v2.metadefs.NamespaceController.get',
-                               return_value=return_value):
+                        return_value=return_value):
             serialized = self.plugin.serialize(ns)
         self.assertEqual(expected, serialized)
 

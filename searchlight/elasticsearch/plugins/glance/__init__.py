@@ -85,11 +85,12 @@ def serialize_glance_metadef_ns(metadef_namespace):
     def _serialize_object(obj):
         serialized_obj = {
             'name': obj['name'],
-            'description': obj['description'],
-            'properties': []
+            'description': obj['description']
         }
-        for name, property in six.iteritems(obj.get('properties', {})):
-            serialized_obj['properties'].append(_serialize_property(name, property))
+        serialized_obj['properties'] = [
+            _serialize_property(name, property)
+            for name, property in six.iteritems(obj.get('properties', {}))
+        ]
         return serialized_obj
 
     def _serialize_res_type(rt):
@@ -115,15 +116,19 @@ def serialize_glance_metadef_ns(metadef_namespace):
     document = dict((f, metadef_namespace.get(f, None))
                     for f in namespace_fields)
 
-    document['tags'] = [_serialize_tag(tag) for tag in metadef_namespace.get('tags', [])]
+    document['tags'] = [
+        _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])
+    ]
     document['properties'] = [
         _serialize_property(name, property)
-        for name, property in six.iteritems(metadef_namespace.get('properties', {}))
+        for name, property in six.iteritems(
+            metadef_namespace.get('properties', {}))
     ]
     document['objects'] = [
         _serialize_object(obj) for obj in metadef_namespace.get('objects', [])
     ]
     document['resource_types'] = [
-        _serialize_res_type(rt) for rt in metadef_namespace.get('resource_type_associations', [])
+        _serialize_res_type(rt)
+        for rt in metadef_namespace.get('resource_type_associations', [])
     ]
     return document

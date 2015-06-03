@@ -98,7 +98,8 @@ class IndexBase(object):
 
     def get_document_id_field(self):
         """Whatever document field should be treated as the id. This field
-        should also be mapped to _id in the elasticsearch mapping"""
+        should also be mapped to _id in the elasticsearch mapping
+        """
         return "id"
 
     @abc.abstractmethod
