@@ -16,7 +16,8 @@
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance \
     import metadefs_notification_handler
-# from searchlight.elasticsearch.plugins.glance import serialize_glance_metadef
+from searchlight.elasticsearch.plugins.glance \
+    import serialize_glance_metadef_ns
 
 
 class MetadefIndex(base.IndexBase):
@@ -34,7 +35,7 @@ class MetadefIndex(base.IndexBase):
             'dynamic': True,
             'type': 'nested',
             'properties': {
-                'property': {'type': 'string', 'index': 'not_analyzed'},
+                'name': {'type': 'string', 'index': 'not_analyzed'},
                 'type': {'type': 'string'},
                 'title': {'type': 'string'},
                 'description': {'type': 'string'},
@@ -54,8 +55,10 @@ class MetadefIndex(base.IndexBase):
                     'type': 'nested',
                     'properties': {
                         'name': {'type': 'string'},
-                        'prefix': {'type': 'string'},
-                        'properties_target': {'type': 'string'},
+                        # TODO(sjmc7): add these back in? They don't seem
+                        # to be accessible via the API
+                        #'prefix': {'type': 'string'},
+                        #'properties_target': {'type': 'string'},
                     },
                 },
                 'objects': {
@@ -115,6 +118,10 @@ class MetadefIndex(base.IndexBase):
         from searchlight.elasticsearch.plugins import openstack_clients
         gc = openstack_clients.get_glanceclient()
         return list(gc.metadefs_namespace.list())
+
+    def serialize(self, metadef_obj):
+        # TODO(sjmc7): don't do it like this
+        return serialize_glance_metadef_ns(metadef_obj)
 
     def get_notification_handler(self):
         return metadefs_notification_handler.MetadefHandler(
