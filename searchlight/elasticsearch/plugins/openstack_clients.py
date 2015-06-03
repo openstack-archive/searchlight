@@ -117,6 +117,7 @@ def get_glanceclient():
         service_type='image')
 
     return glanceclient.client.Client(
+        version=2,
         endpoint=endpoint,
         token=ks_client.auth_token,
         auth_url=ks_client.auth_url,
