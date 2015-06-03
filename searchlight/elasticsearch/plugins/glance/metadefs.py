@@ -30,6 +30,9 @@ class MetadefIndex(base.IndexBase):
     def get_document_type(self):
         return 'metadef'
 
+    def get_document_id_field(self):
+        return 'namespace'
+
     def get_mapping(self):
         property_mapping = {
             'dynamic': True,
@@ -120,7 +123,6 @@ class MetadefIndex(base.IndexBase):
         return list(gc.metadefs_namespace.list())
 
     def serialize(self, metadef_obj):
-        # TODO(sjmc7): don't do it like this
         return serialize_glance_metadef_ns(metadef_obj)
 
     def get_notification_handler(self):
