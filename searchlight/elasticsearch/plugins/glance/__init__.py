@@ -87,10 +87,10 @@ def serialize_glance_metadef_ns(metadef_namespace):
             'name': obj['name'],
             'description': obj['description']
         }
-        serialized_obj['properties'] = [
+        serialized_obj['properties'] = sorted([
             _serialize_property(name, property)
             for name, property in six.iteritems(obj.get('properties', {}))
-        ]
+        ])
         return serialized_obj
 
     def _serialize_res_type(rt):
@@ -116,19 +116,19 @@ def serialize_glance_metadef_ns(metadef_namespace):
     document = dict((f, metadef_namespace.get(f, None))
                     for f in namespace_fields)
 
-    document['tags'] = [
+    document['tags'] = sorted([
         _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])
-    ]
-    document['properties'] = [
+    ])
+    document['properties'] = sorted([
         _serialize_property(name, property)
         for name, property in six.iteritems(
             metadef_namespace.get('properties', {}))
-    ]
-    document['objects'] = [
+    ])
+    document['objects'] = sorted([
         _serialize_object(obj) for obj in metadef_namespace.get('objects', [])
-    ]
-    document['resource_types'] = [
+    ])
+    document['resource_types'] = sorted([
         _serialize_res_type(rt)
         for rt in metadef_namespace.get('resource_type_associations', [])
-    ]
+    ])
     return document
