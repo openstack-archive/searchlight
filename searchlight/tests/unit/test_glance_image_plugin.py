@@ -22,6 +22,7 @@ from oslo_utils import timeutils
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
 from searchlight.elasticsearch.plugins import openstack_clients
 import searchlight.tests.utils as test_utils
+import searchlight.tests.unit.utils as unit_test_utils
 
 
 DATETIME = datetime.datetime(2012, 5, 16, 15, 27, 36, 325355)
@@ -239,10 +240,13 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         image_member_mocks = [
             [], [], [], self.members_image_members
         ]
+        member_calls = [
+            mock.call(i['id']) for i in self.images
+        ]
         with mock.patch('glanceclient.v2.images.Controller.list',
-                        return_value=self.images) as mock_get:
+                        return_value=self.images) as mock_list:
             with mock.patch('glanceclient.v2.image_members.Controller.list',
-                            side_effect=image_member_mocks):
+                            side_effect=image_member_mocks) as mock_members:
                 # This is not testing the elasticsearch call, just
                 # that the documents being indexed are as expected
                 with mock.patch.object(
@@ -250,7 +254,9 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                         'save_documents') as mock_save:
                     self.plugin.setup_data()
 
-                    mock_get.assert_called_once_with()
+                    mock_list.assert_called_once_with()
+                    mock_members.assert_has_calls(member_calls)
+
                     mock_save.assert_called_once_with([
                         {
                             'status': 'active',
@@ -334,3 +340,31 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'updated_at': DATE1
                         }
                     ])
+
+    def test_image_non_admin_rbac(self):
+        """Test that for non-admin users, appropriate rbac is added"""
+        request_context = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search'
+        )
+        rbac_query_fragment = self.plugin.get_rbac_filter(request_context.context)
+        expected_fragment = [{
+            "and": [{
+                "or": [
+                    {
+                        "term": {"owner": TENANT1}
+                    },
+                    {
+                        "term": {"visibility": "public"}
+                    },
+                    {
+                        "term": {"members": TENANT1}
+                    }
+                ],
+            },
+            # TODO(sjmc7): This is actually a bug; it should be and "and" on
+            # index and document type
+            {
+                "type": {"value": "image" }
+            }]
+        }]
+        self.assertEqual(expected_fragment, rbac_query_fragment)
