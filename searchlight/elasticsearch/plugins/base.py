@@ -29,6 +29,8 @@ class IndexBase(object):
         self.engine = searchlight.elasticsearch.get_api()
         self.index_name = self.get_index_name()
         self.document_type = self.get_document_type()
+        self.document_id_field = self.get_document_id_field()
+        self.name = "%s-%s" % (self.index_name, self.document_type)
 
     def setup(self):
         """Comprehensively install search engine index and put data into it."""
@@ -68,12 +70,12 @@ class IndexBase(object):
 
         self.save_documents(documents)
 
-    def save_documents(self, documents, id_field='id'):
+    def save_documents(self, documents):
         """Send list of serialized documents into search engine."""
         actions = []
         for document in documents:
             action = {
-                '_id': document.get(id_field),
+                '_id': document.get(self.document_id_field),
                 '_source': document,
             }
 
@@ -93,6 +95,12 @@ class IndexBase(object):
     @abc.abstractmethod
     def serialize(self, obj):
         """Serialize database object into valid search engine document."""
+
+    def get_document_id_field(self):
+        """Whatever document field should be treated as the id. This field
+        should also be mapped to _id in the elasticsearch mapping
+        """
+        return "id"
 
     @abc.abstractmethod
     def get_index_name(self):

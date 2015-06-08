@@ -13,9 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 import mock
-import unittest
 
+from searchlight.elasticsearch.plugins.glance import metadefs as md_plugin
+from searchlight.elasticsearch.plugins import openstack_clients
 import searchlight.tests.utils as test_utils
 
 
@@ -43,37 +45,44 @@ TAG2 = 'Tag2'
 TAG3 = 'Tag3'
 
 
-def _db_namespace_fixture(**kwargs):
+# TODO(sjmc7): Move this stuff to a fixtures module. These should match
+# responses from the glance v2 API
+def _namespace_fixture(**kwargs):
     obj = {
         'namespace': None,
         'display_name': None,
         'description': None,
-        'visibility': True,
-        'protected': False,
-        'owner': None
+        'visibility': 'public',
+        'protected': True,
+        'owner': None,
+        'schema': '/v2/schemas/metadefs/namespace',
+        'resource_type_associations': [],
+        'tags': [],
+        'objects': [],
+        'properties': {}
     }
     obj.update(kwargs)
-    return test_utils.DictObj(**obj)
+    return obj
 
 
-def _db_property_fixture(name, **kwargs):
+def _property_fixture(title, **kwargs):
     obj = {
-        'name': name,
-        'json_schema': {"type": "string", "title": "title"},
+        'description': None,
+        'title': title,
+        'type': 'string'
     }
     obj.update(kwargs)
-    return test_utils.DictObj(**obj)
+    return obj
 
 
-def _db_object_fixture(name, **kwargs):
+def _object_fixture(name, **kwargs):
     obj = {
         'name': name,
         'description': None,
-        'json_schema': {},
-        'required': '[]',
+        'properties': {}
     }
     obj.update(kwargs)
-    return test_utils.DictObj(**obj)
+    return obj
 
 
 def _db_resource_type_fixture(name, **kwargs):
@@ -82,10 +91,10 @@ def _db_resource_type_fixture(name, **kwargs):
         'protected': False,
     }
     obj.update(kwargs)
-    return test_utils.DictObj(**obj)
+    return obj
 
 
-def _db_namespace_resource_type_fixture(name, prefix, **kwargs):
+def _namespace_resource_type_fixture(name, prefix, **kwargs):
     obj = {
         'properties_target': None,
         'prefix': prefix,
@@ -95,158 +104,149 @@ def _db_namespace_resource_type_fixture(name, prefix, **kwargs):
     return obj
 
 
-def _db_tag_fixture(name, **kwargs):
+def _tag_fixture(name, **kwargs):
     obj = {
         'name': name,
     }
     obj.update(**kwargs)
-    return test_utils.DictObj(**obj)
+    return obj
 
 
 class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
     def setUp(self):
         super(TestMetadefLoaderPlugin, self).setUp()
 
-        self._create_resource_types()
         self._create_namespaces()
         self._create_namespace_resource_types()
         self._create_properties()
         self._create_tags()
         self._create_objects()
 
-        # self.plugin = metadefs_plugin.MetadefIndex()
+        self.plugin = md_plugin.MetadefIndex()
+
+        mock_ks_client = mock.Mock()
+        mock_ks_client.service_catalog.url_for.return_value = \
+            'http://localhost/glance/v2'
+        patched_ks_client = mock.patch.object(
+            openstack_clients,
+            'get_keystoneclient',
+            return_value=mock_ks_client
+        )
+        patched_ks_client.start()
+        self.addCleanup(patched_ks_client.stop)
 
     def _create_namespaces(self):
         self.namespaces = [
-            _db_namespace_fixture(namespace=NAMESPACE1,
-                                  display_name='1',
-                                  description='desc1',
-                                  visibility='private',
-                                  protected=True,
-                                  owner=TENANT1),
-            _db_namespace_fixture(namespace=NAMESPACE2,
-                                  display_name='2',
-                                  description='desc2',
-                                  visibility='public',
-                                  protected=False,
-                                  owner=TENANT1),
+            _namespace_fixture(namespace=NAMESPACE1,
+                               display_name='1',
+                               description='desc1',
+                               visibility='private',
+                               protected=True,
+                               owner=TENANT1,
+                               resource_type_associations=[
+                                   {"name": RESOURCE_TYPE1}
+                               ]),
+            _namespace_fixture(namespace=NAMESPACE2,
+                               display_name='2',
+                               description='desc2',
+                               visibility='public',
+                               protected=False,
+                               owner=TENANT1,
+                               resource_type_associations=[
+                                   {"name": RESOURCE_TYPE2},
+                                   {"name": RESOURCE_TYPE3}
+                               ]),
         ]
 
     def _create_properties(self):
-        self.properties = [
-            _db_property_fixture(name=PROPERTY1),
-            _db_property_fixture(name=PROPERTY2),
-            _db_property_fixture(name=PROPERTY3)
+        properties = [
+            _property_fixture('title1'),
+            _property_fixture('title2'),
+            _property_fixture('title3')
         ]
 
-        self.namespaces[0].properties = [self.properties[0]]
-        self.namespaces[1].properties = self.properties[1:]
+        self.namespaces[0]['properties'] = {
+            PROPERTY1: properties[0]
+        }
+        self.namespaces[1]['properties'] = {
+            PROPERTY2: properties[1],
+            PROPERTY3: properties[2]
+        }
 
     def _create_objects(self):
-        self.objects = [
-            _db_object_fixture(name=OBJECT1,
-                               description='desc1',
-                               json_schema={'property1': {
-                                   'type': 'string',
-                                   'default': 'value1',
-                                   'enum': ['value1', 'value2']
-                               }}),
-            _db_object_fixture(name=OBJECT2,
-                               description='desc2'),
-            _db_object_fixture(name=OBJECT3,
-                               description='desc3'),
+        objects = [
+            _object_fixture(name=OBJECT1,
+                            description='desc1',
+                            properties={
+                                'property1': _property_fixture(
+                                    'something title',
+                                    type='string',
+                                    enum=['value1', 'value2'],
+                                    default='value1')
+                            }),
+            _object_fixture(name=OBJECT2,
+                            description='desc2'),
+            _object_fixture(name=OBJECT3,
+                            description='desc3'),
         ]
 
-        self.namespaces[0].objects = [self.objects[0]]
-        self.namespaces[1].objects = self.objects[1:]
-
-    def _create_resource_types(self):
-        self.resource_types = [
-            _db_resource_type_fixture(name=RESOURCE_TYPE1,
-                                      protected=False),
-            _db_resource_type_fixture(name=RESOURCE_TYPE2,
-                                      protected=False),
-            _db_resource_type_fixture(name=RESOURCE_TYPE3,
-                                      protected=True),
-        ]
+        self.namespaces[0]['objects'] = objects[:1]
+        self.namespaces[1]['objects'] = objects[1:]
 
     def _create_namespace_resource_types(self):
-        self.namespace_resource_types = [
-            _db_namespace_resource_type_fixture(
+        namespace_resource_types = [
+            _namespace_resource_type_fixture(
                 prefix='p1',
-                name=self.resource_types[0].name),
-            _db_namespace_resource_type_fixture(
+                name=RESOURCE_TYPE1),
+            _namespace_resource_type_fixture(
                 prefix='p2',
-                name=self.resource_types[1].name),
-            _db_namespace_resource_type_fixture(
+                name=RESOURCE_TYPE2),
+            _namespace_resource_type_fixture(
                 prefix='p2',
-                name=self.resource_types[2].name),
+                name=RESOURCE_TYPE3),
         ]
-        self.namespaces[0].resource_types = self.namespace_resource_types[:1]
-        self.namespaces[1].resource_types = self.namespace_resource_types[1:]
+        self.namespaces[0]['resource_type_associations'] = \
+            namespace_resource_types[:1]
+        self.namespaces[1]['resource_type_associations'] = \
+            namespace_resource_types[1:]
 
     def _create_tags(self):
-        self.tags = [
-            _db_resource_type_fixture(name=TAG1),
-            _db_resource_type_fixture(name=TAG2),
-            _db_resource_type_fixture(name=TAG3),
+        tags = [
+            _tag_fixture(name=TAG1),
+            _tag_fixture(name=TAG2),
+            _tag_fixture(name=TAG3),
         ]
-        self.namespaces[0].tags = self.tags[:1]
-        self.namespaces[1].tags = self.tags[1:]
+        self.namespaces[0]['tags'] = tags[:1]
+        self.namespaces[1]['tags'] = tags[1:]
 
-    @unittest.skip("Skipping metadefs")
+    def _get_namespace(self, namespace):
+        """The 'get' namespace API call returns everything (objects, properties,
+        resource type allocations) whereas 'list' does not.
+        """
+        if isinstance(namespace, int):
+            return self.namespaces[namespace]
+        else:
+            return filter(lambda n: n['namespace'] == namespace,
+                          self.namespaces)[0]
+
+    def _list_namespaces(self):
+        """Return a stripped down copy of namespaces, minus tags, properties,
+        objects, similar to glanceclient.
+        """
+        for namespace in self.namespaces:
+            ns_copy = copy.deepcopy(namespace)
+            del ns_copy['tags']
+            del ns_copy['properties']
+            del ns_copy['objects']
+            yield ns_copy
+
     def test_index_name(self):
         self.assertEqual('glance', self.plugin.get_index_name())
 
-    @unittest.skip("Skipping metadefs")
     def test_document_type(self):
         self.assertEqual('metadef', self.plugin.get_document_type())
 
-    @unittest.skip("Skipping metadefs")
-    def test_namespace_serialize(self):
-        metadef_namespace = self.namespaces[0]
-        expected = {
-            'namespace': 'namespace1',
-            'display_name': '1',
-            'description': 'desc1',
-            'visibility': 'private',
-            'protected': True,
-            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df'
-        }
-        serialized = self.plugin.serialize_namespace(metadef_namespace)
-        self.assertEqual(expected, serialized)
-
-    @unittest.skip("Skipping metadefs")
-    def test_object_serialize(self):
-        metadef_object = self.objects[0]
-        expected = {
-            'name': 'Object1',
-            'description': 'desc1',
-            'properties': [{
-                'default': 'value1',
-                'enum': ['value1', 'value2'],
-                'property': 'property1',
-                'type': 'string'
-            }]
-        }
-        serialized = self.plugin.serialize_object(metadef_object)
-        self.assertEqual(expected, serialized)
-
-    @unittest.skip("Skipping metadefs")
-    def test_property_serialize(self):
-        metadef_property = self.properties[0]
-        expected = {
-            'property': 'Property1',
-            'type': 'string',
-            'title': 'title',
-        }
-        serialized = self.plugin.serialize_property(
-            metadef_property.name, metadef_property.json_schema)
-        self.assertEqual(expected, serialized)
-
-    @unittest.skip("Skipping metadefs")
     def test_complex_serialize(self):
-        metadef_namespace = self.namespaces[0]
         expected = {
             'namespace': 'namespace1',
             'display_name': '1',
@@ -259,27 +259,79 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                 'name': 'Object1',
                 'properties': [{
                     'default': 'value1',
+                    'description': None,
                     'enum': ['value1', 'value2'],
-                    'property': 'property1',
-                    'type': 'string'
+                    'name': 'property1',
+                    'type': 'string',
+                    'title': 'something title'
                 }]
             }],
             'resource_types': [{
-                'prefix': 'p1',
+                # TODO(sjmc7): Removing these because i'm not sure we
+                # have access to them
+                # 'prefix': 'p1',
                 'name': 'ResourceType1',
-                'properties_target': None
+                # 'properties_target': None
             }],
             'properties': [{
-                'property': 'Property1',
-                'title': 'title',
-                'type': 'string'
+                'name': 'Property1',
+                'title': 'title1',
+                'type': 'string',
+                'description': None
             }],
             'tags': [{'name': 'Tag1'}],
         }
-        serialized = self.plugin.serialize(metadef_namespace)
+
+        ns = list(self._list_namespaces())[0]
+        with mock.patch('glanceclient.v2.metadefs.NamespaceController.get',
+                        return_value=self._get_namespace(ns['namespace'])):
+            serialized = self.plugin.serialize(ns)
         self.assertEqual(expected, serialized)
 
-    @unittest.skip("Skipping metadefs")
+    def test_serialize_no_tags(self):
+        ns = copy.deepcopy(list(self._list_namespaces())[0])
+        return_value = self._get_namespace(0)
+        del return_value['tags']
+
+        expected = {
+            'namespace': 'namespace1',
+            'display_name': '1',
+            'description': 'desc1',
+            'visibility': 'private',
+            'protected': True,
+            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'objects': [{
+                'description': 'desc1',
+                'name': 'Object1',
+                'properties': [{
+                    'default': 'value1',
+                    'description': None,
+                    'enum': ['value1', 'value2'],
+                    'name': 'property1',
+                    'type': 'string',
+                    'title': 'something title'
+                }]
+            }],
+            'resource_types': [{
+                # TODO(sjmc7): Removing these because i'm not sure we
+                # have access to them
+                # 'prefix': 'p1',
+                'name': 'ResourceType1',
+                # 'properties_target': None
+            }],
+            'properties': [{
+                'name': 'Property1',
+                'title': 'title1',
+                'type': 'string',
+                'description': None
+            }],
+            'tags': [],
+        }
+        with mock.patch('glanceclient.v2.metadefs.NamespaceController.get',
+                        return_value=return_value):
+            serialized = self.plugin.serialize(ns)
+        self.assertEqual(expected, serialized)
+
     def test_setup_data(self):
         with mock.patch.object(self.plugin, 'get_objects',
                                return_value=self.namespaces) as mock_get:
@@ -297,9 +349,11 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                                 'description': 'desc1',
                                 'properties': [{
                                     'default': 'value1',
-                                    'property': 'property1',
+                                    'name': 'property1',
                                     'enum': ['value1', 'value2'],
-                                    'type': 'string'
+                                    'type': 'string',
+                                    'title': 'something title',
+                                    'description': None
                                 }],
                             }
                         ],
@@ -308,14 +362,13 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'protected': True,
                         'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
                         'properties': [{
-                            'property': 'Property1',
+                            'name': 'Property1',
                             'type': 'string',
-                            'title': 'title'
+                            'title': 'title1',
+                            'description': None
                         }],
                         'resource_types': [{
-                            'prefix': 'p1',
                             'name': 'ResourceType1',
-                            'properties_target': None
                         }],
                         'tags': [{'name': 'Tag1'}],
                     },
@@ -340,26 +393,24 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
                         'properties': [
                             {
-                                'property': 'Property2',
+                                'name': 'Property2',
                                 'type': 'string',
-                                'title': 'title'
+                                'title': 'title2',
+                                'description': None
                             },
                             {
-                                'property': 'Property3',
+                                'name': 'Property3',
                                 'type': 'string',
-                                'title': 'title'
+                                'title': 'title3',
+                                'description': None
                             }
                         ],
                         'resource_types': [
                             {
-                                'name': 'ResourceType2',
-                                'prefix': 'p2',
-                                'properties_target': None,
+                                'name': 'ResourceType2'
                             },
                             {
-                                'name': 'ResourceType3',
-                                'prefix': 'p2',
-                                'properties_target': None,
+                                'name': 'ResourceType3'
                             }
                         ],
                         'tags': [
