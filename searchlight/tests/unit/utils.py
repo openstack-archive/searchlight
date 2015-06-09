@@ -22,12 +22,14 @@ import searchlight.context
 SOMEUSER = '54492ba0-dead-beef-be62-27f4d76b29cf'
 SOMETENANT = '6838eb7b-6ded-dead-beef-b344c77fe8df'
 
+
 def get_fake_request(user=SOMEUSER, tenant=SOMETENANT, path='/v1/search',
                      method='GET', is_admin=False, roles=['member']):
     req = wsgi.Request.blank(path)
     req.method = method
 
     if is_admin and 'admin' not in roles:
+        roles = roles[:]
         roles.append('admin')
 
     kwargs = {

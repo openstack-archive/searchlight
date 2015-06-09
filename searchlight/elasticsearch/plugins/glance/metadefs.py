@@ -112,6 +112,11 @@ class MetadefIndex(base.IndexBase):
                         'type': {
                             'value': self.get_document_type()
                         }
+                    },
+                    {
+                        'index': {
+                            'value': self.get_index_name()
+                        }
                     }
                 ]
             }

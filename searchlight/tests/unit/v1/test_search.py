@@ -167,7 +167,7 @@ class TestSearchController(test_utils.BaseTestCase):
             request, actions, default_index, default_type)
 
     def test_index_repo_complete(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
@@ -181,7 +181,7 @@ class TestSearchController(test_utils.BaseTestCase):
             default_index, default_type, actions)
 
     def test_index_repo_minimal(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
@@ -202,7 +202,7 @@ class TestSearchController(test_utils.BaseTestCase):
             request, actions)
 
     def test_index_not_found(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=exception.NotFound)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
