@@ -52,7 +52,7 @@ def _image_fixture(image_id, **kwargs):
     image = {
         'id': image_id,
         'name': None,
-        'is_public': False,
+        'visibility': 'public',
         'kernel_id': None,
         'file': 'v2/images/' + image_id,
         'checksum': None,
@@ -71,8 +71,8 @@ def _image_fixture(image_id, **kwargs):
         'updated_at': DATE1,
     }
     image.update(kwargs)
-    image['properties'] = [{'name': k, 'value': v}
-                           for k, v in extra_properties.iteritems()]
+    for k, v in extra_properties.iteritems():
+        image[k] = v
     return image
 
 
@@ -98,20 +98,20 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
     def _create_images(self):
         self.simple_image = _image_fixture(
             UUID1, owner=TENANT1, checksum=CHECKSUM, name='simple', size=256,
-            is_public=True, status='active'
+            visibility='public', status='active'
         )
         self.tagged_image = _image_fixture(
             UUID2, owner=TENANT1, checksum=CHECKSUM, name='tagged', size=512,
-            is_public=True, status='active', tags=['ping', 'pong'],
+            visibility='public', status='active', tags=['ping', 'pong'],
         )
         self.complex_image = _image_fixture(
             UUID3, owner=TENANT2, checksum=CHECKSUM, name='complex', size=256,
-            is_public=True, status='active',
+            visibility='public', status='active',
             extra_properties={'mysql_version': '5.6', 'hypervisor': 'lxc'}
         )
         self.members_image = _image_fixture(
             UUID3, owner=TENANT2, checksum=CHECKSUM, name='complex', size=256,
-            is_public=True, status='active',
+            visibility='private', status='active',
         )
         self.members_image_members = [
             {'member': TENANT1, 'deleted': False, 'status': 'accepted'},
@@ -135,7 +135,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
-            'members': [],
             'min_disk': None,
             'min_ram': None,
             'name': 'simple',
@@ -160,7 +159,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc',
-            'members': [],
             'min_disk': None,
             'min_ram': None,
             'name': 'tagged',
@@ -186,7 +184,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'disk_format': None,
             'hypervisor': 'lxc',
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
-            'members': [],
             'min_disk': None,
             'min_ram': None,
             'mysql_version': '5.6',
@@ -224,7 +221,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'status': 'active',
             'tags': [],
             'virtual_size': None,
-            'visibility': 'public',
+            'visibility': 'private',
             'created_at': DATE1,
             'updated_at': DATE1
         }
@@ -259,7 +256,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'min_ram': None,
                             'visibility': 'public',
                             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
-                            'members': [],
                             'min_disk': None,
                             'virtual_size': None,
                             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
@@ -278,7 +274,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'min_ram': None,
                             'visibility': 'public',
                             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
-                            'members': [],
                             'min_disk': None,
                             'virtual_size': None,
                             'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc',
@@ -297,7 +292,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'min_ram': None,
                             'visibility': 'public',
                             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
-                            'members': [],
                             'min_disk': None,
                             'virtual_size': None,
                             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
@@ -316,7 +310,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'tags': [],
                             'container_format': None,
                             'min_ram': None,
-                            'visibility': 'public',
+                            'visibility': 'private',
                             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
                             'members': [
                                 '6838eb7b-6ded-434a-882c-b344c77fe8df',

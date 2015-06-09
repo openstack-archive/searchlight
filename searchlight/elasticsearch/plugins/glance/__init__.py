@@ -53,9 +53,6 @@ def serialize_glance_image(image):
     fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
                         'locations']
 
-    extra_properties = None
-    if 'properties' in image:
-        extra_properties = image['properties']
     document = dict((k, v) for k, v in six.iteritems(image)
                     if k not in fields_to_ignore)
 
@@ -63,10 +60,6 @@ def serialize_glance_image(image):
         document['members'] = [
             member['member'] for member in members
             if (member['status'] == 'accepted' and member['deleted'] == 0)]
-
-    if extra_properties:
-        for kv in extra_properties:
-            document[kv['name']] = kv['value']
 
     return document
 
