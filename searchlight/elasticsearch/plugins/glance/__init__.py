@@ -35,6 +35,7 @@ def serialize_glance_image(image):
     if isinstance(image, basestring):
         image = g_client.images.get(image)
 
+    # TODO(lakshmiS): We shouldn't check for v1 since g_client is always v2.
     # If a v1 image, convert to dict so we can iterate over its properties
     if isinstance(image, v1_image):
         using_v1 = True
@@ -42,6 +43,7 @@ def serialize_glance_image(image):
 
     try:
         members = g_client.image_members.list(image['id'])
+        # TODO(lakshmiS): Same as above. No need to check for v1.
         if using_v1:
             members = [member.to_dict() for member in members]
     except glanceclient.exc.HTTPForbidden:
