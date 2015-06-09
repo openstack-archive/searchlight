@@ -39,8 +39,6 @@ def serialize_glance_image(image):
     if isinstance(image, v1_image):
         using_v1 = True
         image = image.to_dict()
-    else:
-        image['visibility'] = 'public' if image.pop('is_public') else 'private'
 
     try:
         members = g_client.image_members.list(image['id'])
@@ -54,16 +52,21 @@ def serialize_glance_image(image):
 
     fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
                         'locations']
-    extra_properties = image.pop('properties', [])
+
+    extra_properties = None
+    if 'properties' in image:
+        extra_properties = image['properties']
     document = dict((k, v) for k, v in six.iteritems(image)
                     if k not in fields_to_ignore)
 
-    document['members'] = [
-        member['member'] for member in members
-        if (member['status'] == 'accepted' and member['deleted'] == 0)]
+    if image['visibility'] != 'public':
+        document['members'] = [
+            member['member'] for member in members
+            if (member['status'] == 'accepted' and member['deleted'] == 0)]
 
-    for kv in extra_properties:
-        document[kv['name']] = kv['value']
+    if extra_properties:
+        for kv in extra_properties:
+            document[kv['name']] = kv['value']
 
     return document
 
