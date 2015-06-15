@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 import datetime
 
 import mock
@@ -21,6 +22,7 @@ from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
 from searchlight.elasticsearch.plugins import openstack_clients
+import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
 
@@ -79,6 +81,7 @@ def _image_fixture(image_id, **kwargs):
 class TestImageLoaderPlugin(test_utils.BaseTestCase):
     def setUp(self):
         super(TestImageLoaderPlugin, self).setUp()
+        self.set_property_protections()
 
         self._create_images()
 
@@ -236,10 +239,13 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         image_member_mocks = [
             [], [], [], self.members_image_members
         ]
+        member_calls = [
+            mock.call(i['id']) for i in self.images
+        ]
         with mock.patch('glanceclient.v2.images.Controller.list',
-                        return_value=self.images) as mock_get:
+                        return_value=self.images) as mock_list:
             with mock.patch('glanceclient.v2.image_members.Controller.list',
-                            side_effect=image_member_mocks):
+                            side_effect=image_member_mocks) as mock_members:
                 # This is not testing the elasticsearch call, just
                 # that the documents being indexed are as expected
                 with mock.patch.object(
@@ -247,7 +253,9 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                         'save_documents') as mock_save:
                     self.plugin.setup_data()
 
-                    mock_get.assert_called_once_with()
+                    mock_list.assert_called_once_with()
+                    mock_members.assert_has_calls(member_calls)
+
                     mock_save.assert_called_once_with([
                         {
                             'status': 'active',
@@ -328,3 +336,128 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'updated_at': DATE1
                         }
                     ])
+
+    def test_image_rbac(self):
+        """Test the image plugin RBAC query terms"""
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search'
+        )
+        rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
+        expected_fragment = [{
+            "and": [
+                {
+                    "or": [
+                        {"term": {"owner": TENANT1}},
+                        {"term": {"visibility": "public"}},
+                        {"term": {"members": TENANT1}}
+                    ]
+                },
+                {"type": {"value": "image"}},
+                {"index": {"value": "glance"}}
+            ]
+        }]
+        self.assertEqual(expected_fragment, rbac_query_fragment)
+
+    def test_protected_properties(self):
+        extra_props = {
+            'x_foo_matcher': 'this is protected',
+            'x_foo_something_else': 'this is not protected',
+            'z_this_has_no_rules': 'this is protected too'
+        }
+        image_with_properties = _image_fixture(
+            UUID1, owner=TENANT1, checksum=CHECKSUM, name='simple', size=256,
+            is_public=True, status='active', extra_properties=extra_props
+        )
+
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=[]):
+            serialized = self.plugin.serialize(image_with_properties)
+
+        elasticsearch_results = {
+            'hits': {
+                'hits': [{
+                    '_source': copy.deepcopy(serialized),
+                    '_type': self.plugin.get_document_type(),
+                    '_index': self.plugin.get_index_name()
+                }]
+            }
+        }
+
+        # Admin context
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search', is_admin=True
+        )
+        filtered_result = self.plugin.filter_result(
+            elasticsearch_results, fake_request.context
+        )
+
+        # This should contain the three properties we added
+        expected = {
+            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+            'container_format': None,
+            'disk_format': None,
+            'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'members': [],
+            'min_disk': None,
+            'min_ram': None,
+            'name': 'simple',
+            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'protected': False,
+            'size': 256,
+            'status': 'active',
+            'tags': [],
+            'virtual_size': None,
+            'visibility': 'public',
+            'created_at': DATE1,
+            'updated_at': DATE1,
+            'x_foo_matcher': 'this is protected',
+            'x_foo_something_else': 'this is not protected',
+            'z_this_has_no_rules': 'this is protected too'
+        }
+
+        self.assertEqual(expected,
+                         filtered_result['hits']['hits'][0]['_source'])
+
+        # Non admin user. Recreate this because the filter operation modifies
+        # it in place and we want a fresh copy
+        elasticsearch_results = {
+            'hits': {
+                'hits': [{
+                    '_source': copy.deepcopy(serialized),
+                    '_type': self.plugin.get_document_type(),
+                    '_index': self.plugin.get_index_name()
+                }]
+            }
+        }
+        # Non admin context should miss the x_foo property
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search', is_admin=False
+        )
+        filtered_result = self.plugin.filter_result(
+            elasticsearch_results, fake_request.context
+        )
+
+        # Should be missing two of the properties
+        expected = {
+            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+            'container_format': None,
+            'disk_format': None,
+            'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'members': [],
+            'min_disk': None,
+            'min_ram': None,
+            'name': 'simple',
+            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'protected': False,
+            'size': 256,
+            'status': 'active',
+            'tags': [],
+            'virtual_size': None,
+            'visibility': 'public',
+            'created_at': DATE1,
+            'updated_at': DATE1,
+            'x_foo_something_else': 'this is not protected'
+        }
+
+        self.assertEqual(expected,
+                         filtered_result['hits']['hits'][0]['_source'])

@@ -18,10 +18,13 @@ import mock
 
 from searchlight.elasticsearch.plugins.glance import metadefs as md_plugin
 from searchlight.elasticsearch.plugins import openstack_clients
+import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
 
 # Metadefinitions
+USER1 = '54492ba0-f4df-4e4e-be62-27f4d76b29cf'
+
 TENANT1 = '6838eb7b-6ded-434a-882c-b344c77fe8df'
 TENANT2 = '2c014f32-55eb-467d-8fcb-4bd706012f81'
 
@@ -419,3 +422,23 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         ],
                     }
                 ])
+
+    def test_metadef_rbac(self):
+        """Test metadefs RBAC query terms"""
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search'
+        )
+        rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
+        expected_fragment = [{
+            "and": [
+                {
+                    "or": [
+                        {"term": {"owner": TENANT1}},
+                        {"term": {"visibility": "public"}},
+                    ]
+                },
+                {"type": {"value": "metadef"}},
+                {"index": {"value": "glance"}}
+            ]
+        }]
+        self.assertEqual(expected_fragment, rbac_query_fragment)

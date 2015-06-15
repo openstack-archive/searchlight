@@ -22,7 +22,6 @@ from searchlight.common import exception
 from searchlight.common import utils
 import searchlight.elasticsearch
 import searchlight.gateway
-from searchlight.tests.unit import base
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -54,7 +53,7 @@ def _image_fixture(op_type, _id=None, index='glance', doc_type='image',
     return _action_fixture(op_type, image_data, index, doc_type, _id, **kwargs)
 
 
-class TestSearchController(base.IsolatedUnitTest):
+class TestSearchController(test_utils.BaseTestCase):
 
     def setUp(self):
         super(TestSearchController, self).setUp()
@@ -155,7 +154,7 @@ class TestSearchController(base.IsolatedUnitTest):
             request, query, index, doc_type, fields, offset, limit)
 
     def test_index_complete(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         self.search_controller.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
@@ -168,7 +167,7 @@ class TestSearchController(base.IsolatedUnitTest):
             request, actions, default_index, default_type)
 
     def test_index_repo_complete(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
@@ -182,7 +181,7 @@ class TestSearchController(base.IsolatedUnitTest):
             default_index, default_type, actions)
 
     def test_index_repo_minimal(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
@@ -203,7 +202,7 @@ class TestSearchController(base.IsolatedUnitTest):
             request, actions)
 
     def test_index_not_found(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=exception.NotFound)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
@@ -214,7 +213,7 @@ class TestSearchController(base.IsolatedUnitTest):
             request, actions)
 
     def test_index_duplicate(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=exception.Duplicate)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
@@ -225,7 +224,7 @@ class TestSearchController(base.IsolatedUnitTest):
             request, actions)
 
     def test_index_exception(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         repo = searchlight.elasticsearch.CatalogSearchRepo
         repo.index = mock.Mock(side_effect=Exception)
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
@@ -236,7 +235,7 @@ class TestSearchController(base.IsolatedUnitTest):
             request, actions)
 
     def test_plugins_info(self):
-        request = unit_test_utils.get_fake_request()
+        request = unit_test_utils.get_fake_request(is_admin=True)
         self.search_controller.plugins_info = mock.Mock(return_value="{}")
         self.search_controller.plugins_info(request)
         self.search_controller.plugins_info.assert_called_once_with(request)
