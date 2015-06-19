@@ -138,6 +138,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'members': [],
             'min_disk': None,
             'min_ram': None,
             'name': 'simple',
@@ -162,6 +163,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc',
+            'members': [],
             'min_disk': None,
             'min_ram': None,
             'name': 'tagged',
@@ -187,6 +189,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'disk_format': None,
             'hypervisor': 'lxc',
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'members': [],
             'min_disk': None,
             'min_ram': None,
             'mysql_version': '5.6',
@@ -265,6 +268,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'visibility': 'public',
                             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
                             'min_disk': None,
+                            'members': [],
                             'virtual_size': None,
                             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
                             'size': 256,
@@ -281,6 +285,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'container_format': None,
                             'min_ram': None,
                             'visibility': 'public',
+                            'members': [],
                             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
                             'min_disk': None,
                             'virtual_size': None,
@@ -299,6 +304,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'container_format': None,
                             'min_ram': None,
                             'visibility': 'public',
+                            'members': [],
                             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
                             'min_disk': None,
                             'virtual_size': None,
@@ -366,7 +372,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         }
         image_with_properties = _image_fixture(
             UUID1, owner=TENANT1, checksum=CHECKSUM, name='simple', size=256,
-            is_public=True, status='active', extra_properties=extra_props
+            status='active', extra_properties=extra_props
         )
 
         with mock.patch('glanceclient.v2.image_members.Controller.list',

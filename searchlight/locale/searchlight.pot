@@ -1,0 +1,739 @@
+# Translations template for searchlight.
+# Copyright (C) 2015 ORGANIZATION
+# This file is distributed under the same license as the searchlight
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: searchlight 2015.1.0.dev50\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2015-06-19 12:19-0500\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 1.3\n"
+
+#: searchlight/schema.py:65
+#, python-format
+msgid "custom properties (%(props)s) conflict with base properties"
+msgstr ""
+
+#: searchlight/api/versions.py:29
+msgid ""
+"Public url to use for versions endpoint. The default is None, which will "
+"use the request's host_url attribute to populate the URL base. If Glance "
+"is operating behind a proxy, you will want to change this to represent "
+"the proxy's URL."
+msgstr ""
+
+#: searchlight/api/middleware/context.py:30
+msgid ""
+"When true, this option sets the owner of an image to be the tenant. "
+"Otherwise, the owner of the  image will be the authenticated user issuing"
+" the request."
+msgstr ""
+
+#: searchlight/api/middleware/context.py:35
+msgid "Role used to identify an authenticated user as administrator."
+msgstr ""
+
+#: searchlight/api/middleware/context.py:38
+msgid ""
+"Allow unauthenticated users to access the API with read-only privileges. "
+"This only applies when using ContextMiddleware."
+msgstr ""
+
+#: searchlight/api/middleware/context.py:54
+msgid "Unable to retrieve request id from context"
+msgstr ""
+
+#: searchlight/api/middleware/context.py:111
+msgid "Invalid service catalog json."
+msgstr ""
+
+#: searchlight/api/middleware/version_negotiation.py:44
+#, python-format
+msgid "Determining version of request: %(method)s %(path)s Accept: %(accept)s"
+msgstr ""
+
+#: searchlight/api/v1/search.py:121
+msgid "Body expected in request."
+msgstr ""
+
+#: searchlight/api/v1/search.py:129
+#, python-format
+msgid "Attribute '%s' is read-only."
+msgstr ""
+
+#: searchlight/api/v1/search.py:142
+#, python-format
+msgid "Index '%s' is not supported."
+msgstr ""
+
+#: searchlight/api/v1/search.py:151
+#, python-format
+msgid "Document type '%s' is not supported."
+msgstr ""
+
+#: searchlight/api/v1/search.py:160
+msgid "offset param must be an integer"
+msgstr ""
+
+#: searchlight/api/v1/search.py:164
+msgid "offset param must be positive"
+msgstr ""
+
+#: searchlight/api/v1/search.py:173
+msgid "limit param must be an integer"
+msgstr ""
+
+#: searchlight/api/v1/search.py:177
+msgid "limit param must be positive"
+msgstr ""
+
+#: searchlight/api/v1/search.py:184
+msgid "actions param cannot be empty"
+msgstr ""
+
+#: searchlight/api/v1/search.py:204
+#, python-format
+msgid "Invalid action type: '%s'"
+msgstr ""
+
+#: searchlight/api/v1/search.py:208
+#, python-format
+msgid "Action type '%s' requires data or script param."
+msgstr ""
+
+#: searchlight/api/v1/search.py:212
+#, python-format
+msgid "Action type '%s' requires ID of the document."
+msgstr ""
+
+#: searchlight/api/v1/search.py:335
+msgid "Action index is missing and no default index has been set."
+msgstr ""
+
+#: searchlight/api/v1/search.py:340
+msgid "Action document type is missing and no default type has been set."
+msgstr ""
+
+#: searchlight/cmd/__init__.py:41
+#, python-format
+msgid ""
+"It appears that the eventlet module has been imported prior to setting "
+"%s='yes'. It is currently necessary to disable eventlet.greendns if using"
+" ipv6 since eventlet.greendns currently breaks with ipv6 addresses. "
+"Please ensure that eventlet is not imported prior to this being set."
+msgstr ""
+
+#: searchlight/cmd/control.py:105
+#, python-format
+msgid "%(serv)s appears to already be running: %(pid)s"
+msgstr ""
+
+#: searchlight/cmd/control.py:109
+#, python-format
+msgid "Removing stale pid file %s"
+msgstr ""
+
+#: searchlight/cmd/control.py:118
+msgid "Unable to increase file descriptor limit.  Running as non-root?"
+msgstr ""
+
+#: searchlight/cmd/control.py:165
+#, python-format
+msgid "%(verb)sing %(serv)s with %(conf)s"
+msgstr ""
+
+#: searchlight/cmd/control.py:168
+#, python-format
+msgid "%(verb)sing %(serv)s"
+msgstr ""
+
+#: searchlight/cmd/control.py:180
+#, python-format
+msgid "unable to launch %(serv)s. Got error: %(e)s"
+msgstr ""
+
+#: searchlight/cmd/control.py:211
+#, python-format
+msgid "%(serv)s (pid %(pid)s) is running..."
+msgstr ""
+
+#: searchlight/cmd/control.py:214
+#, python-format
+msgid "%s is stopped"
+msgstr ""
+
+#: searchlight/cmd/control.py:230
+#, python-format
+msgid ""
+"Unable to create pid file %(pid)s.  Running as non-root?\n"
+"Falling back to a temp file, you can stop %(service)s service using:\n"
+"  %(file)s %(server)s stop --pid-file %(fb)s"
+msgstr ""
+
+#: searchlight/cmd/control.py:247
+#, python-format
+msgid "Reload of %(serv)s not supported"
+msgstr ""
+
+#: searchlight/cmd/control.py:255
+#, python-format
+msgid "Server %(serv)s is stopped"
+msgstr ""
+
+#: searchlight/cmd/control.py:260
+#, python-format
+msgid "Reloading %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr ""
+
+#: searchlight/cmd/control.py:264 searchlight/cmd/control.py:286
+#, python-format
+msgid "Process %d not running"
+msgstr ""
+
+#: searchlight/cmd/control.py:282
+#, python-format
+msgid "Stopping %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr ""
+
+#: searchlight/cmd/control.py:293
+#, python-format
+msgid "Waited 15 seconds for pid %(pid)s (%(file)s) to die; giving up"
+msgstr ""
+
+#: searchlight/cmd/control.py:296
+#, python-format
+msgid "%s is already stopped"
+msgstr ""
+
+#: searchlight/cmd/control.py:373
+#, python-format
+msgid "Suppressed respawn as %(serv)s was %(rsn)s."
+msgstr ""
+
+#: searchlight/common/auth.py:189 searchlight/common/auth.py:229
+#, python-format
+msgid "Unexpected response: %s"
+msgstr ""
+
+#: searchlight/common/auth.py:257
+#, python-format
+msgid "Unknown auth strategy '%s'"
+msgstr ""
+
+#: searchlight/common/auth.py:278
+#, python-format
+msgid "Encountered service with no \"type\": %s"
+msgstr ""
+
+#: searchlight/common/config.py:41
+msgid ""
+"Partial name of a pipeline in your paste configuration file with the "
+"service name removed. For example, if your paste section name is "
+"[pipeline:searchlight-api-keystone] use the value \"keystone\""
+msgstr ""
+
+#: searchlight/common/config.py:47
+msgid "Name of the paste configuration file."
+msgstr ""
+
+#: searchlight/common/config.py:52
+msgid ""
+"Default value for the number of items returned by a request if not "
+"specified explicitly in the request"
+msgstr ""
+
+#: searchlight/common/config.py:55
+msgid "Maximum permissible number of items that could be returned by a request"
+msgstr ""
+
+#: searchlight/common/config.py:58
+msgid "The hostname/IP of the pydev process listening for debug connections"
+msgstr ""
+
+#: searchlight/common/config.py:61
+msgid "The port on which a pydev process is listening for connections."
+msgstr ""
+
+#: searchlight/common/config.py:64
+msgid ""
+"AES key for encrypting store 'location' metadata. This includes, if used,"
+" Swift or S3 credentials. Should be set to a random string of length 16, "
+"24 or 32 bytes"
+msgstr ""
+
+#: searchlight/common/config.py:69
+msgid ""
+"Digest algorithm which will be used for digital signature; the default is"
+" sha1 the default in Kilo for a smooth upgrade process, and it will be "
+"updated with sha256 in next release(L). Use the command \"openssl list-"
+"message-digest-algorithms\" to get the available algorithms supported by "
+"the version of OpenSSL on the platform. Examples are \"sha1\", "
+"\"sha256\", \"sha512\", etc."
+msgstr ""
+
+#: searchlight/common/config.py:136
+#, python-format
+msgid "Unable to locate paste config file for %s."
+msgstr ""
+
+#: searchlight/common/config.py:175
+#, python-format
+msgid ""
+"Unable to load %(app_name)s from configuration file %(conf_file)s.\n"
+"Got: %(e)r"
+msgstr ""
+
+#: searchlight/common/exception.py:42
+msgid "An unknown exception occurred"
+msgstr ""
+
+#: searchlight/common/exception.py:67
+#, python-format
+msgid "Missing required credential: %(required)s"
+msgstr ""
+
+#: searchlight/common/exception.py:71
+#, python-format
+msgid ""
+"Incorrect auth strategy, expected \"%(expected)s\" but received "
+"\"%(received)s\""
+msgstr ""
+
+#: searchlight/common/exception.py:76
+msgid "An object with the specified identifier was not found."
+msgstr ""
+
+#: searchlight/common/exception.py:80
+msgid "The Store URI was malformed."
+msgstr ""
+
+#: searchlight/common/exception.py:84
+msgid "An object with the same identifier already exists."
+msgstr ""
+
+#: searchlight/common/exception.py:88
+msgid "An object with the same identifier is currently being operated on."
+msgstr ""
+
+#: searchlight/common/exception.py:93
+#, python-format
+msgid "Connect error/bad request to Auth service at URL %(url)s."
+msgstr ""
+
+#: searchlight/common/exception.py:97
+#, python-format
+msgid "Auth service at URL %(url)s not found."
+msgstr ""
+
+#: searchlight/common/exception.py:101
+msgid "Authorization failed."
+msgstr ""
+
+#: searchlight/common/exception.py:105
+msgid "You are not authenticated."
+msgstr ""
+
+#: searchlight/common/exception.py:109
+#, python-format
+msgid "Image upload problem: %s"
+msgstr ""
+
+#: searchlight/common/exception.py:113
+msgid "You are not authorized to complete this action."
+msgstr ""
+
+#: searchlight/common/exception.py:117
+msgid "Data supplied was not valid."
+msgstr ""
+
+#: searchlight/common/exception.py:121
+msgid "Sort key supplied was not valid."
+msgstr ""
+
+#: searchlight/common/exception.py:125
+msgid "Sort direction supplied was not valid."
+msgstr ""
+
+#: searchlight/common/exception.py:129
+msgid "Invalid configuration in property protection file."
+msgstr ""
+
+#: searchlight/common/exception.py:133
+msgid "Unable to filter using the specified range."
+msgstr ""
+
+#: searchlight/common/exception.py:137
+#, python-format
+msgid "Invalid value for option %(option)s: %(value)s"
+msgstr ""
+
+#: searchlight/common/exception.py:141
+#, python-format
+msgid "Attribute '%(property)s' is read-only."
+msgstr ""
+
+#: searchlight/common/exception.py:145
+#, python-format
+msgid "Attribute '%(property)s' is reserved."
+msgstr ""
+
+#: searchlight/common/exception.py:149
+#, python-format
+msgid "Redirecting to %(uri)s for authorization."
+msgstr ""
+
+#: searchlight/common/exception.py:153
+msgid "There was an error connecting to a server"
+msgstr ""
+
+#: searchlight/common/exception.py:157
+msgid "There was an error configuring the client."
+msgstr ""
+
+#: searchlight/common/exception.py:161
+#, python-format
+msgid ""
+"The request returned a 302 Multiple Choices. This generally means that "
+"you have not included a version indicator in a request URI.\n"
+"\n"
+"The body of response returned:\n"
+"%(body)s"
+msgstr ""
+
+#: searchlight/common/exception.py:167
+#, python-format
+msgid ""
+"The request returned a 413 Request Entity Too Large. This generally means"
+" that rate limiting or a quota threshold was breached.\n"
+"\n"
+"The response body:\n"
+"%(body)s"
+msgstr ""
+
+#: searchlight/common/exception.py:178
+msgid ""
+"The request returned 503 Service Unavailable. This generally occurs on "
+"service overload or other transient outage."
+msgstr ""
+
+#: searchlight/common/exception.py:189
+msgid "The request returned 500 Internal Server Error."
+msgstr ""
+
+#: searchlight/common/exception.py:193
+#, python-format
+msgid ""
+"The request returned an unexpected status: %(status)s.\n"
+"\n"
+"The response body:\n"
+"%(body)s"
+msgstr ""
+
+#: searchlight/common/exception.py:198
+#, python-format
+msgid "Invalid content type %(content_type)s"
+msgstr ""
+
+#: searchlight/common/exception.py:202
+#, python-format
+msgid "Registry was not configured correctly on API server. Reason: %(reason)s"
+msgstr ""
+
+#: searchlight/common/exception.py:207
+#, python-format
+msgid ""
+"Driver %(driver_name)s could not be configured correctly. Reason: "
+"%(reason)s"
+msgstr ""
+
+#: searchlight/common/exception.py:212
+#, python-format
+msgid "Maximum redirects (%(redirects)s) was exceeded."
+msgstr ""
+
+#: searchlight/common/exception.py:216
+msgid "Received invalid HTTP redirect."
+msgstr ""
+
+#: searchlight/common/exception.py:220
+msgid "Response from Keystone does not contain a Glance endpoint."
+msgstr ""
+
+#: searchlight/common/exception.py:224
+#, python-format
+msgid ""
+"Multiple 'image' service matches for region %(region)s. This generally "
+"means that a region is required and you have not supplied one."
+msgstr ""
+
+#: searchlight/common/exception.py:230
+#, python-format
+msgid "Server worker creation failed: %(reason)s."
+msgstr ""
+
+#: searchlight/common/exception.py:234
+#, python-format
+msgid "Unable to load schema: %(reason)s"
+msgstr ""
+
+#: searchlight/common/exception.py:238
+#, python-format
+msgid "Provided object does not match schema '%(schema)s': %(reason)s"
+msgstr ""
+
+#: searchlight/common/exception.py:243
+#, python-format
+msgid "Provided header feature is unsupported: %(feature)s"
+msgstr ""
+
+#: searchlight/common/exception.py:247
+msgid "System SIGHUP signal received."
+msgstr ""
+
+#: searchlight/common/exception.py:251
+#, python-format
+msgid "%(cls)s exception was raised in the last rpc call: %(val)s"
+msgstr ""
+
+#: searchlight/common/exception.py:255
+#, python-format
+msgid "The location %(location)s already exists"
+msgstr ""
+
+#: searchlight/common/exception.py:259
+msgid "No image data could be found"
+msgstr ""
+
+#: searchlight/common/exception.py:263
+#, python-format
+msgid "Invalid value '%(value)s' for parameter '%(param)s': %(extra_msg)s"
+msgstr ""
+
+#: searchlight/common/exception.py:268
+#, python-format
+msgid ""
+"Image status transition from %(cur_status)s to %(new_status)s is not "
+"allowed"
+msgstr ""
+
+#: searchlight/common/exception.py:273
+#, python-format
+msgid "Version is invalid: %(reason)s"
+msgstr ""
+
+#: searchlight/common/exception.py:277
+msgid "Invalid jsonpatch request"
+msgstr ""
+
+#: searchlight/common/exception.py:281
+#, python-format
+msgid "The provided body %(body)s is invalid under given schema: %(schema)s"
+msgstr ""
+
+#: searchlight/common/exception.py:286
+#, python-format
+msgid "The provided path '%(path)s' is invalid: %(explanation)s"
+msgstr ""
+
+#: searchlight/common/jsonpatchvalidator.py:101
+msgid ""
+"Json path should start with a '/', end with no '/', no 2 subsequent '/' "
+"are allowed."
+msgstr ""
+
+#: searchlight/common/jsonpatchvalidator.py:105
+msgid ""
+"Pointer contains '~' which is not part of a recognized escape sequence "
+"[~0, ~1]."
+msgstr ""
+
+#: searchlight/common/property_utils.py:36
+msgid ""
+"The location of the property protection file.This file contains the rules"
+" for property protections and the roles/policies associated with it. If "
+"this config value is not specified, by default, property protections "
+"won't be enforced. If a value is specified and the file is not found, "
+"then the searchlight-api service will not start."
+msgstr ""
+
+#: searchlight/common/property_utils.py:46
+msgid ""
+"This config value indicates whether \"roles\" or \"policies\" are used in"
+" the property protection file."
+msgstr ""
+
+#: searchlight/common/property_utils.py:134
+#, python-format
+msgid ""
+"Property protection on operation %(operation)s for rule %(rule)s is not "
+"found. No role will be allowed to perform this operation."
+msgstr ""
+
+#: searchlight/common/utils.py:300
+#, python-format
+msgid "Bad header: %(header_name)s"
+msgstr ""
+
+#: searchlight/common/utils.py:314
+#, python-format
+msgid "Cannot convert image %(key)s '%(value)s' to an integer."
+msgstr ""
+
+#: searchlight/common/utils.py:321
+#, python-format
+msgid "Image %(key)s must be >= 0 ('%(value)s' specified)."
+msgstr ""
+
+#: searchlight/common/utils.py:550
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  "
+"Please verify it.  Error: %(ioe)s"
+msgstr ""
+
+#: searchlight/common/utils.py:557
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  "
+"Please verify it. OpenSSL error: %(ce)s"
+msgstr ""
+
+#: searchlight/common/utils.py:578
+#, python-format
+msgid ""
+"There is a problem with your key pair.  Please verify that cert "
+"%(cert_file)s and key %(key_file)s belong together.  OpenSSL error %(ce)s"
+msgstr ""
+
+#: searchlight/common/utils.py:635
+#, python-format
+msgid "Host and port \"%s\" is not valid."
+msgstr ""
+
+#: searchlight/common/utils.py:638
+#, python-format
+msgid "Port \"%s\" is not valid."
+msgstr ""
+
+#: searchlight/common/utils.py:647
+#, python-format
+msgid "Host \"%s\" is not valid."
+msgstr ""
+
+#: searchlight/common/utils.py:650
+#, python-format
+msgid ""
+"%s Please specify a host:port pair, where host is an IPv4 address, IPv6 "
+"address, hostname, or FQDN. If using an IPv6 address, enclose it in "
+"brackets separately from the port (i.e., \"[fe80::a:b:c]:9876\")."
+msgstr ""
+
+#: searchlight/common/utils.py:697
+msgid "Property names can't contain 4 byte unicode."
+msgstr ""
+
+#: searchlight/common/utils.py:700
+#, python-format
+msgid "%s can't contain 4 byte unicode characters."
+msgstr ""
+
+#: searchlight/common/utils.py:709
+msgid "Param values can't contain 4 byte unicode."
+msgstr ""
+
+#: searchlight/common/wsgi.py:60
+msgid ""
+"Address to bind the server.  Useful when selecting a particular network "
+"interface."
+msgstr ""
+
+#: searchlight/common/wsgi.py:63
+msgid "The port on which the server will listen."
+msgstr ""
+
+#: searchlight/common/wsgi.py:68
+msgid "The backlog value that will be used when creating the TCP listener socket."
+msgstr ""
+
+#: searchlight/common/wsgi.py:71
+msgid ""
+"The value for the socket option TCP_KEEPIDLE.  This is the time in "
+"seconds that the connection must be idle before TCP starts sending "
+"keepalive probes."
+msgstr ""
+
+#: searchlight/common/wsgi.py:74
+msgid "CA certificate file to use to verify connecting clients."
+msgstr ""
+
+#: searchlight/common/wsgi.py:76
+msgid "Certificate file to use when starting API server securely."
+msgstr ""
+
+#: searchlight/common/wsgi.py:78
+msgid "Private key file to use when starting API server securely."
+msgstr ""
+
+#: searchlight/common/wsgi.py:84
+msgid ""
+"The number of child process workers that will be created to service "
+"requests. The default will be equal to the number of CPUs available."
+msgstr ""
+
+#: searchlight/common/wsgi.py:88
+msgid ""
+"Maximum line size of message headers to be accepted. max_header_line may "
+"need to be increased when using large tokens (typically those generated "
+"by the Keystone v3 API with big service catalogs"
+msgstr ""
+
+#: searchlight/common/wsgi.py:93
+msgid ""
+"If False, server will return the header \"Connection: close\", If True, "
+"server will return \"Connection: Keep-Alive\" in its responses. In order "
+"to close the client socket connection explicitly after the response is "
+"sent and read successfully by the client, you simply have to set this "
+"option to False when you create a wsgi server."
+msgstr ""
+
+#: searchlight/common/wsgi.py:105
+msgid "If False fully disable profiling feature."
+msgstr ""
+
+#: searchlight/common/wsgi.py:107
+msgid "If False doesn't trace SQL requests."
+msgstr ""
+
+#: searchlight/common/wsgi.py:177
+msgid ""
+"When running server in SSL mode, you must specify both a cert_file and "
+"key_file option value in your configuration file"
+msgstr ""
+
+#: searchlight/common/wsgi.py:194
+#, python-format
+msgid "Could not bind to %(host)s:%(port)s after trying for 30 seconds"
+msgstr ""
+
+#: searchlight/common/wsgi.py:209
+msgid "eventlet 'poll' nor 'selects' hubs are available on this platform"
+msgstr ""
+
+#: searchlight/common/wsgi.py:737
+#, python-format
+msgid "Malformed Content-Range header: %s"
+msgstr ""
+
+#: searchlight/common/wsgi.py:770
+msgid "Malformed JSON in request body."
+msgstr ""
+

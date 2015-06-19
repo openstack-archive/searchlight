@@ -58,10 +58,9 @@ def serialize_glance_image(image):
     document = dict((k, v) for k, v in six.iteritems(image)
                     if k not in fields_to_ignore)
 
-    if image['visibility'] != 'public':
-        document['members'] = [
-            member['member'] for member in members
-            if (member['status'] == 'accepted' and member['deleted'] == 0)]
+    document['members'] = [
+        member['member'] for member in members
+        if (member['status'] == 'accepted' and member['deleted'] == 0)]
 
     return document
 
