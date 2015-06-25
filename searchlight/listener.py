@@ -19,10 +19,10 @@ import oslo_messaging
 # TODO(sjmc7): Figure this out better. The glance plugin uses the API
 # policy module as the enforcer for property_utils
 from oslo_policy import opts as oslo_policy_opts
+from oslo_service import service as os_service
 import stevedore
 
 from searchlight import i18n
-from searchlight.openstack.common import service as os_service
 
 LOG = logging.getLogger(__name__)
 _ = i18n._

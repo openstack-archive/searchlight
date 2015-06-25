@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
+from oslo_service import service as os_service
+
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight import listener
-from searchlight.openstack.common import service as os_service
 from searchlight import service
 
 
@@ -23,7 +25,7 @@ def main():
     openstack_clients.register_cli_opts()
 
     service.prepare_service()
-    launcher = os_service.ProcessLauncher()
+    launcher = os_service.ProcessLauncher(cfg.CONF)
     launcher.launch_service(
         listener.ListenerService(),
         workers=service.get_workers('listener'))
