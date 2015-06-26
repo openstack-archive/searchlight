@@ -15,8 +15,8 @@
 
 from oslo_log import log as logging
 import oslo_messaging
+from oslo_utils import encodeutils
 
-from searchlight.common import utils
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance import serialize_glance_image
 
@@ -40,7 +40,7 @@ class ImageHandler(base.NotificationBase):
             actions[event_type](payload)
             return oslo_messaging.NotificationResult.HANDLED
         except Exception as e:
-            LOG.error(utils.exception_to_str(e))
+            LOG.error(encodeutils.exception_to_unicode(e))
 
     def create(self, payload):
         id = payload['id']

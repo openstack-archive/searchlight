@@ -16,8 +16,9 @@
 import jsonschema
 import six
 
+from oslo_utils import encodeutils
+
 from searchlight.common import exception
-from searchlight.common import utils
 from searchlight import i18n
 
 _ = i18n._
@@ -39,8 +40,8 @@ class Schema(object):
         try:
             jsonschema.validate(obj, self.raw())
         except jsonschema.ValidationError as e:
-            raise exception.InvalidObject(schema=self.name,
-                                          reason=utils.exception_to_str(e))
+            raise exception.InvalidObject(
+                schema=self.name, reason=encodeutils.exception_to_unicode(e))
 
     def filter(self, obj):
         filtered = {}
