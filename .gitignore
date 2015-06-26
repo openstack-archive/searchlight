@@ -9,16 +9,16 @@ cover/*
 covhtml
 nosetests.xml
 coverage.xml
-glance.sqlite
+searchlight.sqlite
 AUTHORS
 ChangeLog
 build
 doc/source/api
 dist
 *.egg
-glance.egg-info
+searchlight.egg-info
 tests.sqlite
-glance/versioninfo
+searchlight/versioninfo
 
 # Swap files range from .saa to .swp
 *.s[a-w][a-p]
