@@ -67,10 +67,10 @@ class CatalogSearchRepo(object):
         return self.plugins_info_dict
 
     def _get_plugin_info(self):
-        plugin_info = dict()
+        plugin_info = {}
         plugin_info['plugins'] = []
         for plugin in self.plugins:
-            info = dict()
+            info = {}
             info['type'] = plugin.obj.get_document_type()
             info['index'] = plugin.obj.get_index_name()
             plugin_info['plugins'].append(info)

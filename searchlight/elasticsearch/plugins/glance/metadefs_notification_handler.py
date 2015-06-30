@@ -133,7 +133,7 @@ class MetadefHandler(base.NotificationBase):
 
     def create_rs(self, payload):
         id = payload['namespace']
-        resource_type = dict()
+        resource_type = {}
         resource_type['name'] = payload['name']
         if payload['prefix']:
             resource_type['prefix'] = payload['prefix']
@@ -148,14 +148,14 @@ class MetadefHandler(base.NotificationBase):
 
     def create_tag(self, payload):
         id = payload['namespace']
-        tag = dict()
+        tag = {}
         tag['name'] = payload['name']
 
         self.create_entity(id, "tags", tag)
 
     def update_tag(self, payload):
         id = payload['namespace']
-        tag = dict()
+        tag = {}
         tag['name'] = payload['name']
 
         self.update_entity(id, "tags", tag, payload['name_old'], "name")
@@ -231,7 +231,7 @@ class MetadefHandler(base.NotificationBase):
         return payload
 
     def format_object(self, payload):
-        formatted_object = dict()
+        formatted_object = {}
         formatted_object['name'] = payload['name']
         formatted_object['description'] = payload['description']
         if payload['required']:
@@ -243,7 +243,7 @@ class MetadefHandler(base.NotificationBase):
         return formatted_object
 
     def format_property(self, payload):
-        prop_data = dict()
+        prop_data = {}
         prop_data['property'] = payload['name']
         for key, value in six.iteritems(payload):
             if key not in self.property_delete_keys and value:

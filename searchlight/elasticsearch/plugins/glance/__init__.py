@@ -55,8 +55,7 @@ def serialize_glance_image(image):
     fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
                         'locations']
 
-    document = dict((k, v) for k, v in six.iteritems(image)
-                    if k not in fields_to_ignore)
+    document = {k: v for k, v in image.items() if k not in fields_to_ignore}
 
     document['members'] = [
         member['member'] for member in members
@@ -110,8 +109,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
     # everything; do the same.
     namespace_fields = ('namespace', 'display_name', 'description',
                         'visibility', 'owner', 'protected')
-    document = dict((f, metadef_namespace.get(f, None))
-                    for f in namespace_fields)
+    document = {f: metadef_namespace.get(f, None) for f in namespace_fields}
 
     document['tags'] = sorted([
         _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])

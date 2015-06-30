@@ -122,9 +122,9 @@ class PropertyRules(object):
                                 "Malformed property protection rule in "
                                 "[%(prop)s] %(op)s=%(perm)s: '@' and '!' "
                                 "are mutually exclusive") %
-                                dict(prop=property_exp,
-                                     op=operation,
-                                     perm=permissions))
+                                {'prop': property_exp,
+                                 'op': operation,
+                                 'perm': permissions})
                             LOG.error(msg)
                             raise InvalidPropProtectConf()
                     property_dict[operation] = permissions

@@ -55,8 +55,8 @@ class _AnsiColorizer(object):
     That allows callers to write text to the stream in a particular color.
     Colorizer classes must implement C{supported()} and C{write(text, color)}.
     """
-    _colors = dict(black=30, red=31, green=32, yellow=33,
-                   blue=34, magenta=35, cyan=36, white=37)
+    _colors = {'black': 30, 'red': 31, 'green': 32, 'yellow': 33, 'blue': 34,
+               'magenta': 35, 'cyan': 36, 'white': 37}
 
     def __init__(self, stream):
         self.stream = stream

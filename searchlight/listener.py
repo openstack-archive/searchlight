@@ -36,7 +36,7 @@ class NotificationEndpoint(object):
 
     def __init__(self):
         self.plugins = get_plugins()
-        self.notification_target_map = dict()
+        self.notification_target_map = {}
         for plugin in self.plugins:
             try:
                 event_list = plugin.obj.get_notification_supported_events()
