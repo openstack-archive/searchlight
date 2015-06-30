@@ -47,6 +47,20 @@ downloaded and extracted, you can start Elasticsearch with::
 
 For more details see the `installation instructions <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html>`_.
 
+Quick command line example with 1.4.2:
+
+.. note::
+
+    Do the following commands as "root" or via sudo <command>
+
+Download the ES package::
+
+    $ cd ~
+    $ wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.4.2.deb
+    $ sudo dpkg -i elasticsearch-1.4.2.deb
+    $ sudo update-rc.d elasticsearch defaults 95 10
+    $ sudo /etc/init.d/elasticsearch start
+
 Configuration
 ~~~~~~~~~~~~~
 Elasticsearch comes with very a very sensible default configuration that
@@ -146,6 +160,7 @@ a good fit, you can use unicast discovery::
 
     discovery.zen.ping.multicast.enabled: false
     discovery.zen.ping.unicast.hosts: ['w.x.y.z', 'w.x.y.z']
+
 
 See `<http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modules-discovery-zen.html>`_ 
 for more details.
