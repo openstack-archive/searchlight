@@ -1,0 +1,77 @@
+VAGRANTFILE_API_VERSION = "2"
+GITCONFIG = `cat $HOME/.gitconfig`
+
+Vagrant.require_version ">= 1.5"
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  config.ssh.forward_agent = true
+
+  config.vm.provider "virtualbox" do |vb, override|
+    vb.customize ["modifyvm", :id, "--memory", "6144"]
+    if not RUBY_PLATFORM.downcase.include?("mswin")
+      vb.customize ["modifyvm", :id, "--cpus", `awk "/^processor/ {++n} END {print n}" /proc/cpuinfo 2> /dev/null || sh -c 'sysctl hw.logicalcpu 2> /dev/null || echo ": 2"' | awk \'{print \$2}\' `.chomp ]
+    end
+    vb.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
+
+    override.vm.synced_folder "../..", "/opt/stack/searchlight"
+  end
+
+  config.vm.provider :libvirt do |lv, override|
+    lv.graphics_ip = '0.0.0.0'
+    lv.nested = true
+    lv.memory = 8192
+    if not RUBY_PLATFORM.downcase.include?("mswin")
+      lv.cpus = `awk "/^processor/ {++n} END {print n}" /proc/cpuinfo 2> /dev/null || sh -c 'sysctl hw.logicalcpu 2> /dev/null || echo ": 2"' | awk \'{print \$2}\' `.chomp
+    end
+
+    override.vm.synced_folder ".", "/vagrant", type: "nfs"
+    override.vm.synced_folder "../..", "/opt/stack/searchlight", type: "nfs"
+  end
+
+  $script = <<SCRIPT
+set -e
+
+# Fixup permissions on /opt/stack/
+sudo chown vagrant:vagrant /opt/stack/
+
+# Copy over git config
+cat << EOF > /home/vagrant/.gitconfig
+#{GITCONFIG}
+EOF
+
+# Clone DevStack
+if [ ! -d "/home/vagrant/devstack" ]; then
+    git clone https://git.openstack.org/openstack-dev/devstack.git /home/vagrant/devstack
+fi
+
+# Install Vagrant localrc sample
+cd /opt/stack/searchlight/contrib/vagrant
+
+if [ ! -f "/home/vagrant/devstack/local.conf" ]; then
+    cp local.conf /home/vagrant/devstack/local.conf
+fi
+
+SCRIPT
+
+  config.vm.define "searchlight-ubuntu" do |ubuntu|
+    ubuntu.vm.box = "ubuntu/trusty64"
+
+    ubuntu.vm.network :private_network, ip: "192.168.27.100"
+
+    ubuntu.vm.provision :shell, :privileged => true, :inline => "DEBIAN_FRONTEND=noninteractive apt-get update"
+    ubuntu.vm.provision :shell, :privileged => true, :inline => "DEBIAN_FRONTEND=noninteractive apt-get install --yes git lvm2"
+
+    ubuntu.vm.provision :shell, :privileged => false, :inline => $script
+  end
+
+  config.vm.define "searchlight-fedora" do |fedora|
+    fedora.vm.box = "box-cutter/fedora20"
+
+    fedora.vm.network :private_network, ip: "192.168.27.101"
+
+    fedora.vm.provision :shell, :privileged => true, :inline => "yum update -y vim-minimal" # RH Bug 1066983
+    fedora.vm.provision :shell, :privileged => true, :inline => "yum install -y git-core MySQL-python"
+
+    fedora.vm.provision :shell, :privileged => false, :inline => $script
+  end
+end
