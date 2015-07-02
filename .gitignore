@@ -13,7 +13,6 @@ searchlight.sqlite
 AUTHORS
 ChangeLog
 build
-doc/source/api
 .DS_Store
 dist
 *.egg
