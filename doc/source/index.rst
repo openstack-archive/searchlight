@@ -44,6 +44,7 @@ be found on the `OpenStack wiki`_.
    :maxdepth: 1
 
    elasticsearch
+   dev-environment
    authentication
    searchlightapi
    indexingservice 
