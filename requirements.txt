@@ -45,3 +45,4 @@ elasticsearch>=1.3.0
 
 # Clients required for indexing plugins
 python-glanceclient>=0.18
+python-novaclient>=2.26.0

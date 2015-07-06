@@ -15,6 +15,7 @@
 
 import glanceclient
 from keystoneclient.v2_0 import client as keystonev2client
+import novaclient.client
 import os
 from oslo_config import cfg
 
@@ -120,6 +121,26 @@ def get_glanceclient():
         version=2,
         endpoint=endpoint,
         token=ks_client.auth_token,
+        auth_url=ks_client.auth_url,
+        tenant_name=ks_client.tenant_name,
+        tenant_id=ks_client.tenant_id,
+        username=ks_client.username,
+        cacert=cfg.CONF.service_credentials.os_cacert,
+        region_name=cfg.CONF.service_credentials.os_region_name,
+        insecure=cfg.CONF.service_credentials.insecure
+    )
+
+
+@memoized
+def get_novaclient():
+    ks_client = get_keystoneclient()
+    endpoint = ks_client.service_catalog.url_for(
+        service_type='compute')
+
+    return novaclient.client.Client(
+        version=2,
+        endpoint=endpoint,
+        auth_token=ks_client.auth_token,
         auth_url=ks_client.auth_url,
         tenant_name=ks_client.tenant_name,
         tenant_id=ks_client.tenant_id,
