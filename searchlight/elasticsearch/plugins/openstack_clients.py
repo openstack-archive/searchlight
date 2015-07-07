@@ -13,7 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from designateclient.v2 import client as designateclient
 import glanceclient
+from keystoneclient.auth.identity import generic
+from keystoneclient import session
 from keystoneclient.v2_0 import client as keystonev2client
 import novaclient.client
 import os
@@ -147,5 +150,28 @@ def get_novaclient():
         username=ks_client.username,
         cacert=cfg.CONF.service_credentials.os_cacert,
         region_name=cfg.CONF.service_credentials.os_region_name,
-        insecure=cfg.CONF.service_credentials.insecure
+        insecure=cfg.CONF.service_credentials.insecure)
+
+
+@memoized
+def get_designateclient():
+    auth = generic.Password(
+        auth_url=cfg.CONF.service_credentials.os_auth_url,
+        username=cfg.CONF.service_credentials.os_username,
+        password=cfg.CONF.service_credentials.os_password,
+        tenant_name=cfg.CONF.service_credentials.os_tenant_name)
+
+    if cfg.CONF.service_credentials.insecure:
+        verify = False
+    else:
+        verify = cfg.CONF.service_credentials.os_cacert
+
+    ses = session.Session(
+        auth=auth,
+        verify=verify
+    )
+
+    return designateclient.Client(
+        session=ses,
+        region_name=cfg.CONF.service_credentials.os_region_name,
     )

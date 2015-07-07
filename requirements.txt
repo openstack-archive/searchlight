@@ -44,5 +44,6 @@ osprofiler>=0.3.0                       # Apache-2.0
 elasticsearch>=1.3.0
 
 # Clients required for indexing plugins
+python-designateclient>=1.0.0
 python-glanceclient>=0.18
 python-novaclient>=2.26.0

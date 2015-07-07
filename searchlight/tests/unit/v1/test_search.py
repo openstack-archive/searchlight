@@ -279,6 +279,16 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
         expected = {
             "plugins": [
                 {
+                    "index": "searchlight",
+                    "type": "OS::Designate::RecordSet",
+                    "name": "OS::Designate::RecordSet"
+                },
+                {
+                    "index": "searchlight",
+                    "type": "OS::Designate::Zone",
+                    "name": "OS::Designate::Zone"
+                },
+                {
                     "index": "searchlight", "type": "OS::Glance::Image",
                     "name": "OS::Glance::Image"
                 },
@@ -292,8 +302,9 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
                 }
             ]
         }
-        self.assertEqual(expected,
-                         self.search_controller.plugins_info(request))
+
+        actual = self.search_controller.plugins_info(request)
+        self.assertEqual(sorted(expected), sorted(actual))
 
 
 class TestSearchDeserializer(test_utils.BaseTestCase):
@@ -330,9 +341,17 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight'], output['index'])
-        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef',
-                                 'OS::Nova::Server']),
-                         sorted(output['doc_type']))
+
+        types = [
+            'OS::Designate::RecordSet',
+            'OS::Designate::Zone',
+            'OS::Glance::Image',
+            'OS::Glance::Metadef',
+            'OS::Nova::Server',
+        ]
+
+        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(sorted(types), sorted(output['doc_type']))
 
     def test_empty_request_admin(self):
         request = unit_test_utils.get_fake_request()
@@ -340,10 +359,15 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         request.context.is_admin = True
 
         output = self.deserializer.search(request)
+        types = [
+            'OS::Designate::RecordSet',
+            'OS::Designate::Zone',
+            'OS::Glance::Image',
+            'OS::Glance::Metadef',
+            'OS::Nova::Server'
+        ]
         self.assertEqual(['searchlight'], output['index'])
-        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef',
-                                 'OS::Nova::Server']),
-                         sorted(output['doc_type']))
+        self.assertEqual(sorted(types), sorted(output['doc_type']))
 
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
