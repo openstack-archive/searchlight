@@ -205,8 +205,11 @@ registered in keystone (e.g. glance).
    # Make sure your virtualenv is sourced
    $ source .tox/venv/bin/activate
 
-   # Run the index operation
-   $ python searchlight/cmd/index.py --config-file etc/searchlight-api.conf
+   # Run the index operation.
+   (venv) $ searchlight-manage index sync
+
+   # Alternatively, you can directly invoke the command using the following.
+   (venv) $ python searchlight/cmd/manage.py --config-file etc/searchlight-api.conf index sync
 
 This command may be re-run at any time to perform a full re-index.
 
@@ -227,7 +230,11 @@ images).
    $ source .tox/venv/bin/activate
 
    # Start the index update monitoring.
-   $ python searchlight/cmd/agent_notification.py --config-file etc/searchlight-api.conf
+   (venv) $ searchlight-listener
+
+   # Alternatively, you can directly invoke the command using the following.
+   (venv) $ python searchlight/cmd/listener.py --config-file
+   etc/searchlight-api.conf
 
 Initialize & Start the API Service
 ==================================
@@ -246,7 +253,10 @@ communicating with your server).
    $ source .tox/venv/bin/activate
 
    # Start the API Service.
-   $ python searchlight/cmd/api.py --config-file etc/searchlight-api.conf
+   (venv) $ searchlight-api
+
+   # Alternatively, you can directly invoke the command using the following.
+   (venv) $ python searchlight/cmd/api.py --config-file etc/searchlight-api.conf
 
 You’ll should now see the log from the API service.
 
