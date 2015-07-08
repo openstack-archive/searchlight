@@ -10,6 +10,7 @@
      [[local|localrc]]
      enable_plugin searchlight https://github.com/openstack/searchlight
      enable_service searchlight-api
+     enable_service searchlight-listener
 
 3. Run ``stack.sh``
 

@@ -3,6 +3,7 @@
 # To enable Searchlight services, add the following to localrc
 # enable_plugin searchlight http://git.openstack.org/openstack/searchlight
 # enable_service searchlight-api
+# enable_service searchlight-listener
 
 # stack.sh
 # ---------
@@ -129,10 +130,10 @@ function configure_searchlight {
 # ------------------------------------------------------------------
 # service              searchlight  admin        # if enabled
 function create_searchlight_accounts {
-    if [[ "$ENABLED_SERVICES" =~ "searchlight-api" ]]; then
+    if [[ "$ENABLED_SERVICES" =~ "searchlight-" ]]; then
         create_service_user "searchlight"
 
-        if [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
+        if is_service_enabled searchlight-api && [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
             local searchlight_service=$(get_or_create_service "searchlight" \
                 "search" "Searchlight Service")
             get_or_create_endpoint $searchlight_service \
@@ -153,7 +154,7 @@ function init_searchlight {
 
     ${TOP_DIR}/pkg/elasticsearch.sh start
 
-    $SEARCHLIGHT_BIN_DIR/searchlight-index --config-file $SEARCHLIGHT_CONF
+    $SEARCHLIGHT_BIN_DIR/searchlight-manage --config-file $SEARCHLIGHT_CONF index sync
 }
 
 # install_searchlight - Collect source and prepare
@@ -167,11 +168,16 @@ function install_searchlight {
 
 # start_searchlight - Start running processes, including screen
 function start_searchlight {
-    run_process searchlight-api "$SEARCHLIGHT_BIN_DIR/searchlight-api --config-file $SEARCHLIGHT_CONF"
+    if is_service_enabled searchlight-api; then
+        run_process searchlight-api "$SEARCHLIGHT_BIN_DIR/searchlight-api --config-file $SEARCHLIGHT_CONF"
 
-    # Start proxies if enabled
-    if is_service_enabled searchlight-api && is_service_enabled tls-proxy; then
-        start_tls_proxy '*' $SEARCHLIGHT_SERVICE_PORT $SEARCHLIGHT_SERVICE_HOST $SEARCHLIGHT_SERVICE_PORT_INT &
+        # Start proxies if enabled
+        if is_service_enabled searchlight-api && is_service_enabled tls-proxy; then
+            start_tls_proxy '*' $SEARCHLIGHT_SERVICE_PORT $SEARCHLIGHT_SERVICE_HOST $SEARCHLIGHT_SERVICE_PORT_INT &
+        fi
+    fi
+    if is_service_enabled searchlight-listener; then
+        run_process searchlight-listener "$SEARCHLIGHT_BIN_DIR/searchlight-listener --config-file $SEARCHLIGHT_CONF"
     fi
 }
 
@@ -179,6 +185,7 @@ function start_searchlight {
 function stop_searchlight {
     # Kill the searchlight screen windows
     stop_process searchlight-api
+    stop_process searchlight-listener
 }
 
 # check for service enabled
