@@ -152,9 +152,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'created_at': DATE1,
             'updated_at': DATE1
         }
-        with mock.patch('glanceclient.v2.image_members.Controller.list',
-                        return_value=[]):
-            serialized = self.plugin.serialize(self.simple_image)
+        serialized = self.plugin.serialize(self.simple_image)
         self.assertEqual(expected, serialized)
 
     def test_image_with_tags_serialize(self):
@@ -177,9 +175,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'created_at': DATE1,
             'updated_at': DATE1
         }
-        with mock.patch('glanceclient.v2.image_members.Controller.list',
-                        return_value=[]):
-            serialized = self.plugin.serialize(self.tagged_image)
+        serialized = self.plugin.serialize(self.tagged_image)
         self.assertEqual(expected, serialized)
 
     def test_image_with_properties_serialize(self):
@@ -205,9 +201,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'updated_at': DATE1
         }
 
-        with mock.patch('glanceclient.v2.image_members.Controller.list',
-                        return_value=[]):
-            serialized = self.plugin.serialize(self.complex_image)
+        serialized = self.plugin.serialize(self.complex_image)
         self.assertEqual(expected, serialized)
 
     def test_image_with_members_serialize(self):
@@ -240,10 +234,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
     def test_setup_data(self):
         """Tests initial data load."""
         image_member_mocks = [
-            [], [], [], self.members_image_members
-        ]
-        member_calls = [
-            mock.call(i['id']) for i in self.images
+            self.members_image_members
         ]
         with mock.patch('glanceclient.v2.images.Controller.list',
                         return_value=self.images) as mock_list:
@@ -257,7 +248,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                     self.plugin.setup_data()
 
                     mock_list.assert_called_once_with()
-                    mock_members.assert_has_calls(member_calls)
+                    mock_members.assert_called_once_with(
+                        self.members_image['id'])
 
                     mock_save.assert_called_once_with([
                         {

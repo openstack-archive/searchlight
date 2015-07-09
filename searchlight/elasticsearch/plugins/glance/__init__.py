@@ -27,6 +27,23 @@ _ = i18n._
 _LW = i18n._LW
 
 
+def _get_image_members(image, using_v1):
+    if image['visibility'] == 'public':
+        return []
+
+    try:
+        g_client = openstack_clients.get_glanceclient()
+        members = g_client.image_members.list(image['id'])
+        # TODO(lakshmiS): Same as above. No need to check for v1.
+        if using_v1:
+            members = [member.to_dict() for member in members]
+        return members
+    except glanceclient.exc.HTTPForbidden:
+        LOG.warning(_LW("Could not list image members for %s; forbidden") %
+                    image['id'])
+        return []
+
+
 def serialize_glance_image(image):
     g_client = openstack_clients.get_glanceclient()
     using_v1 = False
@@ -41,16 +58,7 @@ def serialize_glance_image(image):
         using_v1 = True
         image = image.to_dict()
 
-    try:
-        members = g_client.image_members.list(image['id'])
-        # TODO(lakshmiS): Same as above. No need to check for v1.
-        if using_v1:
-            members = [member.to_dict() for member in members]
-    except glanceclient.exc.HTTPForbidden:
-        LOG.warning(_LW("Could not list image members for %s; forbidden") %
-                    image['id'])
-        members = []
-        pass
+    members = _get_image_members(image, using_v1)
 
     fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
                         'locations']
