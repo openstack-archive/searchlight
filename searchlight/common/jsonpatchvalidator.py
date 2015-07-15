@@ -24,7 +24,7 @@ import re
 import jsonschema
 
 import searchlight.common.exception as exc
-from searchlight.openstack.common._i18n import _
+from searchlight.i18n import _
 
 
 class JsonPatchValidatorMixin(object):
