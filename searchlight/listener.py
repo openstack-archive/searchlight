@@ -20,8 +20,8 @@ import oslo_messaging
 # policy module as the enforcer for property_utils
 from oslo_policy import opts as oslo_policy_opts
 from oslo_service import service as os_service
-import stevedore
 
+from searchlight.common import utils
 from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
@@ -34,8 +34,8 @@ oslo_policy_opts._register(cfg.CONF)
 
 class NotificationEndpoint(object):
 
-    def __init__(self):
-        self.plugins = get_plugins()
+    def __init__(self, plugins):
+        self.plugins = plugins
         self.notification_target_map = {}
         for plugin in self.plugins:
             try:
@@ -49,19 +49,6 @@ class NotificationEndpoint(object):
                               " events from search plugins "
                               "%(ext)s: %(e)s") %
                           {'ext': plugin.name, 'e': e})
-
-    def topics_and_exchanges(self):
-        topics_exchanges = set()
-        for plugin in self.plugins:
-            for plugin_topic in plugin.get_notification_topic_exchanges():
-                if isinstance(plugin_topic, basestring):
-                    # TODO(sjmc7): Keep this in or not?
-                    raise Exception(
-                        _LE("Plugin %s should return a list of topic exchange"
-                            "pairs") % plugin.__class__.__name__)
-                topics_exchanges.add(plugin_topic)
-
-        return topics_exchanges
 
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         event_type_l = event_type.lower()
@@ -81,19 +68,38 @@ class NotificationEndpoint(object):
 class ListenerService(os_service.Service):
     def __init__(self, *args, **kwargs):
         super(ListenerService, self).__init__(*args, **kwargs)
+        self.plugins = utils.get_search_plugins()
         self.listeners = []
+        self.topics_exchanges_set = self.topics_and_exchanges()
+
+    def topics_and_exchanges(self):
+        topics_exchanges = set()
+        for plugin in self.plugins:
+            try:
+                plugin_obj = plugin.obj.get_notification_topics_exchanges()
+                for plugin_topic in plugin_obj:
+                    if isinstance(plugin_topic, basestring):
+                        raise Exception(
+                            _LE("Plugin %s should return a list of topic"
+                                "exchange pairs") % plugin.__class__.__name__)
+                topics_exchanges.add(plugin_topic)
+            except Exception as e:
+                LOG.error(_LE("Failed to retrieve notification topic(s)"
+                              " and exchanges from search plugin "
+                              "%(ext)s: %(e)s") %
+                          {'ext': plugin.name, 'e': e})
+
+        return topics_exchanges
 
     def start(self):
         super(ListenerService, self).start()
         transport = oslo_messaging.get_transport(cfg.CONF)
-        # TODO(sjmc7): This needs to come from the plugins, and from config
-        # options rather than hardcoded. Refactor this out to a function
-        # returning the set of topic,exchange pairs
         targets = [
-            oslo_messaging.Target(topic="notifications", exchange="glance")
+            oslo_messaging.Target(topic=pl_topic, exchange=pl_exchange)
+            for pl_topic, pl_exchange in self.topics_exchanges_set
         ]
         endpoints = [
-            NotificationEndpoint()
+            NotificationEndpoint(self.plugins)
         ]
         listener = oslo_messaging.get_notification_listener(
             transport,
@@ -107,10 +113,3 @@ class ListenerService(os_service.Service):
             listener.stop()
             listener.wait()
         super(ListenerService, self).stop()
-
-
-def get_plugins():
-    namespace = 'searchlight.index_backend'
-    ext_manager = stevedore.extension.ExtensionManager(
-        namespace, invoke_on_load=True)
-    return ext_manager.extensions

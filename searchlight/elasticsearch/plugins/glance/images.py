@@ -133,9 +133,9 @@ class ImageIndex(base.IndexBase):
     # not this class
     def get_notification_topics_exchanges(self):
         # TODO(sjmc7): More importantly, this should come from config
-        return (
-            ('notifications', 'glance')
-        )
+        return set([
+            ('searchlight_indexer', 'glance')
+        ])
 
     def get_notification_supported_events(self):
         return ['image.create', 'image.update', 'image.delete']

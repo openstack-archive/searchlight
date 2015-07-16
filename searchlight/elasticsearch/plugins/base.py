@@ -134,6 +134,10 @@ class IndexBase(object):
         """Get the list of suppported event types."""
         return []
 
+    def get_notification_topics_exchanges(self):
+        """"Get the set of topics and exchanges."""
+        return set()
+
 
 @six.add_metaclass(abc.ABCMeta)
 class NotificationBase(object):

@@ -26,6 +26,7 @@ Open glance.api.conf and make the following changes::
 
     notification_driver = messaging
     rpc_backend = 'rabbit'
+    notification_topics = notifications, searchlight_indexer
 
 Restart glance API.
 
