@@ -44,6 +44,16 @@ def _get_image_members(image, using_v1):
         return []
 
 
+def _normalize_visibility(image_doc):
+    """Adjust for a difference in v1 (and notifications) versus v2 where
+    v1 uses 'is_public' (bool) and v2 uses 'visibility' (public/private).
+    Normalize everything to the v2 model.
+    """
+    is_public = image_doc.pop('is_public', None)
+    if is_public is not None:
+        image_doc['visibility'] = 'public' if is_public else 'private'
+
+
 def serialize_glance_image(image):
     g_client = openstack_clients.get_glanceclient()
     using_v1 = False
@@ -58,6 +68,7 @@ def serialize_glance_image(image):
         using_v1 = True
         image = image.to_dict()
 
+    _normalize_visibility(image)
     members = _get_image_members(image, using_v1)
 
     fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
@@ -70,6 +81,18 @@ def serialize_glance_image(image):
         if (member['status'] == 'accepted' and member['deleted'] == 0)]
 
     return document
+
+
+def serialize_glance_notification(note):
+    """Notifications are different in several ways from v2 API images"""
+    # If an image is deleted we wouldn't have it in the index, so no need
+    # to retain these fields
+    for attr in ('deleted', 'deleted_at'):
+        note.pop(attr, None)
+    for k, v in six.iteritems(note.pop('properties', {})):
+        note[k] = v
+    # Visibility and members will be transformed in serialize_glance_image
+    return serialize_glance_image(note)
 
 
 def serialize_glance_metadef_ns(metadef_namespace):

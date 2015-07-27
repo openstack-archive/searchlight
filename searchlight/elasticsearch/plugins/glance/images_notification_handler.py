@@ -18,7 +18,8 @@ import oslo_messaging
 from oslo_utils import encodeutils
 
 from searchlight.elasticsearch.plugins import base
-from searchlight.elasticsearch.plugins.glance import serialize_glance_image
+from searchlight.elasticsearch.plugins.glance \
+    import serialize_glance_notification
 
 LOG = logging.getLogger(__name__)
 
@@ -42,9 +43,12 @@ class ImageHandler(base.NotificationBase):
         except Exception as e:
             LOG.error(encodeutils.exception_to_unicode(e))
 
+    def serialize_notification(self, notification):
+        return serialize_glance_notification(notification)
+
     def create(self, payload):
         id = payload['id']
-        payload = serialize_glance_image(payload)
+        payload = self.serialize_notification(payload)
         self.engine.create(
             index=self.index_name,
             doc_type=self.document_type,
@@ -54,7 +58,7 @@ class ImageHandler(base.NotificationBase):
 
     def update(self, payload):
         id = payload['id']
-        payload = serialize_glance_image(payload)
+        payload = self.serialize_notification(payload)
         doc = {"doc": payload}
         self.engine.update(
             index=self.index_name,

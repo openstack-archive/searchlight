@@ -15,8 +15,8 @@
 
 import copy
 import datetime
-
 import mock
+import six
 
 from oslo_utils import timeutils
 
@@ -78,6 +78,36 @@ def _image_fixture(image_id, **kwargs):
     return image
 
 
+def _notification_fixture(image_id, **kwargs):
+    properties = kwargs.pop('properties', {})
+    notification = {
+        'id': image_id,
+        'name': None,
+        'status': 'active',
+        'virtual_size': None,
+        'deleted': False,
+        'disk_format': None,
+        'container_format': None,
+        'min_ram': None,
+        'min_disk': None,
+        'protected': False,
+        'checksum': None,
+        'owner': None,
+        'is_public': True,
+        'deleted_at': None,
+        'size': None,
+        'created_at': DATE1,
+        'updated_at': DATE1,
+        'properties': {}
+    }
+    for k, v in six.iteritems(kwargs):
+        if k in notification:
+            notification[k] = v
+    for k, v in six.iteritems(properties):
+        notification['properties'][k] = v
+    return notification
+
+
 class TestImageLoaderPlugin(test_utils.BaseTestCase):
     def setUp(self):
         super(TestImageLoaderPlugin, self).setUp()
@@ -86,6 +116,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         self._create_images()
 
         self.plugin = images_plugin.ImageIndex()
+        self.notification_handler = self.plugin.get_notification_handler()
 
         mock_ks_client = mock.Mock()
         mock_ks_client.service_catalog.url_for.return_value = \
@@ -459,3 +490,78 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
 
         self.assertEqual(expected,
                          filtered_result['hits']['hits'][0]['_source'])
+
+    def test_image_notification_serialize(self):
+        notification = _notification_fixture(
+            self.simple_image['id'],
+            checksum=self.simple_image['checksum'],
+            name=self.simple_image['name'],
+            is_public=True,
+            size=self.simple_image['size'],
+            properties={'prop1': 'val1'},
+            owner=self.simple_image['owner'])
+
+        expected = {
+            'status': 'active',
+            # Tags are not contained in notifications
+            # 'tags': [],
+            'container_format': None,
+            'min_ram': None,
+            'visibility': 'public',
+            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'min_disk': None,
+            'members': [],
+            'virtual_size': None,
+            'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'size': 256,
+            'prop1': 'val1',
+            'name': 'simple',
+            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+            'disk_format': None,
+            'protected': False,
+            'created_at': DATE1,
+            'updated_at': DATE1
+        }
+
+        serialized = self.notification_handler.serialize_notification(
+            notification)
+        self.assertEqual(expected, serialized)
+
+    def test_private_image_notification_serialize(self):
+        """Test a notification for a private image"""
+        notification = _notification_fixture(
+            self.members_image['id'],
+            checksum=self.members_image['checksum'],
+            name=self.members_image['name'],
+            is_public=False,
+            size=self.members_image['size'],
+            owner=self.members_image['owner'])
+
+        expected = {
+            'status': 'active',
+            # Tags are not contained in notifications
+            # 'tags': [],
+            'container_format': None,
+            'min_ram': None,
+            'visibility': 'private',
+            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+            'members': [
+                '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                '2c014f32-55eb-467d-8fcb-4bd706012f81'
+            ],
+            'min_disk': None,
+            'virtual_size': None,
+            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'size': 256,
+            'name': 'complex',
+            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+            'disk_format': None,
+            'protected': False,
+            'created_at': DATE1,
+            'updated_at': DATE1
+        }
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=self.members_image_members):
+            serialized = self.notification_handler.serialize_notification(
+                notification)
+        self.assertEqual(expected, serialized)
