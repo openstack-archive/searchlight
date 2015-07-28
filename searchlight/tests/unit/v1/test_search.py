@@ -447,6 +447,66 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         self.assertEqual(1, output['limit'])
         self.assertEqual(2, output['offset'])
 
+    def test_single_sort(self):
+        """Test that a single sort field is correctly transformed"""
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'index': ['glance'],
+            'type': ['image'],
+            'query': {'match_all': {}},
+            'sort': 'name'
+        }))
+
+        output = self.deserializer.search(request)
+        self.assertEqual(['name'], output['query']['sort'])
+
+    def test_single_sort_dir(self):
+        """Test that a single sort field & dir is correctly transformed"""
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'index': ['glance'],
+            'type': ['image'],
+            'query': {'match_all': {}},
+            'sort': {'name': 'desc'}
+        }))
+
+        output = self.deserializer.search(request)
+        self.assertEqual([{'name': 'desc'}], output['query']['sort'])
+
+    def test_multiple_sort(self):
+        """Test multiple sort fields"""
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'index': ['glance'],
+            'type': ['image'],
+            'query': {'match_all': {}},
+            'sort': [
+                'name',
+                {'created_at': 'desc'},
+                {'members': {'order': 'asc', 'mode': 'max'}}
+            ]
+        }))
+
+        output = self.deserializer.search(request)
+        expected = [
+            'name',
+            {'created_at': 'desc'},
+            {'members': {'order': 'asc', 'mode': 'max'}}
+        ]
+        self.assertEqual(expected, output['query']['sort'])
+
+    def test_bad_sort(self):
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'index': ['glance'],
+            'type': ['image'],
+            'query': {'match_all': {}},
+            'sort': 1234
+        }))
+
+        self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
+                          request)
+
 
 class TestIndexDeserializer(test_utils.BaseTestCase):
 
