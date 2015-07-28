@@ -15,7 +15,6 @@
 
 import copy
 import glanceclient.exc
-from glanceclient.v1.images import Image as v1_image
 import logging
 import six
 
@@ -27,16 +26,13 @@ _ = i18n._
 _LW = i18n._LW
 
 
-def _get_image_members(image, using_v1):
+def _get_image_members(image):
     if image['visibility'] == 'public':
         return []
 
     try:
         g_client = openstack_clients.get_glanceclient()
         members = g_client.image_members.list(image['id'])
-        # TODO(lakshmiS): Same as above. No need to check for v1.
-        if using_v1:
-            members = [member.to_dict() for member in members]
         return members
     except glanceclient.exc.HTTPForbidden:
         LOG.warning(_LW("Could not list image members for %s; forbidden") %
@@ -56,20 +52,12 @@ def _normalize_visibility(image_doc):
 
 def serialize_glance_image(image):
     g_client = openstack_clients.get_glanceclient()
-    using_v1 = False
 
     # If we're being asked to index an ID, retrieve the full image information
     if isinstance(image, basestring):
         image = g_client.images.get(image)
 
-    # TODO(lakshmiS): We shouldn't check for v1 since g_client is always v2.
-    # If a v1 image, convert to dict so we can iterate over its properties
-    if isinstance(image, v1_image):
-        using_v1 = True
-        image = image.to_dict()
-
-    _normalize_visibility(image)
-    members = _get_image_members(image, using_v1)
+    members = _get_image_members(image)
 
     fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
                         'locations']
@@ -85,13 +73,16 @@ def serialize_glance_image(image):
 
 def serialize_glance_notification(note):
     """Notifications are different in several ways from v2 API images"""
+    _normalize_visibility(note)
+
     # If an image is deleted we wouldn't have it in the index, so no need
     # to retain these fields
     for attr in ('deleted', 'deleted_at'):
         note.pop(attr, None)
+
     for k, v in six.iteritems(note.pop('properties', {})):
         note[k] = v
-    # Visibility and members will be transformed in serialize_glance_image
+    # 'Members' will be set in serialize_glance_image
     return serialize_glance_image(note)
 
 
