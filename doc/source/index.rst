@@ -15,7 +15,7 @@
       under the License.
 
 Welcome to Searchlight's documentation!
-==================================
+=======================================
 
 The Searchlight project provides indexing and search capabilities across
 Openstack resources. Its goal is to achieve high performance and flexible
@@ -40,11 +40,32 @@ be found on the `OpenStack wiki`_.
 
 .. _`OpenStack wiki`: http://wiki.openstack.org
 
+Overview
+--------
+
 .. toctree::
    :maxdepth: 1
 
-   elasticsearch
-   dev-environment
-   authentication
    searchlightapi
-   indexingservice 
+   indexingservice
+   authentication
+
+Search plugins
+--------------
+The search service is driven using a plugin mechanism. Information about each
+of the plugins may be found here:
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   plugins/*
+
+
+Installation and Setup
+----------------------
+.. toctree::
+   :maxdepth: 1
+
+   dev-environment
+   elasticsearch
