@@ -293,7 +293,7 @@ Example: List all data::
 
    # Execute query
    $ curl -X POST http://localhost:9393/v1/search -H "X-Auth-Token:$token" \
-   -d @search.json -H "Content-Type: application/json"
+   -d @search.json -H "Content-Type: application/json" | python -mjson.tool
 
 You can find the IP Address of your server by running
 
