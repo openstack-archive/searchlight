@@ -37,7 +37,7 @@ class IndexCommands(object):
         pass
 
     def sync(self):
-        for ext in utils.get_search_plugins():
+        for resource_type, ext in six.iteritems(utils.get_search_plugins()):
             try:
                 ext.obj.setup()
             except Exception as e:

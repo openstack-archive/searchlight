@@ -245,10 +245,11 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             yield ns_copy
 
     def test_index_name(self):
-        self.assertEqual('glance', self.plugin.get_index_name())
+        self.assertEqual('searchlight', self.plugin.get_index_name())
 
     def test_document_type(self):
-        self.assertEqual('metadef', self.plugin.get_document_type())
+        self.assertEqual('OS::Glance::Metadef',
+                         self.plugin.get_document_type())
 
     def test_complex_serialize(self):
         expected = {
@@ -431,15 +432,15 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         )
         rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
         expected_fragment = [{
-            "and": [
+            'and': [
                 {
-                    "or": [
-                        {"term": {"owner": TENANT1}},
-                        {"term": {"visibility": "public"}},
+                    'or': [
+                        {'term': {'owner': TENANT1}},
+                        {'term': {'visibility': 'public'}},
                     ]
                 },
-                {"type": {"value": "metadef"}},
-                {"index": {"value": "glance"}}
+                {'type': {'value': 'OS::Glance::Metadef'}},
+                {'index': {'value': 'searchlight'}}
             ]
         }]
         self.assertEqual(expected_fragment, rbac_query_fragment)

@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from oslo_config import cfg
 from oslo_log import log as logging
 import oslo_messaging
@@ -37,7 +39,7 @@ class NotificationEndpoint(object):
     def __init__(self, plugins):
         self.plugins = plugins
         self.notification_target_map = {}
-        for plugin in self.plugins:
+        for plugin_type, plugin in six.iteritems(self.plugins):
             try:
                 event_list = plugin.obj.get_notification_supported_events()
                 for event in event_list:
@@ -74,7 +76,7 @@ class ListenerService(os_service.Service):
 
     def topics_and_exchanges(self):
         topics_exchanges = set()
-        for plugin in self.plugins:
+        for plugin_type, plugin in six.iteritems(self.plugins):
             try:
                 plugin_obj = plugin.obj.get_notification_topics_exchanges()
                 for plugin_topic in plugin_obj:

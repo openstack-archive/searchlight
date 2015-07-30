@@ -723,4 +723,5 @@ def get_search_plugins():
     namespace = 'searchlight.index_backend'
     ext_manager = stevedore.extension.ExtensionManager(
         namespace, invoke_on_load=True)
-    return ext_manager.extensions
+    return {plugin.obj.get_document_type(): plugin
+            for plugin in ext_manager.extensions}
