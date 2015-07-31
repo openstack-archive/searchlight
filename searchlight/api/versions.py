@@ -13,10 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import httplib
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
+import six
+from six.moves import http_client
 import webob.dec
 
 from searchlight.common import wsgi
@@ -28,7 +29,7 @@ versions_opts = [
     cfg.StrOpt('public_endpoint', default=None,
                help=_('Public url to use for versions endpoint. The default '
                       'is None, which will use the request\'s host_url '
-                      'attribute to populate the URL base. If Glance is '
+                      'attribute to populate the URL base. If Searchlight is '
                       'operating behind a proxy, you will want to change '
                       'this to represent the proxy\'s URL.')),
 ]
@@ -45,6 +46,7 @@ class Controller(object):
         """Respond to a request for all OpenStack API versions."""
         def build_version_object(version, path, status):
             url = CONF.public_endpoint or req.host_url
+            url = url.rstrip("/")
             return {
                 'id': 'v%s' % version,
                 'status': status,
@@ -57,23 +59,17 @@ class Controller(object):
             }
 
         version_objs = []
-        if CONF.enable_v2_api:
-            version_objs.extend([
-                build_version_object(2.3, 'v2', 'CURRENT'),
-                build_version_object(2.2, 'v2', 'SUPPORTED'),
-                build_version_object(2.1, 'v2', 'SUPPORTED'),
-                build_version_object(2.0, 'v2', 'SUPPORTED'),
-            ])
-        if CONF.enable_v1_api:
-            version_objs.extend([
-                build_version_object(1.1, 'v1', 'SUPPORTED'),
-                build_version_object(1.0, 'v1', 'SUPPORTED'),
-            ])
+        version_objs.extend([
+            build_version_object(1.0, 'v1', 'CURRENT')
+        ])
 
         response = webob.Response(request=req,
-                                  status=httplib.MULTIPLE_CHOICES,
+                                  status=http_client.MULTIPLE_CHOICES,
                                   content_type='application/json')
-        response.body = jsonutils.dumps({'versions': version_objs})
+        json = jsonutils.dumps(dict(versions=version_objs))
+        if six.PY3:
+            json = json.encode('utf-8')
+        response.body = json
         return response
 
     @webob.dec.wsgify(RequestClass=wsgi.Request)
