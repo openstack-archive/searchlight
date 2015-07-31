@@ -34,8 +34,8 @@ class ImageHandler(base.NotificationBase):
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
         try:
             actions = {
-                "image.create": self.create,
-                "image.update": self.update,
+                "image.create": self.create_or_update,
+                "image.update": self.create_or_update,
                 "image.delete": self.delete
             }
             actions[event_type](payload)
@@ -46,24 +46,17 @@ class ImageHandler(base.NotificationBase):
     def serialize_notification(self, notification):
         return serialize_glance_notification(notification)
 
-    def create(self, payload):
+    def create_or_update(self, payload):
         id = payload['id']
         payload = self.serialize_notification(payload)
-        self.engine.create(
-            index=self.index_name,
-            doc_type=self.document_type,
-            body=payload,
-            id=id
-        )
-
-    def update(self, payload):
-        id = payload['id']
-        payload = self.serialize_notification(payload)
-        doc = {"doc": payload}
+        body = {
+            "doc": payload,
+            "doc_as_upsert": True
+        }
         self.engine.update(
             index=self.index_name,
             doc_type=self.document_type,
-            body=doc,
+            body=body,
             id=id
         )
 
