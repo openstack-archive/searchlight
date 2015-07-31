@@ -289,15 +289,14 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search', is_admin=True
         )
-        filtered_result = self.plugin.filter_result(
-            elasticsearch_results, fake_request.context
-        )
+        self.plugin.filter_result(elasticsearch_results['hits']['hits'][0],
+                                  fake_request.context)
 
         # Result should contain all the fields
-        single_filtered_result = filtered_result['hits']['hits'][0]['_source']
-        self.assertEqual(serialized, single_filtered_result)
+        single_result = elasticsearch_results['hits']['hits'][0]['_source']
+        self.assertEqual(serialized, single_result)
         for field in protected_fields:
-            self.assertTrue(field in single_filtered_result)
+            self.assertTrue(field in single_result)
 
         # Refresh the mock results since they can be modified in-place
         elasticsearch_results = {
@@ -314,14 +313,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             USER1, TENANT1, '/v1/search', is_admin=False
         )
 
-        filtered_result = self.plugin.filter_result(
-            elasticsearch_results, fake_request.context
-        )
+        self.plugin.filter_result(elasticsearch_results['hits']['hits'][0],
+                                  fake_request.context)
 
-        single_filtered_result = filtered_result['hits']['hits'][0]['_source']
+        single_result = elasticsearch_results['hits']['hits'][0]['_source']
 
         for field in protected_fields:
-            self.assertFalse(field in single_filtered_result)
+            self.assertFalse(field in single_result)
 
     def test_update_deleted(self):
         """Test that if a server has been deleted it's deleted from the index

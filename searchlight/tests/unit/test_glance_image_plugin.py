@@ -459,9 +459,9 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search', is_admin=True
         )
-        filtered_result = self.plugin.filter_result(
-            elasticsearch_results, fake_request.context
-        )
+
+        for result_hit in elasticsearch_results['hits']['hits']:
+            self.plugin.filter_result(result_hit, fake_request.context)
 
         # This should contain the three properties we added
         expected = {
@@ -488,7 +488,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         }
 
         self.assertEqual(expected,
-                         filtered_result['hits']['hits'][0]['_source'])
+                         elasticsearch_results['hits']['hits'][0]['_source'])
 
         # Non admin user. Recreate this because the filter operation modifies
         # it in place and we want a fresh copy
@@ -505,9 +505,9 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search', is_admin=False
         )
-        filtered_result = self.plugin.filter_result(
-            elasticsearch_results, fake_request.context
-        )
+
+        for result_hit in elasticsearch_results['hits']['hits']:
+            self.plugin.filter_result(result_hit, fake_request.context)
 
         # Should be missing two of the properties
         expected = {
@@ -532,7 +532,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         }
 
         self.assertEqual(expected,
-                         filtered_result['hits']['hits'][0]['_source'])
+                         elasticsearch_results['hits']['hits'][0]['_source'])
 
     def test_image_notification_serialize(self):
         notification = _notification_fixture(

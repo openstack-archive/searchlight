@@ -88,17 +88,14 @@ class ImageIndex(base.IndexBase):
             }
         ]
 
-    def filter_result(self, result, request_context):
+    def filter_result(self, hit, request_context):
         if property_utils.is_property_protection_enabled():
-            hits = result['hits']['hits']
-            for hit in hits:
-                if hit['_type'] == self.get_document_type():
-                    for key in list(hit['_source'].keys()):
-                        if key not in self._image_base_properties:
-                            if not self.property_rules.check_property_rules(
-                                    key, 'read', request_context):
-                                del hit['_source'][key]
-        return result
+            source = hit['_source']
+            for key in list(source.keys()):
+                if key not in self._image_base_properties:
+                    if not self.property_rules.check_property_rules(
+                            key, 'read', request_context):
+                        del source[key]
 
     def get_objects(self):
         from searchlight.elasticsearch.plugins import openstack_clients

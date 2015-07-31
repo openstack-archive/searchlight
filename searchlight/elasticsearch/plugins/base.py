@@ -268,9 +268,9 @@ class IndexBase(object):
         query. Document type will be added to this list.
         """
 
-    def filter_result(self, result, request_context):
-        """Filter the outgoing search result."""
-        return result
+    def filter_result(self, hit, request_context):
+        """Filter each outgoing search result; document in hit['_source']"""
+        pass
 
     def get_settings(self):
         """Get an index settings."""

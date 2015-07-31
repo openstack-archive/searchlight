@@ -165,7 +165,7 @@ class TestControllerSearch(test_utils.BaseTestCase):
     def test_search_all_repo(self):
         request = unit_test_utils.get_fake_request()
         repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(return_value="{}")
+        repo.search = mock.Mock(return_value={})
         query = {"match_all": {}}
         index_name = "searchlight"
         doc_type = "OS::Glance::Metadef"
