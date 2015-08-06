@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import six
 import webob
 
 from searchlight.api.middleware import context
@@ -32,5 +33,5 @@ class TestContextMiddleware(test_utils.BaseTestCase):
         self.assertEqual(request_id, resp.headers['x-openstack-request-id'])
         resp_req_id = resp.headers['x-openstack-request-id']
         # Validate that request-id do not starts with 'req-req-'
-        self.assertFalse(resp_req_id.startswith('req-req-'))
-        self.assertTrue(resp_req_id.startswith('req-'))
+        self.assertFalse(resp_req_id.startswith(six.b('req-req-')))
+        self.assertTrue(resp_req_id.startswith(six.b('req-')))

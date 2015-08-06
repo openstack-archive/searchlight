@@ -15,7 +15,6 @@
 
 """Common utilities used in testing"""
 
-import BaseHTTPServer
 import errno
 import functools
 import os
@@ -28,6 +27,7 @@ import fixtures
 from oslo_config import cfg
 from oslotest import moxstubout
 import six
+from six.moves import BaseHTTPServer
 import testtools
 import webob
 

@@ -106,8 +106,7 @@ class ImageIndex(base.IndexBase):
             hits = result['hits']['hits']
             for hit in hits:
                 if hit['_type'] == self.get_document_type():
-                    source = hit['_source']
-                    for key in source.keys():
+                    for key in list(hit['_source'].keys()):
                         if key not in self._image_base_properties:
                             if not self.property_rules.check_property_rules(
                                     key, 'read', request_context):

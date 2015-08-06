@@ -73,7 +73,7 @@ def _image_fixture(image_id, **kwargs):
         'updated_at': DATE1,
     }
     image.update(kwargs)
-    for k, v in extra_properties.iteritems():
+    for k, v in six.iteritems(extra_properties):
         image[k] = v
     return image
 

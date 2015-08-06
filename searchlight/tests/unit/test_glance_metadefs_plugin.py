@@ -229,8 +229,9 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         if isinstance(namespace, int):
             return self.namespaces[namespace]
         else:
-            return filter(lambda n: n['namespace'] == namespace,
-                          self.namespaces)[0]
+            for n in self.namespaces:
+                if n['namespace'] == namespace:
+                    return n
 
     def _list_namespaces(self):
         """Return a stripped down copy of namespaces, minus tags, properties,

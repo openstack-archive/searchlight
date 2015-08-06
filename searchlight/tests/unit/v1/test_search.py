@@ -15,6 +15,7 @@
 
 import mock
 from oslo_serialization import jsonutils
+import six
 import webob.exc
 
 from searchlight.api.v1 import search as search
@@ -283,25 +284,25 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_single_index(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': 'glance',
-        })
+        }))
 
         output = self.deserializer.search(request)
         self.assertEqual(['glance'], output['index'])
 
     def test_single_doc_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'type': 'image',
-        })
+        }))
 
         output = self.deserializer.search(request)
         self.assertEqual(['image'], output['doc_type'])
 
     def test_empty_request(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({})
+        request.body = six.b(jsonutils.dumps({}))
 
         output = self.deserializer.search(request)
         self.assertEqual(['glance'], output['index'])
@@ -310,7 +311,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_empty_request_admin(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({})
+        request.body = six.b(jsonutils.dumps({}))
         request.context.is_admin = True
 
         output = self.deserializer.search(request)
@@ -320,48 +321,48 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_invalid_index(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': 'invalid',
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_invalid_doc_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'type': 'invalid',
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_forbidden_schema(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'schema': {},
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPForbidden, self.deserializer.search,
                           request)
 
     def test_forbidden_self(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'self': {},
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPForbidden, self.deserializer.search,
                           request)
 
     def test_fields_restriction(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
             'type': ['metadef'],
             'query': {'match_all': {}},
             'fields': ['description'],
-        })
+        }))
 
         output = self.deserializer.search(request)
         self.assertEqual(['glance'], output['index'])
@@ -370,12 +371,12 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_highlight_fields(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
             'type': ['metadef'],
             'query': {'match_all': {}},
             'highlight': {'fields': {'name': {}}}
-        })
+        }))
 
         output = self.deserializer.search(request)
         self.assertEqual(['glance'], output['index'])
@@ -384,61 +385,61 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_invalid_limit(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
             'type': ['metadef'],
             'query': {'match_all': {}},
             'limit': 'invalid',
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
     def test_negative_limit(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
             'type': ['metadef'],
             'query': {'match_all': {}},
             'limit': -1,
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
     def test_invalid_offset(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
             'type': ['metadef'],
             'query': {'match_all': {}},
             'offset': 'invalid',
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
     def test_negative_offset(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
             'type': ['metadef'],
             'query': {'match_all': {}},
             'offset': -1,
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
     def test_limit_and_offset(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
             'type': ['metadef'],
             'query': {'match_all': {}},
             'limit': 1,
             'offset': 2,
-        })
+        }))
 
         output = self.deserializer.search(request)
         self.assertEqual(['glance'], output['index'])
@@ -457,66 +458,66 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
     def test_empty_request(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({})
+        request.body = six.b(jsonutils.dumps({}))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_empty_actions(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'default_index': 'glance',
             'default_type': 'image',
             'actions': [],
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_missing_actions(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'default_index': 'glance',
             'default_type': 'image',
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_invalid_operation_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('invalid', '1')]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_invalid_default_index(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'default_index': 'invalid',
             'actions': [_image_fixture('create', '1')]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_invalid_default_doc_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'default_type': 'invalid',
             'actions': [_image_fixture('create', '1')]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_empty_operation_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('', '1')]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
@@ -526,9 +527,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action.pop('action')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -546,9 +547,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
     def test_create_single(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('create', '1')]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -571,9 +572,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         ]
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': actions,
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -603,19 +604,19 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action.pop('data')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_create_with_default_index(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'default_index': 'glance',
             'actions': [_image_fixture('create', '1', index=None)]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -633,10 +634,10 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
     def test_create_with_default_doc_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'default_type': 'image',
             'actions': [_image_fixture('create', '1', doc_type=None)]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -654,12 +655,12 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
     def test_create_with_default_index_and_doc_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'default_index': 'glance',
             'default_type': 'image',
             'actions': [_image_fixture('create', '1', index=None,
                                        doc_type=None)]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -677,9 +678,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
     def test_create_missing_id(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('create')]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -697,9 +698,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
     def test_create_empty_id(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('create', '')]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -717,36 +718,36 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
     def test_create_invalid_index(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('create', index='invalid')]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_create_invalid_doc_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('create', doc_type='invalid')]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_create_missing_index(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('create', '1', index=None)]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_create_missing_doc_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('create', '1', doc_type=None)]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
@@ -755,9 +756,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action = _image_fixture('update')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
@@ -767,18 +768,18 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action.pop('data')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
     def test_update_using_data(self):
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [_image_fixture('update', '1')]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -799,9 +800,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action.pop('data')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -822,9 +823,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action = _image_fixture('update', '1', script='<sample script>')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -845,9 +846,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action = _image_fixture('delete')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
@@ -857,9 +858,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action.pop('data')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action]
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
@@ -882,9 +883,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         action_2.pop('data')
 
         request = unit_test_utils.get_fake_request()
-        request.body = jsonutils.dumps({
+        request.body = six.b(jsonutils.dumps({
             'actions': [action_1, action_2],
-        })
+        }))
 
         output = self.deserializer.index(request)
         expected = {
