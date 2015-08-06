@@ -50,10 +50,9 @@ class ImageHandler(base.NotificationBase):
         id = payload['id']
         payload = self.serialize_notification(payload)
         body = {
-            "doc": payload,
-            "doc_as_upsert": True
+            "doc": payload
         }
-        self.engine.update(
+        self.engine.index(
             index=self.index_name,
             doc_type=self.document_type,
             body=body,
