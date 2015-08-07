@@ -137,6 +137,9 @@ class MetadefIndex(base.IndexBase):
             self.get_document_type()
         )
 
+    def get_notification_topics_exchanges(self):
+        return set([('searchlight_indexer', 'glance')])
+
     def get_notification_supported_events(self):
         return [
             "metadef_namespace.create",
