@@ -32,11 +32,23 @@ class IndexBase(object):
         self.document_id_field = self.get_document_id_field()
         self.name = "%s-%s" % (self.index_name, self.document_type)
 
-    def setup(self):
+    def initial_indexing(self, clear=True):
         """Comprehensively install search engine index and put data into it."""
+        if clear:
+            # First delete the doc type
+            self.clear_data()
+
         self.setup_index()
         self.setup_mapping()
         self.setup_data()
+
+    def clear_data(self):
+        type_exists = (self.engine.indices.exists(self.index_name) and
+                       self.engine.indices.exists_type(self.index_name,
+                                                       self.document_type))
+        if type_exists:
+            self.engine.indices.delete_mapping(self.index_name,
+                                               self.document_type)
 
     def setup_index(self):
         """Create the index if it doesn't exist and update its settings."""

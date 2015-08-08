@@ -52,6 +52,17 @@ This will iterate through all registered search plugins and request that
 they index all data that's available to them. This command may be re-run at
 any time to perform a full re-index.
 
+It is also possible to index just a single resource, or all resources
+belonging to an index. For instance, to index all glance images::
+
+    $ searchlight-manage index sync --type OS::Glance::Image
+
+To index all resources in the 'searchlight' index::
+
+    $ searchlight-manage index sync --index searchlight
+
+You will be prompted to confirm unless --force is provided.
+
 Incremental Updates
 -------------------
 
