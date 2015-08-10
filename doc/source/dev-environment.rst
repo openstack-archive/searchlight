@@ -20,6 +20,13 @@ Development Environment
 This guide will walk you through setting up a typical development
 environment. You may set it up using devstack or manually.
 
+.. _Devstack Development Environment:
+
+Devstack Development Environment
+++++++++++++++++++++++++++++++++
+
+Please see: https://github.com/openstack/searchlight/tree/master/devstack
+
 .. _Manual Development Environment:
 
 Manual Development Environment
@@ -118,13 +125,14 @@ All further commands in this section should be run with the venv active:
 
 ::
 
-   $ python setup.py develop
+   (venv) $ python setup.py develop
 
 5. Generate sample config.
 
 ::
 
-   $ oslo-config-generator --config-file etc/oslo-config-generator/searchlight-api.conf
+   (venv) $ oslo-config-generator --config-file
+   etc/oslo-config-generator/searchlight-api.conf
 
 6. Create Searchlight's config files by copying the sample config files
 
@@ -151,41 +159,48 @@ Configuring Searchlight
 .. index::
     double: configure; searchlight
 
-Open the searchlight-api.conf file for editing (use editor of your choice)
+Searchlight has several configuration files. The following are the basic
+configuration suggestions.
 
+Keystone integration
+--------------------
+
+Keystone integration should be set up for proper authentication and service
+integration
+
+.. toctree::
+   :maxdepth: 2
+
+   authentication
+
+Other development environment configuration
+-------------------------------------------
+
+Additional development environment configuration items are specified below.
+
+searchlight-api.conf
+````````````````````
 ::
 
-  $ editor searchlight-api.conf
-
-Suggested changes::
-
+    [DEFAULT]
     debug = true
     verbose = true
-    policy_file = ~/openstack/searchlight/etc/policy.json
+    log_file = log/searchlight.log
 
-Setup credentials to either use existing credentials or create a new keystone
-user with the defaults that searchlight uses.
+Plugin Configuration
+--------------------
 
-Option A: Credential configuration::
-
-   [service_credentials]
-   # These are needed to make API calls to other services when indexing
-   os_username = %SERVICE_USER%
-   os_password = %SERVICE_PASSWORD%
-   os_tenant_name = %SERVICE_TENANT_NAME%
-   os_auth_url = http://127.0.0.1:35357
-
-Option B: Create keystone user with searchlight defaults::
-
-   # CLI, assuming you have set the environment variables
-   $ keystone user-create --name searchlight --pass admin --tenant admin
-
-Plugin Configuration:
+The search service is driven using a plugin mechanism for integrating to other
+services. Each integrated service may require additional configuration
+settings. For example, typically, you will need to add the
+``searchlight_indexer`` notification topic to each service's configuration.
+Please review the plugins and add configuration appropriately.
 
 .. toctree::
    :maxdepth: 1
+   :glob:
 
-   plugins/glance
+   plugins/*
 
 Initialize the Elasticsearch Index
 ==================================
