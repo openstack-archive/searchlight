@@ -14,8 +14,10 @@
 # limitations under the License.
 
 import copy
-import glanceclient.exc
 import logging
+import operator
+
+import glanceclient.exc
 import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
@@ -54,7 +56,7 @@ def serialize_glance_image(image):
     g_client = openstack_clients.get_glanceclient()
 
     # If we're being asked to index an ID, retrieve the full image information
-    if isinstance(image, basestring):
+    if isinstance(image, six.text_type):
         image = g_client.images.get(image)
 
     members = _get_image_members(image)
@@ -96,7 +98,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
         if 'default' in serialized_prop:
             serialized_prop['default'] = str(serialized_prop['default'])
         if 'enum' in serialized_prop:
-            serialized_prop['enum'] = map(str, serialized_prop['enum'])
+            serialized_prop['enum'] = sorted(map(str, serialized_prop['enum']))
 
         return serialized_prop
 
@@ -108,7 +110,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
         serialized_obj['properties'] = sorted([
             _serialize_property(name, property)
             for name, property in six.iteritems(obj.get('properties', {}))
-        ])
+        ], key=operator.itemgetter('name'))
         return serialized_obj
 
     def _serialize_res_type(rt):
@@ -135,17 +137,17 @@ def serialize_glance_metadef_ns(metadef_namespace):
 
     document['tags'] = sorted([
         _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])
-    ])
+    ], key=operator.itemgetter('name'))
     document['properties'] = sorted([
         _serialize_property(name, property)
         for name, property in six.iteritems(
             metadef_namespace.get('properties', {}))
-    ])
+    ], key=operator.itemgetter('name'))
     document['objects'] = sorted([
         _serialize_object(obj) for obj in metadef_namespace.get('objects', [])
-    ])
+    ], key=operator.itemgetter('name'))
     document['resource_types'] = sorted([
         _serialize_res_type(rt)
         for rt in metadef_namespace.get('resource_type_associations', [])
-    ])
+    ], key=operator.itemgetter('name'))
     return document

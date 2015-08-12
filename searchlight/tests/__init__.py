@@ -13,18 +13,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import searchlight.cmd as searchlight_cmd
-
-
-searchlight_cmd.fix_greendns_ipv6()
+import logging
 
 # See http://code.google.com/p/python-nose/issues/detail?id=373
 # The code below enables tests to work with i18n _() blocks
 import six.moves.builtins as __builtin__
 setattr(__builtin__, '_', lambda x: x)
 
+# Run the fix_greendns_ipv6 function
+import searchlight.cmd  # noqa
+
+
 # Set up logging to output debugging
-import logging
 logger = logging.getLogger()
 hdlr = logging.FileHandler('run_tests.log', 'w')
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
