@@ -373,18 +373,26 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         )
         rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
         expected_fragment = [{
-            "and": [
-                {
-                    "or": [
-                        {"term": {"owner": TENANT1}},
-                        {"term": {"visibility": "public"}},
-                        {"term": {"members": TENANT1}}
+            "indices": {
+                "index": "searchlight",
+                "no_match_filter": "none",
+                "filter": {
+                    "and": [
+                        {
+                            "or": [
+                                {"term": {"owner": TENANT1}},
+                                {"term": {"visibility": "public"}},
+                                {"term": {"members": TENANT1}}
+                            ]
+                        },
+                        {
+                            "type": {"value": "OS::Glance::Image"}
+                        },
                     ]
                 },
-                {"type": {"value": "OS::Glance::Image"}},
-                {"index": {"value": "searchlight"}}
-            ]
+            }
         }]
+
         self.assertEqual(expected_fragment, rbac_query_fragment)
 
     def test_protected_properties(self):
