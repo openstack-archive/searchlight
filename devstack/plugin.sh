@@ -134,9 +134,8 @@ function create_searchlight_accounts {
         create_service_user "searchlight"
 
         if is_service_enabled searchlight-api && [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
-            local searchlight_service=$(get_or_create_service "searchlight" \
-                "search" "Searchlight Service")
-            get_or_create_endpoint $searchlight_service \
+            get_or_create_service "searchlight" "search" "Searchlight Service"
+            get_or_create_endpoint "search" \
                 "$REGION_NAME" \
                 "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/" \
                 "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/" \
