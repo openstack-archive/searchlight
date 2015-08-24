@@ -102,6 +102,10 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF service_credentials os_password $SERVICE_PASSWORD
     iniset $SEARCHLIGHT_CONF service_credentials os_auth_url $KEYSTONE_AUTH_URI/v2.0
 
+    # Keystone Middleware
+    iniset $SEARCHLIGHT_CONF paste_deploy flavor keystone
+    configure_auth_token_middleware $SEARCHLIGHT_CONF searchlight $SEARCHLIGHT_AUTH_CACHE_DIR
+
     # Oslo Concurrency
     iniset $SEARCHLIGHT_CONF oslo_concurrency lock_path "$SEARCHLIGHT_STATE_PATH"
 
@@ -131,7 +135,7 @@ function configure_searchlight {
 # service              searchlight  admin        # if enabled
 function create_searchlight_accounts {
     if [[ "$ENABLED_SERVICES" =~ "searchlight-" ]]; then
-        create_service_user "searchlight"
+        create_service_user "searchlight" "admin"
 
         if is_service_enabled searchlight-api && [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
             get_or_create_service "searchlight" "search" "Searchlight Service"
