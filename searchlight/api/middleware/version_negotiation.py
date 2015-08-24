@@ -46,20 +46,9 @@ class VersionNegotiationFilter(wsgi.Middleware):
         args = {'method': req.method, 'path': req.path, 'accept': req.accept}
         LOG.debug(msg % args)
 
-        # If the request is for /versions, just return the versions container
-        # TODO(bcwaldon): deprecate this behavior
-        if req.path_info_peek() == "versions":
-            return self.versions_app
-
-        accept = str(req.accept)
-        if accept.startswith('application/vnd.openstack.images-'):
-            LOG.debug("Using media-type versioning")
-            token_loc = len('application/vnd.openstack.images-')
-            req_version = accept[token_loc:]
-        else:
-            LOG.debug("Using url versioning")
-            # Remove version in url so it doesn't conflict later
-            req_version = self._pop_path_info(req)
+        LOG.debug("Using url versioning")
+        # Remove version in url so it doesn't conflict later
+        req_version = self._pop_path_info(req)
 
         try:
             version = self._match_version_string(req_version)
@@ -82,10 +71,9 @@ class VersionNegotiationFilter(wsgi.Middleware):
         :returns version found in the subject
         :raises ValueError if no acceptable version could be found
         """
-        if subject in ('v1', 'v1.0', 'v1.1') and CONF.enable_v1_api:
+        # TODO(lakshmis): Add newer versions whenever they are introduced
+        if subject in ('v1', 'v1.0'):
             major_version = 1
-        elif subject in ('v2', 'v2.0', 'v2.1', 'v2.2') and CONF.enable_v2_api:
-            major_version = 2
         else:
             raise ValueError()
 
