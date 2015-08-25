@@ -43,17 +43,18 @@ Searches use Elasticsearch's
 `query DSL <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl.html>`_.
 
 Elasticsearch stores each 'document' in an 'index', which has one or more
-'document types'. Searchlight's indexing service stores all resource
+'types'. Searchlight's indexing service stores all resource
 types in their own document type, grouped by service into indices. For
-instance, the ``image`` and ``metadef`` document types both reside in the
-``glance`` index.
+instance, the ``OS::Glance::Image`` and ``OS::Glance::Metadef`` types both
+reside in the ``searchlight`` index. ``type`` is unique to a resource type.
 
-Document access is defined by each document type, for instance:
+Document access is defined by each document type, for instance for glance
+images:
 
 * If the current user is the resource owner OR
 * If the resource is marked public
 
-Administrators have access to all resources.
+Some resources may have additional rules. Administrators have access to all resources.
 
 Querying available plugins
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,14 +73,25 @@ might yield::
     {
         "plugins": [
             {
-                 "index": "nova",
-                 "type": "instances"
-            }, {
-                 "index": "glance",
-                 "type": "images"
+                 "name": "OS::Glance::Image",
+                 "type": "OS::Glance::Image",
+                 "index": "searchlight"
+            },
+            {
+                 "name": "OS::Glance::Metadef",
+                 "type": "OS::Glance::Metadef",
+                 "index": "searchlight"
             }
+
         ]
     }
+
+This represents Glance image and metadef resources indexed in the same
+Elasticsearch ``index`` and a ``type`` specific to the resource. To view
+all indexed Glance images in Elasticsearch directly, rather than in Searchlight
+(assuming a server running on localhost) would therefore be a request such as::
+
+    curl http://localhost:9200/searchlight/OS::Glance::Image/_search
 
 Running a search
 ~~~~~~~~~~~~~~~~
@@ -106,8 +118,8 @@ The data is returned as a JSON-encoded mapping from Elasticsearch::
       "hits": [
         {
           "_id": "76580e9d-f83d-49d8-b428-1fb90c5d8e95",
-          "_index": "glance",
-          "_type": "image"
+          "_index": "searchlight",
+          "_type": "OS::Glance::Image"
           "_score": 1.0,
           "_source": {
             "id": "76580e9d-f83d-49d8-b428-1fb90c5d8e95",
@@ -120,7 +132,7 @@ The data is returned as a JSON-encoded mapping from Elasticsearch::
         },
         {
           "_id": "OS::Software::DBMS",
-          "_index": "glance",
+          "_index": "searchlight",
           "_type": "metadef",
           "_score": 1.0,
           "_source": {
@@ -131,7 +143,6 @@ The data is returned as a JSON-encoded mapping from Elasticsearch::
               {
                 "description": "PostgreSQL, often simply 'Postgres' ...",
                 "name": "PostgreSQL",
-                "type": "
                 "properties": [
                   {
                     "default": "5432",
@@ -169,7 +180,7 @@ resource. the fields in the root of each hit are:
 
 * ``_index``
 
-  The service to which the resource belongs (e.g. ``glance``).
+  The service to which the resource belongs (e.g. ``searchlight``).
 
 * ``_type``
 
@@ -204,12 +215,13 @@ To restrict a query to Glance image and metadef information only (both
         "query": {
             "match_all": {}
         },
-        "index": "glance",
-        "type": ["image", "metadef"]
+        "type": ["OS::Glance::Image", "OS::Glance::Metadefs"]
     }
 
 If ``index`` or ``type`` are not provided they will default to covering as
-wide a range of results as possible.
+wide a range of results as possible. Be aware that it is possible to specify
+combinations of ``index`` and ``type`` that can return no results. In general
+``type`` is preferred since ``type`` is unique to a resource.
 
 Retrieving an item by id
 ************************
@@ -217,7 +229,7 @@ To retrieve a resource by its Openstack ID (e.g. a glance image), we can use
 Elasticsearch's `term query <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-term-query.html>`_::
 
   {
-    "index": "glance",
+    "index": "searchlight",
     "query": {
       "term": {
         "id": "79fa243d-e05d-4848-8a9e-27a01e83ceba"
@@ -230,8 +242,7 @@ Limiting the fields returned
 To restrict the ``source`` to include only certain fields::
 
   {
-    "index": "glance",
-    "type": "image",
+    "type": "OS::Glance::Image",
     "fields": ["name", "size"]
   }
 
@@ -247,13 +258,13 @@ Gives::
       "hits": [
         {
           "_id": "76580e9d-f83d-49d8-b428-1fb90c5d8e95",
-          "_index": "glance",
+          "_index": "searchlight",
           "_score": 1.0,
           "_source": {
             "name": "cirros-0.3.2-x86_64-uec",
             "size": 3723817
           },
-          "_type": "image"
+          "_type": "OS::Glance::Image"
         },
         ...
       ],
@@ -310,8 +321,7 @@ A common requirement is to highlight search terms in results::
 
 
   {
-    "index": "glance",
-    "type": "metadef"
+    "type": "OS::Glance::Metadefs",
     "query": {
       "query_string": {
         "query": "database"
@@ -333,12 +343,12 @@ Results::
       "hits": [
         {
           "_id": "OS::Software::DBMS",
-          "_index": "glance",
+          "_index": "searchlight",
+          "_type": "OS::Glance::Metadef",
           "_score": 0.56079304,
           "_source": {
             "description": "A database is an organized collection of data. The data is typically organized to model aspects of reality in a way that supports processes requiring information. Database management systems are computer software applications that interact with the user, other applications, and the database itself to capture and analyze data. (http://en.wikipedia.org/wiki/Database)"
           },
-          "_type": "metadef",
           "highlight": {
             "description": [
               "A <em>database</em> is an organized collection of data. The data is typically organized to model aspects of",

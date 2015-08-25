@@ -42,7 +42,8 @@ def _action_fixture(op_type, data, index=None, doc_type=None, _id=None,
     return action
 
 
-def _image_fixture(op_type, _id=None, index='glance', doc_type='image',
+def _image_fixture(op_type, _id=None, index='searchlight',
+                   doc_type='OS::Glance::Image',
                    data=None, **kwargs):
     image_data = {
         'name': 'image-1',
@@ -54,113 +55,18 @@ def _image_fixture(op_type, _id=None, index='glance', doc_type='image',
     return _action_fixture(op_type, image_data, index, doc_type, _id, **kwargs)
 
 
-class TestSearchController(test_utils.BaseTestCase):
-
+class TestControllerIndex(test_utils.BaseTestCase):
     def setUp(self):
-        super(TestSearchController, self).setUp()
+        super(TestControllerIndex, self).setUp()
         self.search_controller = search.SearchController()
-
-    def test_search_all(self):
-        request = unit_test_utils.get_fake_request()
-        self.search_controller.search = mock.Mock(return_value="{}")
-
-        query = {"match_all": {}}
-        index = "glance"
-        doc_type = "metadef"
-        fields = None
-        offset = 0
-        limit = 10
-        self.search_controller.search(
-            request, query, index, doc_type, fields, offset, limit)
-        self.search_controller.search.assert_called_once_with(
-            request, query, index, doc_type, fields, offset, limit)
-
-    def test_search_all_repo(self):
-        request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(return_value="{}")
-        query = {"match_all": {}}
-        index = "glance"
-        doc_type = "metadef"
-        fields = []
-        offset = 0
-        limit = 10
-        self.search_controller.search(
-            request, query, index, doc_type, fields, offset, limit)
-        repo.search.assert_called_once_with(
-            index, doc_type, query, fields, offset, limit, True)
-
-    def test_search_forbidden(self):
-        request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=exception.Forbidden)
-
-        query = {"match_all": {}}
-        index = "glance"
-        doc_type = "metadef"
-        fields = []
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPForbidden, self.search_controller.search,
-            request, query, index, doc_type, fields, offset, limit)
-
-    def test_search_not_found(self):
-        request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=exception.NotFound)
-
-        query = {"match_all": {}}
-        index = "glance"
-        doc_type = "metadef"
-        fields = []
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPNotFound, self.search_controller.search, request,
-            query, index, doc_type, fields, offset, limit)
-
-    def test_search_duplicate(self):
-        request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=exception.Duplicate)
-
-        query = {"match_all": {}}
-        index = "glance"
-        doc_type = "metadef"
-        fields = []
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPConflict, self.search_controller.search, request,
-            query, index, doc_type, fields, offset, limit)
-
-    def test_search_internal_server_error(self):
-        request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=Exception)
-
-        query = {"match_all": {}}
-        index = "glance"
-        doc_type = "metadef"
-        fields = []
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPInternalServerError, self.search_controller.search,
-            request, query, index, doc_type, fields, offset, limit)
 
     def test_index_complete(self):
         request = unit_test_utils.get_fake_request(is_admin=True)
         self.search_controller.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
-        default_index = 'glance'
-        default_type = 'image'
+        default_index = 'searchlight'
+        default_type = 'OS::Glance::Image'
 
         self.search_controller.index(
             request, actions, default_index, default_type)
@@ -173,8 +79,8 @@ class TestSearchController(test_utils.BaseTestCase):
         repo.index = mock.Mock(return_value="{}")
         actions = [{'action': 'create', 'index': 'myindex', 'id': 10,
                     'type': 'MyTest', 'data': '{"name": "MyName"}'}]
-        default_index = 'glance'
-        default_type = 'image'
+        default_index = 'searchlight'
+        default_type = 'OS::Glance::Image'
 
         self.search_controller.index(
             request, actions, default_index, default_type)
@@ -235,18 +141,113 @@ class TestSearchController(test_utils.BaseTestCase):
             webob.exc.HTTPInternalServerError, self.search_controller.index,
             request, actions)
 
-    def test_plugins_info(self):
-        request = unit_test_utils.get_fake_request(is_admin=True)
-        self.search_controller.plugins_info = mock.Mock(return_value="{}")
-        self.search_controller.plugins_info(request)
-        self.search_controller.plugins_info.assert_called_once_with(request)
 
-    def test_plugins_info_repo(self):
+class TestControllerSearch(test_utils.BaseTestCase):
+
+    def setUp(self):
+        super(TestControllerSearch, self).setUp()
+        self.search_controller = search.SearchController()
+
+    def test_search_all(self):
+        request = unit_test_utils.get_fake_request()
+        self.search_controller.search = mock.Mock(return_value="{}")
+
+        query = {"match_all": {}}
+        index_name = "searchlight"
+        doc_type = "OS::Glance::Metadef"
+        fields = None
+        offset = 0
+        limit = 10
+        self.search_controller.search(
+            request, query, index_name, doc_type, fields, offset, limit)
+        self.search_controller.search.assert_called_once_with(
+            request, query, index_name, doc_type, fields, offset, limit)
+
+    def test_search_all_repo(self):
         request = unit_test_utils.get_fake_request()
         repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.plugins_info = mock.Mock(return_value="{}")
-        self.search_controller.plugins_info(request)
-        repo.plugins_info.assert_called_once_with()
+        repo.search = mock.Mock(return_value="{}")
+        query = {"match_all": {}}
+        index_name = "searchlight"
+        doc_type = "OS::Glance::Metadef"
+        fields = []
+        offset = 0
+        limit = 10
+        self.search_controller.search(
+            request, query, index_name, doc_type, fields, offset, limit)
+        repo.search.assert_called_once_with(
+            index_name, doc_type, query, fields, offset, limit, True)
+
+    def test_search_forbidden(self):
+        request = unit_test_utils.get_fake_request()
+        repo = searchlight.elasticsearch.CatalogSearchRepo
+        repo.search = mock.Mock(side_effect=exception.Forbidden)
+
+        query = {"match_all": {}}
+        index_name = "searchlight"
+        doc_type = "OS::Glance::Metadef"
+        fields = []
+        offset = 0
+        limit = 10
+
+        self.assertRaises(
+            webob.exc.HTTPForbidden, self.search_controller.search,
+            request, query, index_name, doc_type, fields, offset, limit)
+
+    def test_search_not_found(self):
+        request = unit_test_utils.get_fake_request()
+        repo = searchlight.elasticsearch.CatalogSearchRepo
+        repo.search = mock.Mock(side_effect=exception.NotFound)
+
+        query = {"match_all": {}}
+        index_name = "searchlight"
+        doc_type = "OS::Glance::Metadef"
+        fields = []
+        offset = 0
+        limit = 10
+
+        self.assertRaises(
+            webob.exc.HTTPNotFound, self.search_controller.search, request,
+            query, index_name, doc_type, fields, offset, limit)
+
+    def test_search_duplicate(self):
+        request = unit_test_utils.get_fake_request()
+        repo = searchlight.elasticsearch.CatalogSearchRepo
+        repo.search = mock.Mock(side_effect=exception.Duplicate)
+
+        query = {"match_all": {}}
+        index_name = "searchlight"
+        doc_type = "OS::Glance::Metadef"
+        fields = []
+        offset = 0
+        limit = 10
+
+        self.assertRaises(
+            webob.exc.HTTPConflict, self.search_controller.search, request,
+            query, index_name, doc_type, fields, offset, limit)
+
+    def test_search_internal_server_error(self):
+        request = unit_test_utils.get_fake_request()
+        repo = searchlight.elasticsearch.CatalogSearchRepo
+        repo.search = mock.Mock(side_effect=Exception)
+
+        query = {"match_all": {}}
+        index_name = "searchlight"
+        doc_type = "OS::Glance::Metadef"
+        fields = []
+        offset = 0
+        limit = 10
+
+        self.assertRaises(
+            webob.exc.HTTPInternalServerError, self.search_controller.search,
+            request, query, index_name, doc_type, fields, offset, limit)
+
+
+class TestControllerPluginsInfo(test_utils.BaseTestCase):
+
+    def setUp(self):
+        super(TestControllerPluginsInfo, self).setUp()
+        self.search_controller = search.SearchController()
 
     def test_plugins_info_forbidden(self):
         request = unit_test_utils.get_fake_request()
@@ -273,6 +274,23 @@ class TestSearchController(test_utils.BaseTestCase):
         self.assertRaises(webob.exc.HTTPInternalServerError,
                           self.search_controller.plugins_info, request)
 
+    def test_plugins_info(self):
+        request = unit_test_utils.get_fake_request()
+        expected = {
+            "plugins": [
+                {
+                    "index": "searchlight", "type": "OS::Glance::Image",
+                    "name": "OS::Glance::Image"
+                },
+                {
+                    "index": "searchlight", "type": "OS::Glance::Metadef",
+                    "name": "OS::Glance::Metadef"
+                }
+            ]
+        }
+        self.assertEqual(expected,
+                         self.search_controller.plugins_info(request))
+
 
 class TestSearchDeserializer(test_utils.BaseTestCase):
 
@@ -285,28 +303,30 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_single_index(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': 'glance',
+            'index': 'searchlight',
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['glance'], output['index'])
+        self.assertEqual(['searchlight'], output['index'])
 
-    def test_single_doc_type(self):
+    def test_single_type(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'type': 'image',
+            'type': 'OS::Glance::Image',
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['image'], output['doc_type'])
+        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['OS::Glance::Image'], output['doc_type'])
 
     def test_empty_request(self):
+        """Tests that ALL registered resource types are searched"""
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({}))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['glance'], output['index'])
-        self.assertEqual(sorted(['image', 'metadef']),
+        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef']),
                          sorted(output['doc_type']))
 
     def test_empty_request_admin(self):
@@ -315,11 +335,10 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         request.context.is_admin = True
 
         output = self.deserializer.search(request)
-        self.assertEqual(['glance'], output['index'])
-        self.assertEqual(sorted(['image', 'metadef']),
+        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef']),
                          sorted(output['doc_type']))
 
-    def test_invalid_index(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
             'index': 'invalid',
@@ -328,7 +347,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
                           request)
 
-    def test_invalid_doc_type(self):
+    def test_invalid_type(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
             'type': 'invalid',
@@ -358,36 +377,33 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_fields_restriction(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['metadef'],
+            'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'fields': ['description'],
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['glance'], output['index'])
-        self.assertEqual(['metadef'], output['doc_type'])
+        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
         self.assertEqual(['description'], output['fields'])
 
     def test_highlight_fields(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['metadef'],
+            'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'highlight': {'fields': {'name': {}}}
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['glance'], output['index'])
-        self.assertEqual(['metadef'], output['doc_type'])
+        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
         self.assertEqual({'name': {}}, output['query']['highlight']['fields'])
 
     def test_invalid_limit(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['metadef'],
+            'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'limit': 'invalid',
         }))
@@ -398,8 +414,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_negative_limit(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['metadef'],
+            'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'limit': -1,
         }))
@@ -410,8 +425,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_invalid_offset(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['metadef'],
+            'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'offset': 'invalid',
         }))
@@ -422,8 +436,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_negative_offset(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['metadef'],
+            'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'offset': -1,
         }))
@@ -434,16 +447,15 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_limit_and_offset(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['metadef'],
+            'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'limit': 1,
             'offset': 2,
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['glance'], output['index'])
-        self.assertEqual(['metadef'], output['doc_type'])
+        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
         self.assertEqual(1, output['limit'])
         self.assertEqual(2, output['offset'])
 
@@ -466,8 +478,7 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
     def test_empty_actions(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'default_index': 'glance',
-            'default_type': 'image',
+            'default_type': 'OS::Glance::Image',
             'actions': [],
         }))
 
@@ -477,8 +488,7 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
     def test_missing_actions(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'default_index': 'glance',
-            'default_type': 'image',
+            'default_type': 'OS::Glance::Image'
         }))
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.index,
@@ -535,10 +545,10 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '1',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'index',
                 '_source': {'disk_format': 'raw', 'name': 'image-1'},
-                '_type': 'image'
+                '_type': 'OS::Glance::Image'
             }],
             'default_index': None,
             'default_type': None
@@ -555,10 +565,10 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '1',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'create',
                 '_source': {'disk_format': 'raw', 'name': 'image-1'},
-                '_type': 'image'
+                '_type': 'OS::Glance::Image'
             }],
             'default_index': None,
             'default_type': None
@@ -581,17 +591,17 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
             'actions': [
                 {
                     '_id': '1',
-                    '_index': 'glance',
+                    '_index': 'searchlight',
                     '_op_type': 'create',
                     '_source': {'disk_format': 'raw', 'name': 'image-1'},
-                    '_type': 'image'
+                    '_type': 'OS::Glance::Image'
                 },
                 {
                     '_id': '2',
-                    '_index': 'glance',
+                    '_index': 'searchlight',
                     '_op_type': 'create',
                     '_source': {'disk_format': 'raw', 'name': 'image-2'},
-                    '_type': 'image'
+                    '_type': 'OS::Glance::Image'
                 },
             ],
             'default_index': None,
@@ -614,7 +624,7 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
     def test_create_with_default_index(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'default_index': 'glance',
+            'default_index': 'searchlight',
             'actions': [_image_fixture('create', '1', index=None)]
         }))
 
@@ -625,9 +635,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
                 '_index': None,
                 '_op_type': 'create',
                 '_source': {'disk_format': 'raw', 'name': 'image-1'},
-                '_type': 'image'
+                '_type': 'OS::Glance::Image'
             }],
-            'default_index': 'glance',
+            'default_index': 'searchlight',
             'default_type': None
         }
         self.assertEqual(expected, output)
@@ -635,7 +645,7 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
     def test_create_with_default_doc_type(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'default_type': 'image',
+            'default_type': 'OS::Glance::Image',
             'actions': [_image_fixture('create', '1', doc_type=None)]
         }))
 
@@ -643,21 +653,21 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '1',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'create',
                 '_source': {'disk_format': 'raw', 'name': 'image-1'},
                 '_type': None
             }],
             'default_index': None,
-            'default_type': 'image'
+            'default_type': 'OS::Glance::Image'
         }
         self.assertEqual(expected, output)
 
     def test_create_with_default_index_and_doc_type(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'default_index': 'glance',
-            'default_type': 'image',
+            'default_index': 'searchlight',
+            'default_type': 'OS::Glance::Image',
             'actions': [_image_fixture('create', '1', index=None,
                                        doc_type=None)]
         }))
@@ -671,8 +681,8 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
                 '_source': {'disk_format': 'raw', 'name': 'image-1'},
                 '_type': None
             }],
-            'default_index': 'glance',
-            'default_type': 'image'
+            'default_index': 'searchlight',
+            'default_type': 'OS::Glance::Image'
         }
         self.assertEqual(expected, output)
 
@@ -686,10 +696,10 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': None,
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'create',
                 '_source': {'disk_format': 'raw', 'name': 'image-1'},
-                '_type': 'image'
+                '_type': 'OS::Glance::Image'
             }],
             'default_index': None,
             'default_type': None,
@@ -706,10 +716,10 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'create',
                 '_source': {'disk_format': 'raw', 'name': 'image-1'},
-                '_type': 'image'
+                '_type': 'OS::Glance::Image'
             }],
             'default_index': None,
             'default_type': None
@@ -785,9 +795,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '1',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'update',
-                '_type': 'image',
+                '_type': 'OS::Glance::Image',
                 'doc': {'disk_format': 'raw', 'name': 'image-1'}
             }],
             'default_index': None,
@@ -808,9 +818,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '1',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'update',
-                '_type': 'image',
+                '_type': 'OS::Glance::Image',
                 'params': {},
                 'script': '<sample script>'
             }],
@@ -831,9 +841,9 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '1',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'update',
-                '_type': 'image',
+                '_type': 'OS::Glance::Image',
                 'params': {'disk_format': 'raw', 'name': 'image-1'},
                 'script': '<sample script>'
             }],
@@ -866,10 +876,10 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
         expected = {
             'actions': [{
                 '_id': '1',
-                '_index': 'glance',
+                '_index': 'searchlight',
                 '_op_type': 'delete',
                 '_source': {},
-                '_type': 'image'
+                '_type': 'OS::Glance::Image'
             }],
             'default_index': None,
             'default_type': None
@@ -892,17 +902,17 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
             'actions': [
                 {
                     '_id': '1',
-                    '_index': 'glance',
+                    '_index': 'searchlight',
                     '_op_type': 'delete',
                     '_source': {},
-                    '_type': 'image'
+                    '_type': 'OS::Glance::Image'
                 },
                 {
                     '_id': '2',
-                    '_index': 'glance',
+                    '_index': 'searchlight',
                     '_op_type': 'delete',
                     '_source': {},
-                    '_type': 'image'
+                    '_type': 'OS::Glance::Image'
                 },
             ],
             'default_index': None,
@@ -912,21 +922,24 @@ class TestIndexDeserializer(test_utils.BaseTestCase):
 
 
 class TestResponseSerializer(test_utils.BaseTestCase):
-
     def setUp(self):
         super(TestResponseSerializer, self).setUp()
         self.serializer = search.ResponseSerializer()
 
     def test_plugins_info(self):
         expected = {
-            "plugins": [
+            'plugins': [
                 {
-                    "index": "glance",
-                    "type": "image"
+                    'OS::Glance::Image': {
+                        'index': 'searchlight',
+                        'type': 'OS::Glance::Image'
+                    }
                 },
                 {
-                    "index": "glance",
-                    "type": "metadef"
+                    'OS::Glance::Metadef': {
+                        'index': 'searchlight',
+                        'type': 'OS::Glance::Metadef'
+                    }
                 }
             ]
         }
@@ -934,14 +947,18 @@ class TestResponseSerializer(test_utils.BaseTestCase):
         request = webob.Request.blank('/v0.1/search')
         response = webob.Response(request=request)
         result = {
-            "plugins": [
+            'plugins': [
                 {
-                    "index": "glance",
-                    "type": "image"
+                    'OS::Glance::Image': {
+                        'index': 'searchlight',
+                        'type': 'OS::Glance::Image'
+                    }
                 },
                 {
-                    "index": "glance",
-                    "type": "metadef"
+                    'OS::Glance::Metadef': {
+                        'index': 'searchlight',
+                        'type': 'OS::Glance::Metadef'
+                    }
                 }
             ]
         }

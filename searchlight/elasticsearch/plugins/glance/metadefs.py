@@ -25,10 +25,10 @@ class MetadefIndex(base.IndexBase):
         super(MetadefIndex, self).__init__()
 
     def get_index_name(self):
-        return 'glance'
+        return 'searchlight'
 
     def get_document_type(self):
-        return 'metadef'
+        return 'OS::Glance::Metadef'
 
     def get_document_id_field(self):
         return 'namespace'

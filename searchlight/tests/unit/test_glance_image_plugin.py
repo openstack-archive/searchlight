@@ -158,10 +158,10 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                        self.complex_image, self.members_image]
 
     def test_index_name(self):
-        self.assertEqual('glance', self.plugin.get_index_name())
+        self.assertEqual('searchlight', self.plugin.get_index_name())
 
     def test_document_type(self):
-        self.assertEqual('image', self.plugin.get_document_type())
+        self.assertEqual('OS::Glance::Image', self.plugin.get_document_type())
 
     def test_image_serialize(self):
         expected = {
@@ -381,8 +381,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                         {"term": {"members": TENANT1}}
                     ]
                 },
-                {"type": {"value": "image"}},
-                {"index": {"value": "glance"}}
+                {"type": {"value": "OS::Glance::Image"}},
+                {"index": {"value": "searchlight"}}
             ]
         }]
         self.assertEqual(expected_fragment, rbac_query_fragment)

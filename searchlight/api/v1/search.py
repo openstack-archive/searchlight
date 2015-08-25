@@ -42,10 +42,10 @@ class SearchController(object):
         self.gateway = searchlight.gateway.Gateway(
             es_api=self.es_api,
             policy_enforcer=self.policy)
-        self.plugins = plugins or []
+        self.plugins = plugins or {}
 
-    def search(self, req, query, index, doc_type=None, fields=None, offset=0,
-               limit=10):
+    def search(self, req, query, index=None, doc_type=None,
+               fields=None, offset=0, limit=10):
         if fields is None:
             fields = []
 
@@ -59,7 +59,8 @@ class SearchController(object):
                                         limit,
                                         True)
 
-            for plugin in self.plugins:
+            # TODO(sjmc7): Sort this out (bug #1478102)
+            for plugin in self.plugins.values():
                 result = plugin.obj.filter_result(result, req.context)
 
             return result
@@ -130,11 +131,31 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                 msg = _("Attribute '%s' is read-only.") % key
                 raise webob.exc.HTTPForbidden(explanation=msg)
 
-    def _get_available_indices(self):
-        return list(set([p.obj.get_index_name() for p in self.plugins]))
+    def _get_available_resource_types(self):
+        return self.plugins.keys()
+
+    def _validate_resource_type(self, resource_type):
+        if resource_type not in self._get_available_resource_types():
+            msg = _("Resource type '%s' is not supported.") % resource_type
+            raise webob.exc.HTTPBadRequest(explanation=msg)
+        return resource_type
+
+    def _get_index_doc_types(self, resource_types):
+        indices, doc_types = set(), set()
+        for resource_type in resource_types:
+            plugin = self.plugins[resource_type].obj
+            indices.add(plugin.get_index_name())
+            doc_types.add(plugin.get_document_type())
+        return list(indices), list(doc_types)
+
+    def _get_available_indices(self, types=[]):
+        return list(set(p.obj.get_index_name()
+                        for p in self.plugins.values()
+                        if p.obj.get_document_type() in types or not types))
 
     def _get_available_types(self):
-        return list(set([p.obj.get_document_type() for p in self.plugins]))
+        return list(set(p.obj.get_document_type()
+                        for p in self.plugins.values()))
 
     def _validate_index(self, index):
         available_indices = self._get_available_indices()
@@ -234,7 +255,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             output.append(bulk_action)
         return output
 
-    def _get_query(self, context, query, doc_types):
+    def _get_query(self, context, query, resource_types):
         is_admin = context.is_admin
         if is_admin:
             query_params = {
@@ -244,9 +265,8 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             }
         else:
             filtered_query_list = []
-            for plugin in self.plugins:
+            for resource_type, plugin in six.iteritems(self.plugins):
                 try:
-                    doc_type = plugin.obj.get_document_type()
                     rbac_filter = plugin.obj.get_rbac_filter(context)
                 except Exception as e:
                     LOG.error(_LE("Failed to retrieve RBAC filters "
@@ -254,7 +274,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                                   "%(ext)s: %(e)s") %
                               {'ext': plugin.name, 'e': e})
 
-                if doc_type in doc_types:
+                if resource_type in resource_types:
                     filter_query = {
                         "query": query,
                         "filter": rbac_filter
@@ -281,27 +301,29 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         self._check_allowed(body)
         query = body.pop('query', None)
         indices = body.pop('index', None)
-        doc_types = body.pop('type', None)
+        types = body.pop('type', None)
         fields = body.pop('fields', None)
         offset = body.pop('offset', None)
         limit = body.pop('limit', None)
         highlight = body.pop('highlight', None)
 
+        if not types:
+            types = self._get_available_types()
+
         if not indices:
-            indices = self._get_available_indices()
-        elif not isinstance(indices, (list, tuple)):
+            indices = self._get_available_indices(types)
+
+        if not isinstance(types, (list, tuple)):
+            types = [types]
+        if not isinstance(indices, (list, tuple)):
             indices = [indices]
 
-        if not doc_types:
-            doc_types = self._get_available_types()
-        elif not isinstance(doc_types, (list, tuple)):
-            doc_types = [doc_types]
+        query_params = self._get_query(request.context, query, types)
 
-        query_params = self._get_query(request.context, query, doc_types)
-        query_params['index'] = [self._validate_index(index)
-                                 for index in indices]
-        query_params['doc_type'] = [self._validate_doc_type(doc_type)
-                                    for doc_type in doc_types]
+        # Apply an additional restriction to elasticsearch to speed things up
+        # in addition to the RBAC filters
+        query_params['index'] = indices
+        query_params['doc_type'] = types
 
         if fields is not None:
             query_params['fields'] = fields

@@ -34,10 +34,11 @@ class ImageIndex(base.IndexBase):
             'members']
 
     def get_index_name(self):
-        return 'glance'
+        """Index will be configurable."""
+        return 'searchlight'
 
     def get_document_type(self):
-        return 'image'
+        return 'OS::Glance::Image'
 
     def get_mapping(self):
         return {

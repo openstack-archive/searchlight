@@ -15,7 +15,9 @@
 
 import elasticsearch
 from elasticsearch import helpers
+import operator
 from oslo_config import cfg
+import six
 
 from searchlight.common import utils
 
@@ -67,11 +69,12 @@ class CatalogSearchRepo(object):
         return self.plugins_info_dict
 
     def _get_plugin_info(self):
-        plugin_info = {}
-        plugin_info['plugins'] = []
-        for plugin in self.plugins:
-            info = {}
-            info['type'] = plugin.obj.get_document_type()
-            info['index'] = plugin.obj.get_index_name()
-            plugin_info['plugins'].append(info)
-        return plugin_info
+        plugin_list = []
+        for plugin_type, plugin in six.iteritems(self.plugins):
+            plugin_list.append({
+                'name': plugin_type,
+                'type': plugin.obj.get_document_type(),
+                'index': plugin.obj.get_index_name()
+            })
+        return {'plugins': sorted(plugin_list,
+                                  key=operator.itemgetter('name'))}
