@@ -52,6 +52,7 @@ def _normalize_visibility(image_doc):
         image_doc['visibility'] = 'public' if is_public else 'private'
 
 
+@openstack_clients.clear_cache_on_unauthorized
 def serialize_glance_image(image):
     g_client = openstack_clients.get_glanceclient()
 
@@ -88,6 +89,7 @@ def serialize_glance_notification(note):
     return serialize_glance_image(note)
 
 
+@openstack_clients.clear_cache_on_unauthorized
 def serialize_glance_metadef_ns(metadef_namespace):
     def _serialize_tag(tag):
         return {'name': tag['name']}

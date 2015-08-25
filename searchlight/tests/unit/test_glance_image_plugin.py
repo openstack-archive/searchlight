@@ -18,6 +18,7 @@ import datetime
 import mock
 import six
 
+import glanceclient.exc
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
@@ -118,13 +119,13 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         self.plugin = images_plugin.ImageIndex()
         self.notification_handler = self.plugin.get_notification_handler()
 
-        mock_ks_client = mock.Mock()
-        mock_ks_client.service_catalog.url_for.return_value = \
+        self.mock_ks_client = mock.Mock()
+        self.mock_ks_client.service_catalog.url_for.return_value = \
             'http://localhost/glance/v2'
         patched_ks_client = mock.patch.object(
             openstack_clients,
             'get_keystoneclient',
-            return_value=mock_ks_client
+            return_value=self.mock_ks_client
         )
         patched_ks_client.start()
         self.addCleanup(patched_ks_client.stop)
@@ -261,6 +262,37 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                         return_value=self.members_image_members):
             serialized = self.plugin.serialize(self.members_image)
         self.assertEqual(expected, serialized)
+
+    def test_unauthorized_serialize(self):
+        expected = {
+            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+            'container_format': None,
+            'disk_format': None,
+            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
+                        '2c014f32-55eb-467d-8fcb-4bd706012f81'],
+            'min_disk': None,
+            'min_ram': None,
+            'name': 'complex',
+            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+            'protected': False,
+            'size': 256,
+            'status': 'active',
+            'tags': [],
+            'virtual_size': None,
+            'visibility': 'private',
+            'created_at': DATE1,
+            'updated_at': DATE1
+        }
+
+        side_effect = [glanceclient.exc.Unauthorized(),
+                       self.members_image_members]
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        side_effect=side_effect):
+            serialized = self.plugin.serialize(self.members_image)
+        self.assertEqual(expected, serialized)
+        # Will get called once per 'members' call
+        self.mock_ks_client.call_count == 2
 
     def test_setup_data(self):
         """Tests initial data load."""
