@@ -432,15 +432,20 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         )
         rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
         expected_fragment = [{
-            'and': [
-                {
-                    'or': [
-                        {'term': {'owner': TENANT1}},
-                        {'term': {'visibility': 'public'}},
+            "indices": {
+                "index": "searchlight",
+                "no_match_filter": "none",
+                "filter": {
+                    "and": [
+                        {
+                            "or": [
+                                {"term": {"owner": TENANT1}},
+                                {"term": {"visibility": "public"}},
+                            ]
+                        },
+                        {"type": {"value": "OS::Glance::Metadef"}}
                     ]
-                },
-                {'type': {'value': 'OS::Glance::Metadef'}},
-                {'index': {'value': 'searchlight'}}
-            ]
+                }
+            }
         }]
         self.assertEqual(expected_fragment, rbac_query_fragment)

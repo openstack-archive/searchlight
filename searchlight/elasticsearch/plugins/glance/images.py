@@ -68,37 +68,38 @@ class ImageIndex(base.IndexBase):
     def get_rbac_filter(self, request_context):
         return [
             {
-                "and": [
-                    {
-                        'or': [
+                'indices': {
+                    'index': self.get_index_name(),
+                    'no_match_filter': 'none',
+                    'filter': {
+                        'and': [
                             {
-                                'term': {
-                                    'owner': request_context.owner
-                                }
+                                'or': [
+                                    {
+                                        'term': {
+                                            'owner': request_context.owner
+                                        }
+                                    },
+                                    {
+                                        'term': {
+                                            'visibility': 'public'
+                                        }
+                                    },
+                                    {
+                                        'term': {
+                                            'members': request_context.tenant
+                                        }
+                                    }
+                                ]
                             },
                             {
-                                'term': {
-                                    'visibility': 'public'
+                                'type': {
+                                    'value': self.get_document_type()
                                 }
                             },
-                            {
-                                'term': {
-                                    'members': request_context.tenant
-                                }
-                            }
                         ]
-                    },
-                    {
-                        'type': {
-                            'value': self.get_document_type()
-                        }
-                    },
-                    {
-                        'index': {
-                            'value': self.get_index_name()
-                        }
                     }
-                ]
+                }
             }
         ]
 
