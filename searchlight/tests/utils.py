@@ -164,13 +164,14 @@ def skip_if_disabled(func):
 
 def fork_exec(cmd,
               exec_env=None,
-              logfile=None):
+              logfile=None,
+              pass_fds=None):
     """
     Execute a command using fork/exec.
 
     This is needed for programs system executions that need path
     searching but cannot have a shell as their parent process, for
-    example: searchlight.api.  When searchlight.api starts it sets itself as
+    example: glance-api.  When glance-api starts it sets itself as
     the parent process for its own process group.  Thus the pid that
     a Popen process would have is not the right pid to use for killing
     the process group.  This patch gives the test env direct access
@@ -181,6 +182,7 @@ def fork_exec(cmd,
                      which to run the command.
     :param logile: A path to a file which will hold the stdout/err of
                    the child process.
+    :param pass_fds: Sequence of file descriptors passed to the child.
     """
     env = os.environ.copy()
     if exec_env is not None:
@@ -200,6 +202,12 @@ def fork_exec(cmd,
                         os.dup2(fptr.fileno(), desc)
                     except OSError:
                         pass
+        if pass_fds and hasattr(os, 'set_inheritable'):
+            # os.set_inheritable() is only available and needed
+            # since Python 3.4. On Python 3.3 and older, file descriptors are
+            # inheritable by default.
+            for fd in pass_fds:
+                os.set_inheritable(fd, True)
 
         args = shlex.split(cmd)
         os.execvpe(args[0], args, env)

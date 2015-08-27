@@ -587,7 +587,8 @@ def get_test_suite_socket():
     if GLANCE_TEST_SOCKET_FD_STR in os.environ:
         fd = int(os.environ[GLANCE_TEST_SOCKET_FD_STR])
         sock = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
-        sock = socket.SocketType(_sock=sock)
+        if six.PY2:
+            sock = socket.SocketType(_sock=sock)
         sock.listen(CONF.backlog)
         del os.environ[GLANCE_TEST_SOCKET_FD_STR]
         os.close(fd)

@@ -98,6 +98,19 @@ See also:
 * http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-index\_.html
 * http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-update-settings.html
 
+Scripts
+#######
+The scripting module allows to use scripts in order to evaluate custom expressions.
+Scripting is turned off by default in elasticsearch latest versions.
+Searchlight doesnt allow scripts in the search api but requires scripts to sync Index updates
+from notifications. For security purpose index updates are allowed only for admin role::
+
+    script.engine.groovy.inline.update: on
+
+See also:
+
+* https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html#modules-scripting
+
 Development
 ###########
 For development, Elasticsearch's default configuration is overkill. It's

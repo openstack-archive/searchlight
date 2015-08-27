@@ -1,0 +1,1775 @@
+[
+    {
+        "display_name": "Watchdog Behavior",
+        "description": "Compute drivers may enable watchdog behavior over instances.  See: http://docs.openstack.org/admin-guide-cloud/content/customize-flavors.html",
+        "created_at": "2015-08-06T12:46:57Z",
+        "namespace": "OS::Compute::Watchdog",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "properties_target": "image",
+                "name": "OS::Cinder::Volume"
+            },
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "properties": {
+            "hw_watchdog_action": {
+                "enum": [
+                    "disabled",
+                    "reset",
+                    "poweroff",
+                    "pause",
+                    "none"
+                ],
+                "type": "string",
+                "description": "For the libvirt driver, you can enable and set the behavior of a virtual hardware watchdog device for each flavor. Watchdog devices keep an eye on the guest server, and carry out the configured action, if the server hangs. The watchdog uses the i6300esb device (emulating a PCI Intel 6300ESB). If hw_watchdog_action is not specified, the watchdog is disabled. Watchdog behavior set using a specific image's properties will override behavior set using flavors.",
+                "title": "Watchdog Action"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Instance Config Data",
+        "description": "Instances can perform self-configuration based on data made available to the running instance. These properties affect instance configuration.",
+        "created_at": "2015-08-06T12:46:57Z",
+        "namespace": "OS::Compute::InstanceData",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "properties_target": "image",
+                "name": "OS::Cinder::Volume"
+            }
+        ],
+        "properties": {
+            "img_config_drive": {
+                "enum": [
+                    "optional",
+                    "mandatory"
+                ],
+                "type": "string",
+                "description": "This property specifies whether or not Nova should use a config drive when booting the image. Mandatory means that Nova will always use a config drive when booting the image. OpenStack can be configured to write metadata to a special configuration drive that will be attached to the instance when it boots. The instance can retrieve any information from the config drive. One use case for the config drive is to pass network configuration information to the instance. See also: http://docs.openstack.org/user-guide/content/config-drive.html",
+                "title": "Config Drive"
+            },
+            "os_require_quiesce": {
+                "enum": [
+                    "yes",
+                    "no"
+                ],
+                "type": "string",
+                "description": "This property specifies whether or not the filesystem must be quiesced during snapshot processing. For volume backed and image backed snapshots, yes means that snapshotting is aborted when quiescing fails, whereas, no means quiescing will be skipped and snapshot processing will continue after the quiesce failure.",
+                "title": "Require Quiescent File system"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Web Servers",
+        "description": "A web server is a computer system that processes requests via HTTP, the basic network protocol used to distribute information on the World Wide Web. The most common use of web servers is to host websites, but there are other uses such as gaming, data storage, running enterprise applications, handling email, FTP, or other web uses. (http://en.wikipedia.org/wiki/Web_server)",
+        "created_at": "2015-08-06T12:46:57Z",
+        "namespace": "OS::Software::WebServers",
+        "visibility": "public",
+        "objects": [
+            {
+                "description": "The Apache HTTP Server, colloquially called Apache, is a Web server application notable for playing a key role in the initial growth of the World Wide Web. Apache is developed and maintained by an open community of developers under the auspices of the Apache Software Foundation. Most commonly used on a Unix-like system, the software is available for a wide variety of operating systems, including Unix, FreeBSD, Linux, Solaris, Novell NetWare, OS X, Microsoft Windows, OS/2, TPF, OpenVMS and eComStation. Released under the Apache License, Apache is open-source software. (http://en.wikipedia.org/wiki/Apache_HTTP_Server)",
+                "self": "/v2/metadefs/namespaces/OS::Software::WebServers/objects/Apache HTTP Server",
+                "required": [],
+                "properties": {
+                    "sw_webserver_apache_https_port": {
+                        "description": "The configured TCP/IP port on which the web server listens for incoming HTTPS connections.",
+                        "title": "HTTPS Port",
+                        "default": "443",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_webserver_apache_http_port": {
+                        "description": "The configured TCP/IP port on which the web server listens for incoming HTTP connections.",
+                        "title": "HTTP Port",
+                        "default": "80",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_webserver_apache_version": {
+                        "type": "string",
+                        "description": "The specific version of Apache.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "Apache HTTP Server"
+            },
+            {
+                "description": "Nginx (pronounced 'engine-x') is an open source reverse proxy server for HTTP, HTTPS, SMTP, POP3, and IMAP protocols, as well as a load balancer, HTTP cache, and a web server (origin server). The nginx project started with a strong focus on high concurrency, high performance and low memory usage. It is licensed under the 2-clause BSD-like license and it runs on Linux, BSD variants, Mac OS X, Solaris, AIX, HP-UX, as well as on other *nix flavors. It also has a proof of concept port for Microsoft Windows. (http://en.wikipedia.org/wiki/Nginx)",
+                "self": "/v2/metadefs/namespaces/OS::Software::WebServers/objects/Nginx",
+                "required": [],
+                "properties": {
+                    "sw_webserver_nginx_version": {
+                        "type": "string",
+                        "description": "The specific version of Nginx.",
+                        "title": "Version"
+                    },
+                    "sw_webserver_nginx_http_port": {
+                        "description": "The configured TCP/IP port on which the web server listens for incoming HTTP connections.",
+                        "title": "HTTP Port",
+                        "default": "80",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_webserver_nginx_https_port": {
+                        "description": "The configured TCP/IP port on which the web server listens for incoming HTTPS connections.",
+                        "title": "HTTPS Port",
+                        "default": "443",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "Nginx"
+            },
+            {
+                "description": "Internet Information Services (IIS, formerly Internet Information Server) is an extensible web server created by Microsoft. IIS supports HTTP, HTTPS, FTP, FTPS, SMTP and NNTP. IIS is not turned on by default when Windows is installed. The IIS Manager is accessed through the Microsoft Management Console or Administrative Tools in the Control Panel. (http://en.wikipedia.org/wiki/Internet_Information_Services)",
+                "self": "/v2/metadefs/namespaces/OS::Software::WebServers/objects/IIS",
+                "required": [],
+                "properties": {
+                    "sw_webserver_iis_http_port": {
+                        "description": "The configured TCP/IP port on which the web server listens for incoming HTTP connections.",
+                        "title": "HTTP Port",
+                        "default": "80",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_webserver_iis_https_port": {
+                        "description": "The configured TCP/IP port on which the web server listens for incoming HTTPS connections.",
+                        "title": "HTTPS Port",
+                        "default": "443",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_webserver_iis_version": {
+                        "type": "string",
+                        "description": "The specific version of IIS.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "IIS"
+            }
+        ],
+        "owner": "admin",
+        "protected": true,
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "properties_target": "image",
+                "name": "OS::Cinder::Volume"
+            },
+            {
+                "created_at": "2015-08-06T12:46:57Z",
+                "name": "OS::Nova::Instance"
+            }
+        ],
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "VMware Quota for Flavors",
+        "description": "The VMware compute driver allows various compute quotas to be specified on flavors. When specified, the VMWare driver will ensure that the quota is enforced. These are properties specific to VMWare compute drivers and will only have an effect if the VMWare compute driver is enabled in Nova. For a list of hypervisors, see: https://wiki.openstack.org/wiki/HypervisorSupportMatrix. For flavor customization, see: http://docs.openstack.org/admin-guide-cloud/content/customize-flavors.html",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Compute::VMwareQuotaFlavor",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "properties": {
+            "quota:cpu_limit": {
+                "minimum": 0,
+                "type": "integer",
+                "description": "Specifies the upper limit for CPU allocation in MHz. This parameter ensures that a machine never uses more than the defined amount of CPU time. It can be used to enforce a limit on the machine's CPU performance. The value should be a numerical value in MHz. If zero is supplied then the cpu_limit is unlimited.",
+                "title": "Quota: CPU Limit"
+            },
+            "quota:cpu_reservation": {
+                "minimum": 0,
+                "type": "integer",
+                "description": "Specifies the guaranteed minimum CPU reservation in MHz. This means that if needed, the machine will definitely get allocated the reserved amount of CPU cycles. The value should be a numerical value in MHz.",
+                "title": "Quota: CPU Reservation Limit"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Random Number Generator",
+        "description": "If a random-number generator device has been added to the instance through its image properties, the device can be enabled and configured.",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Compute::RandomNumberGenerator",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "properties": {
+            "hw_rng:allowed": {
+                "type": "boolean",
+                "description": "",
+                "title": "Random Number Generator Allowed"
+            },
+            "hw_rng:rate_bytes": {
+                "type": "integer",
+                "description": "Allowed amount of bytes that the guest can read from the host's entropy per period.",
+                "title": "Random number generator limits."
+            },
+            "hw_rng:rate_period": {
+                "type": "integer",
+                "description": "Duration of the read period in seconds.",
+                "title": "Random number generator read period."
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "libvirt Driver Options",
+        "description": "The libvirt compute driver options.  \n\nThese are properties that affect the libvirt compute driver and may be specified on flavors and images.  For a list of all hypervisors, see here: https://wiki.openstack.org/wiki/HypervisorSupportMatrix.",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Compute::Libvirt",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "prefix": "hw_",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "prefix": "hw:",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "properties": {
+            "serial_port_count": {
+                "minimum": 0,
+                "type": "integer",
+                "description": "Specifies the count of serial ports that should be provided. If hw:serial_port_count is not set in the flavor's extra_specs, then any count is permitted. If hw:serial_port_count is set, then this provides the default serial port count. It is permitted to override the default serial port count, but only with a lower value.",
+                "title": "Serial Port Count"
+            },
+            "boot_menu": {
+                "enum": [
+                    "true",
+                    "false"
+                ],
+                "type": "string",
+                "description": "If true, enables the BIOS bootmenu. In cases where both the image metadata and Extra Spec are set, the Extra Spec setting is used. This allows for flexibility in setting/overriding the default behavior as needed.",
+                "title": "Boot Menu"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Virtual CPU Topology",
+        "description": "This provides the preferred socket/core/thread counts for the virtual CPU instance exposed to guests. This enables the ability to avoid hitting limitations on vCPU topologies that OS vendors place on their products. See also: http://git.openstack.org/cgit/openstack/nova-specs/tree/specs/juno/virt-driver-vcpu-topology.rst",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Compute::VirtCPUTopology",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "prefix": "hw_",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "properties_target": "image",
+                "prefix": "hw_",
+                "name": "OS::Cinder::Volume"
+            },
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "prefix": "hw:",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "properties": {
+            "cpu_maxsockets": {
+                "type": "integer",
+                "description": "Maximum number of sockets to expose to the guest.",
+                "title": "Max vCPU Sockets"
+            },
+            "cpu_maxthreads": {
+                "type": "integer",
+                "description": "Maximum number of threads to expose to the guest.",
+                "title": "Max vCPU Threads"
+            },
+            "cpu_cores": {
+                "type": "integer",
+                "description": "Preferred number of cores to expose to the guest.",
+                "title": "vCPU Cores"
+            },
+            "cpu_maxcores": {
+                "type": "integer",
+                "description": "Maximum number of cores to expose to the guest.",
+                "title": "Max vCPU Cores"
+            },
+            "cpu_threads": {
+                "type": "integer",
+                "description": "Preferred number of threads to expose to the guest.",
+                "title": " vCPU Threads"
+            },
+            "cpu_sockets": {
+                "type": "integer",
+                "description": "Preferred number of sockets to expose to the guest.",
+                "title": "vCPU Sockets"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "IO Ops per Host",
+        "description": "Properties related to the Nova scheduler filter AggregateIoOpsFilter. Filters aggregate hosts based on the number of instances currently changing state. Hosts in the aggregate with too many instances changing state will be filtered out. The filter must be enabled in the Nova scheduler to use these properties.",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Compute::AggregateIoOpsFilter",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "name": "OS::Nova::Aggregate"
+            }
+        ],
+        "properties": {
+            "max_io_ops_per_host": {
+                "description": "Prevents hosts in the aggregate that have this many or more instances currently in build, resize, snapshot, migrate, rescue or unshelve to be scheduled for new instances.",
+                "title": "Maximum IO Operations per Host",
+                "default": "8",
+                "readonly": false,
+                "minimum": 1,
+                "type": "integer"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Common Image Properties",
+        "description": "When adding an image to Glance, you may specify some common image properties that may prove useful to consumers of your image.",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Glance::CommonImageProperties",
+        "visibility": "private",
+        "protected": true,
+        "owner": "admin",
+        "properties": {
+            "instance_uuid": {
+                "type": "string",
+                "description": "ID of instance used to create this image.",
+                "title": "Instance ID"
+            },
+            "os_distro": {
+                "type": "string",
+                "description": "The common name of the operating system distribution in lowercase (uses the same data vocabulary as the libosinfo project). Specify only a recognized value for this field. Deprecated values are listed to assist you in searching for the recognized value.",
+                "title": "OS Distro"
+            },
+            "kernel_id": {
+                "pattern": "^([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}$",
+                "type": "string",
+                "description": "ID of image stored in Glance that should be used as the kernel when booting an AMI-style image.",
+                "title": "Kernel ID"
+            },
+            "ramdisk_id": {
+                "pattern": "^([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}$",
+                "type": "string",
+                "description": "ID of image stored in Glance that should be used as the ramdisk when booting an AMI-style image.",
+                "title": "Ramdisk ID"
+            },
+            "os_version": {
+                "type": "string",
+                "description": "Operating system version as specified by the distributor. (for example, '11.10')",
+                "title": "OS Version"
+            },
+            "architecture": {
+                "type": "string",
+                "description": "The CPU architecture that must be supported by the hypervisor. For example, x86_64, arm, or ppc64. Run uname -m to get the architecture of a machine. We strongly recommend using the architecture data vocabulary defined by the libosinfo project for this purpose.",
+                "title": "CPU Architecture"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "VMware Driver Options for Flavors",
+        "description": "VMware Driver Options for Flavors may be used to customize and manage Nova Flavors. These are properties specific to VMWare compute drivers and will only have an effect if the VMWare compute driver is enabled in Nova. See: http://docs.openstack.org/admin-guide-cloud/content/customize-flavors.html",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Compute::VMwareFlavor",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "properties": {
+            "vmware:hw_version": {
+                "type": "string",
+                "description": "Specifies the hardware version VMware uses to create images. If the hardware version needs to be compatible with a cluster version, for backward compatibility or other circumstances, the vmware:hw_version key specifies a virtual machine hardware version. In the event that a cluster has mixed host version types, the key will enable the vCenter to place the cluster on the correct host.",
+                "title": "VMware Hardware Version"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "libvirt Driver Options for Images",
+        "description": "The libvirt Compute Driver Options for Glance Images.  \n\nThese are properties specific to compute drivers.  For a list of all hypervisors, see here: https://wiki.openstack.org/wiki/HypervisorSupportMatrix.",
+        "created_at": "2015-08-06T12:46:56Z",
+        "namespace": "OS::Compute::LibvirtImage",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "name": "OS::Glance::Image"
+            }
+        ],
+        "properties": {
+            "hw_machine_type": {
+                "type": "string",
+                "description": "Enables booting an ARM system using the specified machine type. By default, if an ARM image is used and its type is not specified, Compute uses vexpress-a15 (for ARMv7) or virt (for AArch64) machine types. Valid types can be viewed by using the virsh capabilities command (machine types are displayed in the machine tag).",
+                "title": "Machine Type"
+            },
+            "hw_qemu_guest_agent": {
+                "enum": [
+                    "yes",
+                    "no"
+                ],
+                "type": "string",
+                "description": "This is a background process which helps management applications execute guest OS level commands. For example, freezing and thawing filesystems, entering suspend. However, guest agent (GA) is not bullet proof, and hostile guest OS can send spurious replies.",
+                "title": "QEMU Guest Agent"
+            },
+            "hw_vif_model": {
+                "enum": [
+                    "e1000",
+                    "e1000e",
+                    "ne2k_pci",
+                    "netfront",
+                    "pcnet",
+                    "rtl8139",
+                    "spapr-vlan",
+                    "virtio"
+                ],
+                "type": "string",
+                "description": "Specifies the model of virtual network interface device to use. The valid options depend on the hypervisor configuration. libvirt driver options: KVM and QEMU: e1000, ne2k_pci, pcnet, rtl8139, spapr-vlan, and virtio. Xen: e1000, netfront, ne2k_pci, pcnet, and rtl8139.",
+                "title": "Virtual Network Interface"
+            },
+            "hw_video_ram": {
+                "minimum": 0,
+                "type": "integer",
+                "description": "Maximum RAM (unit: MB) for the video image. Used only if a hw_video:ram_max_mb value has been set in the flavor's extra_specs and that value is higher than the value set in hw_video_ram.",
+                "title": "Max Video Ram"
+            },
+            "hw_scsi_model": {
+                "default": "virtio-scsi",
+                "type": "string",
+                "description": "Enables the use of VirtIO SCSI (virtio-scsi) to provide block device access for compute instances; by default, instances use VirtIO Block (virtio-blk). VirtIO SCSI is a para-virtualized SCSI controller device that provides improved scalability and performance, and supports advanced SCSI hardware.",
+                "title": "SCSI Model"
+            },
+            "os_command_line": {
+                "type": "string",
+                "description": "The kernel command line to be used by the libvirt driver, instead of the default. For linux containers (LXC), the value is used as arguments for initialization. This key is valid only for Amazon kernel, ramdisk, or machine images (aki, ari, or ami).",
+                "title": "Kernel Command Line"
+            },
+            "hw_rng_model": {
+                "default": "virtio",
+                "type": "string",
+                "description": "Adds a random-number generator device to the image's instances. The cloud administrator can enable and control device behavior by configuring the instance's flavor. By default: The generator device is disabled. /dev/random is used as the default entropy source. To specify a physical HW RNG device, use the following option in the nova.conf file: rng_dev_path=/dev/hwrng",
+                "title": "Random Number Generator Device"
+            },
+            "hw_disk_bus": {
+                "enum": [
+                    "scsi",
+                    "virtio",
+                    "uml",
+                    "xen",
+                    "ide",
+                    "usb"
+                ],
+                "type": "string",
+                "description": "Specifies the type of disk controller to attach disk devices to.",
+                "title": "Disk Bus"
+            },
+            "hw_video_model": {
+                "enum": [
+                    "vga",
+                    "cirrus",
+                    "vmvga",
+                    "xen",
+                    "qxl"
+                ],
+                "type": "string",
+                "description": "The video image driver used.",
+                "title": "Video Model"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Disk Allocation per Host",
+        "description": "Properties related to the Nova scheduler filter AggregateDiskFilter. Filters aggregate hosts based on the available disk space compared to the requested disk space. Hosts in the aggregate with not enough usable disk will be filtered out. The filter must be enabled in the Nova scheduler to use these properties.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Compute::AggregateDiskFilter",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:56Z",
+                "name": "OS::Nova::Aggregate"
+            }
+        ],
+        "properties": {
+            "disk_allocation_ratio": {
+                "readonly": false,
+                "type": "number",
+                "description": "Allows the host to be under and over subscribed for the amount of disk space requested for an instance. A ratio greater than 1.0 allows for over subscription (hosts may have less usable disk space than requested). A ratio less than 1.0 allows for under subscription.",
+                "title": "Disk Subscription Ratio"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Shutdown Behavior",
+        "description": "These properties allow modifying the shutdown behavior for stop, rescue, resize, and shelve operations.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Compute::GuestShutdownBehavior",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Glance::Image"
+            }
+        ],
+        "properties": {
+            "os_shutdown_timeout": {
+                "minimum": 0,
+                "type": "integer",
+                "description": "By default, guests will be given 60 seconds to perform a graceful shutdown. After that, the VM is powered off.  This property allows overriding the amount of time (unit: seconds) to allow a guest OS to cleanly shut down before power off. A value of 0 (zero) means the guest will be powered off immediately with no opportunity for guest OS clean-up.",
+                "title": "Shutdown timeout"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Runtime Environment",
+        "description": "Software is written in a specific programming language and the language must execute within a runtime environment. The runtime environment provides an abstraction to utilizing a computer's processor, memory (RAM), and other system resources.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Software::Runtimes",
+        "visibility": "public",
+        "objects": [
+            {
+                "description": "PHP is a server-side scripting language designed for web development but also used as a general-purpose programming language. PHP code can be simply mixed with HTML code, or it can be used in combination with various templating engines and web frameworks. PHP code is usually processed by a PHP interpreter, which is usually implemented as a web server's native module or a Common Gateway Interface (CGI) executable. After the PHP code is interpreted and executed, the web server sends resulting output to its client, usually in form of a part of the generated web page \u2013 for example, PHP code can generate a web page's HTML code, an image, or some other data. PHP has also evolved to include a command-line interface (CLI) capability and can be used in standalone graphical applications. (http://en.wikipedia.org/wiki/PHP)",
+                "self": "/v2/metadefs/namespaces/OS::Software::Runtimes/objects/PHP",
+                "required": [],
+                "properties": {
+                    "sw_runtime_php_version": {
+                        "type": "string",
+                        "description": "The specific version of PHP.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "PHP"
+            },
+            {
+                "description": "Python is a widely used general-purpose, high-level programming language. Its design philosophy emphasizes code readability, and its syntax allows programmers to express concepts in fewer lines of code than would be possible in languages such as C++ or Java. The language provides constructs intended to enable clear programs on both a small and large scale. Python supports multiple programming paradigms, including object-oriented, imperative and functional programming or procedural styles. It features a dynamic type system and automatic memory management and has a large and comprehensive standard library. (http://en.wikipedia.org/wiki/Python_(programming_language))",
+                "self": "/v2/metadefs/namespaces/OS::Software::Runtimes/objects/Python",
+                "required": [],
+                "properties": {
+                    "sw_runtime_python_version": {
+                        "type": "string",
+                        "description": "The specific version of python.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Python"
+            },
+            {
+                "description": "Java is a functional computer programming language that is concurrent, class-based, object-oriented, and specifically designed to have as few implementation dependencies as possible. It is intended to let application developers write once, run anywhere (WORA), meaning that code that runs on one platform does not need to be recompiled to run on another. Java applications are typically compiled to bytecode that can run on any Java virtual machine (JVM) regardless of computer architecture. (http://en.wikipedia.org/wiki/Java_(programming_language))",
+                "self": "/v2/metadefs/namespaces/OS::Software::Runtimes/objects/Java",
+                "required": [],
+                "properties": {
+                    "sw_runtime_java_version": {
+                        "type": "string",
+                        "description": "The specific version of Java.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Java"
+            },
+            {
+                "description": "Ruby is a dynamic, reflective, object-oriented, general-purpose programming language. It was designed and developed in the mid-1990s by Yukihiro Matsumoto in Japan. According to its authors, Ruby was influenced by Perl, Smalltalk, Eiffel, Ada, and Lisp. It supports multiple programming paradigms, including functional, object-oriented, and imperative. It also has a dynamic type system and automatic memory management. (http://en.wikipedia.org/wiki/Python_(programming_language))",
+                "self": "/v2/metadefs/namespaces/OS::Software::Runtimes/objects/Ruby",
+                "required": [],
+                "properties": {
+                    "sw_runtime_ruby_version": {
+                        "type": "string",
+                        "description": "The specific version of Ruby.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Ruby"
+            },
+            {
+                "description": "Perl is a family of high-level, general-purpose, interpreted, dynamic programming languages. The languages in this family include Perl 5 and Perl 6. Though Perl is not officially an acronym, there are various backronyms in use, the most well-known being Practical Extraction and Reporting Language (http://en.wikipedia.org/wiki/Perl)",
+                "self": "/v2/metadefs/namespaces/OS::Software::Runtimes/objects/Perl",
+                "required": [],
+                "properties": {
+                    "sw_runtime_perl_version": {
+                        "type": "string",
+                        "description": "The specific version of Perl.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Perl"
+            }
+        ],
+        "owner": "admin",
+        "protected": true,
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "properties_target": "image",
+                "name": "OS::Cinder::Volume"
+            },
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Nova::Instance"
+            }
+        ],
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "VMware Driver Options",
+        "description": "The VMware compute driver options.  \n\nThese are properties specific to VMWare compute drivers and will only have an effect if the VMWare compute driver is enabled in Nova.  For a list of all hypervisors, see here: https://wiki.openstack.org/wiki/HypervisorSupportMatrix.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Compute::VMware",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Glance::Image"
+            }
+        ],
+        "properties": {
+            "vmware_ostype": {
+                "default": "otherGuest",
+                "enum": [
+                    "asianux3_64Guest",
+                    "asianux3Guest",
+                    "asianux4_64Guest",
+                    "asianux4Guest",
+                    "asianux5_64Guest",
+                    "centos64Guest",
+                    "centosGuest",
+                    "coreos64Guest",
+                    "darwin10_64Guest",
+                    "darwin10Guest",
+                    "darwin11_64Guest",
+                    "darwin11Guest",
+                    "darwin12_64Guest",
+                    "darwin13_64Guest",
+                    "darwin14_64Guest",
+                    "darwin64Guest",
+                    "darwinGuest",
+                    "debian4_64Guest",
+                    "debian4Guest",
+                    "debian5_64Guest",
+                    "debian5Guest",
+                    "debian6_64Guest",
+                    "debian6Guest",
+                    "debian7_64Guest",
+                    "debian7Guest",
+                    "debian8_64Guest",
+                    "debian8Guest",
+                    "dosGuest",
+                    "eComStation2Guest",
+                    "eComStationGuest",
+                    "fedora64Guest",
+                    "fedoraGuest",
+                    "freebsd64Guest",
+                    "freebsdGuest",
+                    "genericLinuxGuest",
+                    "mandrakeGuest",
+                    "mandriva64Guest",
+                    "mandrivaGuest",
+                    "netware4Guest",
+                    "netware5Guest",
+                    "netware6Guest",
+                    "nld9Guest",
+                    "oesGuest",
+                    "openServer5Guest",
+                    "openServer6Guest",
+                    "opensuse64Guest",
+                    "opensuseGuest",
+                    "oracleLinux64Guest",
+                    "oracleLinuxGuest",
+                    "os2Guest",
+                    "other24xLinux64Guest",
+                    "other24xLinuxGuest",
+                    "other26xLinux64Guest",
+                    "other26xLinuxGuest",
+                    "other3xLinux64Guest",
+                    "other3xLinuxGuest",
+                    "otherGuest",
+                    "otherGuest64",
+                    "otherLinux64Guest",
+                    "otherLinuxGuest",
+                    "redhatGuest",
+                    "rhel2Guest",
+                    "rhel3_64Guest",
+                    "rhel3Guest",
+                    "rhel4_64Guest",
+                    "rhel4Guest",
+                    "rhel5_64Guest",
+                    "rhel5Guest",
+                    "rhel6_64Guest",
+                    "rhel6Guest",
+                    "rhel7_64Guest",
+                    "rhel7Guest",
+                    "sjdsGuest",
+                    "sles10_64Guest",
+                    "sles10Guest",
+                    "sles11_64Guest",
+                    "sles11Guest",
+                    "sles12_64Guest",
+                    "sles12Guest",
+                    "sles64Guest",
+                    "slesGuest",
+                    "solaris10_64Guest",
+                    "solaris10Guest",
+                    "solaris11_64Guest",
+                    "solaris6Guest",
+                    "solaris7Guest",
+                    "solaris8Guest",
+                    "solaris9Guest",
+                    "turboLinux64Guest",
+                    "turboLinuxGuest",
+                    "ubuntu64Guest",
+                    "ubuntuGuest",
+                    "unixWare7Guest",
+                    "vmkernel5Guest",
+                    "vmkernel6Guest",
+                    "vmkernelGuest",
+                    "win2000AdvServGuest",
+                    "win2000ProGuest",
+                    "win2000ServGuest",
+                    "win31Guest",
+                    "win95Guest",
+                    "win98Guest",
+                    "windows7_64Guest",
+                    "windows7Guest",
+                    "windows7Server64Guest",
+                    "windows8_64Guest",
+                    "windows8Guest",
+                    "windows8Server64Guest",
+                    "windows9_64Guest",
+                    "windows9Guest",
+                    "windows9Server64Guest",
+                    "windowsHyperVGuest",
+                    "winLonghorn64Guest",
+                    "winLonghornGuest",
+                    "winMeGuest",
+                    "winNetBusinessGuest",
+                    "winNetDatacenter64Guest",
+                    "winNetDatacenterGuest",
+                    "winNetEnterprise64Guest",
+                    "winNetEnterpriseGuest",
+                    "winNetStandard64Guest",
+                    "winNetStandardGuest",
+                    "winNetWebGuest",
+                    "winNTGuest",
+                    "winVista64Guest",
+                    "winVistaGuest",
+                    "winXPHomeGuest",
+                    "winXPPro64Guest",
+                    "winXPProGuest"
+                ],
+                "type": "string",
+                "description": "A VMware GuestID which describes the operating system installed in the image. This value is passed to the hypervisor when creating a virtual machine. If not specified, the key defaults to otherGuest. See thinkvirt.com.",
+                "title": "OS Type"
+            },
+            "vmware_disktype": {
+                "default": "preallocated",
+                "enum": [
+                    "streamOptimized",
+                    "sparse",
+                    "preallocated"
+                ],
+                "type": "string",
+                "description": "When performing operations such as creating a virtual disk, cloning, or migrating, the disk provisioning type may be specified. Please refer to VMware documentation for more.",
+                "title": "Disk Provisioning Type"
+            },
+            "vmware_adaptertype": {
+                "default": "lsiLogic",
+                "enum": [
+                    "lsiLogic",
+                    "lsiLogicsas",
+                    "paraVirtual",
+                    "busLogic",
+                    "ide"
+                ],
+                "type": "string",
+                "description": "The virtual SCSI or IDE controller used by the hypervisor.",
+                "title": "Disk Adapter Type"
+            },
+            "hw_vif_model": {
+                "default": "e1000",
+                "enum": [
+                    "e1000",
+                    "e1000e",
+                    "VirtualE1000",
+                    "VirtualE1000e",
+                    "VirtualPCNet32",
+                    "VirtualSriovEthernetCard",
+                    "VirtualVmxnet",
+                    "VirtualVmxnet3"
+                ],
+                "type": "string",
+                "description": "Specifies the model of virtual network interface device to use. The valid options depend on the hypervisor. VMware driver supported options: e1000, e1000e, VirtualE1000, VirtualE1000e, VirtualPCNet32, VirtualSriovEthernetCard, and VirtualVmxnet.",
+                "title": "Virtual Network Interface"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Database Software",
+        "description": "A database is an organized collection of data. The data is typically organized to model aspects of reality in a way that supports processes requiring information. Database management systems are computer software applications that interact with the user, other applications, and the database itself to capture and analyze data. (http://en.wikipedia.org/wiki/Database)",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Software::DBMS",
+        "visibility": "public",
+        "objects": [
+            {
+                "description": "MySQL is an object-relational database management system (ORDBMS). The MySQL development project has made its source code available under the terms of the GNU General Public License, as well as under a variety of proprietary agreements. MySQL was owned and sponsored by a single for-profit firm, the Swedish company MySQL AB, now owned by Oracle Corporation. MySQL is a popular choice of database for use in web applications, and is a central component of the widely used LAMP open source web application software stack (and other 'AMP' stacks). (http://en.wikipedia.org/wiki/MySQL)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/MySQL",
+                "required": [],
+                "properties": {
+                    "sw_database_mysql_listen_port": {
+                        "description": "The configured TCP/IP port which MySQL listens for incoming connections.",
+                        "title": "Listen Port",
+                        "default": "3606",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_database_mysql_admin": {
+                        "default": "root",
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    },
+                    "sw_database_mysql_version": {
+                        "type": "string",
+                        "description": "The specific version of MySQL.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "MySQL"
+            },
+            {
+                "description": "PostgreSQL, often simply 'Postgres', is an object-relational database management system (ORDBMS) with an emphasis on extensibility and standards-compliance. PostgreSQL is cross-platform and runs on many operating systems. (http://en.wikipedia.org/wiki/PostgreSQL)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/PostgreSQL",
+                "required": [],
+                "properties": {
+                    "sw_database_postgresql_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which PostgreSQL is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "5432",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_database_postgresql_version": {
+                        "type": "string",
+                        "description": "The specific version of PostgreSQL.",
+                        "title": "Version"
+                    },
+                    "sw_database_postgresql_admin": {
+                        "default": "postgres",
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "PostgreSQL"
+            },
+            {
+                "description": "Microsoft SQL Server is a relational database management system developed by Microsoft. There are at least a dozen different editions of Microsoft SQL Server aimed at different audiences and for workloads ranging from small single-machine applications to large Internet-facing applications with many concurrent users. Its primary query languages are T-SQL and ANSI SQL. (http://en.wikipedia.org/wiki/Microsoft_SQL_Server)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/SQL Server",
+                "required": [],
+                "properties": {
+                    "sw_database_sqlserver_version": {
+                        "type": "string",
+                        "description": "The specific version of Microsoft SQL Server.",
+                        "title": "Version"
+                    },
+                    "sw_database_postsqlserver_admin": {
+                        "default": "sa",
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    },
+                    "sw_database_sqlserver_edition": {
+                        "default": "Express",
+                        "enum": [
+                            "Datacenter",
+                            "Enterprise",
+                            "Standard",
+                            "Web",
+                            "Business Intelligence",
+                            "Workgroup",
+                            "Express",
+                            "Compact (SQL CE)",
+                            "Developer",
+                            "Embedded (SSEE)",
+                            "Express",
+                            "Fast Track",
+                            "LocalDB",
+                            "Parallel Data Warehouse (PDW)",
+                            "Business Intelligence",
+                            "Datawarehouse Appliance Edition"
+                        ],
+                        "type": "string",
+                        "description": "SQL Server is available in multiple editions, with different feature sets and targeting different users.",
+                        "title": "Edition"
+                    },
+                    "sw_database_sqlserver_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which SQL Server is to listen for connections from client applications. The default SQL Server port is 1433, and client ports are assigned a random value between 1024 and 5000.",
+                        "title": "Listen Port",
+                        "default": "1433",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "SQL Server"
+            },
+            {
+                "description": "Oracle Database (commonly referred to as Oracle RDBMS or simply as Oracle) is an object-relational database management system produced and marketed by Oracle Corporation. (http://en.wikipedia.org/wiki/Oracle_Database)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/Oracle",
+                "required": [],
+                "properties": {
+                    "sw_database_oracle_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which Oracle is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "1521",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_database_oracle_version": {
+                        "type": "string",
+                        "description": "The specific version of Oracle.",
+                        "title": "Version"
+                    },
+                    "sw_database_oracle_edition": {
+                        "default": "Express",
+                        "enum": [
+                            "Enterprise",
+                            "Standard",
+                            "Standard Edition One",
+                            "Express (XE)",
+                            "Workgroup",
+                            "Lite"
+                        ],
+                        "type": "string",
+                        "description": "Over and above the different versions of the Oracle database management software developed over time, Oracle Corporation subdivides its product into varying editions.",
+                        "title": "Edition"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Oracle"
+            },
+            {
+                "description": "IBM DB2 is a family of database server products developed by IBM. These products all support the relational model, but in recent years some products have been extended to support object-relational features and non-relational structures, in particular XML. (http://en.wikipedia.org/wiki/IBM_DB2)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/DB2",
+                "required": [],
+                "properties": {
+                    "sw_database_db2_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which DB2 is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "5432",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_database_db2_version": {
+                        "type": "string",
+                        "description": "The specific version of DB2.",
+                        "title": "Version"
+                    },
+                    "sw_database_db2_admin": {
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "DB2"
+            },
+            {
+                "description": "MongoDB is a cross-platform document-oriented database. Classified as a NoSQL database, MongoDB uses JSON-like documents with dynamic schemas (MongoDB calls the format BSON), making the integration of data in certain types of applications easier and faster. Released under a combination of the GNU Affero General Public License and the Apache License, MongoDB is free and open-source software. (http://en.wikipedia.org/wiki/MongoDB)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/MongoDB",
+                "required": [],
+                "properties": {
+                    "sw_database_mongodb_admin": {
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    },
+                    "sw_database_mongodb_version": {
+                        "type": "string",
+                        "description": "The specific version of MongoDB.",
+                        "title": "Version"
+                    },
+                    "sw_database_mongodb_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which MongoDB is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "27017",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "MongoDB"
+            },
+            {
+                "description": "Couchbase Server, originally known as Membase, is an open source, distributed (shared-nothing architecture) NoSQL document-oriented database that is optimized for interactive applications. These applications must serve many concurrent users by creating, storing, retrieving, aggregating, manipulating and presenting data. In support of these kinds of application needs, Couchbase is designed to provide easy-to-scale key-value or document access with low latency and high sustained throughput. (http://en.wikipedia.org/wiki/Couchbase_Server)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/Couchbase Server",
+                "required": [],
+                "properties": {
+                    "sw_database_couchbaseserver_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which Couchbase is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "11211",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_database_couchbaseserver_version": {
+                        "type": "string",
+                        "description": "The specific version of Couchbase Server.",
+                        "title": "Version"
+                    },
+                    "sw_database_couchbaseserver_admin": {
+                        "default": "admin",
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Couchbase Server"
+            },
+            {
+                "description": "Redis is a data structure server (NoSQL). It is open-source, networked, in-memory, and stores keys with optional durability. The development of Redis has been sponsored by Pivotal Software since May 2013; before that, it was sponsored by VMware. The name Redis means REmote DIctionary Server. (http://en.wikipedia.org/wiki/Redis)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/Redis",
+                "required": [],
+                "properties": {
+                    "sw_database_redis_version": {
+                        "type": "string",
+                        "description": "The specific version of Redis.",
+                        "title": "Version"
+                    },
+                    "sw_database_redis_admin": {
+                        "default": "admin",
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    },
+                    "sw_database_redis_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which Redis is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "6379",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Redis"
+            },
+            {
+                "description": "Apache CouchDB, commonly referred to as CouchDB, is an open source NoSQL database. It is a NoSQL database that uses JSON to store data, JavaScript as its query language using MapReduce, and HTTP for an API. One of its distinguishing features is multi-master replication. CouchDB was first released in 2005 and later became an Apache project in 2008. (http://en.wikipedia.org/wiki/CouchDB)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/CouchDB",
+                "required": [],
+                "properties": {
+                    "sw_database_couchdb_version": {
+                        "type": "string",
+                        "description": "The specific version of CouchDB.",
+                        "title": "Version"
+                    },
+                    "sw_database_couchdb_admin": {
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    },
+                    "sw_database_couchdb_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which CouchDB is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "5984",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "CouchDB"
+            },
+            {
+                "description": "Apache Cassandra is an open source distributed NoSQL database management system designed to handle large amounts of data across many commodity servers, providing high availability with no single point of failure. (http://en.wikipedia.org/wiki/Apache_Cassandra)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/Apache Cassandra",
+                "required": [],
+                "properties": {
+                    "sw_database_cassandra_version": {
+                        "type": "string",
+                        "description": "The specific version of Apache Cassandra.",
+                        "title": "Version"
+                    },
+                    "sw_database_cassandra_listen_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which Cassandra is to listen for connections from client applications.",
+                        "title": "Listen Port",
+                        "default": "9160",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "sw_database_cassandra_admin": {
+                        "default": "cassandra",
+                        "type": "string",
+                        "description": "The primary user with privileges to perform administrative operations.",
+                        "title": "Admin User"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Apache Cassandra"
+            },
+            {
+                "description": "HBase is an open source, non-relational (NoSQL), distributed database modeled after Google's BigTable and written in Java. It is developed as part of Apache Software Foundation's Apache Hadoop project and runs on top of HDFS (Hadoop Distributed Filesystem), providing BigTable-like capabilities for Hadoop. (http://en.wikipedia.org/wiki/Apache_HBase)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/HBase",
+                "required": [],
+                "properties": {
+                    "sw_database_hbase_version": {
+                        "type": "string",
+                        "description": "The specific version of HBase.",
+                        "title": "Version"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "HBase"
+            },
+            {
+                "description": "In computing, Hazelcast is an in-memory open source software data grid based on Java. By having multiple nodes form a cluster, data is evenly distributed among the nodes. This allows for horizontal scaling both in terms of available storage space and processing power. Backups are also distributed in a similar fashion to other nodes, based on configuration, thereby protecting against single node failure. (http://en.wikipedia.org/wiki/Hazelcast)",
+                "self": "/v2/metadefs/namespaces/OS::Software::DBMS/objects/Hazlecast",
+                "required": [],
+                "properties": {
+                    "sw_database_hazlecast_version": {
+                        "type": "string",
+                        "description": "The specific version of Hazlecast.",
+                        "title": "Version"
+                    },
+                    "sw_database_hazlecast_port": {
+                        "description": "Specifies the TCP/IP port or local Unix domain socket file extension on which Hazlecast is to listen for connections between members.",
+                        "title": "Listen Port",
+                        "default": "5701",
+                        "maximum": 65535,
+                        "minimum": 1,
+                        "type": "integer"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Hazlecast"
+            }
+        ],
+        "owner": "admin",
+        "protected": true,
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "properties_target": "image",
+                "name": "OS::Cinder::Volume"
+            },
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Nova::Instance"
+            },
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Trove::Instance"
+            }
+        ],
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Hypervisor Selection",
+        "description": "OpenStack Compute supports many hypervisors, although most installations use only one hypervisor. For installations with multiple supported hypervisors, you can schedule different hypervisors using the ImagePropertiesFilter. This filters compute nodes that satisfy any architecture, hypervisor type, or virtual machine mode properties specified on the instance's image properties.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Compute::Hypervisor",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Glance::Image"
+            }
+        ],
+        "properties": {
+            "vm_mode": {
+                "enum": [
+                    "hvm",
+                    "xen",
+                    "uml",
+                    "exe"
+                ],
+                "type": "string",
+                "description": "The virtual machine mode. This represents the host/guest ABI (application binary interface) used for the virtual machine. Used with the ImagePropertiesFilter. \n\n hvm \u2014 Fully virtualized - This is the virtual machine mode (vm_mode) used by QEMU and KVM. \n\n xen - Xen 3.0 paravirtualized. \n\n uml \u2014 User Mode Linux paravirtualized. \n\n exe \u2014 Executables in containers. This is the mode used by LXC.",
+                "title": "VM Mode"
+            },
+            "hypervisor_type": {
+                "enum": [
+                    "baremetal",
+                    "hyperv",
+                    "kvm",
+                    "lxc",
+                    "qemu",
+                    "uml",
+                    "vmware",
+                    "xen"
+                ],
+                "type": "string",
+                "description": "Hypervisor type required by the image. Used with the ImagePropertiesFilter. \n\n KVM - Kernel-based Virtual Machine. LXC - Linux Containers (through libvirt). QEMU - Quick EMUlator. UML - User Mode Linux. hyperv - Microsoft\u00ae hyperv. vmware - VMware\u00ae vsphere. Baremetal - physical provisioning. For more information, see: http://docs.openstack.org/trunk/config-reference/content/section_compute-hypervisors.html",
+                "title": "Hypervisor Type"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Flavor Quota",
+        "description": "Compute drivers may enable quotas on CPUs available to a VM, disk tuning, bandwidth I/O, and instance VIF traffic control.  See: http://docs.openstack.org/admin-guide-cloud/content/customize-flavors.html",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Compute::Quota",
+        "visibility": "public",
+        "objects": [
+            {
+                "description": "You can configure the CPU limits with control parameters.",
+                "self": "/v2/metadefs/namespaces/OS::Compute::Quota/objects/CPU Limits",
+                "required": [],
+                "properties": {
+                    "quota:cpu_shares": {
+                        "type": "integer",
+                        "description": "Specifies the proportional weighted share for the domain. If this element is omitted, the service defaults to the OS provided defaults. There is no unit for the value; it is a relative measure based on the setting of other VMs. For example, a VM configured with value 2048 gets twice as much CPU time as a VM configured with value 1024.",
+                        "title": "Quota: CPU Shares"
+                    },
+                    "quota:cpu_period": {
+                        "minimum": 1000,
+                        "type": "integer",
+                        "description": "Specifies the enforcement interval (unit: microseconds) for QEMU and LXC hypervisors. Within a period, each VCPU of the domain is not allowed to consume more than the quota worth of runtime. The value should be in range [1000, 1000000]. A period with value 0 means no value.",
+                        "maximum": 1000000,
+                        "title": "Quota: CPU Period"
+                    },
+                    "quota:cpu_quota": {
+                        "type": "integer",
+                        "description": "Specifies the maximum allowed bandwidth (unit: microseconds). A domain with a negative-value quota indicates that the domain has infinite bandwidth, which means that it is not bandwidth controlled. The value should be in range [1000, 18446744073709551] or less than 0. A quota with value 0 means no value. You can use this feature to ensure that all vCPUs run at the same speed.",
+                        "title": "Quota: CPU Quota"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "CPU Limits"
+            },
+            {
+                "description": "Using disk I/O quotas, you can set maximum disk write to 10 MB per second for a VM user.",
+                "self": "/v2/metadefs/namespaces/OS::Compute::Quota/objects/Disk QoS",
+                "required": [],
+                "properties": {
+                    "quota:disk_write_bytes_sec": {
+                        "type": "integer",
+                        "description": "Sets disk I/O quota for disk write bytes / sec.",
+                        "title": "Quota: Disk Write Bytes / sec"
+                    },
+                    "quota:disk_total_bytes_sec": {
+                        "type": "integer",
+                        "description": "Sets disk I/O quota for total disk bytes / sec.",
+                        "title": "Quota: Disk Total Bytes / sec"
+                    },
+                    "quota:disk_total_iops_sec": {
+                        "type": "integer",
+                        "description": "Sets disk I/O quota for disk total IOPS / sec.",
+                        "title": "Quota: Disk Total IOPS / sec"
+                    },
+                    "quota:disk_write_iops_sec": {
+                        "type": "integer",
+                        "description": "Sets disk I/O quota for disk write IOPS / sec.",
+                        "title": "Quota: Disk Write IOPS / sec"
+                    },
+                    "quota:disk_read_bytes_sec": {
+                        "type": "integer",
+                        "description": "Sets disk I/O quota for disk read bytes / sec.",
+                        "title": "Quota: Disk read bytes / sec"
+                    },
+                    "quota:disk_read_iops_sec": {
+                        "type": "integer",
+                        "description": "Sets disk I/O quota for disk read IOPS / sec.",
+                        "title": "Quota: Disk read IOPS / sec"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Disk QoS"
+            },
+            {
+                "description": "Bandwidth QoS tuning for instance virtual interfaces (VIFs) may be specified with these properties. Incoming and outgoing traffic can be shaped independently. If not specified, no quality of service (QoS) is applied on that traffic direction. So, if you want to shape only the network's incoming traffic, use inbound only (and vice versa). The OpenStack Networking service abstracts the physical implementation of the network, allowing plugins to configure and manage physical resources. Virtual Interfaces (VIF) in the logical model are analogous to physical network interface cards (NICs). VIFs are typically owned a managed by an external service; for instance when OpenStack Networking is used for building OpenStack networks, VIFs would be created, owned, and managed in Nova. VIFs are connected to OpenStack Networking networks via ports. A port is analogous to a port on a network switch, and it has an administrative state. When a VIF is attached to a port the OpenStack Networking API creates an attachment object, which specifies the fact that a VIF with a given identifier is plugged into the port.",
+                "self": "/v2/metadefs/namespaces/OS::Compute::Quota/objects/Virtual Interface QoS",
+                "required": [],
+                "properties": {
+                    "quota:vif_outbound_average": {
+                        "type": "integer",
+                        "description": "Network Virtual Interface (VIF) outbound average in kilobytes per second. Specifies average bit rate on the interface being shaped.",
+                        "title": "Quota: VIF Outbound Average"
+                    },
+                    "quota:vif_outbound_burst": {
+                        "type": "integer",
+                        "description": "Network Virtual Interface (VIF) outbound burst in total kilobytes. Specifies the amount of bytes that can be burst at peak speed.",
+                        "title": "Quota: VIF Outbound Burst"
+                    },
+                    "quota:vif_inbound_peak": {
+                        "type": "integer",
+                        "description": "Network Virtual Interface (VIF) inbound peak in kilobytes per second. Specifies maximum rate at which an interface can receive data.",
+                        "title": "Quota: VIF Inbound Peak"
+                    },
+                    "quota:vif_inbound_average": {
+                        "type": "integer",
+                        "description": "Network Virtual Interface (VIF) inbound average in kilobytes per second. Specifies average bit rate on the interface being shaped.",
+                        "title": "Quota: VIF Inbound Average"
+                    },
+                    "quota:vif_inbound_burst": {
+                        "type": "integer",
+                        "description": "Network Virtual Interface (VIF) inbound burst in total kilobytes. Specifies the amount of bytes that can be burst at peak speed.",
+                        "title": "Quota: VIF Inbound Burst"
+                    },
+                    "quota:vif_outbound_peak": {
+                        "type": "integer",
+                        "description": "Network Virtual Interface (VIF) outbound peak in kilobytes per second. Specifies maximum rate at which an interface can send data.",
+                        "title": "Quota: VIF Outbound Burst"
+                    }
+                },
+                "schema": "/v2/schemas/metadefs/object",
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "Virtual Interface QoS"
+            }
+        ],
+        "owner": "admin",
+        "protected": true,
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "XenAPI Driver Options",
+        "description": "The XenAPI compute driver options.  \n\nThese are properties specific to compute drivers.  For a list of all hypervisors, see here: https://wiki.openstack.org/wiki/HypervisorSupportMatrix.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Compute::XenAPI",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Glance::Image"
+            }
+        ],
+        "properties": {
+            "auto_disk_config": {
+                "type": "boolean",
+                "description": "If true, the root partition on the disk is automatically resized before the instance boots. This value is only taken into account by the Compute service when using a Xen-based hypervisor with the XenAPI driver. The Compute service will only attempt to resize if there is a single partition on the image, and only if the partition is in ext3 or ext4 format.",
+                "title": "Disk Adapter Type"
+            },
+            "os_type": {
+                "enum": [
+                    "linux",
+                    "windows"
+                ],
+                "type": "string",
+                "description": "The operating system installed on the image. The XenAPI driver contains logic that takes different actions depending on the value of the os_type parameter of the image. For example, for os_type=windows images, it creates a FAT32-based swap partition instead of a Linux swap partition, and it limits the injected host name to less than 16 characters.",
+                "title": "OS Type"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Common Operating System Properties",
+        "description": "When adding an image to Glance, you may specify some common image properties that may prove useful to consumers of your image.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::OperatingSystem",
+        "visibility": "private",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Glance::Image"
+            },
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "properties_target": "image",
+                "name": "OS::Cinder::Volume"
+            }
+        ],
+        "properties": {
+            "os_distro": {
+                "type": "string",
+                "description": "The common name of the operating system distribution in lowercase (uses the same data vocabulary as the libosinfo project). Specify only a recognized value for this field. Deprecated values are listed to assist you in searching for the recognized value.",
+                "title": "OS Distro"
+            },
+            "os_admin_user": {
+                "type": "string",
+                "description": "The name of the user with admin privileges.",
+                "title": "OS Admin User"
+            },
+            "os_version": {
+                "type": "string",
+                "description": "Operating system version as specified by the distributor. (for example, '11.10')",
+                "title": "OS Version"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Trusted Compute Pools (Intel\u00ae TXT)",
+        "description": "Trusted compute pools with Intel\u00ae Trusted Execution Technology (Intel\u00ae TXT) support IT compliance by protecting virtualized data centers - private, public, and hybrid clouds against attacks toward hypervisor and BIOS, firmware, and other pre-launch software components. The Nova trust scheduling filter must be enabled and configured with the trust attestation service in order to use this feature.",
+        "created_at": "2015-08-06T12:46:55Z",
+        "namespace": "OS::Compute::Trust",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:55Z",
+                "name": "OS::Nova::Flavor"
+            }
+        ],
+        "properties": {
+            "trust:trusted_host": {
+                "enum": [
+                    "trusted",
+                    "untrusted",
+                    "unknown"
+                ],
+                "type": "string",
+                "description": "Select to ensure that node has been attested by Intel\u00ae Trusted Execution Technology (Intel\u00ae TXT). The Nova trust scheduling filter must be enabled and configured with the trust attestation service in order to use this feature.",
+                "title": "Intel\u00ae TXT attestation"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Compute Host Capabilities",
+        "description": "Hardware capabilities provided by the compute host. This provides the ability to fine tune the hardware specification required when an instance is requested. The ComputeCapabilitiesFilter should be enabled in the Nova scheduler to use these properties. When enabled, this filter checks that the capabilities provided by the compute host satisfy any extra specifications requested. Only hosts that can provide the requested capabilities will be eligible for hosting the instance.",
+        "created_at": "2015-08-06T12:46:54Z",
+        "namespace": "OS::Compute::HostCapabilities",
+        "visibility": "public",
+        "protected": true,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:54Z",
+                "prefix": "capabilities:",
+                "name": "OS::Nova::Flavor"
+            },
+            {
+                "created_at": "2015-08-06T12:46:54Z",
+                "prefix": "aggregate_instance_extra_specs:",
+                "name": "OS::Nova::Aggregate"
+            }
+        ],
+        "properties": {
+            "cpu_info:topology:cores": {
+                "default": "1",
+                "readonly": false,
+                "type": "integer",
+                "description": "Number of cores.",
+                "title": "cores"
+            },
+            "cpu_info:vendor": {
+                "operators": [
+                    "<or>"
+                ],
+                "enum": [
+                    "Intel",
+                    "AMD"
+                ],
+                "type": "string",
+                "description": "Specifies the CPU manufacturer.",
+                "title": "Vendor"
+            },
+            "cpu_info:arch": {
+                "operators": [
+                    "<or>"
+                ],
+                "enum": [
+                    "x86",
+                    "x86_64",
+                    "i686",
+                    "ia64",
+                    "ARMv8-A",
+                    "ARMv7-A"
+                ],
+                "type": "string",
+                "description": "Specifies the CPU architecture. Use this property to specify the architecture supported by the hypervisor.",
+                "title": "Architecture"
+            },
+            "cpu_info:topology:threads": {
+                "default": "1",
+                "readonly": false,
+                "type": "integer",
+                "description": "Number of threads.",
+                "title": "threads"
+            },
+            "cpu_info:features": {
+                "items": {
+                    "enum": [
+                        "aes",
+                        "vme",
+                        "de",
+                        "pse",
+                        "tsc",
+                        "msr",
+                        "pae",
+                        "mce",
+                        "cx8",
+                        "apic",
+                        "sep",
+                        "mtrr",
+                        "pge",
+                        "mca",
+                        "cmov",
+                        "pat",
+                        "pse36",
+                        "clflush",
+                        "dts",
+                        "acpi",
+                        "mmx",
+                        "fxsr",
+                        "sse",
+                        "sse2",
+                        "ss",
+                        "ht",
+                        "tm",
+                        "ia64",
+                        "pbe",
+                        "rdtscp",
+                        "pni",
+                        "pclmulqdq",
+                        "dtes64",
+                        "monitor",
+                        "ds_cpl",
+                        "vmx",
+                        "smx",
+                        "est",
+                        "tm2",
+                        "ssse3",
+                        "cid",
+                        "fma",
+                        "cx16",
+                        "xtpr",
+                        "pdcm",
+                        "pcid",
+                        "dca",
+                        "sse4_1",
+                        "sse4_2",
+                        "x2apic",
+                        "movbe",
+                        "popcnt",
+                        "tsc_deadline_timer",
+                        "xsave",
+                        "avx",
+                        "f16c",
+                        "rdrand",
+                        "fsgsbase",
+                        "bmi1",
+                        "hle",
+                        "avx2",
+                        "smep",
+                        "bmi2",
+                        "erms",
+                        "invpcid",
+                        "rtm",
+                        "mpx",
+                        "rdseed",
+                        "adx",
+                        "smap"
+                    ],
+                    "type": "string"
+                },
+                "operators": [
+                    "<or>",
+                    "<all-in>"
+                ],
+                "type": "array",
+                "description": "Specifies CPU flags/features. Using this property you can specify the required set of instructions supported by a vm.",
+                "title": "Features"
+            },
+            "cpu_info:topology:sockets": {
+                "default": "1",
+                "readonly": false,
+                "type": "integer",
+                "description": "Number of sockets.",
+                "title": "sockets"
+            },
+            "cpu_info:model": {
+                "operators": [
+                    "<or>"
+                ],
+                "enum": [
+                    "Conroe",
+                    "Core2Duo",
+                    "Penryn",
+                    "Nehalem",
+                    "Westmere",
+                    "SandyBridge",
+                    "IvyBridge",
+                    "Haswell",
+                    "Broadwell",
+                    "Delhi",
+                    "Seoul",
+                    "Abu Dhabi",
+                    "Interlagos",
+                    "Kabini",
+                    "Valencia",
+                    "Zurich",
+                    "Budapest",
+                    "Barcelona",
+                    "Suzuka",
+                    "Shanghai",
+                    "Istanbul",
+                    "Lisbon",
+                    "Magny-Cours",
+                    "Valencia",
+                    "Cortex-A57",
+                    "Cortex-A53",
+                    "Cortex-A12",
+                    "Cortex-A17",
+                    "Cortex-A15",
+                    "Coretx-A7",
+                    "X-Gene"
+                ],
+                "type": "string",
+                "description": "Specifies the CPU model. Use this property to ensure that your vm runs on a a specific cpu model.",
+                "title": "Model"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    },
+    {
+        "display_name": "Instances per Host",
+        "description": "Properties related to the Nova scheduler filter AggregateNumInstancesFilter. Filters aggregate hosts by the number of running instances on it. Hosts in the aggregate with too many instances will be filtered out. The filter must be enabled in the Nova scheduler to use these properties.",
+        "created_at": "2015-08-06T12:46:54Z",
+        "namespace": "OS::Compute::AggregateNumInstancesFilter",
+        "visibility": "public",
+        "protected": false,
+        "owner": "admin",
+        "resource_type_associations": [
+            {
+                "created_at": "2015-08-06T12:46:54Z",
+                "name": "OS::Nova::Aggregate"
+            }
+        ],
+        "properties": {
+            "max_instances_per_host": {
+                "readonly": false,
+                "minimum": 0,
+                "type": "integer",
+                "description": "Maximum number of instances allowed to run on a host in the aggregate.",
+                "title": "Max Instances Per Host"
+            }
+        },
+        "schema": "/v2/schemas/metadefs/namespace"
+    }
+]
