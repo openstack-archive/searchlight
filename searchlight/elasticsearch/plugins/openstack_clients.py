@@ -12,166 +12,109 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import os
 
 from designateclient.v2 import client as designateclient
-import glanceclient
-from keystoneclient.auth.identity import generic
-from keystoneclient import session
-from keystoneclient.v2_0 import client as keystonev2client
+from glanceclient import exc as glance_exc
+from glanceclient.v2 import client as glance
+from keystoneclient import auth as ks_auth
+from keystoneclient import session as ks_session
 import novaclient.client
-import os
 from oslo_config import cfg
 
 
-def register_cli_opts():
-    CLI_OPTS = [
-        cfg.StrOpt('os-username',
-                   deprecated_group="DEFAULT",
-                   default=os.environ.get('OS_USERNAME', 'searchlight'),
-                   help='User name to use for OpenStack service access.'),
-        cfg.StrOpt('os-password',
-                   deprecated_group="DEFAULT",
-                   secret=True,
-                   default=os.environ.get('OS_PASSWORD', 'admin'),
-                   help='Password to use for OpenStack service access.'),
-        cfg.StrOpt('os-tenant-id',
-                   deprecated_group="DEFAULT",
-                   default=os.environ.get('OS_TENANT_ID', ''),
-                   help='Tenant ID to use for OpenStack service access.'),
-        cfg.StrOpt('os-tenant-name',
-                   deprecated_group="DEFAULT",
-                   default=os.environ.get('OS_TENANT_NAME', 'admin'),
-                   help='Tenant name to use for OpenStack service access.'),
-        cfg.StrOpt('os-cacert',
-                   default=os.environ.get('OS_CACERT'),
-                   help='Certificate chain for SSL validation.'),
-        cfg.StrOpt('os-auth-url',
-                   deprecated_group="DEFAULT",
-                   default=os.environ.get('OS_AUTH_URL',
-                                          'http://localhost:5000/v2.0'),
-                   help='Auth URL to use for OpenStack service access.'),
-        cfg.StrOpt('os-region-name',
-                   deprecated_group="DEFAULT",
-                   default=os.environ.get('OS_REGION_NAME'),
-                   help='Region name to use for OpenStack service endpoints.'),
-        cfg.StrOpt('os-endpoint-type',
-                   default=os.environ.get('OS_ENDPOINT_TYPE', 'publicURL'),
-                   help='Type of endpoint in Identity service catalog to '
-                        'use for communication with OpenStack services.'),
-        cfg.BoolOpt('insecure',
-                    default=False,
-                    help='Disables X.509 certificate validation when an '
-                         'SSL connection to Identity Service is established.'),
-    ]
-    cfg.CONF.register_cli_opts(CLI_OPTS, group="service_credentials")
+client_opts = [
+    cfg.StrOpt('os-region-name',
+               default=os.environ.get('OS_REGION_NAME'),
+               help='Region name to use for OpenStack service endpoints.'),
+    cfg.StrOpt('os-endpoint-type',
+               default=os.environ.get('OS_ENDPOINT_TYPE', 'publicURL'),
+               help='Type of endpoint in Identity service catalog to '
+                    'use for communication with OpenStack services.'),
+]
 
 
-client_cache = {}
+GROUP = "service_credentials"
+
+cfg.CONF.register_opts(client_opts, group=GROUP)
+
+ks_session.Session.register_conf_options(cfg.CONF, GROUP)
+
+ks_auth.register_conf_options(cfg.CONF, GROUP)
+
+_session = None
 
 
-def memoized(fn):
-    """A poor-mans memoizer for instantiating openstack clients.
-    Bear in mind that cached tokens will eventually become invalid
-    especially in long-running processes.
-    """
+def _get_session():
+    global _session
+    if not _session:
+        auth = ks_auth.load_from_conf_options(cfg.CONF, GROUP)
+
+        _session = ks_session.Session.load_from_conf_options(
+            cfg.CONF, GROUP)
+        _session.auth = auth
+    return _session
+
+
+# Glance still needs special handling because versions prior to 1.0 don't
+# support keystone sessions. Rather than maintain two codepaths, we'll do this
+_glanceclient = None
+
+
+def clear_cached_glanceclient_on_unauthorized(fn):
     def wrapper(*args, **kwargs):
-        cached = client_cache.get(fn.__name__)
-        if not cached:
-            client_cache[fn.__name__] = fn(*args, **kwargs)
-        return client_cache[fn.__name__]
-    return wrapper
-
-
-EXCEPTION_LIST = (
-    glanceclient.exc.Unauthorized
-)
-
-
-def clear_cache_on_unauthorized(fn):
-    """Provide a wrapper that clears cached openstack clients on auth failures
-    (which will happen in long-running processes as keystone tokens become
-    invalid).
-    """
-    def wrapper(*args, **kwargs):
+        global _session
+        global _glanceclient
         try:
             return fn(*args, **kwargs)
-        except EXCEPTION_LIST:
-            client_cache.clear()
+        except glance_exc.Unauthorized:
+            _session = None
+            _glanceclient = None
             return fn(*args, **kwargs)
     return wrapper
 
 
-@memoized
-def get_keystoneclient():
-    return keystonev2client.Client(
-        username=cfg.CONF.service_credentials.os_username,
-        password=cfg.CONF.service_credentials.os_password,
-        tenant_id=cfg.CONF.service_credentials.os_tenant_id,
-        tenant_name=cfg.CONF.service_credentials.os_tenant_name,
-        cacert=cfg.CONF.service_credentials.os_cacert,
-        auth_url=cfg.CONF.service_credentials.os_auth_url,
-        region_name=cfg.CONF.service_credentials.os_region_name,
-        insecure=cfg.CONF.service_credentials.insecure)
-
-
-@memoized
 def get_glanceclient():
-    ks_client = get_keystoneclient()
-    endpoint = ks_client.service_catalog.url_for(
-        service_type='image')
+    global _glanceclient
+    if _glanceclient:
+        return _glanceclient
 
-    return glanceclient.client.Client(
-        version=2,
-        endpoint=endpoint,
-        token=ks_client.auth_token,
-        auth_url=ks_client.auth_url,
-        tenant_name=ks_client.tenant_name,
-        tenant_id=ks_client.tenant_id,
-        username=ks_client.username,
-        cacert=cfg.CONF.service_credentials.os_cacert,
+    session = _get_session()
+
+    endpoint = session.get_endpoint(
+        service_type='image',
         region_name=cfg.CONF.service_credentials.os_region_name,
+        interface=cfg.CONF.service_credentials.os_endpoint_type)
+
+    _glanceclient = glance.Client(
+        endpoint=endpoint,
+        token=session.auth.get_token(session),
+        cacert=cfg.CONF.service_credentials.cafile,
         insecure=cfg.CONF.service_credentials.insecure
     )
+    return _glanceclient
+
+    # Once we use 1.0, use the below code.
+    # session = _get_session()
+
+    # return glance.Client(
+    #     session=session
+    # )
 
 
-@memoized
 def get_novaclient():
-    ks_client = get_keystoneclient()
-    endpoint = ks_client.service_catalog.url_for(
-        service_type='compute')
+    session = _get_session()
 
     return novaclient.client.Client(
         version=2,
-        endpoint=endpoint,
-        auth_token=ks_client.auth_token,
-        auth_url=ks_client.auth_url,
-        tenant_name=ks_client.tenant_name,
-        tenant_id=ks_client.tenant_id,
-        username=ks_client.username,
-        cacert=cfg.CONF.service_credentials.os_cacert,
-        region_name=cfg.CONF.service_credentials.os_region_name,
-        insecure=cfg.CONF.service_credentials.insecure)
+        session=session,
+        region_name=cfg.CONF.service_credentials.os_region_name)
 
 
-@memoized
 def get_designateclient():
-    auth = generic.Password(
-        auth_url=cfg.CONF.service_credentials.os_auth_url,
-        username=cfg.CONF.service_credentials.os_username,
-        password=cfg.CONF.service_credentials.os_password,
-        tenant_name=cfg.CONF.service_credentials.os_tenant_name)
-
-    if cfg.CONF.service_credentials.insecure:
-        verify = False
-    else:
-        verify = cfg.CONF.service_credentials.os_cacert
-
-    ses = session.Session(
-        auth=auth,
-        verify=verify
-    )
+    session = _get_session()
 
     return designateclient.Client(
-        session=ses,
+        session=session,
         region_name=cfg.CONF.service_credentials.os_region_name,
     )

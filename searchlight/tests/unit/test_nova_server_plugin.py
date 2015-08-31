@@ -21,7 +21,6 @@ import novaclient.v2.servers as novaclient_servers
 
 from searchlight.elasticsearch.plugins.nova import\
     servers as servers_plugin
-from searchlight.elasticsearch.plugins import openstack_clients
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -179,17 +178,6 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         super(TestServerLoaderPlugin, self).setUp()
         self.plugin = servers_plugin.ServerIndex()
         self._create_fixtures()
-
-        mock_ks_client = mock.Mock()
-        mock_ks_client.service_catalog.url_for.return_value = \
-            'http://localhost/nova/v2'
-        patched_ks_client = mock.patch.object(
-            openstack_clients,
-            'get_keystoneclient',
-            return_value=mock_ks_client
-        )
-        patched_ks_client.start()
-        self.addCleanup(patched_ks_client.stop)
 
     def _create_fixtures(self):
         self.instance1 = _instance_fixture(

@@ -53,7 +53,8 @@ def _normalize_visibility(image_doc):
         image_doc['visibility'] = 'public' if is_public else 'private'
 
 
-@openstack_clients.clear_cache_on_unauthorized
+# Remove this once we can rely on glanceclient 1.0 being present
+@openstack_clients.clear_cached_glanceclient_on_unauthorized
 def serialize_glance_image(image):
 
     # If we're being asked to index an ID, retrieve the full image information
@@ -86,6 +87,7 @@ def serialize_glance_image(image):
     return document
 
 
+@openstack_clients.clear_cached_glanceclient_on_unauthorized
 def serialize_glance_notification(note):
     """Notifications are different in several ways from v2 API images"""
     _normalize_visibility(note)
@@ -101,7 +103,6 @@ def serialize_glance_notification(note):
     return serialize_glance_image(note)
 
 
-@openstack_clients.clear_cache_on_unauthorized
 def serialize_glance_metadef_ns(metadef_namespace):
     def _serialize_tag(tag):
         return {'name': tag['name']}
