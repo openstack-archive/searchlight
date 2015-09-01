@@ -49,13 +49,10 @@ class ImageHandler(base.NotificationBase):
     def create_or_update(self, payload):
         id = payload['id']
         payload = self.serialize_notification(payload)
-        body = {
-            "doc": payload
-        }
         self.engine.index(
             index=self.index_name,
             doc_type=self.document_type,
-            body=body,
+            body=payload,
             id=id
         )
 
