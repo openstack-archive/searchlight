@@ -54,10 +54,10 @@ def _normalize_visibility(image_doc):
 
 @openstack_clients.clear_cache_on_unauthorized
 def serialize_glance_image(image):
-    g_client = openstack_clients.get_glanceclient()
 
     # If we're being asked to index an ID, retrieve the full image information
     if isinstance(image, six.text_type):
+        g_client = openstack_clients.get_glanceclient()
         image = g_client.images.get(image)
 
     members = _get_image_members(image)
@@ -67,9 +67,20 @@ def serialize_glance_image(image):
 
     document = {k: v for k, v in image.items() if k not in fields_to_ignore}
 
-    document['members'] = [
-        member['member'] for member in members
-        if (member['status'] == 'accepted' and member['deleted'] == 0)]
+    members = list(members)
+    older_glance_version = False
+    # Make it backward compatibe with older glance version
+    if members and len(members) > 0 and "deleted" in members[0]:
+        older_glance_version = True
+
+    if older_glance_version:
+        document['members'] = [
+            member['member'] for member in members
+            if (member['status'] == 'accepted' and member['deleted'] == 0)]
+    else:
+        document['members'] = [
+            member['member_id'] for member in members
+            if (member['status'] == 'accepted')]
 
     return document
 
