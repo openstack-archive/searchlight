@@ -285,6 +285,10 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
                 {
                     "index": "searchlight", "type": "OS::Glance::Metadef",
                     "name": "OS::Glance::Metadef"
+                },
+                {
+                    "index": "searchlight", "type": "OS::Nova::Server",
+                    "name": "OS::Nova::Server"
                 }
             ]
         }
@@ -326,7 +330,8 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight'], output['index'])
-        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef']),
+        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef',
+                                 'OS::Nova::Server']),
                          sorted(output['doc_type']))
 
     def test_empty_request_admin(self):
@@ -336,7 +341,8 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight'], output['index'])
-        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef']),
+        self.assertEqual(sorted(['OS::Glance::Image', 'OS::Glance::Metadef',
+                                 'OS::Nova::Server']),
                          sorted(output['doc_type']))
 
         request = unit_test_utils.get_fake_request()
