@@ -275,6 +275,37 @@ Gives::
     "took": 1
   }
 
+Sorting
+*******
+Elasticsearch allows sorting by single or multiple fields. See Elasticsearch's
+`sort <https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html>`_
+documentation for details of the allowed syntax. Sort fields can be included as a top
+level field in the request body. For instance::
+
+  {
+    "query": {"match_all": {}},
+    "sort": {"name": "desc"}
+  }
+
+You will see in the search results a ``sort`` field for each result::
+
+  ...
+  {
+     "_id": "7741fbcc-3fa9-4ace-adff-593304b6e629",
+     "_index": "glance",
+     "_score": null,
+     "_source": {
+         "name": "cirros-0.3.4-x86_64-uec",
+         "size": 25165824
+     },
+     "_type": "image",
+     "sort": [
+         "cirros-0.3.4-x86_64-uec",
+         25165824
+     ]
+  },
+  ...
+
 Freeform queries
 ****************
 Elasticsearch has a flexible query parser that can be used for many kinds of

@@ -306,6 +306,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         offset = body.pop('offset', None)
         limit = body.pop('limit', None)
         highlight = body.pop('highlight', None)
+        sort_order = body.pop('sort', None)
 
         if not types:
             types = self._get_available_types()
@@ -336,6 +337,16 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         if highlight is not None:
             query_params['query']['highlight'] = highlight
+
+        if sort_order is not None:
+            if isinstance(sort_order, (six.text_type, dict)):
+                # Elasticsearch expects a list
+                sort_order = [sort_order]
+            elif not isinstance(sort_order, list):
+                msg = _("'sort' must be a string, dict or list")
+                raise webob.exc.HTTPBadRequest(explanation=msg)
+
+            query_params['query']['sort'] = sort_order
 
         return query_params
 
