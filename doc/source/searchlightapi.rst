@@ -23,8 +23,8 @@ of Elasticsearch's query API.
 Authentication
 --------------
 
-Searchlight, like other Openstack APIs, depends on Keystone and the
-Openstack Identity API to handle authentication. You must obtain an
+Searchlight, like other OpenStack APIs, depends on Keystone and the
+OpenStack Identity API to handle authentication. You must obtain an
 authentication token from Keystone and pass it to Searchlight in API requests
 with the ``X-Auth-Token`` header.
 
@@ -59,10 +59,10 @@ Some resources may have additional rules. Administrators have access to all reso
 Querying available plugins
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Searchlight indexes Openstack resources as defined by installed plugins. In
-general, a plugin maps directly to an Openstack resource type. For instance, a
+Searchlight indexes OpenStack resources as defined by installed plugins. In
+general, a plugin maps directly to an OpenStack resource type. For instance, a
 plugin might index nova instances, or glance images. There may be multiple
-plugins related to a given Openstack project (an example being glance images
+plugins related to a given OpenStack project (an example being glance images
 and metadefs).
 
 A given deployment may not necessarily expose all available plugins.
@@ -170,12 +170,12 @@ The data is returned as a JSON-encoded mapping from Elasticsearch::
     "took": 1
   }
 
-Each ``hit`` is a document in Elasticsearch, representing an Openstack
+Each ``hit`` is a document in Elasticsearch, representing an OpenStack
 resource. the fields in the root of each hit are:
 
 * ``_id``
 
-  Uniquely identifies the resource within its Openstack context (for
+  Uniquely identifies the resource within its OpenStack context (for
   instance, Glance images use their GUID).
 
 * ``_index``
@@ -225,7 +225,7 @@ combinations of ``index`` and ``type`` that can return no results. In general
 
 Retrieving an item by id
 ************************
-To retrieve a resource by its Openstack ID (e.g. a glance image), we can use
+To retrieve a resource by its OpenStack ID (e.g. a glance image), we can use
 Elasticsearch's `term query <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-term-query.html>`_::
 
   {
