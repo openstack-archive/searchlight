@@ -28,7 +28,7 @@ Open glance.api.conf and make the following changes::
     rpc_backend = 'rabbit'
     notification_topics = notifications, searchlight_indexer
 
-Restart glance API.
+Restart glance API (g-api).
 
 Searchlight Configuration
 =========================
