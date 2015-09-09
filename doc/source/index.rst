@@ -18,11 +18,11 @@ Welcome to Searchlight's documentation!
 =======================================
 
 The Searchlight project provides indexing and search capabilities across
-Openstack resources. Its goal is to achieve high performance and flexible
+OpenStack resources. Its goal is to achieve high performance and flexible
 querying combined with near real-time indexing. It uses
 `Elasticsearch <http://http://www.elasticsearch.org/>`_, a real-time
 distributed indexing and search engine built on Apache Lucene, but adds
-Openstack authentication and Role Based Access Control to provide appropriate
+OpenStack authentication and Role Based Access Control to provide appropriate
 protection of data.
 
 Searchlight, as with all OpenStack projects, is written with the following design
