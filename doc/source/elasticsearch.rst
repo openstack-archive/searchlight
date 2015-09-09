@@ -94,7 +94,8 @@ following options control indexing behavior::
     action.create_index: false
 
 See also:
-* http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-index_.html
+
+* http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-index\_.html
 * http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-update-settings.html
 
 Development
