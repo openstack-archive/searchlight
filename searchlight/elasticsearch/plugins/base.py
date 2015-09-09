@@ -86,10 +86,13 @@ class IndexBase(object):
         """Send list of serialized documents into search engine."""
         actions = []
         for document in documents:
+            parent_field = self.get_parent_id_field()
             action = {
                 '_id': document.get(self.document_id_field),
                 '_source': document,
             }
+            if parent_field:
+                action['_parent'] = document[parent_field]
 
             actions.append(action)
 
@@ -113,6 +116,13 @@ class IndexBase(object):
         should also be mapped to _id in the elasticsearch mapping
         """
         return "id"
+
+    def get_parent_id_field(self):
+        """Whatever field should be treated as the parent id. This is required
+        for plugins with _parent definitions in their mappings. Documents to be
+        indexed should contain this field.
+        """
+        return None
 
     @abc.abstractmethod
     def get_index_name(self):
