@@ -401,3 +401,100 @@ Results::
     "took": 3
   }
 
+Faceting
+********
+Searchlight can provide a list of field names and values present for those
+fields for each registered resource type. Exactly which fields are returned
+and whether values are listed is up to each plugin. Some fields or values may
+only be listed for administrative users.
+
+To list supported facets, issue a ``GET`` to
+``http://searchlight.example.com/v1/search/facets``::
+
+  {
+    "OS::Glance::Image": [
+      {
+        "name": "status",
+        "type": "string"
+      },
+      {
+        "name": "created_at",
+        "type": "date"
+      },
+      {
+        "name": "virtual_size",
+        "type": "long"
+      },
+      {
+        "name": "name",
+        "type": "string"
+      },
+      ...
+    ],
+    "OS::Glance::Metadef": [
+      {
+        "name": "objects.description",
+        "type": "string"
+      },
+      {
+        "name": "objects.properties.description",
+        "type": "string"
+      },
+      ...
+    ],
+    "OS::Nova::Server": [
+      {
+        "name": "status",
+        "options": [
+          {
+            "doc_count": 1,
+            "key": "ACTIVE"
+          }
+        ],
+        "type": "string"
+      },
+      {
+        "name": "OS-EXT-SRV-ATTR:host",
+        "type": "string"
+      },
+      {
+        "name": "name",
+        "type": "string"
+      },
+      {
+        "name": "image.id",
+        "type": "string"
+      },
+      {
+        "name": "OS-EXT-AZ:availability_zone",
+        "options": [
+          {
+            "doc_count": 1,
+            "key": "nova"
+          }
+        ],
+        "type": "string"
+      }
+      ...
+    ]
+  }
+
+It's also possible to request facets for a particular type by adding a
+``type`` query parameter. For instance, a ``GET`` to
+``http://searchlight.example.com/v1/search/facets?type=OS::Nova::Server``::
+
+  {
+    "OS::Nova::Server": [
+      {
+        "name": "status",
+        "options": [
+          {
+            "doc_count": 1,
+            "key": "ACTIVE"
+          }
+        ],
+        "type": "string"
+      },
+      ...
+    ]
+  }

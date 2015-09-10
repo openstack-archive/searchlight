@@ -112,6 +112,19 @@ class SearchController(object):
             LOG.error(encodeutils.exception_to_unicode(e))
             raise webob.exc.HTTPInternalServerError()
 
+    def facets(self, req, index_name=None, doc_type=None):
+        try:
+            search_repo = self.gateway.get_catalog_search_repo(req.context)
+            result = search_repo.facets(index_name, doc_type)
+            return result
+        except exception.Forbidden as e:
+            raise webob.exc.HTTPForbidden(explanation=e.msg)
+        except exception.NotFound as e:
+            raise webob.exc.HTTPNotFound(explanation=e.msg)
+        except Exception as e:
+            LOG.error(encodeutils.exception_to_unicode(e))
+            raise webob.exc.HTTPInternalServerError()
+
 
 class RequestDeserializer(wsgi.JSONRequestDeserializer):
     _disallowed_properties = ['self', 'schema']
@@ -396,6 +409,13 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         }
         return query_params
 
+    def facets(self, request):
+        query_params = {
+            'index_name': request.params.get('index', None),
+            'doc_type': request.params.get('type', None)
+        }
+        return query_params
+
 
 class ResponseSerializer(wsgi.JSONResponseSerializer):
     def __init__(self, schema=None):
@@ -413,6 +433,11 @@ class ResponseSerializer(wsgi.JSONResponseSerializer):
         response.content_type = 'application/json'
 
     def index(self, response, query_result):
+        body = json.dumps(query_result, ensure_ascii=False)
+        response.unicode_body = six.text_type(body)
+        response.content_type = 'application/json'
+
+    def facets(self, response, query_result):
         body = json.dumps(query_result, ensure_ascii=False)
         response.unicode_body = six.text_type(body)
         response.content_type = 'application/json'

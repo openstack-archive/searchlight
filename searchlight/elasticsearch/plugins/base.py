@@ -103,6 +103,117 @@ class IndexBase(object):
             chunk_size=self.chunk_size,
             actions=actions)
 
+    def get_facets(self, request_context):
+        """Get facets available for searching, in the form of a list of
+        dicts with keys "name", "type" and optionally "options" if a field
+        should have discreet allowed values
+        """
+        facets = []
+        exclude_facets = self.facets_excluded
+        is_admin = request_context.is_admin
+
+        def include_facet(name):
+            if name not in exclude_facets:
+                return True
+
+            if is_admin and exclude_facets[name]:
+                return True
+
+            return False
+
+        def get_facets_for(mapping, prefix=''):
+            facets = []
+            for name, properties in six.iteritems(mapping):
+                if properties.get('type') == 'nested':
+                    if include_facet(prefix + name):
+                        facets.extend(get_facets_for(properties['properties'],
+                                                     "%s%s." % (prefix, name)))
+                else:
+                    if include_facet(name):
+                        facets.append({
+                            'name': prefix + name,
+                            'type': properties['type']
+                        })
+            return facets
+
+        facets = get_facets_for(self.get_mapping()['properties'])
+
+        # Don't retrieve facet terms for any excluded fields
+        included_fields = set(f['name'] for f in facets)
+        facet_terms_for = set(self.facets_with_options) & included_fields
+        facet_terms = self._get_facet_terms(facet_terms_for,
+                                            request_context)
+        for facet in facets:
+            if facet['name'] in facet_terms:
+                facet['options'] = facet_terms[facet['name']]
+
+        return facets
+
+    @property
+    def facets_excluded(self):
+        """A map of {name: allow_admin} that indicate which
+        fields should not be offered as facet options.
+        """
+        return {}
+
+    @property
+    def facets_with_options(self):
+        """An iterable of facet names that support facet options"""
+        return ()
+
+    def _get_facet_terms(self, fields, request_context):
+        term_aggregations = {}
+        for facet in fields:
+            if isinstance(facet, tuple):
+                facet_name, actual_field = facet
+            else:
+                facet_name, actual_field = facet, facet
+            if '.' in facet_name:
+                # Needs a nested aggregate
+                term_aggregations[facet_name.replace('.', '__')] = {
+                    "nested": {"path": facet_name.split('.')[0]},
+                    "aggs": {
+                        # TODO(sjmc7): Handle deeper nesting?
+                        facet_name.replace('.', '__'): {
+                            'terms': {'field': actual_field}
+                        }
+                    }
+                }
+            else:
+                term_aggregations[facet_name] = {
+                    'terms': {'field': actual_field}
+                }
+        if term_aggregations:
+            body = {
+                'aggs': term_aggregations,
+            }
+            if not request_context.is_admin:
+                plugin_filters = self._get_rbac_field_filters(request_context)
+                if plugin_filters:
+                    body['query'] = {
+                        "filtered": {
+                            "filter":
+                                {"and": plugin_filters}
+                        }}
+
+            results = self.engine.search(
+                index=self.get_index_name(),
+                doc_type=self.get_document_type(),
+                body=body,
+                ignore_unavailable=True,
+                search_type='count')
+
+            facet_terms = {}
+            for term, aggregation in six.iteritems(results['aggregations']):
+                if term in aggregation:
+                    # Again, deeper nesting question
+                    term_name = term.replace('__', '.')
+                    facet_terms[term_name] = aggregation[term]['buckets']
+                else:
+                    facet_terms[term] = aggregation['buckets']
+            return facet_terms
+        return {}
+
     @abc.abstractmethod
     def get_objects(self):
         """Get list of all objects which will be indexed into search engine."""
@@ -132,9 +243,30 @@ class IndexBase(object):
     def get_document_type(self):
         """Get name of the document type."""
 
-    @abc.abstractmethod
     def get_rbac_filter(self, request_context):
-        """Get rbac filter as es json filter dsl."""
+        """Get rbac filter as es json filter dsl. for non-admin queries."""
+        # Add a document type filter to the plugin-specific fields
+        plugin_filters = self._get_rbac_field_filters(request_context)
+        document_type_filter = [{'type': {'value': self.get_document_type()}}]
+        filter_fields = plugin_filters + document_type_filter
+
+        return [
+            {
+                'indices': {
+                    'index': self.get_index_name(),
+                    'no_match_filter': 'none',
+                    'filter': {
+                        "and": filter_fields
+                    }
+                }
+            }
+        ]
+
+    @abc.abstractmethod
+    def _get_rbac_field_filters(self, request_context):
+        """Return any RBAC field filters to be injected into an indices
+        query. Document type will be added to this list.
+        """
 
     def filter_result(self, result, request_context):
         """Filter the outgoing search result."""

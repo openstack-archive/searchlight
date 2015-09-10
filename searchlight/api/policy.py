@@ -113,3 +113,7 @@ class CatalogSearchRepoProxy(object):
     def index(self, *args, **kwargs):
         self.policy.enforce(self.context, 'catalog_index', {})
         return self.search_repo.index(*args, **kwargs)
+
+    def facets(self, *args, **kwargs):
+        self.policy.enforce(self.context, 'catalog_facets', {})
+        return self.search_repo.facets(*args, **kwargs)
