@@ -29,3 +29,25 @@ Open designate.conf and make the following changes::
 
 Restart designate-central, designate-pool-manager, designate-zone-manager and
 you should be good to go!
+
+Searchlight configuration
+=========================
+
+Designate-specific plugin configuration options are shown below with their
+defaults values. You only need to specify the below configuration options if you
+decide to change it to a non-default valuei; note that by default designate is
+NOT enabled since it's not always installed::
+
+    [resource_plugin:os_designate_zone]
+    enabled = false
+    index_name = searchlight
+
+    [resource_plugin:os_designate_recordsets]
+    enabled = false
+    index_name = searchlight
+
+.. warning::
+
+    You need to have both *os_designate_zone* and *os_designate_recordset*
+    enabled at this moment because of a relationship between them, and they
+    must have the same index_name.

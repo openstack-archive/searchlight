@@ -12,6 +12,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from searchlight.elasticsearch.plugins import base
+
 
 def _walk_pages(list_func, *args, **kwargs):
     while True:
@@ -44,3 +46,9 @@ def _serialize_recordset(rs):
     if not rs['updated_at'] and rs['created_at']:
         rs['updated_at'] = rs['created_at']
     return rs
+
+
+class DesignateBase(base.IndexBase):
+    @classmethod
+    def get_exchanges(cls):
+        return ['designate']

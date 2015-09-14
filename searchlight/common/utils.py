@@ -43,6 +43,7 @@ from webob import exc
 
 from searchlight.common import exception
 from searchlight import i18n
+from searchlight import plugin
 
 CONF = cfg.CONF
 
@@ -423,9 +424,13 @@ def stash_conf_values():
     return conf
 
 
+def register_plugin_opts():
+    plugin.Plugin.register_cfg_opts('searchlight.index_backend')
+
+
 def get_search_plugins():
     namespace = 'searchlight.index_backend'
     ext_manager = stevedore.extension.ExtensionManager(
         namespace, invoke_on_load=True)
     return {plugin.obj.get_document_type(): plugin
-            for plugin in ext_manager.extensions}
+            for plugin in ext_manager.extensions if plugin.obj.enabled}

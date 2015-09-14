@@ -12,17 +12,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from searchlight.elasticsearch.plugins import base
-
 from searchlight.elasticsearch.plugins import designate
 from searchlight.elasticsearch.plugins.designate import notification_handlers
 
 
-class ZoneIndex(base.IndexBase):
-    def get_index_name(self):
-        return "searchlight"
-
-    def get_document_type(self):
+class ZoneIndex(designate.DesignateBase):
+    @classmethod
+    def get_document_type(cls):
         return "OS::Designate::Zone"
 
     def get_mapping(self):
@@ -93,18 +89,16 @@ class ZoneIndex(base.IndexBase):
             obj['updated_at'] = obj['created_at']
         return obj
 
+    @classmethod
+    def get_notification_exchanges(cls):
+        return ['designate']
+
     def get_notification_handler(self):
         return notification_handlers.DomainHandler(
             self.engine,
             self.get_index_name(),
             self.get_document_type()
         )
-
-    # TODO(sjmc7): These functions really belong to the notification handler,
-    # not this class
-    def get_notification_topics_exchanges(self):
-        # TODO(sjmc7): More importantly, this should come from config
-        return set([('searchlight_indexer', 'designate')])
 
     def get_notification_supported_events(self):
         return [

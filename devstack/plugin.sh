@@ -128,6 +128,10 @@ function configure_searchlight {
     if [ "$LOG_COLOR" == "True" ] && [ "$SYSLOG" == "False" ]; then
         setup_colorized_logging_searchlight $SEARCHLIGHT_CONF DEFAULT "tenant" "user"
     fi
+
+    # Plugin config - disable designate by default since it's not typically installed
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_designate_zone enabled False
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_designate_recordset enabled False
 }
 
 # create_searchlight_accounts - Set up common required searchlight accounts

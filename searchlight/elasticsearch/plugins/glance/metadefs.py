@@ -24,10 +24,8 @@ class MetadefIndex(base.IndexBase):
     def __init__(self):
         super(MetadefIndex, self).__init__()
 
-    def get_index_name(self):
-        return 'searchlight'
-
-    def get_document_type(self):
+    @classmethod
+    def get_document_type(cls):
         return 'OS::Glance::Metadef'
 
     def get_document_id_field(self):
@@ -113,15 +111,16 @@ class MetadefIndex(base.IndexBase):
     def serialize(self, metadef_obj):
         return serialize_glance_metadef_ns(metadef_obj)
 
+    @classmethod
+    def get_notification_exchanges(cls):
+        return ['glance']
+
     def get_notification_handler(self):
         return metadefs_notification_handler.MetadefHandler(
             self.engine,
             self.get_index_name(),
             self.get_document_type()
         )
-
-    def get_notification_topics_exchanges(self):
-        return set([('searchlight_indexer', 'glance')])
 
     def get_notification_supported_events(self):
         return [

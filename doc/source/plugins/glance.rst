@@ -51,6 +51,16 @@ Suggested changes::
 
     property_protection_file = ~/openstack/searchlight/etc/property-protections-roles.conf
 
+Glance-specific plugin configuration options and their defaults are below::
+
+    [resource_plugin:os_glance_image]
+    enabled = true
+    index_name = searchlight
+
+    [resource_plugin:os_glance_metadefs]
+    enabled = true
+    index_name = searchlight
+
 Release Notes
 =============
 
@@ -76,3 +86,4 @@ You should use the --no-delete option to prevent the index from temporarily not
 containing any data::
 
     searchlight-manage index sync --type OS::Glance::Image --force --no-delete
+

@@ -365,11 +365,27 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         # filtered results or not
         all_projects = body.pop('all_projects', False)
 
+        available_types = self._get_available_types()
         if not types:
-            types = self._get_available_types()
+            types = available_types
+        else:
+            types = [types] if not isinstance(types, list) else types
+            for requested_type in types:
+                if requested_type not in available_types:
+                    msg = _("Resource type '%s' is not in the list of enabled "
+                            "plugins") % requested_type
+                    raise webob.exc.HTTPBadRequest(explanation=msg)
 
+        available_indices = self._get_available_indices(types)
         if not indices:
-            indices = self._get_available_indices(types)
+            indices = available_indices
+        else:
+            indices = [indices] if not isinstance(indices, list) else indices
+            for requested_index in indices:
+                if requested_index not in available_indices:
+                    msg = _("Index '%s' is not in the list of enabled "
+                            "plugins") % requested_index
+                    raise webob.exc.HTTPBadRequest(explanation=msg)
 
         if not isinstance(types, (list, tuple)):
             types = [types]

@@ -59,6 +59,8 @@ class BaseTestCase(testtools.TestCase):
         utils.safe_mkdirs(self.conf_dir)
         self.set_policy()
 
+        utils.register_plugin_opts()
+
     def set_policy(self):
         conf_file = "policy.json"
         self.policy_file = self._copy_data_file(conf_file, self.conf_dir)

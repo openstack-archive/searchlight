@@ -35,9 +35,7 @@ class ServerIndex(base.IndexBase):
     def __init__(self):
         super(ServerIndex, self).__init__()
 
-    def get_index_name(self):
-        return 'searchlight'
-
+    @classmethod
     def get_document_type(self):
         return 'OS::Nova::Server'
 
@@ -166,18 +164,15 @@ class ServerIndex(base.IndexBase):
     def serialize(self, server):
         return serialize_nova_server(server)
 
+    @classmethod
+    def get_notification_exchanges(cls):
+        return ['nova', 'neutron']
+
     def get_notification_handler(self):
         return servers_notification_handler.InstanceHandler(
             self.engine,
             self.get_index_name(),
             self.get_document_type()
-        )
-
-    @staticmethod
-    def get_notification_topic_exchanges():
-        return (
-            ('searchlight_indexer', 'nova'),
-            ('searchlight_indexer', 'neutron')
         )
 
     def get_notification_supported_events(self):

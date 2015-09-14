@@ -578,7 +578,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
             'index': ['glance'],
-            'type': ['image'],
+            'type': ['OS::Glance::Image'],
             'query': {'match_all': {}},
             'sort': 1234
         }))

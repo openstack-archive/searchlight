@@ -42,7 +42,7 @@ def args(*args, **kwargs):
 
 class IndexCommands(object):
     def __init__(self):
-        pass
+        utils.register_plugin_opts()
 
     @args('--index', metavar='<index>', dest='index',
           help='Index only this index (or a comma separated list)')

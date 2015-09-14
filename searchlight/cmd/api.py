@@ -47,6 +47,7 @@ import osprofiler.web
 
 from searchlight.common import config
 from searchlight.common import exception
+from searchlight.common import utils
 from searchlight.common import wsgi
 from searchlight import notifier
 
@@ -70,6 +71,7 @@ def main():
         config.parse_args()
         wsgi.set_eventlet_hub()
         logging.setup(CONF, 'searchlight')
+        utils.register_plugin_opts()
 
         if cfg.CONF.profiler.enabled:
             _notifier = osprofiler.notifier.create("Messaging",

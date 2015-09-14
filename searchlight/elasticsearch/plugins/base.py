@@ -16,25 +16,39 @@
 import abc
 from elasticsearch import helpers
 import logging
+from oslo_config import cfg
+from oslo_config import types
 import six
 
 import searchlight.elasticsearch
 from searchlight import i18n
+from searchlight import plugin
 
 
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 
 
+indexer_opts = [
+    cfg.StrOpt('index_name', default="searchlight")
+]
+
+CONF = cfg.CONF
+CONF.register_opts(indexer_opts, group='resource_plugin')
+
+
 @six.add_metaclass(abc.ABCMeta)
-class IndexBase(object):
+class IndexBase(plugin.Plugin):
     chunk_size = 200
 
     def __init__(self):
+        self.options = cfg.CONF[self.get_config_group_name()]
+
         self.engine = searchlight.elasticsearch.get_api()
         self.index_name = self.get_index_name()
         self.document_type = self.get_document_type()
         self.document_id_field = self.get_document_id_field()
+
         self.name = "%s-%s" % (self.index_name, self.document_type)
 
     def initial_indexing(self, clear=True):
@@ -282,13 +296,23 @@ class IndexBase(object):
         """
         return None
 
-    @abc.abstractmethod
     def get_index_name(self):
-        """Get name of the index."""
+        if self.options.index_name is not None:
+            return self.options.index_name
+        else:
+            return cfg.CONF.resource_plugin.index_name
 
-    @abc.abstractmethod
-    def get_document_type(self):
-        """Get name of the document type."""
+    @property
+    def enabled(self):
+        return self.options.enabled
+
+    @classmethod
+    def get_document_type(cls):
+        """Get name of the document type.
+
+        This is in the format of OS::Service::Resource typically.
+        """
+        raise NotImplemented()
 
     def get_rbac_filter(self, request_context):
         """Get rbac filter as es json filter dsl. for non-admin queries."""
@@ -335,9 +359,48 @@ class IndexBase(object):
         """Get the list of suppported event types."""
         return []
 
+    @classmethod
+    def get_topic_exchanges(cls):
+        return []
+
     def get_notification_topics_exchanges(self):
-        """"Get the set of topics and exchanges."""
-        return set()
+        """"
+        Get the set of topics and exchanges. This is to retain the old
+        pattern without changing too much for now.
+        """
+        return [tuple(i.split(',')) for i in self.options.topic_exchanges]
+
+    @classmethod
+    def get_plugin_type(cls):
+        return "resource_plugin"
+
+    @classmethod
+    def get_plugin_name(cls):
+        return cls.get_document_type().replace("::", "_").lower()
+
+    @classmethod
+    def get_plugin_opts(cls):
+        opts = [
+            cfg.StrOpt("index_name"),
+            cfg.BoolOpt("enabled", default=True)
+        ]
+        # TODO(sjmc7): Make this more flexible
+        topic_exchanges = ["searchlight_indexer,%s" % i for i in
+                           cls.get_notification_exchanges()]
+        if topic_exchanges:
+            opts.append(cfg.MultiOpt(
+                'topic_exchanges',
+                item_type=types.MultiString(),
+                default=topic_exchanges))
+        return opts
+
+    @classmethod
+    def get_config_group_name(cls):
+        """Override the get_plugin_name in order to use the document type as
+        plugin name. This turns OS::Service::Resource to os_service_resource
+        """
+        config_name = cls.get_document_type().replace("::", "_").lower()
+        return "resource_plugin:%s" % config_name
 
 
 @six.add_metaclass(abc.ABCMeta)

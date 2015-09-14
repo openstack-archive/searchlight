@@ -45,3 +45,12 @@ Open neutron.conf and make the following changes::
     rpc_backend = 'rabbit'
 
 Restart neutron service (q-svc).
+
+Plugin configuration
+====================
+Nova-specific plugin configuration options (and defaults) are:
+
+    [resource_plugin:os_nova_server]
+    enabled = true
+    index_name = searchlight
+

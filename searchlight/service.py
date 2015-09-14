@@ -23,6 +23,8 @@ import oslo_i18n
 from oslo_log import log
 import oslo_messaging
 
+from searchlight.common import utils
+
 CONF = cfg.CONF
 
 OPTS = [
@@ -58,6 +60,9 @@ def prepare_service(argv=None):
     oslo_i18n.enable_lazy()
     log.set_defaults(_DEFAULT_LOG_LEVELS)
     log.register_options(CONF)
+
+    utils.register_plugin_opts()
+
     if argv is None:
         argv = sys.argv
     CONF(argv[1:], project='searchlight')

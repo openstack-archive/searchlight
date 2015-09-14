@@ -60,6 +60,10 @@ class TestSearchApi(functional.FunctionalTest):
             "http://localhost:%s" % self.api_server.elasticsearch_port)
 
         def dummy_plugin_init(plugin):
+            plugin.options = mock.Mock()
+            plugin.options.index_name = "searchlight"
+            plugin.options.enabled = True
+
             plugin.engine = self.elastic_connection
             plugin.index_name = plugin.get_index_name()
             plugin.document_type = plugin.get_document_type()

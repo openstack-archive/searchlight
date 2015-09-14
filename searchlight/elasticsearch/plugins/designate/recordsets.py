@@ -12,15 +12,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins import designate
 from searchlight.elasticsearch.plugins.designate import notification_handlers
 
 
-class RecordSetIndex(base.IndexBase):
-    def get_index_name(self):
-        return "searchlight"
-
+class RecordSetIndex(designate.DesignateBase):
+    @classmethod
     def get_document_type(self):
         return "OS::Designate::RecordSet"
 
@@ -104,11 +101,9 @@ class RecordSetIndex(base.IndexBase):
             self.get_document_type()
         )
 
-    # TODO(sjmc7): These functions really belong to the notification handler,
-    # not this class
-    def get_notification_topics_exchanges(self):
-        # TODO(sjmc7): More importantly, this should come from config
-        return set([('searchlight_indexer', 'designate')])
+    @classmethod
+    def get_notification_exchanges(cls):
+        return ['designate']
 
     def get_notification_supported_events(self):
         return [

@@ -49,7 +49,7 @@ class CatalogSearchRepo(object):
     def __init__(self, context, es_api):
         self.context = context
         self.es_api = es_api
-        self.plugins = utils.get_search_plugins() or []
+        self.plugins = utils.get_search_plugins()
         self.plugins_info_dict = self._get_plugin_info()
 
     def search(self, index, doc_type, query, offset,

@@ -84,7 +84,7 @@ class ListenerService(os_service.Service):
                         raise Exception(
                             _LE("Plugin %s should return a list of topic"
                                 "exchange pairs") % plugin.__class__.__name__)
-                topics_exchanges.add(plugin_topic)
+                    topics_exchanges.add(plugin_topic)
             except Exception as e:
                 LOG.error(_LE("Failed to retrieve notification topic(s)"
                               " and exchanges from search plugin "

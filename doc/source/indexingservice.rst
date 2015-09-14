@@ -27,13 +27,29 @@ Search plugins
 The search service determines the types of information that is searchable
 via a plugin mechanism.  Within ``setup.cfg`` the setting within 
 ``[entry_points]`` named ``searchlight.index_backend``
-should list the available indexable types. For example the entries to index
-glance images and glance metadefs are::
+should list the available indexable types. After making a change, it's
+necessary to reinstall the python package (for instance with
+``pip install -e .``).
 
-    image = searchlight.elasticsearch.plugins.glance.images:ImageIndex
-    metadef = searchlight.elasticsearch.plugins.glance.metadefs:MetadefIndex
+Each plugin registered in ``setup.cfg`` is enabled by default. Typically it
+should only be necessary to modify ``setup.cfg`` if you are adding a new
+plugin. Installed plugins can be disabled, enabled and configured in the
+``searchlight-api.conf`` file.
 
-Information about each of the plugins may be found here:
+.. warning::
+
+    After making changes to ``searchlight-api.conf`` you must restart all
+    running ``searchlight-api`` *and* ``searchlight-listener`` processes.
+    After enabling a plugin or changing ``index_name`` you will need to
+    reindex any changed resources.
+
+Default configuration values may be set for all plugins using the following
+in ``searchlight-api.conf``::
+
+    [resource_plugin:default]
+    index_name = searchlight
+
+See each plugin below for detailed information:
 
 .. toctree::
    :maxdepth: 1

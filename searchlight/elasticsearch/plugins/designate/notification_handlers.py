@@ -65,11 +65,12 @@ class DomainHandler(base.NotificationBase):
                     # So project ID isn't provided in the recordset api.
                     rs['project_id'] = payload['project_id']
 
-                    # TODO(ekarlso): Make this use cfg later on when plugins
+                    # TODO(ekarlso,sjmc7): doc_type below should come from
+                    # the recordset plugin
                     # registers options
                     self.engine.index(
-                        index="searchlight",
-                        doc_type="OS::Designate::RecordSet",
+                        index=self.index_name,
+                        doc_type=RecordSetHandler.DOCUMENT_TYPE,
                         body=rs,
                         parent=rs["zone_id"],
                         id=rs["id"])
@@ -99,11 +100,10 @@ class DomainHandler(base.NotificationBase):
             }
         }
 
-        # TODO(ekarlso): Make this part (doc_type/index) configurable.
         documents = helpers.scan(
             client=self.engine,
             index=self.index_name,
-            doc_type="OS::Designate::RecordSet",
+            doc_type=self.document_type,
             query=query)
 
         actions = []
@@ -112,7 +112,7 @@ class DomainHandler(base.NotificationBase):
                 '_id': document['_id'],
                 '_op_type': 'delete',
                 '_index': self.index_name,
-                '_type': 'OS::Designate::RecordSet',
+                '_type': self.document_type,
                 '_parent': zone_id
             }
             actions.append(action)
@@ -134,6 +134,9 @@ class DomainHandler(base.NotificationBase):
 
 
 class RecordSetHandler(base.NotificationBase):
+    # TODO(sjmc7): see note above
+    DOCUMENT_TYPE = "OS::Designate::RecordSet"
+
     def __init__(self, *args, **kwargs):
         super(RecordSetHandler, self).__init__(*args, **kwargs)
         self.record_delete_keys = ['deleted_at', 'deleted',

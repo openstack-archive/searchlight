@@ -33,11 +33,8 @@ class ImageIndex(base.IndexBase):
             'tags', 'updated_at', 'visibility', 'protected', 'owner',
             'members']
 
-    def get_index_name(self):
-        """Index will be configurable."""
-        return 'searchlight'
-
-    def get_document_type(self):
+    @classmethod
+    def get_document_type(cls):
         return 'OS::Glance::Image'
 
     def get_mapping(self):
@@ -117,20 +114,16 @@ class ImageIndex(base.IndexBase):
     def serialize(self, obj):
         return serialize_glance_image(obj)
 
+    @classmethod
+    def get_notification_exchanges(cls):
+        return ['glance']
+
     def get_notification_handler(self):
         return images_notification_handler.ImageHandler(
             self.engine,
             self.get_index_name(),
             self.get_document_type()
         )
-
-    # TODO(sjmc7): These functions really belong to the notification handler,
-    # not this class
-    def get_notification_topics_exchanges(self):
-        # TODO(sjmc7): More importantly, this should come from config
-        return set([
-            ('searchlight_indexer', 'glance')
-        ])
 
     def get_notification_supported_events(self):
         return ['image.create', 'image.update', 'image.delete',
