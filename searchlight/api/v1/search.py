@@ -269,10 +269,12 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                 try:
                     rbac_filter = plugin.obj.get_rbac_filter(context)
                 except Exception as e:
+                    msg = _("Error processing %s RBAC filter") % resource_type
                     LOG.error(_LE("Failed to retrieve RBAC filters "
                                   "from search plugin "
                                   "%(ext)s: %(e)s") %
                               {'ext': plugin.name, 'e': e})
+                    raise webob.exc.HTTPInternalServerError(explanation=msg)
 
                 if resource_type in resource_types:
                     filter_query = {
