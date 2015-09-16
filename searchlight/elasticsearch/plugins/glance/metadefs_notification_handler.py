@@ -188,9 +188,9 @@ class MetadefHandler(base.NotificationBase):
 
     def update_entity(self, id, entity, entity_data, entity_id, field_name):
         entity_id = entity_id.lower()
-        script = ("obj=null; for(entity_item :ctx._source.%(entity)s)"
-                  "{if(entity_item['%(field_name)s'].toLowerCase() "
-                  " == entity_id ) obj=entity_item;};"
+        script = ("obj=null; for(item in ctx._source.%(entity)s)"
+                  "{if(item['%(field_name)s'].toLowerCase() "
+                  " == entity_id ) obj=item;};"
                   "if(obj!=null)ctx._source.%(entity)s.remove(obj);"
                   "if (ctx._source.containsKey('%(entity)s'))"
                   "{ctx._source.%(entity)s += entity_item; }"
@@ -206,9 +206,9 @@ class MetadefHandler(base.NotificationBase):
 
     def delete_entity(self, id, entity, entity_id, field_name):
         entity_id = entity_id.lower()
-        script = ("obj=null; for(entity_item :ctx._source.%(entity)s)"
-                  "{if(entity_item['%(field_name)s'].toLowerCase() "
-                  " == entity_id ) obj=entity_item;};"
+        script = ("obj=null; for(item in ctx._source.%(entity)s)"
+                  "{if(item['%(field_name)s'].toLowerCase() "
+                  " == entity_id ) obj=item;};"
                   "if(obj!=null)ctx._source.%(entity)s.remove(obj);" %
                   {"entity": entity, "field_name": field_name})
         params = {
