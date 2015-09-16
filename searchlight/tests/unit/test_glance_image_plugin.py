@@ -149,10 +149,10 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             visibility='private', status='active',
         )
         self.members_image_members = [
-            {'member': TENANT1, 'deleted': False, 'status': 'accepted'},
-            {'member': TENANT2, 'deleted': False, 'status': 'accepted'},
-            {'member': TENANT3, 'deleted': True, 'status': 'accepted'},
-            {'member': TENANT4, 'deleted': False, 'status': 'pending'},
+            {'member_id': TENANT1, 'status': 'accepted'},
+            {'member_id': TENANT2, 'status': 'accepted'},
+            {'member_id': TENANT3, 'status': 'accepted'},
+            {'member_id': TENANT4, 'status': 'pending'},
         ]
 
         self.images = [self.simple_image, self.tagged_image,
@@ -243,7 +243,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'disk_format': None,
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
             'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
-                        '2c014f32-55eb-467d-8fcb-4bd706012f81'],
+                        '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                        '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'],
             'min_disk': None,
             'min_ram': None,
             'name': 'complex',
@@ -270,7 +271,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'disk_format': None,
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
             'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
-                        '2c014f32-55eb-467d-8fcb-4bd706012f81'],
+                        '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                        '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'],
             'min_disk': None,
             'min_ram': None,
             'name': 'complex',
@@ -383,7 +385,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
                             'members': [
                                 '6838eb7b-6ded-434a-882c-b344c77fe8df',
-                                '2c014f32-55eb-467d-8fcb-4bd706012f81'
+                                '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                                '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'
                             ],
                             'min_disk': None,
                             'virtual_size': None,
@@ -587,7 +590,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
             'members': [
                 '6838eb7b-6ded-434a-882c-b344c77fe8df',
-                '2c014f32-55eb-467d-8fcb-4bd706012f81'
+                '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'
             ],
             'min_disk': None,
             'virtual_size': None,
