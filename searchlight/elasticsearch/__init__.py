@@ -47,16 +47,16 @@ class CatalogSearchRepo(object):
         self.plugins = utils.get_search_plugins() or []
         self.plugins_info_dict = self._get_plugin_info()
 
-    def search(self, index, doc_type, query, fields, offset, limit,
-               ignore_unavailable=True):
+    def search(self, index, doc_type, query, offset,
+               limit, ignore_unavailable=True, **kwargs):
         return self.es_api.search(
             index=index,
             doc_type=doc_type,
             body=query,
-            _source_include=fields,
             from_=offset,
             size=limit,
-            ignore_unavailable=ignore_unavailable)
+            ignore_unavailable=ignore_unavailable,
+            **kwargs)
 
     def index(self, default_index, default_type, actions):
         return helpers.bulk(

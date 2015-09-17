@@ -155,13 +155,12 @@ class TestControllerSearch(test_utils.BaseTestCase):
         query = {"match_all": {}}
         index_name = "searchlight"
         doc_type = "OS::Glance::Metadef"
-        fields = None
         offset = 0
         limit = 10
         self.search_controller.search(
-            request, query, index_name, doc_type, fields, offset, limit)
+            request, query, index_name, doc_type, offset, limit)
         self.search_controller.search.assert_called_once_with(
-            request, query, index_name, doc_type, fields, offset, limit)
+            request, query, index_name, doc_type, offset, limit)
 
     def test_search_all_repo(self):
         request = unit_test_utils.get_fake_request()
@@ -170,13 +169,13 @@ class TestControllerSearch(test_utils.BaseTestCase):
         query = {"match_all": {}}
         index_name = "searchlight"
         doc_type = "OS::Glance::Metadef"
-        fields = []
         offset = 0
         limit = 10
         self.search_controller.search(
-            request, query, index_name, doc_type, fields, offset, limit)
+            request, query, index_name, doc_type, offset, limit)
         repo.search.assert_called_once_with(
-            index_name, doc_type, query, fields, offset, limit, True)
+            index_name, doc_type, query, offset,
+            limit, ignore_unavailable=True)
 
     def test_search_forbidden(self):
         request = unit_test_utils.get_fake_request()
@@ -186,13 +185,12 @@ class TestControllerSearch(test_utils.BaseTestCase):
         query = {"match_all": {}}
         index_name = "searchlight"
         doc_type = "OS::Glance::Metadef"
-        fields = []
         offset = 0
         limit = 10
 
         self.assertRaises(
             webob.exc.HTTPForbidden, self.search_controller.search,
-            request, query, index_name, doc_type, fields, offset, limit)
+            request, query, index_name, doc_type, offset, limit)
 
     def test_search_not_found(self):
         request = unit_test_utils.get_fake_request()
@@ -202,13 +200,12 @@ class TestControllerSearch(test_utils.BaseTestCase):
         query = {"match_all": {}}
         index_name = "searchlight"
         doc_type = "OS::Glance::Metadef"
-        fields = []
         offset = 0
         limit = 10
 
         self.assertRaises(
             webob.exc.HTTPNotFound, self.search_controller.search, request,
-            query, index_name, doc_type, fields, offset, limit)
+            query, index_name, doc_type, offset, limit)
 
     def test_search_duplicate(self):
         request = unit_test_utils.get_fake_request()
@@ -218,13 +215,12 @@ class TestControllerSearch(test_utils.BaseTestCase):
         query = {"match_all": {}}
         index_name = "searchlight"
         doc_type = "OS::Glance::Metadef"
-        fields = []
         offset = 0
         limit = 10
 
         self.assertRaises(
             webob.exc.HTTPConflict, self.search_controller.search, request,
-            query, index_name, doc_type, fields, offset, limit)
+            query, index_name, doc_type, offset, limit)
 
     def test_search_internal_server_error(self):
         request = unit_test_utils.get_fake_request()
@@ -234,13 +230,12 @@ class TestControllerSearch(test_utils.BaseTestCase):
         query = {"match_all": {}}
         index_name = "searchlight"
         doc_type = "OS::Glance::Metadef"
-        fields = []
         offset = 0
         limit = 10
 
         self.assertRaises(
             webob.exc.HTTPInternalServerError, self.search_controller.search,
-            request, query, index_name, doc_type, fields, offset, limit)
+            request, query, index_name, doc_type, offset, limit)
 
 
 class TestControllerPluginsInfo(test_utils.BaseTestCase):
@@ -409,13 +404,43 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         request.body = six.b(jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
-            'fields': ['description'],
+            '_source': ['description'],
         }))
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight'], output['index'])
         self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
-        self.assertEqual(['description'], output['fields'])
+        self.assertEqual(['description'], output['_source'])
+
+    def test_fields_include_exclude(self):
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            '_source': {
+                'include': ['some', 'thing.*'],
+                'exclude': ['other.*', 'thing']
+            }
+        }))
+
+        output = self.deserializer.search(request)
+        self.assertFalse('_source' in output)
+        self.assertEqual(['some', 'thing.*'], output['_source_include'])
+        self.assertEqual(['other.*', 'thing'], output['_source_exclude'])
+
+    def test_bad_field_include(self):
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            '_source': 1234,
+        }))
+
+        self.assertRaisesRegexp(
+            webob.exc.HTTPBadRequest,
+            "'_source' must be a string, dict or list",
+            self.deserializer.search,
+            request)
 
     def test_highlight_fields(self):
         request = unit_test_utils.get_fake_request()

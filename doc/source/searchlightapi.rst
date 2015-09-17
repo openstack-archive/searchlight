@@ -239,11 +239,12 @@ Elasticsearch's `term query <http://www.elasticsearch.org/guide/en/elasticsearch
 
 Limiting the fields returned
 ****************************
-To restrict the ``source`` to include only certain fields::
+To restrict the ``source`` to include only certain fields using Elasticsearch's
+`source filtering <https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-source-filtering.html>`_::
 
   {
     "type": "OS::Glance::Image",
-    "fields": ["name", "size"]
+    "_source": ["name", "size"]
   }
 
 Gives::
@@ -358,7 +359,7 @@ A common requirement is to highlight search terms in results::
         "query": "database"
       }
     },
-    "fields": ["namespace", "description"],
+    "_source": ["namespace", "description"],
     "highlight": {
       "fields": {
         "namespace": {},

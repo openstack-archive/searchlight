@@ -45,19 +45,22 @@ class SearchController(object):
         self.plugins = plugins or {}
 
     def search(self, req, query, index=None, doc_type=None,
-               fields=None, offset=0, limit=10):
-        if fields is None:
-            fields = []
-
+               offset=0, limit=10, **kwargs):
+        """Supported kwargs:
+        :param _source:
+        :param _source_include:
+        :param _source_exclude:
+        :return:
+        """
         try:
             search_repo = self.gateway.get_catalog_search_repo(req.context)
             result = search_repo.search(index,
                                         doc_type,
                                         query,
-                                        fields,
                                         offset,
                                         limit,
-                                        True)
+                                        ignore_unavailable=True,
+                                        **kwargs)
 
             # TODO(sjmc7): Sort this out (bug #1478102)
             for plugin in self.plugins.values():
@@ -302,7 +305,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         query = body.pop('query', None)
         indices = body.pop('index', None)
         types = body.pop('type', None)
-        fields = body.pop('fields', None)
+        _source = body.pop('_source', None)
         offset = body.pop('offset', None)
         limit = body.pop('limit', None)
         highlight = body.pop('highlight', None)
@@ -326,8 +329,17 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         query_params['index'] = indices
         query_params['doc_type'] = types
 
-        if fields is not None:
-            query_params['fields'] = fields
+        if _source is not None:
+            if isinstance(_source, dict):
+                if 'include' in _source:
+                    query_params['_source_include'] = _source['include']
+                if 'exclude' in _source:
+                    query_params['_source_exclude'] = _source['exclude']
+            elif isinstance(_source, (list, six.text_type)):
+                query_params['_source'] = _source
+            else:
+                msg = _("'_source' must be a string, dict or list")
+                raise webob.exc.HTTPBadRequest(explanation=msg)
 
         if offset is not None:
             query_params['offset'] = self._validate_offset(offset)
