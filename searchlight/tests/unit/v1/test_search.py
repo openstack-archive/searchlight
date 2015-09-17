@@ -574,6 +574,22 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
+    @mock.patch('searchlight.elasticsearch.plugins.nova.servers.' +
+                'ServerIndex.get_rbac_filter')
+    def test_rbac_exception(self, mock_rbac_filter):
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'query': {'match_all': {}},
+        }))
+
+        mock_rbac_filter.side_effect = Exception("Bad RBAC")
+
+        self.assertRaisesRegexp(
+            webob.exc.HTTPInternalServerError,
+            "Error processing OS::Nova::Server RBAC filter",
+            self.deserializer.search,
+            request)
+
 
 class TestIndexDeserializer(test_utils.BaseTestCase):
 
