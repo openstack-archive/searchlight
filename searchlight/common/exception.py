@@ -14,7 +14,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-"""Glance exception subclasses"""
+"""Searchlight exception subclasses"""
 
 import six
 import six.moves.urllib.parse as urlparse
@@ -33,7 +33,7 @@ class RedirectException(Exception):
 
 class SearchlightException(Exception):
     """
-    Base Glance Exception
+    Base Searchlight Exception
 
     To correctly use this class, inherit from it and define
     a 'message' property. That message will get printf'd
@@ -217,7 +217,8 @@ class InvalidRedirect(SearchlightException):
 
 
 class NoServiceEndpoint(SearchlightException):
-    message = _("Response from Keystone does not contain a Glance endpoint.")
+    message = _("Response from Keystone does not contain a Searchlight"
+                " endpoint.")
 
 
 class RegionAmbiguity(SearchlightException):

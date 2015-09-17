@@ -54,7 +54,7 @@ class Enforcer(policy.Enforcer):
     def enforce(self, context, action, target):
         """Verifies that the action is valid on the target in this context.
 
-           :param context: Glance request context
+           :param context: Searchlight request context
            :param action: String representing the action to be checked
            :param target: Dictionary representing the object of the action.
            :raises: `searchlight.common.exception.Forbidden`

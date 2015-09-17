@@ -70,7 +70,7 @@ IMAGE_META_HEADERS = ['x-image-meta-location', 'x-image-meta-size',
                       'x-image-meta-protected', 'x-image-meta-deleted',
                       'x-image-meta-virtual_size']
 
-GLANCE_TEST_SOCKET_FD_STR = 'GLANCE_TEST_SOCKET_FD'
+SEARCHLIGHT_TEST_SOCKET_FD_STR = 'SEARCHLIGHT_TEST_SOCKET_FD'
 
 
 def chunkreadable(iter, chunk_size=65536):
@@ -583,13 +583,13 @@ def validate_key_cert(key_file, cert_file):
 
 
 def get_test_suite_socket():
-    global GLANCE_TEST_SOCKET_FD_STR
-    if GLANCE_TEST_SOCKET_FD_STR in os.environ:
-        fd = int(os.environ[GLANCE_TEST_SOCKET_FD_STR])
+    global SEARCHLIGHT_TEST_SOCKET_FD_STR
+    if SEARCHLIGHT_TEST_SOCKET_FD_STR in os.environ:
+        fd = int(os.environ[SEARCHLIGHT_TEST_SOCKET_FD_STR])
         sock = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
         sock = socket.SocketType(_sock=sock)
         sock.listen(CONF.backlog)
-        del os.environ[GLANCE_TEST_SOCKET_FD_STR]
+        del os.environ[SEARCHLIGHT_TEST_SOCKET_FD_STR]
         os.close(fd)
         return sock
     return None

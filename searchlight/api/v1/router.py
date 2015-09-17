@@ -19,7 +19,7 @@ from searchlight.common import wsgi
 
 class API(wsgi.Router):
 
-    """WSGI router for Glance Catalog Search v0_1 API requests."""
+    """WSGI router for Searchlight v1 API requests."""
 
     def __init__(self, mapper):
 
