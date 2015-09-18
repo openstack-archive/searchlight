@@ -3,7 +3,7 @@ Searchlight
 ===========
 
 The Searchlight project provides indexing and search capabilities across
-Openstack resources. Its goal is to achieve high performance and flexible
+OpenStack resources. Its goal is to achieve high performance and flexible
 querying combined with near real-time indexing.
 
 Use the following resources to learn more:
