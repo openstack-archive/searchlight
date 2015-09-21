@@ -34,6 +34,8 @@ class IndexBase(object):
 
     def initial_indexing(self, clear=True):
         """Comprehensively install search engine index and put data into it."""
+        self.check_mapping_sort_fields()
+
         if clear:
             # First delete the doc type
             self.clear_data()
@@ -213,6 +215,22 @@ class IndexBase(object):
                     facet_terms[term] = aggregation['buckets']
             return facet_terms
         return {}
+
+    def check_mapping_sort_fields(self):
+        """Check that fields that are expected to define a 'raw' field so so"""
+        fields_needing_raw = searchlight.elasticsearch.RAW_SORT_FIELDS
+        mapped_properties = self.get_mapping().get('properties', {})
+        for field_name, field_mapping in six.iteritems(mapped_properties):
+            if field_name in fields_needing_raw:
+                raw = field_mapping.get('fields', {}).get('raw', None)
+                if not raw:
+                    msg_vals = {"field_name": field_name,
+                                "index_name": self.get_index_name(),
+                                "document_type": self.get_document_type()}
+                    message = ("Field '%(field_name)s' for %(index_name)s/"
+                               "%(document_type)s must contain a subfield "
+                               "whose name is 'raw' for sorting." % msg_vals)
+                    raise Exception(message)
 
     @abc.abstractmethod
     def get_objects(self):

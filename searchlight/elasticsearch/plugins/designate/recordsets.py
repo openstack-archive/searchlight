@@ -43,7 +43,12 @@ class RecordSetIndex(base.IndexBase):
                 "id": {"type": "string", "index": "not_analyzed"},
                 "created_at": {"type": "date"},
                 "updated_at": {"type": "date"},
-                "name": {"type": "string"},
+                "name": {
+                    "type": "string",
+                    "fields": {
+                        "raw": {"type": "string", "index": "not_analyzed"}
+                    }
+                },
                 "description": {"type": "string"},
                 "version": {"type": "integer"},
                 "shard": {"type": "integer"},
