@@ -93,7 +93,10 @@ net_ip4_6 = {
 }
 net_ipv4 = {u'net4': [dict(net_ip4_6[u'net4'][0])]}
 
-now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+_now = datetime.datetime.utcnow()
+_five_minutes_ago = _now - datetime.timedelta(minutes=5)
+created_now = _five_minutes_ago.strftime('%Y-%m-%dT%H:%M:%SZ')
+updated_now = _now.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 nova_server_getter = 'novaclient.v2.client.servers.ServerManager.get'
 
@@ -109,7 +112,7 @@ def _instance_fixture(instance_id, name, tenant_id, **kwargs):
         u'OS-EXT-STS:power_state': 1,
         u'OS-EXT-STS:task_state': None,
         u'OS-EXT-STS:vm_state': u'active',
-        u'OS-SRV-USG:launched_at': now,
+        u'OS-SRV-USG:launched_at': created_now,
         u'OS-SRV-USG:terminated_at': None,
         u'accessIPv4': u'',
         u'accessIPv6': u'',
@@ -127,7 +130,7 @@ def _instance_fixture(instance_id, name, tenant_id, **kwargs):
             }]
         },
         u'config_drive': u'True',
-        u'created': now,
+        u'created': created_now,
         u'flavor': {
             u'id': u'1',
             u'links': [{
@@ -162,7 +165,7 @@ def _instance_fixture(instance_id, name, tenant_id, **kwargs):
         u'security_groups': [{u'name': u'default'}],
         u'status': u'ACTIVE',
         u'tenant_id': tenant_id,
-        u'updated': now,
+        u'updated': updated_now,
         u'user_id': USER1}
 
     attrs.update(kwargs)
@@ -216,7 +219,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'OS-EXT-STS:power_state': 1,
             u'OS-EXT-STS:task_state': None,
             u'OS-EXT-STS:vm_state': u'active',
-            u'OS-SRV-USG:launched_at': now,
+            u'OS-SRV-USG:launched_at': created_now,
             u'OS-SRV-USG:terminated_at': None,
             u'accessIPv4': u'',
             u'accessIPv6': u'',
@@ -234,7 +237,6 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 }]
             },
             u'config_drive': u'True',
-            u'created': now,
             u'flavor': {u'id': u'1'},
             u'hostId': u'host1',
             u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
@@ -247,7 +249,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'security_groups': [{u'name': u'default'}],
             u'status': u'ACTIVE',
             u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
-            u'updated': now,
+            u'updated': updated_now,
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55',
             u'networks': [{
                 u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
@@ -257,8 +259,10 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 u'name': u'net4',
             }],
             u'addresses': net_ipv4,
-            u'created': now,
-            u'updated': now,
+            u'created': created_now,
+            u'created_at': created_now,
+            u'updated': updated_now,
+            u'updated_at': updated_now,
         }
         with mock.patch(nova_server_getter, return_value=self.instance1):
             serialized = self.plugin.serialize(self.instance1.id)
@@ -416,6 +420,16 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         facets = self.plugin.get_facets(fake_request.context)
 
+        # Check created and updated fields aren't present, even for admins
+        self.assertFalse(list(filter(lambda f: f['name'] == 'created',
+                                     facets)))
+        self.assertFalse(list(filter(lambda f: f['name'] == 'updated',
+                                     facets)))
+        self.assertTrue(list(filter(lambda f: f['name'] == 'created_at',
+                                    facets)))
+        self.assertTrue(list(filter(lambda f: f['name'] == 'updated_at',
+                                    facets)))
+
         # Check unprotected fields are still present
         self.assertTrue(list(filter(lambda f: f['name'] == 'status', facets)))
 
@@ -448,3 +462,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             ignore_unavailable=True,
             search_type='count'
         )
+
+    def test_created_at_updated_at(self):
+        self.assertTrue('created_at' not in self.instance1.to_dict())
+        self.assertTrue('updated_at' not in self.instance1.to_dict())
+
+        with mock.patch(nova_server_getter, return_value=self.instance1):
+            serialized = self.plugin.serialize(self.instance1.id)
+
+        self.assertEqual(serialized['created_at'], created_now)
+        self.assertEqual(serialized['updated_at'], updated_now)

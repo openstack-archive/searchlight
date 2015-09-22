@@ -56,6 +56,8 @@ class ServerIndex(base.IndexBase):
                 'owner': {'type': 'string', 'index': 'not_analyzed'},
                 'tenant_id': {'type': 'string', 'index': 'not_analyzed'},
                 'user_id': {'type': 'string', 'index': 'not_analyzed'},
+                'created': {'type': 'date'},
+                'updated': {'type': 'date'},
                 'created_at': {'type': 'date'},
                 'updated_at': {'type': 'date'},
                 'networks': {
@@ -106,7 +108,8 @@ class ServerIndex(base.IndexBase):
         fields should not be offered as facet options, or those that should
         only be available to administrators.
         """
-        return {'OS-EXT-SRV-ATTR:host': True, 'tenant_id': True}
+        return {'OS-EXT-SRV-ATTR:host': True, 'tenant_id': True,
+                'created': False, 'updated': False}
 
     def _get_rbac_field_filters(self, request_context):
         """Return any RBAC field filters to be injected into an indices

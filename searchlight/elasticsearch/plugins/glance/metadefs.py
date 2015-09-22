@@ -49,6 +49,8 @@ class MetadefIndex(base.IndexBase):
                 'path': 'namespace',
             },
             'properties': {
+                'created_at': {'type': 'date'},
+                'updated_at': {'type': 'date'},
                 'display_name': {'type': 'string'},
                 'description': {'type': 'string'},
                 'namespace': {'type': 'string', 'index': 'not_analyzed'},

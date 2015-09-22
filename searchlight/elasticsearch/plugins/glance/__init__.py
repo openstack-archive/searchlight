@@ -21,6 +21,7 @@ import glanceclient.exc
 import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
+from searchlight.elasticsearch.plugins import utils
 from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
@@ -145,7 +146,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
     # The CIS code specifically serialized some fields rather than indexing
     # everything; do the same.
     namespace_fields = ('namespace', 'display_name', 'description',
-                        'visibility', 'owner', 'protected')
+                        'visibility', 'owner', 'protected', 'created_at')
     document = {f: metadef_namespace.get(f, None) for f in namespace_fields}
 
     document['tags'] = sorted([
@@ -163,4 +164,8 @@ def serialize_glance_metadef_ns(metadef_namespace):
         _serialize_res_type(rt)
         for rt in metadef_namespace.get('resource_type_associations', [])
     ], key=operator.itemgetter('name'))
+
+    utils.normalize_date_fields(document, created_at=None,
+                                updated_at='created_at')
+
     return document
