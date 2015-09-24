@@ -63,28 +63,9 @@ class ZoneIndex(base.IndexBase):
             },
         }
 
-    def get_rbac_filter(self, request_context):
+    def _get_rbac_field_filters(self, request_context):
         return [
-            {
-                "indices": {
-                    "index": self.get_index_name(),
-                    "no_match_filter": "none",
-                    "filter": {
-                        "and": [
-                            {
-                                "term": {
-                                    "project_id": request_context.owner
-                                }
-                            },
-                            {
-                                "type": {
-                                    "value": self.get_document_type()
-                                }
-                            },
-                        ]
-                    }
-                }
-            }
+            {"term": {"project_id": request_context.owner}}
         ]
 
     def get_objects(self):

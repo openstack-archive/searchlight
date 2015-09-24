@@ -95,28 +95,25 @@ class ServerIndex(base.IndexBase):
             },
         }
 
-    def get_rbac_filter(self, request_context):
+    @property
+    def facets_with_options(self):
+        return ('OS-EXT-AZ:availability_zone', 'OS-EXT-SRV-ATTR:host',
+                'status')
+
+    @property
+    def facets_excluded(self):
+        """A map of {name: allow_admin} that indicate which
+        fields should not be offered as facet options, or those that should
+        only be available to administrators.
+        """
+        return {'OS-EXT-SRV-ATTR:host': True, 'tenant_id': True}
+
+    def _get_rbac_field_filters(self, request_context):
+        """Return any RBAC field filters to be injected into an indices
+        query. Document type will be added to this list.
+        """
         return [
-            {
-                'indices': {
-                    'index': self.get_index_name(),
-                    'no_match_filter': 'none',
-                    'filter': {
-                        "and": [
-                            {
-                                'term': {
-                                    'tenant_id': request_context.owner
-                                }
-                            },
-                            {
-                                'type': {
-                                    'value': self.get_document_type()
-                                }
-                            }
-                        ]
-                    }
-                }
-            }
+            {'term': {'tenant_id': request_context.owner}}
         ]
 
     def filter_result(self, result, request_context):

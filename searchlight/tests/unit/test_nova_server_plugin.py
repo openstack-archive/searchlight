@@ -337,3 +337,114 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 index=self.plugin.get_index_name(),
                 doc_type=self.plugin.get_document_type(),
                 id=u'missing')
+
+    def test_facets_non_admin(self):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        mock_engine.search.side_effect = [
+            {'aggregations': {
+                'status': {'buckets': [{'key': 'ACTIVE', 'doc_count': 2}]},
+                'OS-EXT-AZ:availability_zone': {'buckets': []}
+            }}
+        ]
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=False
+        )
+
+        facets = self.plugin.get_facets(fake_request.context)
+        self.assertTrue(list(filter(lambda f: f['name'] == 'name', facets)))
+        self.assertFalse(
+            list(filter(lambda f: f['name'].startswith('OS-EXT-SRV-ATTR'),
+                        facets))
+        )
+
+        status_facet = list(filter(lambda f: f['name'] == 'status', facets))[0]
+        expected_status = {
+            'name': 'status',
+            'options': [{'key': 'ACTIVE', 'doc_count': 2}],
+            'type': 'string'
+        }
+        self.assertEqual(expected_status, status_facet)
+
+        expected_agg_query = {
+            'aggs': {
+                'status': {'terms': {'field': 'status'}},
+                'OS-EXT-AZ:availability_zone': {
+                    'terms': {'field': 'OS-EXT-AZ:availability_zone'}
+                }
+            },
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'and': [
+                            {'term': {'tenant_id': TENANT1}}
+                        ]
+                    }
+                }
+            }
+        }
+        mock_engine.search.assert_called_with(
+            index=self.plugin.get_index_name(),
+            doc_type=self.plugin.get_document_type(),
+            body=expected_agg_query,
+            ignore_unavailable=True,
+            search_type='count'
+        )
+
+    def test_facets_admin(self):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=True
+        )
+
+        mock_engine.search.side_effect = [
+            {'aggregations': {
+                'status': {
+                    'buckets': [{'key': 'ACTIVE', 'doc_count': 2}]
+                },
+                'OS-EXT-SRV-ATTR:host': {
+                    'buckets': [{'key': 'bert', 'doc_count': 5},
+                                {'key': 'ernie', 'doc_count': 2}]
+                },
+                'OS-EXT-AZ:availability_zone': {'buckets': []}
+            }}
+        ]
+
+        facets = self.plugin.get_facets(fake_request.context)
+
+        # Check unprotected fields are still present
+        self.assertTrue(list(filter(lambda f: f['name'] == 'status', facets)))
+
+        # Check protected fields are present
+        host_facet = list(filter(lambda f: f['name'] == 'OS-EXT-SRV-ATTR:host',
+                                 facets))[0]
+        expected_host = {
+            'name': 'OS-EXT-SRV-ATTR:host',
+            'options': [{'key': 'bert', 'doc_count': 5},
+                        {'key': 'ernie', 'doc_count': 2}],
+            'type': 'string'
+        }
+        self.assertEqual(expected_host, host_facet)
+
+        expected_agg_query = {
+            'aggs': {
+                'status': {'terms': {'field': 'status'}},
+                'OS-EXT-SRV-ATTR:host': {
+                    'terms': {'field': 'OS-EXT-SRV-ATTR:host'}
+                },
+                'OS-EXT-AZ:availability_zone': {
+                    'terms': {'field': 'OS-EXT-AZ:availability_zone'}
+                }
+            },
+        }
+        mock_engine.search.assert_called_with(
+            index=self.plugin.get_index_name(),
+            doc_type=self.plugin.get_document_type(),
+            body=expected_agg_query,
+            ignore_unavailable=True,
+            search_type='count'
+        )

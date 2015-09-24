@@ -84,43 +84,21 @@ class MetadefIndex(base.IndexBase):
         }
         return mapping
 
-    def get_rbac_filter(self, request_context):
-        # TODO(krykowski): Define base get_rbac_filter in IndexBase class
-        # which will provide some common subset of query pieces.
-        # Something like:
-        # def get_common_context_pieces(self, request_context):
-        # return [{'term': {'owner': request_context.owner,
-        #                  'type': {'value': self.get_document_type()}}]
+    def _get_rbac_field_filters(self, request_context):
         return [
             {
-                'indices': {
-                    'index': self.get_index_name(),
-                    'no_match_filter': 'none',
-                    'filter': {
-                        'and': [
-                            {
-                                'or': [
-                                    {
-                                        'term': {
-                                            'owner': request_context.owner
-                                        }
-                                    },
-                                    {
-                                        'term': {
-                                            'visibility': 'public'
-                                        }
-                                    }
-                                ]
-                            },
-                            {
-                                'type': {
-                                    'value': self.get_document_type()
-                                }
-                            },
-
-                        ]
+                'or': [
+                    {
+                        'term': {
+                            'owner': request_context.owner
+                        }
+                    },
+                    {
+                        'term': {
+                            'visibility': 'public'
+                        }
                     }
-                }
+                ]
             }
         ]
 
