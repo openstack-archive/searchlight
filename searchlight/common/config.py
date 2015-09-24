@@ -16,7 +16,7 @@
 #    under the License.
 
 """
-Routines for configuring Glance
+Routines for configuring Searchlight
 """
 
 import logging

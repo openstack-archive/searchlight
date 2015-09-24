@@ -14,8 +14,8 @@
 # limitations under the License.
 
 """
-Helper script for starting/stopping/reloading Glance server programs.
-Thanks for some of the code, Swifties ;)
+Helper script for starting/stopping/reloading Searchlight server programs.
+Thanks for some of the code, Swifties and Glance Gladiators ;)
 """
 
 from __future__ import print_function
