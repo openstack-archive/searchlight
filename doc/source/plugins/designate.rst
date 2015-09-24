@@ -28,4 +28,4 @@ Open designate.conf and make the following changes::
     rpc_backend = 'rabbit'
 
 Restart designate-central, designate-pool-manager, designate-zone-manager and
-you should be good to go!.
+you should be good to go!

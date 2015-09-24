@@ -75,7 +75,7 @@ a superset of JSON.
 Indices
 #######
 Elasticsearch (and Lucene) store information in indices. Within an index can
-be one or more document types. Searchlights's indexing service uses an index
+be one or more document types. Searchlight's indexing service uses an index
 per service that has a plugin available, and each plugin generally will have
 its own document type. For instance, the glance plugin has *glance.image* and
 *glance.metadef*. Since the volume of data is lower than a typical use case for

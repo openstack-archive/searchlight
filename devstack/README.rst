@@ -13,9 +13,9 @@
     License for the specific language governing permissions and limitations
     under the License.
 
-================================
- Enabling Searchight in Devstack
-================================
+=================================
+ Enabling Searchlight in Devstack
+=================================
 
 1. Download DevStack
 

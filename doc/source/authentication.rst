@@ -42,7 +42,7 @@ Searchlight to use Keystone, the ``authtoken`` and ``context`` middleware
 must be deployed in place of the ``unauthenticated-context`` middleware.
 The ``authtoken`` middleware performs the authentication token validation
 and retrieves actual user authentication information. It can be found in
-the keystone distribution. For more information , please refer to the Keystone
+the keystone distribution. For more information, please refer to the Keystone
 documentation on the ``auth_token`` middleware::
 
 http://docs.openstack.org/developer/keystonemiddleware/middlewarearchitecture.html
@@ -74,7 +74,7 @@ Set ``flavor`` to ``keystone`` in the ``paste_deploy`` group::
 Set ``keystone_authtoken`` options. The following sets the searchlight
 service user as the user for performing policy API authentication checks.
 The actual options and values in this section will need to be set according
-to your environment.::
+to your environment::
 
   [keystone_authtoken]
   auth_url = http://127.0.0.1:35357

@@ -273,7 +273,7 @@ communicating with your server).
    # Alternatively, you can directly invoke the command using the following.
    (venv) $ python searchlight/cmd/api.py --config-file etc/searchlight-api.conf
 
-You’ll should now see the log from the API service.
+You should now see the log from the API service.
 
 
 Exercising the API
@@ -331,7 +331,7 @@ Use rabbitmqctl to examine unconsumed notifications::
     sudo rabbitmqctl list_queues | grep info
 
 Currently notifications from other services may be consumed by other
-listeners and searchlight will not received the notification. This is
+listeners and searchlight will not receive the notifications. This is
 being investigated. This does mean that you can not currently use listener
 based updates in an environment that has ceilometer deployed. You will need
 to periodically perform a few full re-index operation.
