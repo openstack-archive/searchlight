@@ -65,6 +65,11 @@ class ImageIndex(base.IndexBase):
             },
         }
 
+    @property
+    def facets_with_options(self):
+        return ('disk_format', 'container_format', 'tags', 'visibility',
+                'protected', 'status')
+
     def _get_rbac_field_filters(self, request_context):
         return [
             {

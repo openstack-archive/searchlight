@@ -62,6 +62,7 @@ class ServerIndex(base.IndexBase):
                     'type': 'nested',
                     'properties': {
                         'name': {'type': 'string'},
+                        'version': {'type': 'short'},
                         'OS-EXT-IPS-MAC:mac_addr': {
                             'type': 'string',
                             'index': 'not_analyzed'
@@ -91,6 +92,12 @@ class ServerIndex(base.IndexBase):
                     'type': 'string',
                     'index': 'not_analyzed'
                 },
+                'security_groups': {
+                    'type': 'nested',
+                    'properties': {
+                        'name': {'type': 'string'}
+                    }
+                },
                 'status': {'type': 'string', 'index': 'not_analyzed'},
             },
         }
@@ -98,7 +105,9 @@ class ServerIndex(base.IndexBase):
     @property
     def facets_with_options(self):
         return ('OS-EXT-AZ:availability_zone', 'OS-EXT-SRV-ATTR:host',
-                'status')
+                'status', 'image.id', 'flavor.id', 'networks.name',
+                'networks.OS-EXT-IPS:type', 'networks.version',
+                'security_groups.name')
 
     @property
     def facets_excluded(self):
