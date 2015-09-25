@@ -18,6 +18,7 @@ import logging
 import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
+from searchlight.elasticsearch.plugins import utils
 from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
@@ -46,6 +47,8 @@ def serialize_nova_server(server):
     serialized[u'flavor'].pop(u'links', None)
 
     _format_networks(server, serialized)
+
+    utils.normalize_date_fields(serialized)
 
     return serialized
 

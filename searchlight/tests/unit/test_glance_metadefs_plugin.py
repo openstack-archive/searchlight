@@ -14,6 +14,7 @@
 #    under the License.
 
 import copy
+import datetime
 import mock
 
 from searchlight.elasticsearch.plugins.glance import metadefs as md_plugin
@@ -47,11 +48,14 @@ TAG1 = 'Tag1'
 TAG2 = 'Tag2'
 TAG3 = 'Tag3'
 
+now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+
 
 # TODO(sjmc7): Move this stuff to a fixtures module. These should match
 # responses from the glance v2 API
 def _namespace_fixture(**kwargs):
     obj = {
+        'created_at': now,
         'namespace': None,
         'display_name': None,
         'description': None,
@@ -253,6 +257,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
 
     def test_complex_serialize(self):
         expected = {
+            'created_at': now,
+            'updated_at': now,
             'namespace': 'namespace1',
             'display_name': '1',
             'description': 'desc1',
@@ -299,6 +305,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         del return_value['tags']
 
         expected = {
+            'created_at': now,
+            'updated_at': now,
             'namespace': 'namespace1',
             'display_name': '1',
             'description': 'desc1',
@@ -346,6 +354,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                 mock_get.assert_called_once_with()
                 mock_save.assert_called_once_with([
                     {
+                        'created_at': now,
+                        'updated_at': now,
                         'display_name': '1',
                         'description': 'desc1',
                         'objects': [
@@ -378,6 +388,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'tags': [{'name': 'Tag1'}],
                     },
                     {
+                        'created_at': now,
+                        'updated_at': now,
                         'display_name': '2',
                         'description': 'desc2',
                         'objects': [

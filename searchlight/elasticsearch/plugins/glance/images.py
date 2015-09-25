@@ -60,8 +60,8 @@ class ImageIndex(base.IndexBase):
                 'owner': {'type': 'string', 'index': 'not_analyzed'},
                 'protected': {'type': 'boolean'},
                 'members': {'type': 'string', 'index': 'not_analyzed'},
-                "created_at": {'type': 'date'},
-                "updated_at": {'type': 'date'}
+                'created_at': {'type': 'date'},
+                'updated_at': {'type': 'date'}
             },
         }
 
