@@ -1,0 +1,346 @@
+{
+    "metadef_namespace.create": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_namespace.create",
+        "payload": {
+            "display_name": "Flavor Quota",
+            "description": "Compute drivers may enable quotas on CPUs available to a VM, disk tuning, bandwidth I/O, and instance VIF traffic control.  See: http://docs.openstack.org/admin-guide-cloud/content/customize-flavors.html",
+            "deleted": false,
+            "created_at": "2015-08-06T12:46:54Z",
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-09-03T03:51:54Z",
+            "visibility": "public",
+            "protected": true,
+            "owner": "e9869fa1d7584b91b3f88c25193116e7",
+            "namespace_old": "OS::Compute::Quota",
+            "deleted_at": null
+        },
+        "metadata": {
+            "timestamp": "2015-09-03 03:51:54.318496",
+            "message_id": "faa47297-9a15-470b-ac4b-b432cc9cc635"
+        }
+    },
+    "metadef_namespace.update": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_namespace.update",
+        "payload": {
+            "display_name": "Flavor Quota",
+            "description": "Compute drivers may enable quotas on CPUs available to a VM, disk tuning, bandwidth I/O, and instance VIF traffic control.  See: http://docs.openstack.org/admin-guide-cloud/content/customize-flavors.html",
+            "deleted": false,
+            "created_at": "2015-08-06T12:46:54Z",
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-09-03T03:51:54Z",
+            "visibility": "private",
+            "protected": false,
+            "owner": "e9869fa1d7584b91b3f88c25193116e7",
+            "namespace_old": "OS::Compute::Quota",
+            "deleted_at": null
+        },
+        "metadata": {
+            "timestamp": "2015-09-03 03:55:54.318441",
+            "message_id": "80f168fb-51bf-41fd-96ae-4b20b47400fa"
+        }
+    },
+    "metadef_namespace.delete": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_namespace.delete",
+        "payload": {
+            "display_name": "Flavor Quota",
+            "description": "Compute drivers may enable quotas on CPUs available to a VM, disk tuning, bandwidth I/O, and instance VIF traffic control.  See: http://docs.openstack.org/admin-guide-cloud/content/customize-flavors.html",
+            "deleted": true,
+            "created_at": "2015-08-06T12:46:54Z",
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-09-03T03:51:54Z",
+            "visibility": "private",
+            "protected": false,
+            "owner": "e9869fa1d7584b91b3f88c25193116e7",
+            "namespace_old": "OS::Compute::Quota",
+            "deleted_at": "2015-09-03T04:01:54Z"
+        },
+        "metadata": {
+            "timestamp": "2015-09-03 04:01:54.326684",
+            "message_id": "2134961e-fad5-45df-87d2-0ff04515d127"
+        }
+    },
+    "metadef_object.create": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_object.create",
+        "payload": {
+            "deleted_at": null,
+            "name": "CPU Limits",
+            "deleted": false,
+            "created_at": "2015-08-06T12:46:55Z",
+            "required": [],
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-09-03T05:14:45Z",
+            "name_old": "CPU Limits",
+            "properties": [
+                {
+                    "additionalItems": null,
+                    "name": "quota:cpu_shares",
+                    "confidential": null,
+                    "title": "Quota: CPU Shares",
+                    "default": null,
+                    "pattern": null,
+                    "enum": null,
+                    "maximum": null,
+                    "minItems": null,
+                    "minimum": null,
+                    "maxItems": null,
+                    "minLength": null,
+                    "uniqueItems": null,
+                    "maxLength": null,
+                    "items": null,
+                    "type": "integer",
+                    "description": "Specifies the proportional weighted share for the domain. If this element is omitted, the service defaults to the OS provided defaults. There is no unit for the value; it is a relative measure based on the setting of other VMs. For example, a VM configured with value 2048 gets twice as much CPU time as a VM configured with value 1024."
+                }
+            ],
+            "description": "You can configure the CPU limits with control parameters."
+        },
+        "metadata": {
+            "timestamp": "2015-09-03 05:14:45.179896",
+            "message_id": "b0d9eb5e-48a8-4fb4-abef-09f75de3406b"
+        }
+    },
+    "metadef_object.update": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_object.update",
+        "payload": {
+            "deleted_at": null,
+            "name": "CPU Limits",
+            "deleted": false,
+            "created_at": "2015-08-06T12:46:55Z",
+            "required": [],
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-08-07T13:47:12Z",
+            "name_old": "CPU Limits",
+            "properties": [
+                {
+                    "additionalItems": null,
+                    "name": "quota:cpu_shares",
+                    "confidential": null,
+                    "title": "Quota: CPU Shares",
+                    "default": 5,
+                    "pattern": null,
+                    "enum": null,
+                    "maximum": 100,
+                    "minItems": null,
+                    "minimum": 1,
+                    "maxItems": null,
+                    "minLength": null,
+                    "uniqueItems": null,
+                    "maxLength": null,
+                    "items": null,
+                    "type": "integer",
+                    "description": "Specifies the proportional weighted share for the domain. If this element is omitted, the service defaults to the OS provided defaults. There is no unit for the value; it is a relative measure based on the setting of other VMs. For example, a VM configured with value 2048 gets twice as much CPU time as a VM configured with value 1024."
+                },
+                {
+                    "additionalItems": null,
+                    "name": "quota:cpu_period",
+                    "confidential": null,
+                    "title": "Quota: CPU Period",
+                    "default": null,
+                    "pattern": null,
+                    "enum": null,
+                    "maximum": 1000000,
+                    "minItems": null,
+                    "minimum": 1000,
+                    "maxItems": null,
+                    "minLength": null,
+                    "uniqueItems": null,
+                    "maxLength": null,
+                    "items": null,
+                    "type": "integer",
+                    "description": "Specifies the enforcement interval (unit: microseconds) for QEMU and LXC hypervisors. Within a period, each VCPU of the domain is not allowed to consume more than the quota worth of runtime. The value should be in range [1000, 1000000]. A period with value 0 means no value."
+                }
+            ],
+            "description": "You can configure the CPU limits with control parameters."
+        },
+        "metadata": {
+            "timestamp": "2015-09-03 05:14:45.179896",
+            "message_id": "b0d9eb5e-48a8-4fb4-abef-09f75de3406b"
+        }
+    },
+    "metadef_object.delete": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_object.delete",
+        "payload": {
+            "deleted_at": "2015-09-03T13:07:40Z",
+            "name": "CPU Limits",
+            "deleted": true,
+            "created_at": "2015-08-06T12:46:55Z",
+            "required": [],
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-09-03T05:14:45Z",
+            "name_old": "CPU Limits",
+            "properties": [
+                {
+                    "additionalItems": null,
+                    "name": "quota:cpu_shares",
+                    "confidential": null,
+                    "title": "Quota: CPU Shares",
+                    "default": null,
+                    "pattern": null,
+                    "enum": null,
+                    "maximum": null,
+                    "minItems": null,
+                    "minimum": null,
+                    "maxItems": null,
+                    "minLength": null,
+                    "uniqueItems": null,
+                    "maxLength": null,
+                    "items": null,
+                    "type": "integer",
+                    "description": "Specifies the proportional weighted share for the domain. If this element is omitted, the service defaults to the OS provided defaults. There is no unit for the value; it is a relative measure based on the setting of other VMs. For example, a VM configured with value 2048 gets twice as much CPU time as a VM configured with value 1024."
+                }
+            ],
+            "description": "You can configure the CPU limits with control parameters."
+        },
+        "metadata": {
+            "timestamp": "2015-09-03 13:07:40.819028",
+            "message_id": "a038eba2-f72e-47f7-ba00-5eb1b4238062"
+        }
+    },
+    "metadef_property.create": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_property.create",
+        "payload": {
+            "additionalItems": null,
+            "name_old": "quota:cpu_limit",
+            "description": "Specifies the upper limit for CPU allocation in MHz. This parameter ensures that a machine never uses more than the defined amount of CPU time. It can be used to enforce a limit on the machine's CPU performance.ThevalueshouldbeanumericalvalueinMHz.Ifzeroissuppliedthenthecpu_limitisunlimited.",
+            "confidential": null,
+            "title": "Quota: CPULimit",
+            "deleted": false,
+            "minLength": null,
+            "enum": null,
+            "namespace": "OS::Compute::Quota",
+            "maximum": null,
+            "items": null,
+            "default": null,
+            "minimum": 0,
+            "minItems": null,
+            "maxItems": null,
+            "maxLength": null,
+            "uniqueItems": null,
+            "pattern": null,
+            "deleted_at": null,
+            "type": "integer",
+            "name": "quota:cpu_limit"
+        },
+        "metadata": {
+            "timestamp": "2015-09-05 01:58:58.545927",
+            "message_id": "0def4151-78ad-47aa-81fd-0409bf8be7c8"
+        }
+    },
+    "metadef_property.update": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_property.update",
+        "payload": {
+            "additionalItems": null,
+            "name_old": "quota:cpu_limit",
+            "description": "Specifies the upper limit for CPU allocation in MHz. This parameter ensures that a machine never uses more than the defined amount of CPU time. It can be used to enforce a limit on the machine's CPU performance.ThevalueshouldbeanumericalvalueinMHz.Ifzeroissuppliedthenthecpu_limitisunlimited.",
+            "confidential": null,
+            "title": "Quota: CPULimit",
+            "deleted": false,
+            "minLength": null,
+            "enum": null,
+            "namespace": "OS::Compute::Quota",
+            "maximum": 1000,
+            "items": null,
+            "default": null,
+            "minimum": 0,
+            "minItems": null,
+            "maxItems": null,
+            "maxLength": null,
+            "uniqueItems": null,
+            "pattern": null,
+            "deleted_at": null,
+            "type": "integer",
+            "name": "quota:cpu_limit"
+        },
+        "metadata": {
+            "timestamp": "2015-09-05 02:41:31.435912",
+            "message_id": "0def4151-78ad-47aa-81fd-0409bf8be7c8"
+        }
+    },
+    "metadef_property.delete": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_property.delete",
+        "payload": {
+            "additionalItems": null,
+            "name_old": "quota:cpu_limit",
+            "description": "Specifies the upper limit for CPU allocation in MHz. This parameter ensures that a machine never uses more than the defined amount of CPU time. It can be used to enforce a limit on the machine's CPU performance.ThevalueshouldbeanumericalvalueinMHz.Ifzeroissuppliedthenthecpu_limitisunlimited.",
+            "confidential": null,
+            "title": "Quota: CPULimit",
+            "deleted": true,
+            "minLength": null,
+            "enum": null,
+            "namespace": "OS::Compute::Quota",
+            "maximum": null,
+            "items": null,
+            "default": null,
+            "minimum": 0,
+            "minItems": null,
+            "maxItems": null,
+            "maxLength": null,
+            "uniqueItems": null,
+            "pattern": null,
+            "deleted_at": "2015-09-05T03:49:07Z",
+            "type": "integer",
+            "name": "quota:cpu_limit"
+        },
+        "metadata": {
+            "timestamp": "2015-09-05 03:49:07.258444",
+            "message_id": "880ec621-4aa7-4c34-9f40-6ac46dc01b43"
+        }
+    },
+    "metadef_resource_type.create": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_resource_type.create",
+        "payload": {
+            "name_old": "OS::Nova::Flavor",
+            "properties_target": null,
+            "name": "OS::Nova::Flavor",
+            "deleted": false,
+            "created_at": "2015-09-05T04:05:59Z",
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-09-05T04:05:59Z",
+            "prefix": null,
+            "deleted_at": null
+        },
+        "metadata": {
+            "timestamp": "2015-09-05 04:05:59.265828",
+            "message_id": "9da5d154-a548-4a33-8d5a-ceb6012a9483"
+        }
+    },
+    "metadef_resource_type.delete": {
+        "ctxt": {},
+        "publisher_id": "image.localhost",
+        "event_type": "metadef_resource_type.delete",
+        "payload": {
+            "deleted_at": "2015-09-05T04:09:45Z",
+            "properties_target": null,
+            "name": "OS::Nova::Flavor",
+            "deleted": true,
+            "created_at": "2015-09-05T04:05:59Z",
+            "namespace": "OS::Compute::Quota",
+            "updated_at": "2015-09-05T04:05:59Z",
+            "prefix": null,
+            "name_old": "OS::Nova::Flavor"
+        },
+        "metadata": {
+            "timestamp": "2015-09-05 04:09:45.719274",
+            "message_id": "5b431592-57ed-4b21-b301-7d4c0e8d7273"
+        }
+    }
+}
