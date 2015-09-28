@@ -119,15 +119,12 @@ class ServerIndex(base.IndexBase):
             {'term': {'tenant_id': request_context.owner}}
         ]
 
-    def filter_result(self, result, request_context):
+    def filter_result(self, hit, request_context):
         if not request_context.is_admin:
-            hits = result['hits']['hits']
-            for hit in hits:
-                if hit['_type'] == self.get_document_type():
-                    for key in list(hit['_source'].keys()):
-                        if re.match(self.ADMIN_ONLY_PROPERTIES, key):
-                            del hit['_source'][key]
-        return result
+            source = hit['_source']
+            for key in list(source.keys()):
+                if re.match(self.ADMIN_ONLY_PROPERTIES, key):
+                    del hit['_source'][key]
 
     def get_objects(self):
         """Generator that lists all nova servers owned by all tenants."""

@@ -62,10 +62,16 @@ class SearchController(object):
                                         ignore_unavailable=True,
                                         **kwargs)
 
-            # TODO(sjmc7): Sort this out (bug #1478102)
-            for plugin in self.plugins.values():
-                result = plugin.obj.filter_result(result, req.context)
-
+            hits = result.get('hits', {}).get('hits', [])
+            try:
+                # Note that there's an assumption that the plugin resource
+                # type is always the same as the document type. If this is not
+                # the case in future, a reverse lookup's needed
+                for hit in hits:
+                    plugin = self.plugins[hit['_type']].obj
+                    plugin.filter_result(hit, req.context)
+            except KeyError as e:
+                raise Exception("No registered plugin for type %s" % e.message)
             return result
         except exception.Forbidden as e:
             raise webob.exc.HTTPForbidden(explanation=e.msg)
