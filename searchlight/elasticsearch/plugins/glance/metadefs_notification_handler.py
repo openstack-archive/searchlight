@@ -31,7 +31,7 @@ class MetadefHandler(base.NotificationBase):
         self.namespace_delete_keys = ['deleted_at', 'deleted', 'created_at',
                                       'updated_at', 'namespace_old']
         self.property_delete_keys = ['deleted', 'deleted_at',
-                                     'name_old', 'namespace', 'name']
+                                     'name_old', 'namespace']
 
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
         try:
@@ -125,11 +125,11 @@ class MetadefHandler(base.NotificationBase):
         id = payload['namespace']
         property = self.format_property(payload)
         self.update_entity(id, "properties", property,
-                           payload['name_old'], "property")
+                           payload['name_old'], "name")
 
     def delete_prop(self, payload):
         id = payload['namespace']
-        self.delete_entity(id, "properties", payload['name'], "property")
+        self.delete_entity(id, "properties", payload['name'], "name")
 
     def create_rs(self, payload):
         id = payload['namespace']
@@ -244,7 +244,6 @@ class MetadefHandler(base.NotificationBase):
 
     def format_property(self, payload):
         prop_data = {}
-        prop_data['property'] = payload['name']
         for key, value in six.iteritems(payload):
             if key not in self.property_delete_keys and value:
                 prop_data[key] = value
