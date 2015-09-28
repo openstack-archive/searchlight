@@ -154,7 +154,7 @@ class Server(object):
                 self.sock = None
             else:
                 fd = os.dup(self.sock.fileno())
-                exec_env[utils.GLANCE_TEST_SOCKET_FD_STR] = str(fd)
+                exec_env[utils.SEARCHLIGHT_TEST_SOCKET_FD_STR] = str(fd)
                 pass_fds.add(fd)
                 self.sock.close()
 
