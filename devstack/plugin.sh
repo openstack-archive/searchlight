@@ -157,7 +157,7 @@ function init_searchlight {
 
     ${TOP_DIR}/pkg/elasticsearch.sh start
 
-    $SEARCHLIGHT_BIN_DIR/searchlight-manage --config-file $SEARCHLIGHT_CONF index sync
+    $SEARCHLIGHT_BIN_DIR/searchlight-manage --config-file $SEARCHLIGHT_CONF index sync --force
 }
 
 # install_searchlight - Collect source and prepare
