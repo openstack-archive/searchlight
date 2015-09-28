@@ -17,12 +17,59 @@
 Designate Plugin Guide
 **********************
 
+Integration is provided via a plugin. There are multiple configuration
+settings required for proper indexing and incremental updates. Some of the
+settings are specified in Searchlight configuration files. Others are
+provided in other service configuration files.
+
+Searchlight Configuration
+=========================
+
+Searchlight resource configuration options are shown below with their
+configuration file and default values. You only need to update the
+below configuration options if you decide to change any options to
+a non-default value.
+
+See :ref:`searchlight-plugins` for default values and general configuration
+information.
+
+searchlight-api.conf
+--------------------
+
+Plugin: OS::Designate::Zone
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_designate_zone]
+    enabled = true
+    index_name = searchlight
+
+Plugin: OS::Designate::RecordSet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_designate_recordset]
+    enabled = true
+    index_name = searchlight
+
+.. warning::
+
+    *OS::Designate::Zone* documents have a parent relationship to
+    *OS::Designate::RecordSet* documents. Because of this you must have
+    both *os_designate_zone* and *os_designate_recordset* plugin
+    configurations enabled or disabled together and be set to the same
+    index_name.
+
 Designate Configuration
 =======================
 
-Turn on Notifications::
+The Designate services must be configured properly to work with searchlight.
 
-Open designate.conf and make the following changes::
+designate.conf
+--------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Use the following::
 
     notification_driver = messaging,searchlight_indexer
     rpc_backend = 'rabbit'
@@ -30,24 +77,50 @@ Open designate.conf and make the following changes::
 Restart designate-central, designate-pool-manager, designate-zone-manager and
 you should be good to go!
 
-Searchlight configuration
-=========================
+local.conf (devstack)
+---------------------
 
-Designate-specific plugin configuration options are shown below with their
-defaults values. You only need to specify the below configuration options if you
-decide to change it to a non-default valuei; note that by default designate is
-NOT enabled since it's not always installed::
+.. note::
 
-    [resource_plugin:os_designate_zone]
-    enabled = false
-    index_name = searchlight
+    Designate resource types are *not* enabled by default (``enabled = false``)
+    in the searchlight devstack script because designate is not
+    installed by default in devstack.  You have two options for enabling
+    designate resource types:
 
-    [resource_plugin:os_designate_recordsets]
-    enabled = false
-    index_name = searchlight
+    1. Prior to stacking: modify the searchlight post config section in
+       ``local.conf`` by adding a ``[[post-config|$SEARCHLIGHT_CONF]]`` section.
 
-.. warning::
+    2. After stacking: manually edit the ``searchlight-api.conf`` file.
 
-    You need to have both *os_designate_zone* and *os_designate_recordset*
-    enabled at this moment because of a relationship between them, and they
-    must have the same index_name.
+The Designate plugin must be enabled and run with devstack to include Designate
+with your devstack deployment. Follow the instructions here:
+http://docs.openstack.org/developer/designate/devstack.html
+
+Additionally, make sure to enable notifications in local.conf with the
+following::
+
+  DESIGNATE_NOTIFICATION_TOPICS=notifications,searchlight_indexer
+  DESIGNATE_NOTIFICATION_DRIVER=messaging
+
+Release Notes
+=============
+
+0.1.0.0 (Liberty)
+-----------------
+
+For best results, use the v2 Designate API. Using the Designate v1 API to
+create domains results in the Designate service not sending all possible
+status change notifications. This causes Designate record set documents to
+stay in the ``Pending`` status in the search index.
+
+The Horizon UI uses the v1 API and causes the above issue to be seen.
+So in order to ensure the search index contains the correct status values
+for record sets when using Horizon, you may set up a cron job to
+re-index Designate data.
+
+You should use the ``--no-delete`` option to prevent the index from
+temporarily not containing any data (which otherwise would happen with a full
+bulk indexing job)::
+
+    searchlight-manage index sync --type OS::Designate::Zone,OS::Designate::RecordSet --force --no-delete
+

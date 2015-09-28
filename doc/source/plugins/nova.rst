@@ -17,40 +17,105 @@
 Nova Plugin Guide
 *****************
 
-Nova Configuration
-==================
+Integration is provided via a plugin. There are multiple configuration
+settings required for proper indexing and incremental updates. Some of the
+settings are specified in Searchlight configuration files. Others are
+provided in other service configuration files.
 
-Turn on Notifications::
+Searchlight Configuration
+=========================
 
-Open nova.conf and make the following changes::
+Searchlight resource configuration options are shown below with their
+configuration file and default values. You only need to update the
+below configuration options if you decide to change any options to
+a non-default value.
 
-    notification_driver = messaging
-    notification_topics = searchlight_indexer
-    rpc_backend = 'rabbit'
-    notify_on_state_change=vm_and_task_state
+See :ref:`searchlight-plugins` for default values and general configuration
+information.
 
-Restart nova API and nova scheduler (n-api, n-sch).
+searchlight-api.conf
+--------------------
 
-Neutron Configuration
-=====================
-
-Since changes to Neutron can affect Nova instances you may optionally turn on
-notifications for neutron.  If you do not, networking changes will only be
-picked up by Searchlight when notifications are received from Nova.
-
-Open neutron.conf and make the following changes::
-
-    notification_driver = messaging
-    notification_topics = searchlight_indexer
-    rpc_backend = 'rabbit'
-
-Restart neutron service (q-svc).
-
-Plugin configuration
-====================
-Nova-specific plugin configuration options (and defaults) are:
+Plugin: OS::Nova::Server
+^^^^^^^^^^^^^^^^^^^^^^^^
+::
 
     [resource_plugin:os_nova_server]
     enabled = true
     index_name = searchlight
 
+Nova Configuration
+==================
+
+The nova services must be configured properly to work with searchlight.
+
+nova.conf
+---------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Use the following::
+
+    notification_driver = messaging
+    notification_topics = notifications, searchlight_indexer
+    rpc_backend = 'rabbit'
+    notify_on_state_change=vm_and_task_state
+
+.. note::
+
+    Restart Nova API and Nova scheduler (n-api, n-sch) after making changes.
+
+local.conf (devstack)
+---------------------
+
+The settings above may be automatically configured by ``stack.sh``
+by adding them to the following post config section in devstack.
+Just place the following in local.conf and copy the above settings
+underneath it.::
+
+    [[post-config|$NOVA_CONF]]
+    [DEFAULT]
+
+Neutron Configuration
+=====================
+
+Since changes to Neutron can affect Nova instances you may optionally turn on
+notifications for Neutron.  If you do not, networking changes will only be
+picked up by Searchlight when notifications are received from Nova.
+
+neutron.conf
+------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Use the following::
+
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
+    rpc_backend = 'rabbit'
+
+.. note::
+
+    Restart the Neutron service (q-svc) after making changes.
+
+local.conf (devstack)
+---------------------
+
+The settings above may be automatically configured by ``stack.sh``
+by adding them to the following post config section in devstack.
+Just place the following in local.conf and copy the above settings
+underneath it.::
+
+  [[post-config|$NEUTRON_CONF]]
+  [DEFAULT]
+
+Release Notes
+=============
+
+0.1.0.0 (Liberty)
+-----------------
+
+All OS-EXT-SRV-ATTR:.* properties are filtered out from search results
+for non-admin users. This is not a configuration option in this release.
+To change this or filter out additional properties, you must change the
+plugin code to add additional properties.
+
+See: ADMIN_ONLY_PROPERTIES in searchlight/elasticsearch/plugins/nova/servers.py
