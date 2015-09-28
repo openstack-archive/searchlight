@@ -14,11 +14,16 @@
 #    under the License.
 
 import abc
-
 from elasticsearch import helpers
+import logging
 import six
 
 import searchlight.elasticsearch
+from searchlight import i18n
+
+
+LOG = logging.getLogger(__name__)
+_LW = i18n._LW
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -204,13 +209,31 @@ class IndexBase(object):
                 search_type='count')
 
             facet_terms = {}
-            for term, aggregation in six.iteritems(results['aggregations']):
+            result_aggregations = results.get('aggregations', {})
+            for term, aggregation in six.iteritems(result_aggregations):
                 if term in aggregation:
                     # Again, deeper nesting question
                     term_name = term.replace('__', '.')
                     facet_terms[term_name] = aggregation[term]['buckets']
-                else:
+                elif 'buckets' in aggregation:
                     facet_terms[term] = aggregation['buckets']
+                else:
+                    # This can happen when there's no mapping defined at all..
+                    format_msg = {
+                        'field': term,
+                        'resource_type': self.get_document_type()
+                    }
+                    LOG.warning(_LW(
+                        "Unexpected aggregation structure for field "
+                        "'%(field)s' in %(resource_type)s. Is the mapping "
+                        "defined correctly?") % format_msg)
+                    facet_terms[term] = []
+
+            if not result_aggregations:
+                LOG.warning(_LW(
+                    "No aggregations found for %(resource_type)s. There may "
+                    "be a mapping problem.") %
+                    {'resource_type': self.get_document_type()})
             return facet_terms
         return {}
 
