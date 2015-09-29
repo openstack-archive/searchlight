@@ -289,8 +289,19 @@ class TestSearchApi(functional.FunctionalTest):
                                                       TENANT3)
         self.assertEqual([], self._get_hit_source(json_content))
 
-        # An admin should have access to all (at least in KS v2)
+        # An admin without specifying all_projects should get the same
+        # result as an ordinary user
         response, json_content = self._search_request(MATCH_ALL,
+                                                      TENANT3,
+                                                      role='admin')
+        self.assertEqual([], self._get_hit_source(json_content))
+
+        # An admin should have access to all (at least in KS v2)
+        admin_match_all = {
+            'all_projects': True
+        }
+        admin_match_all.update(MATCH_ALL)
+        response, json_content = self._search_request(admin_match_all,
                                                       TENANT3,
                                                       role='admin')
         self.assertEqual([image_doc, metadef_doc],

@@ -277,9 +277,9 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             output.append(bulk_action)
         return output
 
-    def _get_query(self, context, query, resource_types):
+    def _get_query(self, context, query, resource_types, all_projects=False):
         is_admin = context.is_admin
-        if is_admin:
+        if is_admin and all_projects:
             query_params = {
                 'query': {
                     'query': query
@@ -331,6 +331,9 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         limit = body.pop('limit', None)
         highlight = body.pop('highlight', None)
         sort_order = body.pop('sort', None)
+        # all_projects will determine whether an admin sees
+        # filtered results or not
+        all_projects = body.pop('all_projects', False)
 
         if not types:
             types = self._get_available_types()
@@ -343,7 +346,8 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         if not isinstance(indices, (list, tuple)):
             indices = [indices]
 
-        query_params = self._get_query(request.context, query, types)
+        query_params = self._get_query(request.context, query, types,
+                                       all_projects=all_projects)
 
         # Apply an additional restriction to elasticsearch to speed things up
         # in addition to the RBAC filters
