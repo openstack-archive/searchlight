@@ -261,6 +261,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             'updated_at': now,
             'namespace': 'namespace1',
             'display_name': '1',
+            'id': 'namespace1',
             'description': 'desc1',
             'visibility': 'private',
             'protected': True,
@@ -308,6 +309,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             'created_at': now,
             'updated_at': now,
             'namespace': 'namespace1',
+            'id': 'namespace1',
             'display_name': '1',
             'description': 'desc1',
             'visibility': 'private',
@@ -358,6 +360,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'updated_at': now,
                         'display_name': '1',
                         'description': 'desc1',
+                        'id': 'namespace1',
                         'objects': [
                             {
                                 'name': 'Object1',
@@ -392,6 +395,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'updated_at': now,
                         'display_name': '2',
                         'description': 'desc2',
+                        'id': 'namespace2',
                         'objects': [
                             {
                                 'properties': [],

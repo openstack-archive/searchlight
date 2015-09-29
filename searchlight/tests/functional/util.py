@@ -49,6 +49,8 @@ def search_request(base_url, body, tenant, role="member", decode_json=True):
         headers=headers,
         body=jsonutils.dumps(body)
     )
+    if response.status != 200:
+        raise Exception(content)
 
     if decode_json:
         content = jsonutils.loads(content)

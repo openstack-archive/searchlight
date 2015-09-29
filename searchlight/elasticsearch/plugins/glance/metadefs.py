@@ -53,6 +53,7 @@ class MetadefIndex(base.IndexBase):
                 'updated_at': {'type': 'date'},
                 'display_name': {'type': 'string'},
                 'description': {'type': 'string'},
+                'id': {'type': 'string', 'index': 'not_analyzed'},
                 'namespace': {'type': 'string', 'index': 'not_analyzed'},
                 'owner': {'type': 'string', 'index': 'not_analyzed'},
                 'visibility': {'type': 'string', 'index': 'not_analyzed'},
