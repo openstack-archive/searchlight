@@ -41,3 +41,17 @@ def get_fake_request(user=SOMEUSER, tenant=SOMETENANT, path='/v1/search',
 
     req.context = searchlight.context.RequestContext(**kwargs)
     return req
+
+
+def simple_facet_field_agg(name):
+    return name, {'terms': {'field': name}}
+
+
+def complex_facet_field_agg(name):
+    name_subbed = name.replace('.', '__')
+    return name_subbed, {
+        'aggs': {
+            name_subbed: {'terms': {'field': name}}
+        },
+        'nested': {'path': name.split('.')[0]}
+    }

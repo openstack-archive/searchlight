@@ -344,12 +344,16 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
 
-        mock_engine.search.side_effect = [
-            {'aggregations': {
+        mock_engine.search.return_value = {
+            'aggregations': {
                 'status': {'buckets': [{'key': 'ACTIVE', 'doc_count': 2}]},
-                'OS-EXT-AZ:availability_zone': {'buckets': []}
-            }}
-        ]
+                'OS-EXT-AZ:availability_zone': {'buckets': []},
+                'image.id': {'buckets': [{'key': imagea['id'],
+                                          'doc_count': 1}]},
+                'flavor.id': {'buckets': [{'key': flavor1['id'],
+                                           'doc_count': 1}]}
+            }
+        }
 
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=False
@@ -370,13 +374,20 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         }
         self.assertEqual(expected_status, status_facet)
 
-        expected_agg_query = {
-            'aggs': {
-                'status': {'terms': {'field': 'status'}},
-                'OS-EXT-AZ:availability_zone': {
-                    'terms': {'field': 'OS-EXT-AZ:availability_zone'}
-                }
+        complex_facet_option_fields = (
+            'image.id', 'flavor.id', 'networks.name',
+            'networks.OS-EXT-IPS:type', 'networks.version',
+            'security_groups.name')
+        aggs = dict(unit_test_utils.complex_facet_field_agg(name)
+                    for name in complex_facet_option_fields)
+        aggs.update({
+            'status': {'terms': {'field': 'status'}},
+            'OS-EXT-AZ:availability_zone': {
+                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
             },
+        })
+        expected_agg_query = {
+            'aggs': aggs,
             'query': {
                 'filtered': {
                     'filter': {
@@ -403,8 +414,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             USER1, TENANT1, '/v1/search/facets', is_admin=True
         )
 
-        mock_engine.search.side_effect = [
-            {'aggregations': {
+        mock_engine.search.return_value = {
+            'aggregations': {
                 'status': {
                     'buckets': [{'key': 'ACTIVE', 'doc_count': 2}]
                 },
@@ -412,9 +423,15 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                     'buckets': [{'key': 'bert', 'doc_count': 5},
                                 {'key': 'ernie', 'doc_count': 2}]
                 },
-                'OS-EXT-AZ:availability_zone': {'buckets': []}
-            }}
-        ]
+                'OS-EXT-AZ:availability_zone': {'buckets': []},
+                'image.id': {'buckets': [{'key': imagea['id'],
+                                          'doc_count': 1}]},
+                'flavor.id': {'buckets': [{'key': flavor1['id'],
+                                           'doc_count': 1}]},
+                'security_groups': {'buckets': []},
+                'network.name': {'buckets': []},
+            }
+        }
 
         facets = self.plugin.get_facets(fake_request.context)
 
@@ -442,16 +459,23 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         }
         self.assertEqual(expected_host, host_facet)
 
-        expected_agg_query = {
-            'aggs': {
-                'status': {'terms': {'field': 'status'}},
-                'OS-EXT-SRV-ATTR:host': {
-                    'terms': {'field': 'OS-EXT-SRV-ATTR:host'}
-                },
-                'OS-EXT-AZ:availability_zone': {
-                    'terms': {'field': 'OS-EXT-AZ:availability_zone'}
-                }
+        complex_facet_option_fields = (
+            'image.id', 'flavor.id', 'networks.name',
+            'networks.OS-EXT-IPS:type', 'networks.version',
+            'security_groups.name')
+        aggs = dict(unit_test_utils.complex_facet_field_agg(name)
+                    for name in complex_facet_option_fields)
+        aggs.update({
+            'status': {'terms': {'field': 'status'}},
+            'OS-EXT-AZ:availability_zone': {
+                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
             },
+            'OS-EXT-SRV-ATTR:host': {
+                'terms': {'field': 'OS-EXT-SRV-ATTR:host'}},
+        })
+
+        expected_agg_query = {
+            'aggs': aggs
         }
         mock_engine.search.assert_called_with(
             index=self.plugin.get_index_name(),

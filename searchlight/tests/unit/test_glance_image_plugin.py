@@ -609,3 +609,65 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             serialized = self.notification_handler.serialize_notification(
                 notification)
         self.assertEqual(expected, serialized)
+
+    def test_facets(self):
+        # Nova tests are more thorough; checking that the right fields are
+        # faceted
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=False
+        )
+
+        mock_engine.search.return_value = {
+            'aggregations': {
+                'container_format': {'buckets': []},
+                'disk_format': {'buckets': [{'key': 'raw', 'doc_count': 3}]},
+                'tags': {'buckets': []},
+                'status': {'buckets': []},
+                'visibility': {'buckets': []},
+                'protected': {'buckets': []}
+            }
+        }
+
+        facets = self.plugin.get_facets(fake_request.context)
+
+        disk_format_facets = list(filter(lambda f: f['name'] == 'disk_format',
+                                         facets))[0]
+        expected_disk_format_facet = {
+            'name': 'disk_format',
+            'options': [{'key': 'raw', 'doc_count': 3}],
+            'type': 'string'
+        }
+        self.assertEqual(expected_disk_format_facet, disk_format_facets)
+
+        facet_option_fields = ('disk_format', 'container_format', 'tags',
+                               'visibility', 'status', 'protected')
+        expected_agg_query = {
+            'aggs': dict(unit_test_utils.simple_facet_field_agg(name)
+                         for name in facet_option_fields),
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'and': [
+                            {
+                                "or": [
+                                    {'term': {'owner': TENANT1}},
+                                    {'term': {'visibility': 'public'}},
+                                    {'term': {'members': TENANT1}}
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+
+        mock_engine.search.assert_called_with(
+            index=self.plugin.get_index_name(),
+            doc_type=self.plugin.get_document_type(),
+            body=expected_agg_query,
+            ignore_unavailable=True,
+            search_type='count'
+        )
