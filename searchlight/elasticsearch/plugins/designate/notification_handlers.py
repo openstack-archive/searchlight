@@ -39,6 +39,8 @@ class DomainHandler(base.NotificationBase):
             payload['masters'] = ["%(host)s:%(port)s" for i in
                                   payload["masters"]]
         payload['project_id'] = payload.pop('tenant_id')
+        if not payload['updated_at'] and payload['created_at']:
+            payload['updated_at'] = payload['created_at']
 
         return payload
 
@@ -165,6 +167,8 @@ class RecordSetHandler(base.NotificationBase):
         obj['project_id'] = obj.pop('tenant_id')
         obj['zone_id'] = obj.pop('domain_id')
         obj['records'] = [{"data": i["data"]} for i in obj["records"]]
+        if not obj['updated_at'] and obj['created_at']:
+            obj['updated_at'] = obj['created_at']
         return obj
 
     def delete(self, payload):
