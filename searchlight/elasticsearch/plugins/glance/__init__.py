@@ -103,6 +103,18 @@ def serialize_glance_notification(note):
     return serialize_glance_image(note)
 
 
+def serialize_glance_image_members(image, payload):
+        member_id = payload['member_id']
+        if member_id in image['members']:
+            if payload['status'].lower() != "accepted" or payload['deleted']:
+                image['members'].remove(member_id)
+        else:
+            if payload['status'].lower() == "accepted" and \
+                    (not payload['deleted']):
+                image['members'].append(member_id)
+        return image
+
+
 def serialize_glance_metadef_ns(metadef_namespace):
     def _serialize_tag(tag):
         return {'name': tag['name']}

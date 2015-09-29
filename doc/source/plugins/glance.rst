@@ -51,3 +51,28 @@ Suggested changes::
 
     property_protection_file = ~/openstack/searchlight/etc/property-protections-roles.conf
 
+Release Notes
+=============
+
+Liberty
+-------
+
+Glance did not generate notifications for Image Member updates up to and
+including Liberty release.
+
+Search results will include correct results when the visibility is `public`
+or `private`, but `shared` images will only be included in search results
+for the owning project without additional deployment configuration.
+
+The patch (https://review.openstack.org/221307) implements this feature and will
+be included/merged in Glance Mitaka release.
+
+Searchlight developers/installers should apply the above patch in Glance when using
+Searchlight with Glance Liberty release.
+
+Alternatively, you may set up a cron job to reindex glance images periodically.
+
+You should use the --no-delete option to prevent the index from temporarily not
+containing any data::
+
+    searchlight-manage index sync --type OS::Glance::Image --force --no-delete
