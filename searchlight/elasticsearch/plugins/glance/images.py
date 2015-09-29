@@ -45,7 +45,12 @@ class ImageIndex(base.IndexBase):
             'dynamic': True,
             'properties': {
                 'id': {'type': 'string', 'index': 'not_analyzed'},
-                'name': {'type': 'string'},
+                'name': {
+                    'type': 'string',
+                    'fields': {
+                        'raw': {'type': 'string', 'index': 'not_analyzed'}
+                    }
+                },
                 'description': {'type': 'string'},
                 'tags': {'type': 'string'},
                 'disk_format': {'type': 'string'},

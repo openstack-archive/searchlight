@@ -46,7 +46,13 @@ class ServerIndex(base.IndexBase):
             'dynamic': True,
             'properties': {
                 'id': {'type': 'string', 'index': 'not_analyzed'},
-                'name': {'type': 'string', 'index': 'not_analyzed'},
+                'name': {
+                    'type': 'string',
+                    'index': 'not_analyzed',
+                    'fields': {
+                        'raw': {'type': 'string', 'index': 'not_analyzed'}
+                    }
+                },
                 'flavor': {
                     'type': 'nested',
                     'properties': {

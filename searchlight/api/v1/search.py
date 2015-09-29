@@ -25,6 +25,7 @@ from searchlight.api import policy
 from searchlight.common import exception
 from searchlight.common import utils
 from searchlight.common import wsgi
+import searchlight.elasticsearch
 import searchlight.gateway
 from searchlight import i18n
 
@@ -320,6 +321,33 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         return query_params
 
+    def _get_sort_order(self, sort_order):
+        if isinstance(sort_order, (six.text_type, dict)):
+            # Elasticsearch expects a list
+            sort_order = [sort_order]
+        elif not isinstance(sort_order, list):
+            msg = _("'sort' must be a string, dict or list")
+            raise webob.exc.HTTPBadRequest(explanation=msg)
+
+        def replace_sort_field(sort_field):
+            # Make some alterations for fields that have a 'raw' field so
+            # that documents aren't sorted by tokenized values
+            if isinstance(sort_field, six.text_type):
+                # Raw field name
+                if sort_field in searchlight.elasticsearch.RAW_SORT_FIELDS:
+                    return sort_field + ".raw"
+            elif isinstance(sort_field, dict):
+                for field_name, sort_params in six.iteritems(sort_field):
+                    if field_name in searchlight.elasticsearch.RAW_SORT_FIELDS:
+                        # There should only be one object
+                        return {field_name + ".raw": sort_params}
+            else:
+                msg = "Unhandled sort type replacing '%s'" % sort_field
+                raise webob.exc.HTTPInternalServerError(explanation=msg)
+            return sort_field
+
+        return [replace_sort_field(f) for f in sort_order]
+
     def search(self, request):
         body = self._get_request_body(request)
         self._check_allowed(body)
@@ -372,14 +400,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             query_params['query']['highlight'] = highlight
 
         if sort_order is not None:
-            if isinstance(sort_order, (six.text_type, dict)):
-                # Elasticsearch expects a list
-                sort_order = [sort_order]
-            elif not isinstance(sort_order, list):
-                msg = _("'sort' must be a string, dict or list")
-                raise webob.exc.HTTPBadRequest(explanation=msg)
-
-            query_params['query']['sort'] = sort_order
+            query_params['query']['sort'] = self._get_sort_order(sort_order)
 
         return query_params
 

@@ -22,6 +22,11 @@ import six
 from searchlight.common import utils
 
 
+# Fields that require special handling for sort to avoid sorting
+# on tokenized values
+RAW_SORT_FIELDS = ('name',)
+
+
 search_opts = [
     cfg.ListOpt('hosts', default=['127.0.0.1:9200'],
                 help='List of nodes where Elasticsearch instances are '

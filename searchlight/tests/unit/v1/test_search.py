@@ -518,37 +518,31 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         """Test that a single sort field is correctly transformed"""
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['image'],
             'query': {'match_all': {}},
-            'sort': 'name'
+            'sort': 'status'
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['name'], output['query']['sort'])
+        self.assertEqual(['status'], output['query']['sort'])
 
     def test_single_sort_dir(self):
         """Test that a single sort field & dir is correctly transformed"""
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['image'],
             'query': {'match_all': {}},
-            'sort': {'name': 'desc'}
+            'sort': {'status': 'desc'}
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual([{'name': 'desc'}], output['query']['sort'])
+        self.assertEqual([{'status': 'desc'}], output['query']['sort'])
 
     def test_multiple_sort(self):
         """Test multiple sort fields"""
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': ['glance'],
-            'type': ['image'],
             'query': {'match_all': {}},
             'sort': [
-                'name',
+                'status',
                 {'created_at': 'desc'},
                 {'members': {'order': 'asc', 'mode': 'max'}}
             ]
@@ -556,9 +550,27 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
         output = self.deserializer.search(request)
         expected = [
-            'name',
+            'status',
             {'created_at': 'desc'},
             {'members': {'order': 'asc', 'mode': 'max'}}
+        ]
+        self.assertEqual(expected, output['query']['sort'])
+
+    def test_raw_field_sort(self):
+        """Some fields (like name) are treated separately"""
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'query': {'match_all': {}},
+            'sort': [
+                'name',
+                {'name': {'order': 'desc'}}
+            ]
+        }))
+
+        output = self.deserializer.search(request)
+        expected = [
+            'name.raw',
+            {'name.raw': {'order': 'desc'}}
         ]
         self.assertEqual(expected, output['query']['sort'])
 
