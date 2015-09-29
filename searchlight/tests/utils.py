@@ -37,11 +37,8 @@ from searchlight.common import property_utils
 from searchlight.common import utils
 from searchlight.common import wsgi
 from searchlight import context
-from searchlight.elasticsearch.plugins import openstack_clients
 
 CONF = cfg.CONF
-# TODO(sjmc7): Do this better if possible.
-openstack_clients.register_cli_opts()
 
 
 class BaseTestCase(testtools.TestCase):

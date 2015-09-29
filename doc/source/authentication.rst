@@ -95,10 +95,11 @@ valid token based on the integration account credentials::
 
  [service_credentials]
  # These are needed to make API calls to other services when indexing
- os_username = searchlight
- os_password = <SERVICE_PASSWORD>
- os_tenant_name = service
- os_auth_url = http://127.0.0.1:35357
+ auth_plugin = password
+ username = searchlight
+ password = <SERVICE_PASSWORD>
+ tenant_name = service
+ auth_url = http://127.0.0.1:35357
 
 Service integration account
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -22,7 +22,6 @@ import glanceclient.exc
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
-from searchlight.elasticsearch.plugins import openstack_clients
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -119,16 +118,14 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         self.plugin = images_plugin.ImageIndex()
         self.notification_handler = self.plugin.get_notification_handler()
 
-        self.mock_ks_client = mock.Mock()
-        self.mock_ks_client.service_catalog.url_for.return_value = \
+        self.mock_session = mock.Mock()
+        self.mock_session.get_endpoint.return_value = \
             'http://localhost/glance/v2'
-        patched_ks_client = mock.patch.object(
-            openstack_clients,
-            'get_keystoneclient',
-            return_value=self.mock_ks_client
-        )
-        patched_ks_client.start()
-        self.addCleanup(patched_ks_client.stop)
+        patched_ses = mock.patch(
+            'searchlight.elasticsearch.plugins.openstack_clients._get_session',
+            return_value=self.mock_session)
+        patched_ses.start()
+        self.addCleanup(patched_ses.stop)
 
     def _create_images(self):
         self.simple_image = _image_fixture(
@@ -163,6 +160,14 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
 
     def test_document_type(self):
         self.assertEqual('OS::Glance::Image', self.plugin.get_document_type())
+
+    # This test can be removed once we can use glanceclient>=1.0
+    def test_glanceclient_unauthorized(self):
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        side_effect=[glanceclient.exc.Unauthorized,
+                                     self.members_image_members]) as mock_mem:
+            self.plugin.serialize(self.members_image)
+            self.assertEqual(2, mock_mem.call_count)
 
     def test_image_serialize(self):
         expected = {
@@ -263,38 +268,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                         return_value=self.members_image_members):
             serialized = self.plugin.serialize(self.members_image)
         self.assertEqual(expected, serialized)
-
-    def test_unauthorized_serialize(self):
-        expected = {
-            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
-            'container_format': None,
-            'disk_format': None,
-            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
-            'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
-                        '2c014f32-55eb-467d-8fcb-4bd706012f81',
-                        '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'],
-            'min_disk': None,
-            'min_ram': None,
-            'name': 'complex',
-            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
-            'protected': False,
-            'size': 256,
-            'status': 'active',
-            'tags': [],
-            'virtual_size': None,
-            'visibility': 'private',
-            'created_at': DATE1,
-            'updated_at': DATE1
-        }
-
-        side_effect = [glanceclient.exc.Unauthorized(),
-                       self.members_image_members]
-        with mock.patch('glanceclient.v2.image_members.Controller.list',
-                        side_effect=side_effect):
-            serialized = self.plugin.serialize(self.members_image)
-        self.assertEqual(expected, serialized)
-        # Will get called once per 'members' call
-        self.mock_ks_client.call_count == 2
 
     def test_setup_data(self):
         """Tests initial data load."""

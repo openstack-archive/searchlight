@@ -148,6 +148,7 @@ class TestSearchLoad(functional.FunctionalTest):
         metadefs_query = MATCH_ALL.copy()
         metadefs_query['index'] = self.metadefs_plugin.get_index_name()
         metadefs_query['type'] = self.metadefs_plugin.get_document_type()
+        metadefs_query['sort'] = {'namespace': {'order': 'asc'}}
         response, json_content = futils.search_request(self.base_url,
                                                        metadefs_query,
                                                        self.metadefs_owner)

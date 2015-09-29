@@ -18,7 +18,6 @@ import datetime
 import mock
 
 from searchlight.elasticsearch.plugins.glance import metadefs as md_plugin
-from searchlight.elasticsearch.plugins import openstack_clients
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -131,16 +130,13 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
 
         self.plugin = md_plugin.MetadefIndex()
 
-        mock_ks_client = mock.Mock()
-        mock_ks_client.service_catalog.url_for.return_value = \
-            'http://localhost/glance/v2'
-        patched_ks_client = mock.patch.object(
-            openstack_clients,
-            'get_keystoneclient',
-            return_value=mock_ks_client
-        )
-        patched_ks_client.start()
-        self.addCleanup(patched_ks_client.stop)
+        mock_session = mock.Mock()
+        mock_session.get_endpoint.return_value = 'http://localhost/glance/v2'
+        patched_ses = mock.patch(
+            'searchlight.elasticsearch.plugins.openstack_clients._get_session',
+            return_value=mock_session)
+        patched_ses.start()
+        self.addCleanup(patched_ses.stop)
 
     def _create_namespaces(self):
         self.namespaces = [

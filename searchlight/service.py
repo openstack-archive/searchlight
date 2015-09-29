@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import os
 import socket
 import sys
 
@@ -42,47 +41,6 @@ OPTS = [
                     'disable timeout.'),
 ]
 CONF.register_opts(OPTS)
-
-CLI_OPTS = [
-    cfg.StrOpt('os-username',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_USERNAME', 'searchlight'),
-               help='User name to use for OpenStack service access.'),
-    cfg.StrOpt('os-password',
-               deprecated_group="DEFAULT",
-               secret=True,
-               default=os.environ.get('OS_PASSWORD', 'admin'),
-               help='Password to use for OpenStack service access.'),
-    cfg.StrOpt('os-tenant-id',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_TENANT_ID', ''),
-               help='Tenant ID to use for OpenStack service access.'),
-    cfg.StrOpt('os-tenant-name',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_TENANT_NAME', 'admin'),
-               help='Tenant name to use for OpenStack service access.'),
-    cfg.StrOpt('os-cacert',
-               default=os.environ.get('OS_CACERT'),
-               help='Certificate chain for SSL validation.'),
-    cfg.StrOpt('os-auth-url',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_AUTH_URL',
-                                      'http://localhost:5000/v2.0'),
-               help='Auth URL to use for OpenStack service access.'),
-    cfg.StrOpt('os-region-name',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_REGION_NAME'),
-               help='Region name to use for OpenStack service endpoints.'),
-    cfg.StrOpt('os-endpoint-type',
-               default=os.environ.get('OS_ENDPOINT_TYPE', 'publicURL'),
-               help='Type of endpoint in Identity service catalog to use for '
-                    'communication with OpenStack services.'),
-    cfg.BoolOpt('insecure',
-                default=False,
-                help='Disables X.509 certificate validation when an '
-                     'SSL connection to Identity Service is established.'),
-]
-CONF.register_cli_opts(CLI_OPTS, group="service_credentials")
 
 LOG = log.getLogger(__name__)
 _DEFAULT_LOG_LEVELS = ['keystonemiddleware=WARN', 'stevedore=WARN']
