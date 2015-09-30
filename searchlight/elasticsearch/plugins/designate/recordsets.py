@@ -68,6 +68,10 @@ class RecordSetIndex(base.IndexBase):
             }
         }
 
+    @property
+    def facets_with_options(self):
+        return ('status', 'type')
+
     def _get_rbac_field_filters(self, request_context):
         return [
             {"term": {"project_id": request_context.owner}}
