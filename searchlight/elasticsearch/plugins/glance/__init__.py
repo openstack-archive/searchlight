@@ -149,6 +149,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
     namespace_fields = ('namespace', 'display_name', 'description',
                         'visibility', 'owner', 'protected', 'created_at')
     document = {f: metadef_namespace.get(f, None) for f in namespace_fields}
+    document['id'] = document['namespace']
 
     document['tags'] = sorted([
         _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])

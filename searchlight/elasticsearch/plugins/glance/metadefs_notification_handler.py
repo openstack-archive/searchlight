@@ -228,6 +228,7 @@ class MetadefHandler(base.NotificationBase):
         for key in self.namespace_delete_keys:
             if key in payload.keys():
                 del payload[key]
+        payload['id'] = payload['namespace']
         return payload
 
     def format_object(self, payload):
