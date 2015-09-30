@@ -18,6 +18,7 @@ import mock
 
 from searchlight.elasticsearch.plugins.designate import \
     recordsets as recordsets_plugin
+from searchlight.tests.unit import utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
 
@@ -89,3 +90,55 @@ class TestZonePlugin(test_utils.BaseTestCase):
         set_to_test['updated_at'] = None
         serialized = self.plugin.serialize(set_to_test)
         self.assertEqual(created_now, serialized['updated_at'])
+
+    def test_facets(self):
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=False
+        )
+
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        mock_engine.search.return_value = {
+            'aggregations': {
+                'status': {
+                    'buckets': [{'key': 'pending', 'doc_count': 2}]
+                },
+                'type': {
+                    'buckets': [{'key': 'A', 'doc_count': 2}]
+                }
+            }
+        }
+
+        facets = self.plugin.get_facets(fake_request.context)
+
+        status_facet = list(filter(lambda f: f['name'] == 'status', facets))[0]
+        expected_status = {
+            'name': 'status',
+            'options': [{'key': 'pending', 'doc_count': 2}],
+            'type': 'string'
+        }
+        self.assertEqual(expected_status, status_facet)
+
+        expected_agg_query = {
+            'aggs': {
+                'status': {'terms': {'field': 'status'}},
+                'type': {'terms': {'field': 'type'}}
+            },
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'and': [
+                            {'term': {'project_id': TENANT1}}
+                        ]
+                    }
+                }
+            }
+        }
+        mock_engine.search.assert_called_with(
+            index=self.plugin.get_index_name(),
+            doc_type=self.plugin.get_document_type(),
+            body=expected_agg_query,
+            ignore_unavailable=True,
+            search_type='count'
+        )
