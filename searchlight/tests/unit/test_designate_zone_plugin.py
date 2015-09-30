@@ -66,10 +66,20 @@ class TestZonePlugin(test_utils.BaseTestCase):
         self.addCleanup(patched_ses.stop)
 
     def _create_fixtures(self):
-        self.zone1 = _zone_fixture(ID1, TENANT1, name='test.com.', type='A')
-        self.zone2 = _zone_fixture(ID2, TENANT1, name='other.com.', type='A')
-        self.zone3 = _zone_fixture(ID3, TENANT2, name='tenant2.com.', type='A')
+        self.zone1 = _zone_fixture(ID1, TENANT1, name='test.com.',
+                                   type='PRIMARY')
+        self.zone2 = _zone_fixture(ID2, TENANT1, name='other.com.',
+                                   type='PRIMARY')
+        self.zone3 = _zone_fixture(ID3, TENANT2, name='tenant2.com.',
+                                   type='PRIMARY')
         self.zones = (self.zone1, self.zone2, self.zone3)
+
+    def test_missing_updated(self):
+        """Designate records don't always have a value for 'updated'"""
+        zone_to_test = dict(self.zone1)
+        zone_to_test['updated_at'] = None
+        serialized = self.plugin.serialize(zone_to_test)
+        self.assertEqual(created_now, serialized['updated_at'])
 
     def test_facets(self):
         fake_request = unit_test_utils.get_fake_request(
@@ -85,7 +95,7 @@ class TestZonePlugin(test_utils.BaseTestCase):
                     'buckets': [{'key': 'pending', 'doc_count': 2}]
                 },
                 'type': {
-                    'buckets': [{'key': 'A', 'doc_count': 2}]
+                    'buckets': [{'key': 'PRIMARY', 'doc_count': 2}]
                 }
             }
         }

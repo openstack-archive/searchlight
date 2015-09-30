@@ -88,7 +88,9 @@ class ZoneIndex(base.IndexBase):
             yield zone
 
     def serialize(self, obj):
-        obj.pop("links")
+        obj.pop("links", None)
+        if not obj['updated_at'] and obj['created_at']:
+            obj['updated_at'] = obj['created_at']
         return obj
 
     def get_notification_handler(self):
