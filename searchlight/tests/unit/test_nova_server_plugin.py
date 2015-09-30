@@ -473,6 +473,33 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             search_type='count'
         )
 
+    def test_facets_no_mapping(self):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=True
+        )
+
+        mock_engine.search.return_value = {
+            'aggregations': {
+                'status': {'buckets': []},
+                'image.id': {'doc_count': 0}
+            }
+        }
+
+        facets = self.plugin.get_facets(fake_request.context)
+
+        status_facet = list(filter(lambda f: f['name'] == 'status',
+                                   facets))[0]
+        image_facet = list(filter(lambda f: f['name'] == 'image.id',
+                                  facets))[0]
+        expected_status = {'name': 'status', 'options': [], 'type': 'string'}
+        expected_image = {'name': 'image.id', 'options': [], 'type': 'string'}
+
+        self.assertEqual(expected_status, status_facet)
+        self.assertEqual(expected_image, image_facet)
+
     def test_created_at_updated_at(self):
         self.assertTrue('created_at' not in self.instance1.to_dict())
         self.assertTrue('updated_at' not in self.instance1.to_dict())
