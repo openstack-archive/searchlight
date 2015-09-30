@@ -602,6 +602,93 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             self.deserializer.search,
             request)
 
+    def test_rbac_non_admin(self):
+        """Test that a non-admin request results in an RBACed query"""
+        request = unit_test_utils.get_fake_request(is_admin=False)
+        request.body = six.b(jsonutils.dumps({
+            'query': {'match_all': {}},
+            'type': 'OS::Nova::Server',
+        }))
+        output = self.deserializer.search(request)
+
+        nova_rbac_filter = {
+            'indices': {
+                'filter': {
+                    'and': [{
+                        'term': {
+                            'tenant_id': '6838eb7b-6ded-dead-beef-b344c77fe8df'
+                        }},
+                        {'type': {'value': 'OS::Nova::Server'}}
+                    ]},
+                'index': 'searchlight',
+                'no_match_filter': 'none'
+            }
+        }
+
+        expected_query = {
+            'query': {
+                'bool': {
+                    'should': [{
+                        'filtered': {
+                            'filter': [nova_rbac_filter],
+                            'query': {u'match_all': {}}
+                        }
+                    }]
+                }
+            }
+        }
+
+        self.assertEqual(expected_query, output['query'])
+
+    def test_rbac_admin(self):
+        """Test that admins have RBAC applied unless 'all_projects' is true"""
+        request = unit_test_utils.get_fake_request(is_admin=True)
+        request.body = six.b(jsonutils.dumps({
+            'query': {'match_all': {}},
+            'type': 'OS::Nova::Server',
+        }))
+        output = self.deserializer.search(request)
+
+        nova_rbac_filter = {
+            'indices': {
+                'filter': {
+                    'and': [{
+                        'term': {
+                            'tenant_id': '6838eb7b-6ded-dead-beef-b344c77fe8df'
+                        }},
+                        {'type': {'value': 'OS::Nova::Server'}}
+                    ]},
+                'index': 'searchlight',
+                'no_match_filter': 'none'
+            }
+        }
+        expected_query = {
+            'query': {
+                'bool': {
+                    'should': [{
+                        'filtered': {
+                            'filter': [nova_rbac_filter],
+                            'query': {u'match_all': {}}
+                        }
+                    }]
+                }
+            }
+        }
+
+        self.assertEqual(expected_query, output['query'])
+
+        request.body = six.b(jsonutils.dumps({
+            'query': {'match_all': {}},
+            'type': 'OS::Nova::Server',
+            'all_projects': True,
+        }))
+        output = self.deserializer.search(request)
+
+        expected_query = {
+            'query': {'match_all': {}},
+        }
+        self.assertEqual(expected_query, output['query'])
+
 
 class TestIndexDeserializer(test_utils.BaseTestCase):
 

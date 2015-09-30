@@ -54,7 +54,9 @@ images:
 * If the current user is the resource owner OR
 * If the resource is marked public
 
-Some resources may have additional rules. Administrators have access to all resources.
+Some resources may have additional rules. Administrators have access to all resources,
+though by default searches are restricted to the current tenant unless ``all_projects``
+is set in the search request body.
 
 Querying available plugins
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -205,6 +207,25 @@ Results are shown here only where it would help illustrate the example. The
 `query DSL <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-queries.html>`_.
 There are normally multiple ways to represent the same query, often with some
 subtle differences, but some common examples are shown here.
+
+Administrators - search all resources
+*************************************
+By default, all users see search results restricted by access control; in
+practice, this is a combination of resources belonging to the user's current
+tenant/project, and any fields that are restricted to administrators.
+
+Administrators also have the option to view all resources, by passing
+``all_projects`` in the search request body. For instance, a ``POST`` to
+``http://searchlight.example.com/searchlight/v1/search``::
+
+    {
+        "query": {
+            "match_all": {}
+        },
+        "all_projects": true
+    }
+
+
 
 Restricting document index or type
 **********************************
