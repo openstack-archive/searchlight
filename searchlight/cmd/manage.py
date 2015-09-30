@@ -50,7 +50,9 @@ class IndexCommands(object):
           help='Index only this type (or a comma seperated list)')
     @args('--force', dest='force', action='store_true',
           help="Don't prompt (answer 'y')")
-    def sync(self, index=None, _type=None, force=False):
+    @args('--no-delete', dest='clear', action='store_false',
+          help="Don't delete existing data")
+    def sync(self, index=None, _type=None, force=False, clear=False):
         # Verify all indices and types have registered plugins.
         # index and _type are lists because of nargs='*'
         index = index.split(',') if index else []
@@ -87,10 +89,16 @@ class IndexCommands(object):
             print("\nResource types (and indices) matching selection:\n%s\n" %
                   '\n'.join(map(format_selection, plugins_to_index)))
 
-            ans = raw_input(
-                "Indexing will delete existing data and mapping(s) before "
-                "reindexing.\nUse '--force' to suppress this "
-                "message.\nOK to continue? [y/n]: ")
+            if clear:
+                ans = raw_input(
+                    "Indexing will delete existing data and mapping(s) before "
+                    "reindexing.\nUse '--force' to suppress this "
+                    "message.\nOK to continue? [y/n]: ")
+            else:
+                ans = raw_input(
+                    "Indexing will NOT delete existing data or mapping(s). It "
+                    "will reindex all resources. \nUse '--force' to suppress "
+                    "this message.\nOK to continue? [y/n]: ")
             if ans.lower() != 'y':
                 print("Aborting.")
                 sys.exit(0)
@@ -98,7 +106,7 @@ class IndexCommands(object):
         for resource_type, ext in plugins_to_index:
             plugin_obj = ext.obj
             try:
-                plugin_obj.initial_indexing(clear=True)
+                plugin_obj.initial_indexing(clear=clear)
             except Exception as e:
                 LOG.error(_LE("Failed to setup index extension "
                               "%(ext)s: %(e)s") % {'ext': ext.name,
