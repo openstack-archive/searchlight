@@ -84,7 +84,7 @@ class CatalogSearchRepo(object):
         return {'plugins': sorted(plugin_list,
                                   key=operator.itemgetter('name'))}
 
-    def facets(self, for_index=None, for_doc_type=None, all_projects=False):
+    def facets(self, for_index, for_doc_type, all_projects, limit_terms):
         facets = {}
         for resource_type, plugin in six.iteritems(self.plugins):
             index_name = plugin.obj.get_index_name()
@@ -92,5 +92,6 @@ class CatalogSearchRepo(object):
             if ((not for_index or index_name == for_index) and
                     (not for_doc_type or doc_type == for_doc_type)):
                 facets[resource_type] = plugin.obj.get_facets(self.context,
-                                                              all_projects)
+                                                              all_projects,
+                                                              limit_terms)
         return facets

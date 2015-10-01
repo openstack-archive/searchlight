@@ -121,10 +121,8 @@ class TestZonePlugin(test_utils.BaseTestCase):
         self.assertEqual(expected_status, status_facet)
 
         expected_agg_query = {
-            'aggs': {
-                'status': {'terms': {'field': 'status'}},
-                'type': {'terms': {'field': 'type'}}
-            },
+            'aggs': dict(unit_test_utils.simple_facet_field_agg(name)
+                         for name in ('status', 'type')),
             'query': {
                 'filtered': {
                     'filter': {

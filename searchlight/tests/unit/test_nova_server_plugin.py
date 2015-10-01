@@ -368,12 +368,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             'security_groups.name')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
-        aggs.update({
-            'status': {'terms': {'field': 'status'}},
-            'OS-EXT-AZ:availability_zone': {
-                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
-            },
-        })
+
+        simple_facet_option_fields = (
+            'status', 'OS-EXT-AZ:availability_zone'
+        )
+        aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
+                         for name in simple_facet_option_fields))
+
         expected_agg_query = {
             'aggs': aggs,
             'query': {
@@ -453,14 +454,12 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             'security_groups.name')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
-        aggs.update({
-            'status': {'terms': {'field': 'status'}},
-            'OS-EXT-AZ:availability_zone': {
-                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
-            },
-            'OS-EXT-SRV-ATTR:host': {
-                'terms': {'field': 'OS-EXT-SRV-ATTR:host'}},
-        })
+
+        simple_facet_option_fields = (
+            'status', 'OS-EXT-AZ:availability_zone', 'OS-EXT-SRV-ATTR:host'
+        )
+        aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
+                         for name in simple_facet_option_fields))
 
         expected_agg_query = {
             'aggs': aggs,
@@ -504,12 +503,11 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             'security_groups.name')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
-        aggs.update({
-            'status': {'terms': {'field': 'status'}},
-            'OS-EXT-AZ:availability_zone': {
-                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
-            },
-        })
+
+        simple_facet_option_fields = ('status', 'OS-EXT-AZ:availability_zone')
+        aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
+                         for name in simple_facet_option_fields))
+
         expected_agg_query = {
             'aggs': aggs,
             'query': {
@@ -530,7 +528,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             search_type='count'
         )
 
-        # Admins can pass all_projects
+        # Admins can request all_projects
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=True
         )
@@ -542,14 +540,11 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             'security_groups.name')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
-        aggs.update({
-            'status': {'terms': {'field': 'status'}},
-            'OS-EXT-AZ:availability_zone': {
-                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
-            },
-            'OS-EXT-SRV-ATTR:host': {
-                'terms': {'field': 'OS-EXT-SRV-ATTR:host'}},
-        })
+        simple_facet_option_fields = (
+            'status', 'OS-EXT-AZ:availability_zone', 'OS-EXT-SRV-ATTR:host'
+        )
+        aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
+                         for name in simple_facet_option_fields))
 
         # No query here
         expected_agg_query = {

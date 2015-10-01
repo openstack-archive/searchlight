@@ -43,15 +43,15 @@ def get_fake_request(user=SOMEUSER, tenant=SOMETENANT, path='/v1/search',
     return req
 
 
-def simple_facet_field_agg(name):
-    return name, {'terms': {'field': name}}
+def simple_facet_field_agg(name, size=0):
+    return name, {'terms': {'field': name, 'size': size}}
 
 
-def complex_facet_field_agg(name):
+def complex_facet_field_agg(name, size=0):
     name_subbed = name.replace('.', '__')
     return name_subbed, {
         'aggs': {
-            name_subbed: {'terms': {'field': name}}
+            name_subbed: {'terms': {'field': name, 'size': size}}
         },
         'nested': {'path': name.split('.')[0]}
     }
