@@ -168,7 +168,7 @@ def fork_exec(cmd,
 
     This is needed for programs system executions that need path
     searching but cannot have a shell as their parent process, for
-    example: glance-api.  When glance-api starts it sets itself as
+    example: searchlight-api.  When searchlight-api starts, it sets itself as
     the parent process for its own process group.  Thus the pid that
     a Popen process would have is not the right pid to use for killing
     the process group.  This patch gives the test env direct access
