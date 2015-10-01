@@ -73,7 +73,7 @@ class Enforcer(policy.Enforcer):
     def check(self, context, action, target):
         """Verifies that the action is valid on the target in this context.
 
-           :param context: Glance request context
+           :param context: Searchlight request context
            :param action: String representing the action to be checked
            :param target: Dictionary representing the object of the action.
            :returns: A non-False value if access is allowed.
@@ -89,7 +89,7 @@ class Enforcer(policy.Enforcer):
         """Check if the given context is associated with an admin role,
            as defined via the 'context_is_admin' RBAC rule.
 
-           :param context: Glance request context
+           :param context: Searchlight request context
            :returns: A non-False value if context role is admin.
         """
         return self.check(context, 'context_is_admin', context.to_dict())
