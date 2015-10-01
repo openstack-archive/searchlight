@@ -45,6 +45,8 @@ class ImageIndex(base.IndexBase):
             'dynamic': True,
             'properties': {
                 'id': {'type': 'string', 'index': 'not_analyzed'},
+                'kernel_id': {'type': 'string', 'index': 'not_analyzed'},
+                'ramdisk_id': {'type': 'string', 'index': 'not_analyzed'},
                 'name': {
                     'type': 'string',
                     'fields': {

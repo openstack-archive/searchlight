@@ -64,8 +64,7 @@ def serialize_glance_image(image):
 
     members = _get_image_members(image)
 
-    fields_to_ignore = ['ramdisk_id', 'schema', 'kernel_id', 'file',
-                        'locations']
+    fields_to_ignore = ['schema', 'file', 'locations']
 
     document = {k: v for k, v in image.items() if k not in fields_to_ignore}
 

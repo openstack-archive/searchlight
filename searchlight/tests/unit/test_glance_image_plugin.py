@@ -42,6 +42,7 @@ UUID1 = 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d'
 UUID2 = 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc'
 UUID3 = '971ec09a-8067-4bc8-a91f-ae3557f1c4c7'
 UUID4 = '6bbe7cc2-eae7-4c0f-b50d-a7160b0c6a86'
+UUID5 = 'KERNEL-eae7-4c0f-b50d-RAMDISK'
 
 CHECKSUM = '93264c3edf5972c9f1cb309543d38a5c'
 
@@ -151,9 +152,15 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             {'member_id': TENANT3, 'status': 'accepted'},
             {'member_id': TENANT4, 'status': 'pending'},
         ]
-
+        self.kernel_ramdisk_image = _image_fixture(
+            UUID5, owner=TENANT1, checksum=CHECKSUM, name='kernel_ramdisk',
+            size=256, visibility='public', status='active',
+            kernel_id='KERNEL-ID-SEARCH-LIGHT-ROCKS',
+            ramdisk_id='RAMDISK-ID-GO-BRONCOS',
+        )
         self.images = [self.simple_image, self.tagged_image,
-                       self.complex_image, self.members_image]
+                       self.complex_image, self.members_image,
+                       self.kernel_ramdisk_image]
 
     def test_index_name(self):
         self.assertEqual('searchlight', self.plugin.get_index_name())
@@ -175,6 +182,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'kernel_id': None,
             'members': [],
             'min_disk': None,
             'min_ram': None,
@@ -198,6 +206,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc',
+            'kernel_id': None,
             'members': [],
             'min_disk': None,
             'min_ram': None,
@@ -222,6 +231,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'disk_format': None,
             'hypervisor': 'lxc',
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'kernel_id': None,
             'members': [],
             'min_disk': None,
             'min_ram': None,
@@ -247,6 +257,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'kernel_id': None,
             'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
                         '2c014f32-55eb-467d-8fcb-4bd706012f81',
                         '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'],
@@ -267,6 +278,31 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         with mock.patch('glanceclient.v2.image_members.Controller.list',
                         return_value=self.members_image_members):
             serialized = self.plugin.serialize(self.members_image)
+        self.assertEqual(expected, serialized)
+
+    def test_image_kernel_ramdisk_serialize(self):
+        expected = {
+            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+            'container_format': None,
+            'disk_format': None,
+            'id': UUID5,
+            'kernel_id': 'KERNEL-ID-SEARCH-LIGHT-ROCKS',
+            'ramdisk_id': 'RAMDISK-ID-GO-BRONCOS',
+            'members': [],
+            'min_disk': None,
+            'min_ram': None,
+            'name': 'kernel_ramdisk',
+            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'protected': False,
+            'size': 256,
+            'status': 'active',
+            'tags': [],
+            'virtual_size': None,
+            'visibility': 'public',
+            'created_at': DATE1,
+            'updated_at': DATE1
+        }
+        serialized = self.plugin.serialize(self.kernel_ramdisk_image)
         self.assertEqual(expected, serialized)
 
     def test_setup_data(self):
@@ -291,86 +327,107 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
 
                     mock_save.assert_called_once_with([
                         {
-                            'status': 'active',
+                            'kernel_id': None,
                             'tags': [],
-                            'container_format': None,
+                            'protected': False,
+                            'min_disk': None,
                             'min_ram': None,
+                            'virtual_size': None,
+                            'size': 256,
+                            'container_format': None,
+                            'status': 'active',
+                            'updated_at': '2012-05-16T15:27:36Z',
+                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+                            'members': [],
                             'visibility': 'public',
                             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
-                            'min_disk': None,
-                            'members': [],
-                            'virtual_size': None,
-                            'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
-                            'size': 256,
+                            'disk_format': None,
                             'name': 'simple',
-                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
-                            'disk_format': None,
-                            'protected': False,
-                            'created_at': DATE1,
-                            'updated_at': DATE1
+                            'created_at': '2012-05-16T15:27:36Z',
+                            'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d'
                         },
                         {
-                            'status': 'active',
+                            'kernel_id': None,
                             'tags': ['ping', 'pong'],
-                            'container_format': None,
-                            'min_ram': None,
-                            'visibility': 'public',
-                            'members': [],
-                            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                            'protected': False,
                             'min_disk': None,
+                            'min_ram': None,
                             'virtual_size': None,
-                            'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc',
                             'size': 512,
-                            'name': 'tagged',
-                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
-                            'disk_format': None,
-                            'protected': False,
-                            'created_at': DATE1,
-                            'updated_at': DATE1
-                        },
-                        {
-                            'status': 'active',
-                            'tags': [],
                             'container_format': None,
-                            'min_ram': None,
-                            'visibility': 'public',
+                            'status': 'active',
+                            'updated_at': '2012-05-16T15:27:36Z',
+                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
                             'members': [],
-                            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
-                            'min_disk': None,
-                            'virtual_size': None,
-                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
-                            'size': 256,
-                            'name': 'complex',
-                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
-                            'mysql_version': '5.6',
+                            'visibility': 'public',
+                            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
                             'disk_format': None,
-                            'protected': False,
+                            'name': 'tagged',
+                            'created_at': '2012-05-16T15:27:36Z',
+                            'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc'},
+                        {
+                            'kernel_id': None,
+                            'tags': [], 'protected': False,
+                            'min_disk': None,
+                            'min_ram': None,
+                            'virtual_size': None,
+                            'size': 256,
+                            'container_format': None,
+                            'status': 'active',
+                            'updated_at': '2012-05-16T15:27:36Z',
+                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+                            'members': [],
+                            'mysql_version': '5.6',
+                            'visibility': 'public',
                             'hypervisor': 'lxc',
-                            'created_at': DATE1,
-                            'updated_at': DATE1
+                            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+                            'name': 'complex',
+                            'created_at': '2012-05-16T15:27:36Z',
+                            'disk_format': None
                         },
                         {
-                            'status': 'active',
-                            'tags': [],
-                            'container_format': None,
+                            'kernel_id': None, 'tags': [],
+                            'protected': False,
+                            'min_disk': None,
                             'min_ram': None,
-                            'visibility': 'private',
-                            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                            'virtual_size': None,
+                            'size': 256,
+                            'container_format': None,
+                            'status': 'active',
+                            'updated_at': '2012-05-16T15:27:36Z',
+                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
                             'members': [
                                 '6838eb7b-6ded-434a-882c-b344c77fe8df',
                                 '2c014f32-55eb-467d-8fcb-4bd706012f81',
                                 '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'
                             ],
-                            'min_disk': None,
-                            'virtual_size': None,
-                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
-                            'size': 256,
-                            'name': 'complex',
-                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+                            'visibility': 'private',
+                            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
                             'disk_format': None,
-                            'protected': False,
-                            'created_at': DATE1,
-                            'updated_at': DATE1
+                            'name': 'complex',
+                            'created_at': '2012-05-16T15:27:36Z',
+                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7'
+                        },
+                        {
+                            'kernel_id': 'KERNEL-ID-SEARCH-LIGHT-ROCKS',
+                            'tags': [], 'protected': False,
+                            'min_disk': None,
+                            'ramdisk_id': 'RAMDISK-ID-GO-BRONCOS',
+                            'min_ram': None,
+                            'virtual_size': None,
+                            'size': 256,
+                            'container_format': None,
+                            'status': 'active',
+                            'updated_at': '2012-05-16T15:27:36Z',
+                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+                            'members': [],
+                            'visibility': 'public',
+                            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                            'disk_format': None,
+                            'name': 'kernel_ramdisk',
+                            'created_at': '2012-05-16T15:27:36Z',
+                            'id': 'KERNEL-eae7-4c0f-b50d-RAMDISK'
                         }
                     ])
 
@@ -442,6 +499,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'kernel_id': None,
             'members': [],
             'min_disk': None,
             'min_ram': None,
