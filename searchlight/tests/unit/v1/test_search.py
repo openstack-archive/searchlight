@@ -689,9 +689,16 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }
         self.assertEqual(expected_query, output['query'])
 
+    def test_default_facet_options(self):
+        request = unit_test_utils.get_fake_request(path='/v1/search/facets')
+        output = self.deserializer.facets(request)
+
+        expected = {'index_name': None, 'doc_type': None,
+                    'all_projects': False, 'limit_terms': 0}
+        self.assertEqual(expected, output)
+
 
 class TestIndexDeserializer(test_utils.BaseTestCase):
-
     def setUp(self):
         super(TestIndexDeserializer, self).setUp()
         self.deserializer = search.RequestDeserializer(

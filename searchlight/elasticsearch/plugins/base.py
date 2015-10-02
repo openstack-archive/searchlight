@@ -110,7 +110,7 @@ class IndexBase(object):
             chunk_size=self.chunk_size,
             actions=actions)
 
-    def get_facets(self, request_context, all_projects=False):
+    def get_facets(self, request_context, all_projects=False, limit_terms=0):
         """Get facets available for searching, in the form of a list of
         dicts with keys "name", "type" and optionally "options" if a field
         should have discreet allowed values
@@ -150,7 +150,8 @@ class IndexBase(object):
         facet_terms_for = set(self.facets_with_options) & included_fields
         facet_terms = self._get_facet_terms(facet_terms_for,
                                             request_context,
-                                            all_projects)
+                                            all_projects,
+                                            limit_terms)
         for facet in facets:
             if facet['name'] in facet_terms:
                 facet['options'] = facet_terms[facet['name']]
@@ -169,7 +170,8 @@ class IndexBase(object):
         """An iterable of facet names that support facet options"""
         return ()
 
-    def _get_facet_terms(self, fields, request_context, all_projects):
+    def _get_facet_terms(self, fields, request_context,
+                         all_projects, limit_terms):
         term_aggregations = {}
         for facet in fields:
             if isinstance(facet, tuple):
@@ -183,13 +185,16 @@ class IndexBase(object):
                     "aggs": {
                         # TODO(sjmc7): Handle deeper nesting?
                         facet_name.replace('.', '__'): {
-                            'terms': {'field': actual_field}
+                            'terms': {
+                                'field': actual_field,
+                                'size': limit_terms
+                            },
                         }
                     }
                 }
             else:
                 term_aggregations[facet_name] = {
-                    'terms': {'field': actual_field}
+                    'terms': {'field': actual_field, 'size': limit_terms}
                 }
         if term_aggregations:
             body = {
