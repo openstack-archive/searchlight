@@ -19,6 +19,8 @@ from oslo_utils import encodeutils
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance \
+    import serialize_glance_image_members
+from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_notification
 
 LOG = logging.getLogger(__name__)
@@ -36,7 +38,10 @@ class ImageHandler(base.NotificationBase):
             actions = {
                 "image.create": self.create_or_update,
                 "image.update": self.create_or_update,
-                "image.delete": self.delete
+                "image.delete": self.delete,
+                "image.member.create": self.sync_members,
+                "image.member.update": self.sync_members,
+                "image.member.delete": self.sync_members
             }
             actions[event_type](payload)
             return oslo_messaging.NotificationResult.HANDLED
@@ -62,4 +67,19 @@ class ImageHandler(base.NotificationBase):
             index=self.index_name,
             doc_type=self.document_type,
             id=id
+        )
+
+    def sync_members(self, payload):
+        image_id = payload['image_id']
+        image_es = self.engine.get(
+            index=self.index_name,
+            doc_type=self.document_type,
+            id=image_id
+        )
+        payload = serialize_glance_image_members(image_es['_source'], payload)
+        self.engine.index(
+            index=self.index_name,
+            doc_type=self.document_type,
+            body=payload,
+            id=image_id
         )

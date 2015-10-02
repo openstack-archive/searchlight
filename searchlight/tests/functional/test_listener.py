@@ -18,6 +18,7 @@ import elasticsearch
 import json
 import mock
 import six
+import uuid
 
 from searchlight.elasticsearch.plugins.glance import images
 from searchlight.elasticsearch.plugins.glance import metadefs
@@ -31,6 +32,8 @@ from searchlight.tests.utils import skip_if_disabled
 MATCH_ALL = {"query": {"match_all": {}}}
 IMAGES_EVENTS_FILE = "searchlight/tests/functional/data/events/images.json"
 METADEF_EVENTS_FILE = "searchlight/tests/functional/data/events/metadefs.json"
+
+OWNER1 = str(uuid.uuid4())
 
 
 class TestSearchListener(functional.FunctionalTest):
@@ -183,6 +186,56 @@ class TestSearchListener(functional.FunctionalTest):
         delete_event = self.image_events["image.delete"]
         self._send_event_to_listener(delete_event)
         self._verify_event_processing(delete_event, 0)
+
+    def test_image_member_create_event(self):
+        """Send member.create notification event to listener"""
+
+        create_event = self.image_events["image.create"]
+        self._send_event_to_listener(create_event)
+
+        create_event = self.image_events["image.member.create"]
+        self._send_event_to_listener(create_event)
+        result = self._verify_event_processing(create_event, owner=OWNER1)
+
+        # member.create event will have status of "pending" which should not
+        # add the member to the image.members list
+        self.assertEqual(0,
+                         len(result['hits']['hits'][0]['_source']['members']))
+
+    def test_image_member_update_event(self):
+        """Send member.update notification event to listener"""
+
+        create_event = self.image_events["image.create"]
+        self._send_event_to_listener(create_event)
+
+        update_event = self.image_events["image.member.update"]
+        self._send_event_to_listener(update_event)
+        result = self._verify_event_processing(update_event, owner=OWNER1)
+
+        # member.update event with the status of "accepted" which should
+        # add the member to the image.members list
+        self.assertEqual(1,
+                         len(result['hits']['hits'][0]['_source']['members']))
+
+    def test_image_member_delete_event(self):
+        """Send member.delete notification event to listener"""
+
+        create_event = self.image_events["image.create"]
+        self._send_event_to_listener(create_event)
+
+        update_event = self.image_events["image.member.update"]
+        self._send_event_to_listener(update_event)
+        result = self._verify_event_processing(update_event, owner=OWNER1)
+        self.assertEqual(1,
+                         len(result['hits']['hits'][0]['_source']['members']))
+
+        delete_event = self.image_events["image.member.delete"]
+        self._send_event_to_listener(delete_event)
+        result = self._verify_event_processing(delete_event, owner=OWNER1)
+
+        # member.delete event should remove the member
+        self.assertEqual(0,
+                         len(result['hits']['hits'][0]['_source']['members']))
 
     def test_md_namespace_create_event(self):
         """Send metadef_namespace.create notification event to listener"""

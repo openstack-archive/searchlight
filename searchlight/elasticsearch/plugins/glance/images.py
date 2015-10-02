@@ -133,4 +133,6 @@ class ImageIndex(base.IndexBase):
         ])
 
     def get_notification_supported_events(self):
-        return ['image.create', 'image.update', 'image.delete']
+        return ['image.create', 'image.update', 'image.delete',
+                'image.member.create', 'image.member.update',
+                'image.member.delete']
