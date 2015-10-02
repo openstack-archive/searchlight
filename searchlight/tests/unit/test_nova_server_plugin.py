@@ -463,6 +463,96 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         })
 
         expected_agg_query = {
+            'aggs': aggs,
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'and': [
+                            {'term': {'tenant_id': TENANT1}}
+                        ]
+                    }
+                }
+            }
+        }
+        mock_engine.search.assert_called_with(
+            index=self.plugin.get_index_name(),
+            doc_type=self.plugin.get_document_type(),
+            body=expected_agg_query,
+            ignore_unavailable=True,
+            search_type='count'
+        )
+
+    def test_facets_all_projects(self):
+        # For non admins, all_projects should have no effect
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        # Don't really care about the return values
+        mock_engine.search.return_value = {
+            'aggregations': {}
+        }
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=False
+        )
+
+        self.plugin.get_facets(fake_request.context, all_projects=True)
+
+        complex_facet_option_fields = (
+            'image.id', 'flavor.id', 'networks.name',
+            'networks.OS-EXT-IPS:type', 'networks.version',
+            'security_groups.name')
+        aggs = dict(unit_test_utils.complex_facet_field_agg(name)
+                    for name in complex_facet_option_fields)
+        aggs.update({
+            'status': {'terms': {'field': 'status'}},
+            'OS-EXT-AZ:availability_zone': {
+                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
+            },
+        })
+        expected_agg_query = {
+            'aggs': aggs,
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'and': [
+                            {'term': {'tenant_id': TENANT1}}
+                        ]
+                    }
+                }
+            }
+        }
+        mock_engine.search.assert_called_with(
+            index=self.plugin.get_index_name(),
+            doc_type=self.plugin.get_document_type(),
+            body=expected_agg_query,
+            ignore_unavailable=True,
+            search_type='count'
+        )
+
+        # Admins can pass all_projects
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=True
+        )
+
+        self.plugin.get_facets(fake_request.context, all_projects=True)
+        complex_facet_option_fields = (
+            'image.id', 'flavor.id', 'networks.name',
+            'networks.OS-EXT-IPS:type', 'networks.version',
+            'security_groups.name')
+        aggs = dict(unit_test_utils.complex_facet_field_agg(name)
+                    for name in complex_facet_option_fields)
+        aggs.update({
+            'status': {'terms': {'field': 'status'}},
+            'OS-EXT-AZ:availability_zone': {
+                'terms': {'field': 'OS-EXT-AZ:availability_zone'}
+            },
+            'OS-EXT-SRV-ATTR:host': {
+                'terms': {'field': 'OS-EXT-SRV-ATTR:host'}},
+        })
+
+        # No query here
+        expected_agg_query = {
             'aggs': aggs
         }
         mock_engine.search.assert_called_with(

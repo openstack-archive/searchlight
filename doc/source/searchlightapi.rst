@@ -519,3 +519,8 @@ It's also possible to request facets for a particular type by adding a
       ...
     ]
   }
+
+As with searches, administrators are able to request facet terms for all
+projects/tenants. By default, facet terms are limited to the currently scoped
+project; adding ``all_projects=true`` as a query parameter removes the
+restriction.

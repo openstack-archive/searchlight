@@ -110,7 +110,7 @@ class IndexBase(object):
             chunk_size=self.chunk_size,
             actions=actions)
 
-    def get_facets(self, request_context):
+    def get_facets(self, request_context, all_projects=False):
         """Get facets available for searching, in the form of a list of
         dicts with keys "name", "type" and optionally "options" if a field
         should have discreet allowed values
@@ -149,7 +149,8 @@ class IndexBase(object):
         included_fields = set(f['name'] for f in facets)
         facet_terms_for = set(self.facets_with_options) & included_fields
         facet_terms = self._get_facet_terms(facet_terms_for,
-                                            request_context)
+                                            request_context,
+                                            all_projects)
         for facet in facets:
             if facet['name'] in facet_terms:
                 facet['options'] = facet_terms[facet['name']]
@@ -168,7 +169,7 @@ class IndexBase(object):
         """An iterable of facet names that support facet options"""
         return ()
 
-    def _get_facet_terms(self, fields, request_context):
+    def _get_facet_terms(self, fields, request_context, all_projects):
         term_aggregations = {}
         for facet in fields:
             if isinstance(facet, tuple):
@@ -194,7 +195,7 @@ class IndexBase(object):
             body = {
                 'aggs': term_aggregations,
             }
-            if not request_context.is_admin:
+            if not (request_context.is_admin and all_projects):
                 plugin_filters = self._get_rbac_field_filters(request_context)
                 if plugin_filters:
                     body['query'] = {
