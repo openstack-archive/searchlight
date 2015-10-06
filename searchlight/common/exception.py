@@ -17,18 +17,12 @@
 """Searchlight exception subclasses"""
 
 import six
-import six.moves.urllib.parse as urlparse
 
 from searchlight import i18n
 
 _ = i18n._
 
 _FATAL_EXCEPTION_FORMAT_ERRORS = False
-
-
-class RedirectException(Exception):
-    def __init__(self, url):
-        self.url = urlparse.urlparse(url)
 
 
 class SearchlightException(Exception):
@@ -63,50 +57,12 @@ class SearchlightException(Exception):
         return six.text_type(self.msg)
 
 
-class MissingCredentialError(SearchlightException):
-    message = _("Missing required credential: %(required)s")
-
-
-class BadAuthStrategy(SearchlightException):
-    message = _("Incorrect auth strategy, expected \"%(expected)s\" but "
-                "received \"%(received)s\"")
-
-
 class NotFound(SearchlightException):
     message = _("An object with the specified identifier was not found.")
 
 
-class BadStoreUri(SearchlightException):
-    message = _("The Store URI was malformed.")
-
-
 class Duplicate(SearchlightException):
     message = _("An object with the same identifier already exists.")
-
-
-class Conflict(SearchlightException):
-    message = _("An object with the same identifier is currently being "
-                "operated on.")
-
-
-class AuthBadRequest(SearchlightException):
-    message = _("Connect error/bad request to Auth service at URL %(url)s.")
-
-
-class AuthUrlNotFound(SearchlightException):
-    message = _("Auth service at URL %(url)s not found.")
-
-
-class AuthorizationFailure(SearchlightException):
-    message = _("Authorization failed.")
-
-
-class NotAuthenticated(SearchlightException):
-    message = _("You are not authenticated.")
-
-
-class UploadException(SearchlightException):
-    message = _('Image upload problem: %s')
 
 
 class Forbidden(SearchlightException):
@@ -117,114 +73,16 @@ class Invalid(SearchlightException):
     message = _("Data supplied was not valid.")
 
 
-class InvalidSortKey(Invalid):
-    message = _("Sort key supplied was not valid.")
-
-
-class InvalidSortDir(Invalid):
-    message = _("Sort direction supplied was not valid.")
-
-
 class InvalidPropertyProtectionConfiguration(Invalid):
     message = _("Invalid configuration in property protection file.")
-
-
-class InvalidFilterRangeValue(Invalid):
-    message = _("Unable to filter using the specified range.")
-
-
-class InvalidOptionValue(Invalid):
-    message = _("Invalid value for option %(option)s: %(value)s")
-
-
-class ReadonlyProperty(Forbidden):
-    message = _("Attribute '%(property)s' is read-only.")
 
 
 class ReservedProperty(Forbidden):
     message = _("Attribute '%(property)s' is reserved.")
 
 
-class AuthorizationRedirect(SearchlightException):
-    message = _("Redirecting to %(uri)s for authorization.")
-
-
-class ClientConnectionError(SearchlightException):
-    message = _("There was an error connecting to a server")
-
-
-class ClientConfigurationError(SearchlightException):
-    message = _("There was an error configuring the client.")
-
-
-class MultipleChoices(SearchlightException):
-    message = _("The request returned a 302 Multiple Choices. This generally "
-                "means that you have not included a version indicator in a "
-                "request URI.\n\nThe body of response returned:\n%(body)s")
-
-
-class LimitExceeded(SearchlightException):
-    message = _("The request returned a 413 Request Entity Too Large. This "
-                "generally means that rate limiting or a quota threshold was "
-                "breached.\n\nThe response body:\n%(body)s")
-
-    def __init__(self, *args, **kwargs):
-        self.retry_after = (int(kwargs['retry']) if kwargs.get('retry')
-                            else None)
-        super(LimitExceeded, self).__init__(*args, **kwargs)
-
-
-class ServiceUnavailable(SearchlightException):
-    message = _("The request returned 503 Service Unavailable. This "
-                "generally occurs on service overload or other transient "
-                "outage.")
-
-    def __init__(self, *args, **kwargs):
-        self.retry_after = (int(kwargs['retry']) if kwargs.get('retry')
-                            else None)
-        super(ServiceUnavailable, self).__init__(*args, **kwargs)
-
-
-class ServerError(SearchlightException):
-    message = _("The request returned 500 Internal Server Error.")
-
-
-class UnexpectedStatus(SearchlightException):
-    message = _("The request returned an unexpected status: %(status)s."
-                "\n\nThe response body:\n%(body)s")
-
-
 class InvalidContentType(SearchlightException):
     message = _("Invalid content type %(content_type)s")
-
-
-class BadRegistryConnectionConfiguration(SearchlightException):
-    message = _("Registry was not configured correctly on API server. "
-                "Reason: %(reason)s")
-
-
-class BadDriverConfiguration(SearchlightException):
-    message = _("Driver %(driver_name)s could not be configured correctly. "
-                "Reason: %(reason)s")
-
-
-class MaxRedirectsExceeded(SearchlightException):
-    message = _("Maximum redirects (%(redirects)s) was exceeded.")
-
-
-class InvalidRedirect(SearchlightException):
-    message = _("Received invalid HTTP redirect.")
-
-
-class NoServiceEndpoint(SearchlightException):
-    message = _("Response from Keystone does not contain a Searchlight"
-                " endpoint.")
-
-
-class RegionAmbiguity(SearchlightException):
-    message = _("Multiple 'image' service matches for region %(region)s. This "
-                "generally means that a region is required and you have not "
-                "supplied one.")
 
 
 class WorkerCreationFailure(SearchlightException):
@@ -240,38 +98,8 @@ class InvalidObject(SearchlightException):
                 "'%(schema)s': %(reason)s")
 
 
-class UnsupportedHeaderFeature(SearchlightException):
-    message = _("Provided header feature is unsupported: %(feature)s")
-
-
 class SIGHUPInterrupt(SearchlightException):
     message = _("System SIGHUP signal received.")
-
-
-class RPCError(SearchlightException):
-    message = _("%(cls)s exception was raised in the last rpc call: %(val)s")
-
-
-class DuplicateLocation(Duplicate):
-    message = _("The location %(location)s already exists")
-
-
-class ImageDataNotFound(NotFound):
-    message = _("No image data could be found")
-
-
-class InvalidParameterValue(Invalid):
-    message = _("Invalid value '%(value)s' for parameter '%(param)s': "
-                "%(extra_msg)s")
-
-
-class InvalidImageStatusTransition(Invalid):
-    message = _("Image status transition from %(cur_status)s to"
-                " %(new_status)s is not allowed")
-
-
-class InvalidVersion(Invalid):
-    message = _("Version is invalid: %(reason)s")
 
 
 class JsonPatchException(SearchlightException):
