@@ -43,45 +43,89 @@ Configuring Plugins
 
 After installation, plugins are configured in ``searchlight-api.conf``.
 
-Default Plugin Configuration
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-All plugins inherit their configuration from a default configuration group of
-``[resource_plugin:default]`` in ``searchlight-api.conf``. For example::
-
-    [resource_plugin:default]
-    enabled = true
-    index_name = searchlight
-
-The below table shows the available default configuration options. It is only
-necessary to specify a configuration option in ``searchlight-api.conf`` if
-you want to use a value other than the default value specified below.
-
-+--------------------+---------------+-------------------------------------+---------------------------+
-| Option             | Default value | Description                         | Action(s) Required        |
-+====================+===============+=====================================+===========================+
-| enabled            | true          | An installed plugin may be enabled  | | Restart services        |
-|                    |               | or disabled. When disabled, it will | | Re-index affected types |
-|                    |               | not be available for bulk indexing, |                           |
-|                    |               | notification listening, or          |                           |
-|                    |               | searching.                          |                           |
-+--------------------+---------------+-------------------------------------+---------------------------+
-| index_name         | searchlight   | The ElasticSearch index where the   | | Restart services        |
-|                    |               | plugin resource documents will be   | | Re-index affected types |
-|                    |               | stored in. It is recommended to not |                           |
-|                    |               | change this unlesss needed.         |                           |
-+--------------------+---------------+-------------------------------------+---------------------------+
-
 .. note::
 
     After making changes to ``searchlight-api.conf`` you must perform the
-    actions indicated in the table. Action notes:
+    actions indicated in the tables below.
 
     1. ``Restart services``: Restart all running ``searchlight-api`` *and*
        ``searchlight-listener`` processes.
 
     2. ``Re-index affected types``: You will need to re-index any resource
        types affected by the change. (See :doc:`indexingservice`).
+
+.. note::
+
+    Unless you are changing to a non-default value, you do not need to
+    specify any of the following configuration options.
+
+Common Plugin Configuration Options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are common configuration options that all plugins honor. They are split
+between inheritable configuration options and those that must always be
+specified individually.
+
+**Inheritable Common Configuration Options**
+
+Some configuration options may be specified in a default configuration group
+of ``[resource_plugin]`` in ``searchlight-api.conf`` and optionally overridden
+in a specific plugin's configuration.
+
+For example::
+
+    [resource_plugin]
+    index_name = searchlight
+
+Inheritable options are listed below:
+
++---------------------+---------------+-------------------------------------+---------------------------+
+| Option              | Default value | Description                         | Action(s) Required        |
++=====================+===============+=====================================+===========================+
+| index_name          | searchlight   | The ElasticSearch index where the   | | Restart services        |
+|                     |               | plugin resource documents will be   | | Re-index affected types |
+|                     |               | stored in. It is recommended to not |                           |
+|                     |               | change this unless needed.          |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+
+**Non-Inheritable Common Configuration Options**
+
+There are other common configuration options that all plugins honor, but must
+be specified directly in that plugin's configuration group. They are
+are not inherited from the ``[resource_plugin]`` configuration group.
+
+See :ref:`individual-plugin-configuration` for more information and examples
+on individual plugin configuration.
+
+Non-inheritable options are listed below:
+
++---------------------+---------------+-------------------------------------+---------------------------+
+| Option              | Default value | Description                         | Action(s) Required        |
++=====================+===============+=====================================+===========================+
+| enabled             | true          | An installed plugin may be enabled  | | Restart services        |
+|                     |               | or disabled. When disabled, it will | | Re-index affected types |
+|                     |               | not be available for bulk indexing, |                           |
+|                     |               | notification listening, or          |                           |
+|                     |               | searching.                          |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+| unsearchable_fields | <none>        | A comma separated list of fields    |                           |
+|                     |               | (wildcards allowed) that are stored |                           |
+|                     |               | in ElasticSearch, but can not be    |                           |
+|                     |               | searched on regardless of the       |                           |
+|                     |               | user's role (admin or not).         |                           |
+|                     |               | The fields will still be returned   |                           |
+|                     |               | in search results for admin users,  |                           |
+|                     |               | but not normal users. These fields  |                           |
+|                     |               | are typically specified for search  |                           |
+|                     |               | performance, search accuracy,       |                           |
+|                     |               | or security reasons.                |                           |
+|                     |               | If a plugin has a hard-coded        |                           |
+|                     |               | mapping for a specific field, it    |                           |
+|                     |               | will take precedence over this      |                           |
+|                     |               | configuration option.               |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+
+.. _individual-plugin-configuration:
 
 Individual Plugin Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
