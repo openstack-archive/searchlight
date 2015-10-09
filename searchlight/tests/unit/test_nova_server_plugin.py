@@ -408,10 +408,6 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 'status': {
                     'buckets': [{'key': 'ACTIVE', 'doc_count': 2}]
                 },
-                'OS-EXT-SRV-ATTR:host': {
-                    'buckets': [{'key': 'bert', 'doc_count': 5},
-                                {'key': 'ernie', 'doc_count': 2}]
-                },
                 'OS-EXT-AZ:availability_zone': {'buckets': []},
                 'image.id': {'buckets': [{'key': imagea['id'],
                                           'doc_count': 1}]},
@@ -437,17 +433,6 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         # Check unprotected fields are still present
         self.assertTrue(list(filter(lambda f: f['name'] == 'status', facets)))
 
-        # Check protected fields are present
-        host_facet = list(filter(lambda f: f['name'] == 'OS-EXT-SRV-ATTR:host',
-                                 facets))[0]
-        expected_host = {
-            'name': 'OS-EXT-SRV-ATTR:host',
-            'options': [{'key': 'bert', 'doc_count': 5},
-                        {'key': 'ernie', 'doc_count': 2}],
-            'type': 'string'
-        }
-        self.assertEqual(expected_host, host_facet)
-
         complex_facet_option_fields = (
             'image.id', 'flavor.id', 'networks.name',
             'networks.OS-EXT-IPS:type', 'networks.version',
@@ -456,7 +441,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                     for name in complex_facet_option_fields)
 
         simple_facet_option_fields = (
-            'status', 'OS-EXT-AZ:availability_zone', 'OS-EXT-SRV-ATTR:host'
+            'status', 'OS-EXT-AZ:availability_zone'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))
@@ -541,7 +526,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
         simple_facet_option_fields = (
-            'status', 'OS-EXT-AZ:availability_zone', 'OS-EXT-SRV-ATTR:host'
+            'status', 'OS-EXT-AZ:availability_zone'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))

@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
 from searchlight.elasticsearch.plugins.nova \
@@ -27,10 +25,8 @@ LIST_LIMIT = 100
 
 
 class ServerIndex(base.IndexBase):
-    # Properties restricted to admins only. hostId seems not to be
-    # considered sensitive because it doesn't directly identify hosts,
-    # just whether your VMs are cohabiting
-    ADMIN_ONLY_PROPERTIES = u'(OS-EXT-SRV-ATTR:.*)$'
+    # Will be combined with 'unsearchable_fields' from config
+    UNSEARCHABLE_FIELDS = ['OS-EXT-SRV-ATTR:*']
 
     def __init__(self):
         super(ServerIndex, self).__init__()
@@ -94,10 +90,7 @@ class ServerIndex(base.IndexBase):
                     'type': 'string',
                     'index': 'not_analyzed'
                 },
-                'OS-EXT-SRV-ATTR:host': {
-                    'type': 'string',
-                    'index': 'not_analyzed'
-                },
+
                 'security_groups': {
                     'type': 'nested',
                     'properties': {
@@ -109,8 +102,13 @@ class ServerIndex(base.IndexBase):
         }
 
     @property
+    def unsearchable_fields(self):
+        from_conf = super(ServerIndex, self).unsearchable_fields
+        return ServerIndex.UNSEARCHABLE_FIELDS + from_conf
+
+    @property
     def facets_with_options(self):
-        return ('OS-EXT-AZ:availability_zone', 'OS-EXT-SRV-ATTR:host',
+        return ('OS-EXT-AZ:availability_zone',
                 'status', 'image.id', 'flavor.id', 'networks.name',
                 'networks.OS-EXT-IPS:type', 'networks.version',
                 'security_groups.name')
@@ -121,7 +119,7 @@ class ServerIndex(base.IndexBase):
         fields should not be offered as facet options, or those that should
         only be available to administrators.
         """
-        return {'OS-EXT-SRV-ATTR:host': True, 'tenant_id': True,
+        return {'tenant_id': True,
                 'created': False, 'updated': False}
 
     def _get_rbac_field_filters(self, request_context):
@@ -131,13 +129,6 @@ class ServerIndex(base.IndexBase):
         return [
             {'term': {'tenant_id': request_context.owner}}
         ]
-
-    def filter_result(self, hit, request_context):
-        if not request_context.is_admin:
-            source = hit['_source']
-            for key in list(source.keys()):
-                if re.match(self.ADMIN_ONLY_PROPERTIES, key):
-                    del hit['_source'][key]
 
     def get_objects(self):
         """Generator that lists all nova servers owned by all tenants."""

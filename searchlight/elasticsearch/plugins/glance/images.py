@@ -98,6 +98,7 @@ class ImageIndex(base.IndexBase):
         ]
 
     def filter_result(self, hit, request_context):
+        super(ImageIndex, self).filter_result(hit, request_context)
         if property_utils.is_property_protection_enabled():
             source = hit['_source']
             for key in list(source.keys()):
