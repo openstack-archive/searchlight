@@ -63,6 +63,7 @@ class TestSearchApi(functional.FunctionalTest):
             plugin.options = mock.Mock()
             plugin.options.index_name = "searchlight"
             plugin.options.enabled = True
+            plugin.options.unsearchable_fields = None
 
             plugin.engine = self.elastic_connection
             plugin.index_name = plugin.get_index_name()

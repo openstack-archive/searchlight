@@ -15,6 +15,7 @@
 
 import abc
 from elasticsearch import helpers
+import fnmatch
 import logging
 from oslo_config import cfg
 from oslo_config import types
@@ -87,6 +88,17 @@ class IndexBase(plugin.Plugin):
     def setup_mapping(self):
         """Update index document mapping."""
         index_mapping = self.get_mapping()
+        dynamic_templates = index_mapping.setdefault("dynamic_templates", [])
+        for unsearchable_field in self.unsearchable_fields:
+            dynamic_templates.append({
+                unsearchable_field: {
+                    'match': unsearchable_field,
+                    'mapping': {
+                        'index': 'no',
+                        'include_in_all': False
+                    }
+                }
+            })
 
         if index_mapping:
             self.engine.indices.put_mapping(index=self.index_name,
@@ -150,7 +162,8 @@ class IndexBase(plugin.Plugin):
                         facets.extend(get_facets_for(properties['properties'],
                                                      "%s%s." % (prefix, name)))
                 else:
-                    if include_facet(name):
+                    indexed = properties.get('index', None) != 'no'
+                    if indexed and include_facet(name):
                         facets.append({
                             'name': prefix + name,
                             'type': properties['type']
@@ -341,7 +354,18 @@ class IndexBase(plugin.Plugin):
 
     def filter_result(self, hit, request_context):
         """Filter each outgoing search result; document in hit['_source']"""
-        pass
+        if self.admin_only_fields and not request_context.is_admin:
+            admin_only_fields = self.admin_only_fields
+            source = hit['_source']
+            for key in list(source.keys()):
+                # fnmatch technically is 'filename match', but all it really
+                # is is a unix shell-style wildcard matcher which supports
+                # ? and *, and therefore models elasticsearch's wildcard format
+                # for pattern matching (though that does not include '?')
+                for aof in admin_only_fields:
+                    if fnmatch.fnmatch(key, aof):
+                        del hit['_source'][key]
+                        break
 
     def get_settings(self):
         """Get an index settings."""
@@ -378,11 +402,26 @@ class IndexBase(plugin.Plugin):
     def get_plugin_name(cls):
         return cls.get_document_type().replace("::", "_").lower()
 
+    @property
+    def unsearchable_fields(self):
+        unsearchable = self.options.unsearchable_fields
+        if not unsearchable:
+            return []
+        return self.options.unsearchable_fields.split(',')
+
+    @property
+    def admin_only_fields(self):
+        """Fields excluded from search results for non-admins"""
+        # For now, default to unsearchable_fields until we have a separate
+        # admin index.
+        return self.unsearchable_fields
+
     @classmethod
     def get_plugin_opts(cls):
         opts = [
             cfg.StrOpt("index_name"),
-            cfg.BoolOpt("enabled", default=True)
+            cfg.BoolOpt("enabled", default=True),
+            cfg.StrOpt("unsearchable_fields")
         ]
         # TODO(sjmc7): Make this more flexible
         topic_exchanges = ["searchlight_indexer,%s" % i for i in
