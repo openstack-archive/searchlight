@@ -40,13 +40,10 @@ The search service is driven using a plugin mechanism for integrating to other
 services. Each integrated service may require additional configuration
 settings. For example, typically, you will need to add the
 ``searchlight_indexer`` notification topic to each service's configuration.
-Please review the plugins and add configuration appropriately.
 
-.. toctree::
-   :maxdepth: 1
-   :glob:
+Please review the plugin documentation and add configuration appropriately:
 
-   plugins/*
+ * `Searchlight Plugins <http://docs.openstack.org/developer/searchlight/plugins.html>`_
 
 4. Run ``stack.sh``
 

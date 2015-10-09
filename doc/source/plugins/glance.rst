@@ -17,21 +17,34 @@
 Glance Plugin Guide
 *******************
 
-Glance Configuration
-====================
-
-Turn on Notifications::
-
-Open glance.api.conf and make the following changes::
-
-    notification_driver = messaging
-    rpc_backend = 'rabbit'
-    notification_topics = notifications, searchlight_indexer
-
-Restart glance API (g-api).
+Integration is provided via a plugin. There are multiple configuration
+settings required for proper indexing and incremental updates. Some of the
+settings are specified in Searchlight configuration files. Others are
+provided in other service configuration files.
 
 Searchlight Configuration
 =========================
+
+Searchlight resource configuration options are shown below with their
+configuration file and default values. You only need to update the
+below configuration options if you decide to change any options to
+a non-default value.
+
+See :ref:`searchlight-plugins` for default values and general configuration
+information.
+
+searchlight-api.conf
+--------------------
+
+Plugin: OS::Glance::Image
+^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_glance_image]
+    enabled = true
+    index_name = searchlight
+
+Property Protections
 
 Glance uses a property protections mechanism to ensure that certain
 properties are limited to only people with the appropriate permissions.
@@ -39,51 +52,77 @@ Searchlight includes the same functionality and must be deployed with
 the same property protections files and configured to use that file. A
 sample configuration file is included in the repo and may be used for testing.
 
-To configure it::
+To configure it, add a property_protection_file property with a path
+to the file in searchlight-api.conf. For example::
 
-Open the searchlight-api.conf file for editing (use editor of your choice)
+    property_protection_file = /etc/searchlight/property-protections-roles.conf
 
+Plugin: OS::Glance::Metadef
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-  $ editor searchlight-api.conf
-
-Suggested changes::
-
-    property_protection_file = ~/openstack/searchlight/etc/property-protections-roles.conf
-
-Glance-specific plugin configuration options and their defaults are below::
-
-    [resource_plugin:os_glance_image]
+    [resource_plugin:os_glance_metadef]
     enabled = true
     index_name = searchlight
 
-    [resource_plugin:os_glance_metadefs]
-    enabled = true
-    index_name = searchlight
+See also: `Metadata Definitions <http://docs.openstack.org/developer/glance/metadefs-concepts.html>`_
+
+Glance Configuration
+====================
+
+The glance services must be configured properly to work with searchlight.
+
+glance-api.conf
+---------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Use the following::
+
+    notification_driver = messaging
+    notification_topics = notifications, searchlight_indexer
+    rpc_backend = 'rabbit'
+
+.. note::
+
+    Restart glance API (g-api) after making changes.
+
+local.conf (devstack)
+---------------------
+
+The settings above may be automatically configured by ``stack.sh``
+by adding them to the following post config section in devstack.
+Just place the following in local.conf and copy the above settings
+underneath it.::
+
+    [[post-config|$GLANCE_API_CONF]]
+    [DEFAULT]
 
 Release Notes
 =============
 
-Liberty
--------
+0.1.0.0 (Liberty)
+-----------------
 
 Glance did not generate notifications for Image Member updates up to and
-including Liberty release.
+including the Liberty release.
 
-Search results will include correct results when the visibility is `public`
-or `private`, but `shared` images will only be included in search results
-for the owning project without additional deployment configuration.
+This means that search results will include correct results when the image
+visibility is ``public`` or ``private``, but ``shared`` images will only be
+included in search results for the owning project without additional deployment
+configuration.
 
-The patch (https://review.openstack.org/221307) implements this feature and will
-be included/merged in Glance Mitaka release.
+The patch (https://review.openstack.org/221307) implements this feature and
+will be included/merged in the Glance Mitaka release.
 
-Searchlight developers/installers should apply the above patch in Glance when using
-Searchlight with Glance Liberty release.
+Searchlight developers/installers should apply the above patch in Glance when
+using Searchlight with the Glance Liberty release.
 
-Alternatively, you may set up a cron job to reindex glance images periodically.
+Alternatively, you may set up a cron job to re-index glance images
+periodically to get updated membership information.
 
-You should use the --no-delete option to prevent the index from temporarily not
-containing any data::
+You should use the ``--no-delete`` option to prevent the index from
+temporarily not containing any data (which otherwise would happen with a full
+bulk indexing job)::
 
     searchlight-manage index sync --type OS::Glance::Image --force --no-delete
 
