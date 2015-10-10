@@ -194,7 +194,12 @@ The search service is driven using a plugin mechanism for integrating to other
 services. Each integrated service may require additional configuration
 settings. For example, typically, you will need to add the
 ``searchlight_indexer`` notification topic to each service's configuration.
-Please review the plugins and add configuration appropriately.
+
+See :ref:`searchlight-plugins` for plugin installation and general
+configuration information.
+
+See each plugin below for detailed information about specific plugins:
+
 
 .. toctree::
    :maxdepth: 1

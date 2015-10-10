@@ -26,12 +26,15 @@ Searchlight Configuration
 =========================
 
 Searchlight resource configuration options are shown below with their
-configuration file and default values. You only need to update the
-below configuration options if you decide to change any options to
-a non-default value.
+configuration file and default values.
 
-See :ref:`searchlight-plugins` for default values and general configuration
-information.
+See :ref:`searchlight-plugins` for common options with their default values,
+general configuration information, and an example complete configuration.
+
+.. note::
+
+    Unless you are changing to a non-default value, you do not need to
+    specify any of the following configuration options.
 
 searchlight-api.conf
 --------------------
@@ -44,7 +47,7 @@ Plugin: OS::Glance::Image
     enabled = true
     index_name = searchlight
 
-Property Protections
+**Glance Image Property Protections**
 
 Glance uses a property protections mechanism to ensure that certain
 properties are limited to only people with the appropriate permissions.
@@ -52,10 +55,12 @@ Searchlight includes the same functionality and must be deployed with
 the same property protections files and configured to use that file. A
 sample configuration file is included in the repo and may be used for testing.
 
-To configure it, add a property_protection_file property with a path
-to the file in searchlight-api.conf. For example::
+To configure it, add a ``property_protection_file`` property with a path
+to the file in ``searchlight-api.conf``. For example::
 
     property_protection_file = /etc/searchlight/property-protections-roles.conf
+
+See also: `Glance Property Protections <http://docs.openstack.org/developer/glance/property-protections.html>`_
 
 Plugin: OS::Glance::Metadef
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -65,12 +70,12 @@ Plugin: OS::Glance::Metadef
     enabled = true
     index_name = searchlight
 
-See also: `Metadata Definitions <http://docs.openstack.org/developer/glance/metadefs-concepts.html>`_
+See also: `Metadata Definitions Catalog <http://docs.openstack.org/developer/glance/metadefs-concepts.html>`_
 
 Glance Configuration
 ====================
 
-The glance services must be configured properly to work with searchlight.
+The Glance services must be configured properly to work with searchlight.
 
 glance-api.conf
 ---------------

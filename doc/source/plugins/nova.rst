@@ -26,12 +26,15 @@ Searchlight Configuration
 =========================
 
 Searchlight resource configuration options are shown below with their
-configuration file and default values. You only need to update the
-below configuration options if you decide to change any options to
-a non-default value.
+configuration file and default values.
 
-See :ref:`searchlight-plugins` for default values and general configuration
-information.
+See :ref:`searchlight-plugins` for common options with their default values,
+general configuration information, and an example complete configuration.
+
+.. note::
+
+    Unless you are changing to a non-default value, you do not need to
+    specify any of the following configuration options.
 
 searchlight-api.conf
 --------------------

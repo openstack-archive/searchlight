@@ -26,12 +26,15 @@ Searchlight Configuration
 =========================
 
 Searchlight resource configuration options are shown below with their
-configuration file and default values. You only need to update the
-below configuration options if you decide to change any options to
-a non-default value.
+configuration file and default values.
 
-See :ref:`searchlight-plugins` for default values and general configuration
-information.
+See :ref:`searchlight-plugins` for common options with their default values,
+general configuration information, and an example complete configuration.
+
+.. note::
+
+    Unless you are changing to a non-default value, you do not need to
+    specify any of the following configuration options.
 
 searchlight-api.conf
 --------------------
@@ -71,7 +74,8 @@ designate.conf
 Notifications must be configured properly for searchlight to process
 incremental updates. Use the following::
 
-    notification_driver = messaging,searchlight_indexer
+    notification_driver = messaging
+    notification_topics = notifications,searchlight_indexer
     rpc_backend = 'rabbit'
 
 Restart designate-central, designate-pool-manager, designate-zone-manager and
@@ -83,9 +87,10 @@ local.conf (devstack)
 .. note::
 
     Designate resource types are *not* enabled by default (``enabled = false``)
-    in the searchlight devstack script because designate is not
-    installed by default in devstack.  You have two options for enabling
-    designate resource types:
+    in the Searchlight devstack script because Designate is not
+    installed by default in devstack. If you have Designate installed in
+    devstack, you have two options for enabling designate resource types in
+    Searchlight:
 
     1. Prior to stacking: modify the searchlight post config section in
        ``local.conf`` by adding a ``[[post-config|$SEARCHLIGHT_CONF]]`` section.
