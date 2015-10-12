@@ -42,7 +42,6 @@ class ServerIndex(base.IndexBase):
                 'id': {'type': 'string', 'index': 'not_analyzed'},
                 'name': {
                     'type': 'string',
-                    'index': 'not_analyzed',
                     'fields': {
                         'raw': {'type': 'string', 'index': 'not_analyzed'}
                     }
