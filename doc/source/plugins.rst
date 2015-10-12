@@ -59,25 +59,66 @@ After installation, plugins are configured in ``searchlight-api.conf``.
     Unless you are changing to a non-default value, you do not need to
     specify any of the following configuration options.
 
-Common Plugin Configuration Options
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. _end-to-end-plugin-configuration-example:
 
-There are common configuration options that all plugins honor. They are split
-between inheritable configuration options and those that must always be
-specified individually.
+End to End Configuration Example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Inheritable Common Configuration Options**
-
-Some configuration options may be specified in a default configuration group
-of ``[resource_plugin]`` in ``searchlight-api.conf`` and optionally overridden
-in a specific plugin's configuration.
-
-For example::
+The following shows a sampling of various configuration options in
+``searchlight-api.conf``. These are **NOT** necessarily recommended
+or default configuration values. They are intended for exemplary purposes only.
+Please read the rest of the guide for detailed information.::
 
     [resource_plugin]
     index_name = searchlight
 
-Inheritable options are listed below:
+    [resource_plugin:os_server_nova]
+    index_name = nova
+    enabled = True
+    unsearchable_fields = OS-EXT-SRV*,OS-EXT-STS:vm_state
+
+    [resource_plugin:os_glance_image]
+    enabled = True
+
+    [resource_plugin:os_glance_metadef]
+    enabled = True
+
+    [resource_plugin:os_designate_zone]
+    enabled = False
+
+    [resource_plugin:os_designate_recordset]
+    enabled = False
+
+
+Common Plugin Configuration Options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+There are common configuration options that all plugins honor. They are split
+between *inheritable* options and *non-inheritable* options.
+
+**Inheritable** common configuration options may be specified in a default
+configuration group of ``[resource_plugin]`` in ``searchlight-api.conf`` and
+optionally overridden in a specific plugin's configuration. For example::
+
+    [resource_plugin]
+    index_name = searchlight
+
+    [resource_plugin:os_nova_server]
+    index_name = nova
+
+**Non-Inheritable** common configuration options are honored by all plugins,
+but must be specified directly in that plugin's configuration group. They are
+are not inherited from the ``[resource_plugin]`` configuration group. For
+example::
+
+    [resource_plugin:os_glance_image]
+    enabled = false
+
+See :ref:`individual-plugin-configuration` for more information and examples
+on individual plugin configuration.
+
+Inheritable Common Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +---------------------+---------------+-------------------------------------+---------------------------+
 | Option              | Default value | Description                         | Action(s) Required        |
@@ -88,28 +129,20 @@ Inheritable options are listed below:
 |                     |               | change this unless needed.          |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 
-**Non-Inheritable Common Configuration Options**
-
-There are other common configuration options that all plugins honor, but must
-be specified directly in that plugin's configuration group. They are
-are not inherited from the ``[resource_plugin]`` configuration group.
-
-See :ref:`individual-plugin-configuration` for more information and examples
-on individual plugin configuration.
-
-Non-inheritable options are listed below:
+Non-Inheritable Common Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +---------------------+---------------+-------------------------------------+---------------------------+
 | Option              | Default value | Description                         | Action(s) Required        |
 +=====================+===============+=====================================+===========================+
 | enabled             | true          | An installed plugin may be enabled  | | Restart services        |
-|                     |               | or disabled. When disabled, it will | | Re-index affected types |
-|                     |               | not be available for bulk indexing, |                           |
-|                     |               | notification listening, or          |                           |
-|                     |               | searching.                          |                           |
+|                     |               | (true) or disabled (false). When    | | Re-index affected types |
+|                     |               | disabled, it will not be available  |                           |
+|                     |               | for bulk indexing, notification     |                           |
+|                     |               | listening, or searching.            |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
-| unsearchable_fields | <none>        | A comma separated list of fields    |                           |
-|                     |               | (wildcards allowed) that are stored |                           |
+| unsearchable_fields | <none>        | A comma separated list of fields    | | Restart services        |
+|                     |               | (wildcards allowed) that are stored | | Re-index affected types |
 |                     |               | in ElasticSearch, but can not be    |                           |
 |                     |               | searched on regardless of the       |                           |
 |                     |               | user's role (admin or not).         |                           |
