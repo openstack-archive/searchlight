@@ -53,6 +53,12 @@ class MetadefIndex(base.IndexBase):
                 'description': {'type': 'string'},
                 'id': {'type': 'string', 'index': 'not_analyzed'},
                 'namespace': {'type': 'string', 'index': 'not_analyzed'},
+                'name': {
+                    'type': 'string',
+                    'fields': {
+                        'raw': {'type': 'string', 'index': 'not_analyzed'}
+                    }
+                },
                 'owner': {'type': 'string', 'index': 'not_analyzed'},
                 'visibility': {'type': 'string', 'index': 'not_analyzed'},
                 'resource_types': {

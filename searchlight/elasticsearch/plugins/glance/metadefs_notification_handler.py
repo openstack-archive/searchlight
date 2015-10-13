@@ -229,6 +229,10 @@ class MetadefHandler(base.NotificationBase):
             if key in payload.keys():
                 del payload[key]
         payload['id'] = payload['namespace']
+        if 'display_name' in payload and payload['display_name']:
+            payload['name'] = payload['display_name']
+        else:
+            payload['name'] = payload['namespace']
         return payload
 
     def format_object(self, payload):
