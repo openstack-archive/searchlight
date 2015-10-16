@@ -15,6 +15,7 @@
 
 import httplib2
 from oslo_serialization import jsonutils
+import six
 import uuid
 
 from searchlight.tests import functional
@@ -175,3 +176,135 @@ class TestSearchApi(functional.FunctionalTest):
                                                       TENANT1)
         self.assertEqual(200, response.status)
         self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
+
+    def test_facets(self):
+        """Check facets for a non-nested field (status)"""
+        servers_plugin = self.initialized_plugins['nova']['servers']
+        server1 = {
+            u'flavor': {u'id': u'1'},
+            u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
+            u'image': {u'id': u'a'},
+            u'name': u'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
+        }
+        server2 = {
+            u'flavor': {u'id': u'1'},
+            u'id': u'08ca6c43-eea8-48d0-bbb2-30c50109d5d8',
+            u'image': {u'id': u'a'},
+            u'name': u'instance2',
+            u'status': u'RESUMING',
+            u'tenant_id': TENANT1,
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
+        }
+        server3 = {
+            u'flavor': {u'id': u'1'},
+            u'id': u'08ca6c43-f0fa-48d0-48d0-53453522cda4',
+            u'image': {u'id': u'a'},
+            u'name': u'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
+        }
+        self._index(servers_plugin.get_index_name(),
+                    servers_plugin.get_document_type(),
+                    [server1, server2, server3],
+                    TENANT1)
+
+        response, json_content = self._facet_request(
+            TENANT1,
+            doc_type="OS::Nova::Server")
+
+        expected = {
+            u'name': u'status',
+            u'options': [
+                {u'doc_count': 2, u'key': u'ACTIVE'},
+                {u'doc_count': 1, u'key': u'RESUMING'},
+            ],
+            u'type': u'string'
+        }
+
+        status_facet = list(six.moves.filter(
+            lambda f: f['name'] == 'status',
+            json_content['OS::Nova::Server']
+        ))[0]
+        self.assertEqual(
+            expected,
+            status_facet,
+        )
+
+    def test_nested_facets(self):
+        """Check facets for a nested field (networks.OS-EXT-IPS:type). We
+        expect a single count per server matched, not per object in the
+        'networks' field
+        """
+        servers_plugin = self.initialized_plugins['nova']['servers']
+        server1 = {
+            u'networks': [{
+                u'ipv4_addr': u'127.0.0.1',
+                u'OS-EXT-IPS:type': u'fixed',
+                u'name': u'net4',
+            }, {
+                u'ipv4_addr': u'127.0.0.1',
+                u'OS-EXT-IPS:type': u'fixed',
+                u'name': u'net4',
+            }],
+            u'flavor': {u'id': u'1'},
+            u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
+            u'image': {u'id': u'a'},
+            u'name': u'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
+        }
+
+        server2 = {
+            u'networks': [{
+                u'ipv4_addr': u'127.0.0.1',
+                u'OS-EXT-IPS:type': u'fixed',
+                u'name': u'net4',
+            }, {
+                u'ipv4_addr': u'127.0.0.1',
+                u'OS-EXT-IPS:type': u'floating',
+                u'name': u'net4',
+            }],
+            u'flavor': {u'id': u'1'},
+            u'id': u'08ca6c43-eea8-48d0-bbb2-30c50109d5d8',
+            u'image': {u'id': u'a'},
+            u'name': u'instance2',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
+        }
+
+        self._index(servers_plugin.get_index_name(),
+                    servers_plugin.get_document_type(),
+                    [server1, server2],
+                    TENANT1)
+
+        response, json_content = self._facet_request(
+            TENANT1,
+            doc_type="OS::Nova::Server")
+
+        self.assertEqual(['OS::Nova::Server'],
+                         list(six.iterkeys(json_content)))
+
+        # server1 has two fixed addresses (which should be rolled up into one
+        # match). server2 has fixed and floating addresses.
+        expected = {
+            u'name': u'networks.OS-EXT-IPS:type',
+            u'options': [
+                {u'doc_count': 2, u'key': u'fixed'},
+                {u'doc_count': 1, u'key': u'floating'},
+            ],
+            u'type': u'string'
+        }
+        fixed_network_facet = list(six.moves.filter(
+            lambda f: f['name'] == 'networks.OS-EXT-IPS:type',
+            json_content['OS::Nova::Server']
+        ))[0]
+        self.assertEqual(
+            expected,
+            fixed_network_facet,
+        )

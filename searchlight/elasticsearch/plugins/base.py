@@ -24,6 +24,7 @@ from oslo_utils import encodeutils
 import six
 
 import searchlight.elasticsearch
+from searchlight.elasticsearch.plugins import utils
 from searchlight import i18n
 from searchlight import plugin
 
@@ -145,7 +146,6 @@ class IndexBase(plugin.Plugin):
         dicts with keys "name", "type" and optionally "options" if a field
         should have discreet allowed values
         """
-        facets = []
         exclude_facets = self.facets_excluded
         is_admin = request_context.is_admin
 
@@ -203,30 +203,8 @@ class IndexBase(plugin.Plugin):
 
     def _get_facet_terms(self, fields, request_context,
                          all_projects, limit_terms):
-        term_aggregations = {}
-        for facet in fields:
-            if isinstance(facet, tuple):
-                facet_name, actual_field = facet
-            else:
-                facet_name, actual_field = facet, facet
-            if '.' in facet_name:
-                # Needs a nested aggregate
-                term_aggregations[facet_name.replace('.', '__')] = {
-                    "nested": {"path": facet_name.split('.')[0]},
-                    "aggs": {
-                        # TODO(sjmc7): Handle deeper nesting?
-                        facet_name.replace('.', '__'): {
-                            'terms': {
-                                'field': actual_field,
-                                'size': limit_terms
-                            },
-                        }
-                    }
-                }
-            else:
-                term_aggregations[facet_name] = {
-                    'terms': {'field': actual_field, 'size': limit_terms}
-                }
+        term_aggregations = utils.get_facets_query(fields, limit_terms)
+
         if term_aggregations:
             body = {
                 'aggs': term_aggregations,
@@ -247,28 +225,12 @@ class IndexBase(plugin.Plugin):
                 ignore_unavailable=True,
                 search_type='count')
 
-            facet_terms = {}
-            result_aggregations = results.get('aggregations', {})
-            for term, aggregation in six.iteritems(result_aggregations):
-                if term in aggregation:
-                    # Again, deeper nesting question
-                    term_name = term.replace('__', '.')
-                    facet_terms[term_name] = aggregation[term]['buckets']
-                elif 'buckets' in aggregation:
-                    facet_terms[term] = aggregation['buckets']
-                else:
-                    # This can happen when there's no mapping defined at all..
-                    format_msg = {
-                        'field': term,
-                        'resource_type': self.get_document_type()
-                    }
-                    LOG.warning(_LW(
-                        "Unexpected aggregation structure for field "
-                        "'%(field)s' in %(resource_type)s. Is the mapping "
-                        "defined correctly?") % format_msg)
-                    facet_terms[term] = []
+            agg_results = results.get('aggregations', {})
+            facet_terms = utils.transform_facets_results(
+                agg_results,
+                self.get_document_type())
 
-            if not result_aggregations:
+            if not agg_results:
                 LOG.warning(_LW(
                     "No aggregations found for %(resource_type)s. There may "
                     "be a mapping problem.") %

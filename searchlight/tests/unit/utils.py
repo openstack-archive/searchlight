@@ -48,10 +48,16 @@ def simple_facet_field_agg(name, size=0):
 
 
 def complex_facet_field_agg(name, size=0):
-    name_subbed = name.replace('.', '__')
-    return name_subbed, {
+    return name, {
         'aggs': {
-            name_subbed: {'terms': {'field': name, 'size': size}}
+            name: {
+                'terms': {'field': name, 'size': size},
+                'aggs': {
+                    name + '__unique_docs': {
+                        'reverse_nested': {}
+                    }
+                }
+            }
         },
         'nested': {'path': name.split('.')[0]}
     }

@@ -460,7 +460,7 @@ class FunctionalTest(test_utils.BaseTestCase):
         base_headers.update(custom_headers)
         return base_headers
 
-    def _request(self, method, uri, tenant, body,
+    def _request(self, method, uri, tenant, body=None,
                  role="member", decode_json=True):
         custom_headers = {
             "X-Tenant-Id": tenant,
@@ -490,6 +490,14 @@ class FunctionalTest(test_utils.BaseTestCase):
         """
         return self._request("POST", "/search", tenant, body,
                              role, decode_json)
+
+    def _facet_request(self, tenant, doc_type=None, role="member",
+                       decode_json=True):
+        url = "/search/facets"
+        if doc_type:
+            url += '?type=%s' % doc_type
+        return self._request("GET", url, tenant, role=role,
+                             decode_json=decode_json)
 
     def _get_hit_source(self, es_response):
         """Parse the _source from the elasticsearch hits"""

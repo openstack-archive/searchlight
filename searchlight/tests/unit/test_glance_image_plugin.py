@@ -642,36 +642,22 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual(expected, serialized)
 
     def test_facets(self):
-        # Nova tests are more thorough; checking that the right fields are
-        # faceted
+        """Check that expected fields are faceted"""
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
+        mock_engine.search.return_value = {'aggregations': {}}
 
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=False
         )
 
-        mock_engine.search.return_value = {
-            'aggregations': {
-                'container_format': {'buckets': []},
-                'disk_format': {'buckets': [{'key': 'raw', 'doc_count': 3}]},
-                'tags': {'buckets': []},
-                'status': {'buckets': []},
-                'visibility': {'buckets': []},
-                'protected': {'buckets': []}
-            }
-        }
-
         facets = self.plugin.get_facets(fake_request.context)
+        facet_names = [f['name'] for f in facets]
 
-        disk_format_facets = list(filter(lambda f: f['name'] == 'disk_format',
-                                         facets))[0]
-        expected_disk_format_facet = {
-            'name': 'disk_format',
-            'options': [{'key': 'raw', 'doc_count': 3}],
-            'type': 'string'
-        }
-        self.assertEqual(expected_disk_format_facet, disk_format_facets)
+        # Glance has no nested fields and no special ones that would be faceted
+        expected_facet_names = self.plugin.get_mapping()['properties'].keys()
+
+        self.assertEqual(set(expected_facet_names), set(facet_names))
 
         facet_option_fields = ('disk_format', 'container_format', 'tags',
                                'visibility', 'status', 'protected')

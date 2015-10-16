@@ -331,37 +331,28 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
     def test_facets_non_admin(self):
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
-
-        mock_engine.search.return_value = {
-            'aggregations': {
-                'status': {'buckets': [{'key': 'ACTIVE', 'doc_count': 2}]},
-                'OS-EXT-AZ:availability_zone': {'buckets': []},
-                'image.id': {'buckets': [{'key': imagea['id'],
-                                          'doc_count': 1}]},
-                'flavor.id': {'buckets': [{'key': flavor1['id'],
-                                           'doc_count': 1}]}
-            }
-        }
+        # Don't care about the actual aggregation result; the base functions
+        # are tested separately.
+        mock_engine.search.return_value = {'aggregations': {}}
 
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=False
         )
 
         facets = self.plugin.get_facets(fake_request.context)
-        self.assertTrue(list(filter(lambda f: f['name'] == 'name', facets)))
-        self.assertFalse(
-            list(filter(lambda f: f['name'].startswith('OS-EXT-SRV-ATTR'),
-                        facets))
-        )
+        facet_names = [f['name'] for f in facets]
 
-        status_facet = list(filter(lambda f: f['name'] == 'status', facets))[0]
-        expected_status = {
-            'name': 'status',
-            'options': [{'key': 'ACTIVE', 'doc_count': 2}],
-            'type': 'string'
-        }
-        self.assertEqual(expected_status, status_facet)
+        network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
+                          'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
+        expected_facet_names = [
+            'OS-EXT-AZ:availability_zone', 'created_at', 'flavor.id', 'id',
+            'image.id', 'name', 'owner', 'security_groups.name', 'status',
+            'updated_at', 'user_id']
+        expected_facet_names.extend(['networks.' + f for f in network_facets])
 
+        self.assertEqual(set(expected_facet_names), set(facet_names))
+
+        # Test fields with options
         complex_facet_option_fields = (
             'image.id', 'flavor.id', 'networks.name',
             'networks.OS-EXT-IPS:type', 'networks.version',
@@ -398,40 +389,24 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
     def test_facets_admin(self):
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
+        mock_engine.search.return_value = {'aggregations': {}}
 
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=True
         )
 
-        mock_engine.search.return_value = {
-            'aggregations': {
-                'status': {
-                    'buckets': [{'key': 'ACTIVE', 'doc_count': 2}]
-                },
-                'OS-EXT-AZ:availability_zone': {'buckets': []},
-                'image.id': {'buckets': [{'key': imagea['id'],
-                                          'doc_count': 1}]},
-                'flavor.id': {'buckets': [{'key': flavor1['id'],
-                                           'doc_count': 1}]},
-                'security_groups': {'buckets': []},
-                'network.name': {'buckets': []},
-            }
-        }
-
         facets = self.plugin.get_facets(fake_request.context)
+        facet_names = [f['name'] for f in facets]
 
-        # Check created and updated fields aren't present, even for admins
-        self.assertFalse(list(filter(lambda f: f['name'] == 'created',
-                                     facets)))
-        self.assertFalse(list(filter(lambda f: f['name'] == 'updated',
-                                     facets)))
-        self.assertTrue(list(filter(lambda f: f['name'] == 'created_at',
-                                    facets)))
-        self.assertTrue(list(filter(lambda f: f['name'] == 'updated_at',
-                                    facets)))
+        network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
+                          'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
+        expected_facet_names = [
+            'OS-EXT-AZ:availability_zone', 'created_at', 'flavor.id', 'id',
+            'image.id', 'name', 'owner', 'security_groups.name', 'status',
+            'tenant_id', 'updated_at', 'user_id']
+        expected_facet_names.extend(['networks.' + f for f in network_facets])
 
-        # Check unprotected fields are still present
-        self.assertTrue(list(filter(lambda f: f['name'] == 'status', facets)))
+        self.assertEqual(set(expected_facet_names), set(facet_names))
 
         complex_facet_option_fields = (
             'image.id', 'flavor.id', 'networks.name',
@@ -481,37 +456,23 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         )
 
         self.plugin.get_facets(fake_request.context, all_projects=True)
-
-        complex_facet_option_fields = (
-            'image.id', 'flavor.id', 'networks.name',
-            'networks.OS-EXT-IPS:type', 'networks.version',
-            'security_groups.name')
-        aggs = dict(unit_test_utils.complex_facet_field_agg(name)
-                    for name in complex_facet_option_fields)
-
-        simple_facet_option_fields = ('status', 'OS-EXT-AZ:availability_zone')
-        aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
-                         for name in simple_facet_option_fields))
-
-        expected_agg_query = {
-            'aggs': aggs,
-            'query': {
-                'filtered': {
-                    'filter': {
-                        'and': [
-                            {'term': {'tenant_id': TENANT1}}
-                        ]
-                    }
+        expected_agg_query_filter = {
+            'filtered': {
+                'filter': {
+                    'and': [
+                        {'term': {'tenant_id': TENANT1}}
+                    ]
                 }
             }
         }
-        mock_engine.search.assert_called_with(
-            index=self.plugin.get_index_name(),
-            doc_type=self.plugin.get_document_type(),
-            body=expected_agg_query,
-            ignore_unavailable=True,
-            search_type='count'
-        )
+
+        # Call args are a tuple (name, posargs, kwargs)
+        search_call = mock_engine.search.mock_calls[0]
+        search_call_body = search_call[2]['body']
+        self.assertEqual(set(['aggs', 'query']), set(search_call_body.keys()))
+
+        # The aggregation query's tested elsewhere, just check the query filter
+        self.assertEqual(expected_agg_query_filter, search_call_body['query'])
 
         # Admins can request all_projects
         fake_request = unit_test_utils.get_fake_request(
@@ -519,29 +480,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         )
 
         self.plugin.get_facets(fake_request.context, all_projects=True)
-        complex_facet_option_fields = (
-            'image.id', 'flavor.id', 'networks.name',
-            'networks.OS-EXT-IPS:type', 'networks.version',
-            'security_groups.name')
-        aggs = dict(unit_test_utils.complex_facet_field_agg(name)
-                    for name in complex_facet_option_fields)
-        simple_facet_option_fields = (
-            'status', 'OS-EXT-AZ:availability_zone'
-        )
-        aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
-                         for name in simple_facet_option_fields))
 
-        # No query here
-        expected_agg_query = {
-            'aggs': aggs
-        }
-        mock_engine.search.assert_called_with(
-            index=self.plugin.get_index_name(),
-            doc_type=self.plugin.get_document_type(),
-            body=expected_agg_query,
-            ignore_unavailable=True,
-            search_type='count'
-        )
+        # Test the SECOND call to the mock
+        search_call = mock_engine.search.mock_calls[1]
+        search_call_body = search_call[2]['body']
+
+        # We don't expect any filter query here, just the aggregations.
+        self.assertEqual(['aggs'], list(search_call_body.keys()))
 
     def test_facets_no_mapping(self):
         mock_engine = mock.Mock()
