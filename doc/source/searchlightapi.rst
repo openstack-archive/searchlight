@@ -530,3 +530,15 @@ It is possible to limit the number of ``options`` returned for fields that
 support facet terms. ``limit_terms`` restricts the number of terms (sorted
 in order of descending frequency). A value of 0 indicates no limit, and is the
 default.
+
+Advanced Features
+-----------------
+
+Accessing Searchlight from the browser
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Searchlight can be configured to permit access directly from the browser. For
+details on this configuration, please refer to the
+`OpenStack Cloud Admin Guide`_.
+
+.. _`OpenStack Cloud Admin Guide`: http://docs.openstack.org/admin-guide-cloud/cross_project_cors.html
