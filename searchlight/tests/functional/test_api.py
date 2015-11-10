@@ -544,3 +544,22 @@ class TestSearchApi(functional.FunctionalTest):
                                                       TENANT1,
                                                       role="admin")
         self.assertEqual([doc1], self._get_hit_source(json_content))
+
+    def test_query_none(self):
+        """Test search when query is not specified"""
+        id_1 = str(uuid.uuid4())
+        tenant1_doc = {
+            "owner": TENANT1,
+            "id": id_1,
+            "visibility": "private",
+            "name": "owned by tenant 1",
+            "members": []
+        }
+        self._index(self.images_plugin.get_index_name(),
+                    self.images_plugin.get_document_type(),
+                    [tenant1_doc])
+
+        response, json_content = self._search_request({"all_projects": True},
+                                                      TENANT1)
+        self.assertEqual(200, response.status)
+        self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
