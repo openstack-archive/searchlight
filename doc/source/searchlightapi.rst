@@ -236,7 +236,7 @@ To restrict a query to Glance image and metadef information only (both
         "query": {
             "match_all": {}
         },
-        "type": ["OS::Glance::Image", "OS::Glance::Metadefs"]
+        "type": ["OS::Glance::Image", "OS::Glance::Metadef"]
     }
 
 If ``index`` or ``type`` are not provided they will default to covering as
@@ -374,7 +374,7 @@ A common requirement is to highlight search terms in results::
 
 
   {
-    "type": "OS::Glance::Metadefs",
+    "type": "OS::Glance::Metadef",
     "query": {
       "query_string": {
         "query": "database"
