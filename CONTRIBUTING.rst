@@ -14,3 +14,8 @@ Pull requests submitted through GitHub will be ignored.
 Bugs should be filed on Launchpad, not GitHub:
 
    https://bugs.launchpad.net/searchlight/
+
+Further documentation on feature request and bug report processes may be
+found here:
+
+   http://docs.openstack.org/developer/searchlight/feature-requests-bugs.html
