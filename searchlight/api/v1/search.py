@@ -353,7 +353,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
     def search(self, request):
         body = self._get_request_body(request)
         self._check_allowed(body)
-        query = body.pop('query', None)
+        query = body.pop('query', {"match_all": {}})
         indices = body.pop('index', None)
         types = body.pop('type', None)
         _source = body.pop('_source', None)
