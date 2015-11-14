@@ -91,7 +91,7 @@ following options control indexing behavior::
 
     # Disable automatic index creation so that index creation
     # is an explicit action
-    action.create_index: false
+    action.auto_create_index: false
 
 See also:
 
