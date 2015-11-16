@@ -1,0 +1,143 @@
+..
+    c) Copyright 2015 Hewlett-Packard Development Company, L.P.
+
+    Licensed under the Apache License, Version 2.0 (the "License"); you may
+    not use this file except in compliance with the License. You may obtain
+    a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+    License for the specific language governing permissions and limitations
+    under the License.
+
+================================
+Feature Requests and Bug Reports
+================================
+
+Searchlight is an open project and we encourage contribution from everybody.
+
+We support both developers and non-developers who want to provide input,
+requests for features, and bug fixes. We want to be able to move quickly
+without getting too bogged down in process, but still provide a rich mechanism
+for feature reviews as needed.
+
+
+Workflow
+========
+
+Our process is meant to allow users, developers, and operators to express
+their desires for new features using Launchpad blueprints. A review of
+blueprints is done regularly. These may turn directly into features, or
+for complex requests, additional specifications ("specs") may be needed.
+
+The workflow is very simple:
+
+ * If something is clearly broken, submit a `bug report`_ in Launchpad.
+ * If you want to change or add a feature, submit a `blueprint`_ in Launchpad.
+ * Searchlight drivers may request that you submit a `specification`_ to gerrit to elaborate on the feature request
+
+.. note::
+
+    If you already have code to submit, go ahead and submit a gerrit review!
+    We encourage early code sharing. Just be aware that it needs to be cross
+    linked with a bug or blueprint and may not be accepted without approval
+    of the blueprint or bug. We also use the blueprint and bug priorities
+    to guide our code review priorities.
+
+We will review incoming bugs and blueprints on an ongoing basis. It is
+always okay to ask for feedback on a bug or blueprint that has been submitted.
+We always welcome you in the IRC channel, the mailing list, and the weekly
+meeting. We just ask that you understand that there may be many reviews
+happening at any point in time and it may take a little time for reviews to be
+completed.
+
+.. _bug report:
+
+Bug Reports
+-----------
+
+Current Bugs are found here:
+
+ * https://blueprints.launchpad.net/searchlight
+
+A bug may be filed here:
+
+ * https://bugs.launchpad.net/searchlight/+filebug
+
+Please provide information on what the problem is, how to replicate it,
+any suggestions for fixing it, and a recommendation of the priority.
+
+Security Bugs
+~~~~~~~~~~~~~
+
+Security bugs with vulnerabilities in released versions of Searchlight follow
+a slightly different process. You should first contact the PTL or a member of
+the Searchlight core security contacts team to discuss the bug privately.
+Depending on the result of this discussion, the bug will either need to be
+filed as a private security bug and reported to the vulnerability management
+team or may be deemed that it is okay to file an open visibility bug.
+
+ * `Searchlight Core Security Team <https://launchpad.net/~searchlight-coresec>`_
+ * `Openstack Vulnerability Management Process <https://security.openstack.org/vmt-process.html>`_
+
+.. _blueprint:
+
+Blueprints
+----------
+
+Current blueprints are found here:
+
+ * https://blueprints.launchpad.net/searchlight
+
+A blueprint may be filed here:
+
+ * https://blueprints.launchpad.net/searchlight/+addspec
+
+The initial blueprint primarily needs to express the intent of the idea with
+enough details that the idea can be evaluated for compatibility with the
+Searchlight mission and whether or not the change requires a
+`specification`_ for change tracked reviews. It is *not*
+expected to contain all of the implementation details. If the feature
+is very simple and well understood by the team, then describe it simply.
+Searchlight team members will request more information as needed.
+
+The following template provides guidance on the type of information to include:
+
+ * https://blueprints.launchpad.net/searchlight/+spec/searchlight-blueprint-template
+
+If the blueprint starts to seem non-trivial, or seem like it will benefit
+from a better tool for comments and change tracking, then you should
+submit a `specification`_ to gerrit proactively and simply
+link to it from your blueprint to accommodate better reviews.
+
+.. _specification:
+
+Specifications
+--------------
+
+We use the `searchlight-specs
+<http://git.openstack.org/cgit/openstack/searchlight-specs>`_ repository for
+specification reviews. Specifications:
+
+ * Provide a review tool for collaborating on feedback and reviews for complex features
+ * Serve as the basis for documenting the feature once implemented
+ * Ensure that the overall impact on the system is considered
+
+The Searchlight team does not enforce deadlines for specs. These can be submitted
+throughout the release cycle. The drivers team will review this on a regular
+basis throughout the release, and based on the load for the milestones, will
+assign these into milestones or move them to the backlog for selection into
+a future release.
+
+Please note that we use a `template
+<http://git.openstack.org/cgit/openstack/searchlight-specs/tree/specs/template.rst>`_
+for spec submissions. It is not required to fill out all sections in the
+template. Review of the spec may require filling in information left out by
+the submitter.
+
+The review system will run a few tests to check the basic format and
+syntax of your spec.  You will just need to run ``tox`` locally from within
+the checked out spec repository to replicate the review tests.

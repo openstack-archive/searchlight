@@ -41,12 +41,21 @@ Additional documentation on Searchlight can be found on the `OpenStack wiki`_.
 
 .. _`OpenStack wiki`: https://wiki.openstack.org/wiki/Searchlight
 
+Contributing
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   feature-requests-bugs
+
 Overview
 --------
 
 .. toctree::
    :maxdepth: 1
 
+   features-and-bugs
    searchlightapi
    indexingservice
    authentication
