@@ -132,7 +132,7 @@ All further commands in this section should be run with the venv active:
 ::
 
    (venv) $ oslo-config-generator --config-file
-   etc/oslo-config-generator/searchlight-api.conf
+   etc/oslo-config-generator/searchlight.conf
 
 6. Create Searchlight's config files by copying the sample config files
 
@@ -178,8 +178,8 @@ Other development environment configuration
 
 Additional development environment configuration items are specified below.
 
-searchlight-api.conf
-````````````````````
+searchlight.conf
+````````````````
 ::
 
     [DEFAULT]
@@ -229,7 +229,7 @@ registered in keystone (e.g. glance).
    (venv) $ searchlight-manage index sync
 
    # Alternatively, you can directly invoke the command using the following.
-   (venv) $ python searchlight/cmd/manage.py --config-file etc/searchlight-api.conf index sync
+   (venv) $ python searchlight/cmd/manage.py --config-file etc/searchlight.conf index sync
 
 This command may be re-run at any time to perform a full re-index.
 
@@ -254,7 +254,7 @@ images).
 
    # Alternatively, you can directly invoke the command using the following.
    (venv) $ python searchlight/cmd/listener.py --config-file
-   etc/searchlight-api.conf
+   etc/searchlight.conf
 
 Initialize & Start the API Service
 ==================================
@@ -276,7 +276,7 @@ communicating with your server).
    (venv) $ searchlight-api
 
    # Alternatively, you can directly invoke the command using the following.
-   (venv) $ python searchlight/cmd/api.py --config-file etc/searchlight-api.conf
+   (venv) $ python searchlight/cmd/api.py --config-file etc/searchlight.conf
 
 You should now see the log from the API service.
 

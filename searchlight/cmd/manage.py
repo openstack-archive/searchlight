@@ -182,7 +182,7 @@ def main():
         logging.register_options(CONF)
 
         cfg_files = cfg.find_config_files(project='searchlight',
-                                          prog='searchlight-api')
+                                          prog='searchlight')
         config.parse_args(default_config_files=cfg_files)
         logging.setup(CONF, 'searchlight')
 

@@ -36,16 +36,16 @@ Each plugin registered in ``setup.cfg`` is enabled by default. Typically it
 should only be necessary to modify ``setup.cfg`` if you are installing a new
 plugin. It is not necessary to modify ``[entry_points]`` to temporarily
 enable or disable installed plugins. Once they are installed, they can be
-disabled, enabled and configured in the ``searchlight-api.conf`` file.
+disabled, enabled and configured in the ``searchlight.conf`` file.
 
 Configuring Plugins
 -------------------
 
-After installation, plugins are configured in ``searchlight-api.conf``.
+After installation, plugins are configured in ``searchlight.conf``.
 
 .. note::
 
-    After making changes to ``searchlight-api.conf`` you must perform the
+    After making changes to ``searchlight.conf`` you must perform the
     actions indicated in the tables below.
 
     1. ``Restart services``: Restart all running ``searchlight-api`` *and*
@@ -65,7 +65,7 @@ End to End Configuration Example
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following shows a sampling of various configuration options in
-``searchlight-api.conf``. These are **NOT** necessarily recommended
+``searchlight.conf``. These are **NOT** necessarily recommended
 or default configuration values. They are intended for exemplary purposes only.
 Please read the rest of the guide for detailed information.::
 
@@ -97,7 +97,7 @@ There are common configuration options that all plugins honor. They are split
 between *inheritable* options and *non-inheritable* options.
 
 **Inheritable** common configuration options may be specified in a default
-configuration group of ``[resource_plugin]`` in ``searchlight-api.conf`` and
+configuration group of ``[resource_plugin]`` in ``searchlight.conf`` and
 optionally overridden in a specific plugin's configuration. For example::
 
     [resource_plugin]
@@ -189,7 +189,7 @@ Non-Inheritable Common Configuration Options
 Individual Plugin Configuration
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Individual plugins may also be configured in  ``searchlight-api.conf``.
+Individual plugins may also be configured in  ``searchlight.conf``.
 
 .. note::
 

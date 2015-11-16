@@ -43,8 +43,8 @@ paste_deploy_opts = [
                       'your paste section name is '
                       '[pipeline:searchlight-api-keystone] use the value '
                       '"keystone"')),
-    cfg.StrOpt('config_file',
-               help=_('Name of the paste configuration file.')),
+    cfg.StrOpt('api_paste_config', default="api-paste.ini",
+               help=_('The API paste config file to use.')),
 ]
 
 common_opts = [
@@ -112,33 +112,20 @@ def _get_deployment_flavor(flavor=None):
     return '' if not flavor else ('-' + flavor)
 
 
-def _get_paste_config_path():
-    paste_suffix = '-paste.ini'
-    conf_suffix = '.conf'
-    if CONF.config_file:
-        # Assume paste config is in a paste.ini file corresponding
-        # to the last config file
-        path = CONF.config_file[-1].replace(conf_suffix, paste_suffix)
-    else:
-        path = CONF.prog + paste_suffix
-    return CONF.find_file(os.path.basename(path))
-
-
 def _get_deployment_config_file():
     """
     Retrieve the deployment_config_file config item, formatted as an
     absolute pathname.
     """
-    path = CONF.paste_deploy.config_file
-    if not path:
-        path = _get_paste_config_path()
-    if not path:
-        msg = _("Unable to locate paste config file for %s.") % CONF.prog
-        raise RuntimeError(msg)
-    return os.path.abspath(path)
+    config_path = cfg.CONF.find_file(
+        cfg.CONF.paste_deploy['api_paste_config'])
+    if config_path is None:
+        return None
+
+    return os.path.abspath(config_path)
 
 
-def load_paste_app(app_name, flavor=None, conf_file=None):
+def load_paste_app(app_name, flavor=None):
     """
     Builds and returns a WSGI app from a paste config file.
 
@@ -147,7 +134,6 @@ def load_paste_app(app_name, flavor=None, conf_file=None):
 
     :param app_name: name of the application to load
     :param flavor: name of the variant of the application to load
-    :param conf_file: path to the paste config file
 
     :raises RuntimeError when config file cannot be located or application
             cannot be loaded from config file
@@ -156,8 +142,9 @@ def load_paste_app(app_name, flavor=None, conf_file=None):
     # in order to identify the appropriate paste pipeline
     app_name += _get_deployment_flavor(flavor)
 
-    if not conf_file:
-        conf_file = _get_deployment_config_file()
+    conf_file = _get_deployment_config_file()
+    if conf_file is None:
+        raise RuntimeError(_("Unable to locate config file"))
 
     try:
         logger = logging.getLogger(__name__)

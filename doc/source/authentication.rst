@@ -47,11 +47,11 @@ documentation on the ``auth_token`` middleware::
 
 http://docs.openstack.org/developer/keystonemiddleware/middlewarearchitecture.html
 
-searchlight-api-paste.ini
-`````````````````````````
+api-paste.ini
+`````````````
 
 First, ensure that declarations for the middleware exist in the
-``searchlight-api-paste.ini`` file.  Here is an example for ``authtoken``::
+``api-paste.ini`` file.  Here is an example for ``authtoken``::
 
   [pipeline:searchlight-keystone]
   pipeline = authtoken context rootapp
@@ -60,10 +60,10 @@ First, ensure that declarations for the middleware exist in the
   paste.filter_factory = keystonemiddleware.auth_token:filter_factory
   delay_auth_decision = true
 
-searchlight-api.conf
-````````````````````
+searchlight.conf
+````````````````
 
-You must then update the main ``searchlight-api.conf`` configuration file
+You must then update the main ``searchlight.conf`` configuration file
 to enable the keystone application pipeline.
 
 Set ``flavor`` to ``keystone`` in the ``paste_deploy`` group::

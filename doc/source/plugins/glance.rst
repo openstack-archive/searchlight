@@ -36,8 +36,8 @@ general configuration information, and an example complete configuration.
     Unless you are changing to a non-default value, you do not need to
     specify any of the following configuration options.
 
-searchlight-api.conf
---------------------
+searchlight.conf
+----------------
 
 Plugin: OS::Glance::Image
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -56,7 +56,7 @@ the same property protections files and configured to use that file. A
 sample configuration file is included in the repo and may be used for testing.
 
 To configure it, add a ``property_protection_file`` property with a path
-to the file in ``searchlight-api.conf``. For example::
+to the file in ``searchlight.conf``. For example::
 
     property_protection_file = /etc/searchlight/property-protections-roles.conf
 

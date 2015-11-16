@@ -36,8 +36,8 @@ general configuration information, and an example complete configuration.
     Unless you are changing to a non-default value, you do not need to
     specify any of the following configuration options.
 
-searchlight-api.conf
---------------------
+searchlight.conf
+----------------
 
 Plugin: OS::Designate::Zone
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -95,7 +95,7 @@ local.conf (devstack)
     1. Prior to stacking: modify the searchlight post config section in
        ``local.conf`` by adding a ``[[post-config|$SEARCHLIGHT_CONF]]`` section.
 
-    2. After stacking: manually edit the ``searchlight-api.conf`` file.
+    2. After stacking: manually edit the ``searchlight.conf`` file.
 
 The Designate plugin must be enabled and run with devstack to include Designate
 with your devstack deployment. Follow the instructions here:

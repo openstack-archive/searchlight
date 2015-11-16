@@ -36,8 +36,8 @@ general configuration information, and an example complete configuration.
     Unless you are changing to a non-default value, you do not need to
     specify any of the following configuration options.
 
-searchlight-api.conf
---------------------
+searchlight.conf
+----------------
 
 Plugin: OS::Nova::Server
 ^^^^^^^^^^^^^^^^^^^^^^^^
