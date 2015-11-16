@@ -19,6 +19,8 @@ import fnmatch
 import logging
 from oslo_config import cfg
 from oslo_config import types
+import oslo_messaging
+from oslo_utils import encodeutils
 import six
 
 import searchlight.elasticsearch
@@ -31,7 +33,8 @@ _LW = i18n._LW
 
 
 indexer_opts = [
-    cfg.StrOpt('index_name', default="searchlight")
+    cfg.StrOpt('index_name', default="searchlight"),
+    cfg.StrOpt('notifications_topic', default="searchlight_indexer")
 ]
 
 CONF = cfg.CONF
@@ -41,6 +44,7 @@ CONF.register_opts(indexer_opts, group='resource_plugin')
 @six.add_metaclass(abc.ABCMeta)
 class IndexBase(plugin.Plugin):
     chunk_size = 200
+    NotificationHandlerCls = None
 
     def __init__(self):
         self.options = cfg.CONF[self.get_config_group_name()]
@@ -352,6 +356,15 @@ class IndexBase(plugin.Plugin):
         query. Document type will be added to this list.
         """
 
+    def get_notification_handler(self):
+        """Get the notification handler which implements NotificationBase."""
+        if self.NotificationHandlerCls:
+            return self.NotificationHandlerCls(self.engine,
+                                               self.get_index_name(),
+                                               self.get_document_type(),
+                                               self.options)
+        return None
+
     def filter_result(self, hit, request_context):
         """Filter each outgoing search result; document in hit['_source']"""
         if self.admin_only_fields and not request_context.is_admin:
@@ -374,25 +387,6 @@ class IndexBase(plugin.Plugin):
     def get_mapping(self):
         """Get an index mapping."""
         return {}
-
-    def get_notification_handler(self):
-        """Get the notification handler which implements NotificationBase."""
-        return None
-
-    def get_notification_supported_events(self):
-        """Get the list of suppported event types."""
-        return []
-
-    @classmethod
-    def get_topic_exchanges(cls):
-        return []
-
-    def get_notification_topics_exchanges(self):
-        """"
-        Get the set of topics and exchanges. This is to retain the old
-        pattern without changing too much for now.
-        """
-        return [tuple(i.split(',')) for i in self.options.topic_exchanges]
 
     @classmethod
     def get_plugin_type(cls):
@@ -423,14 +417,8 @@ class IndexBase(plugin.Plugin):
             cfg.BoolOpt("enabled", default=True),
             cfg.StrOpt("unsearchable_fields")
         ]
-        # TODO(sjmc7): Make this more flexible
-        topic_exchanges = ["searchlight_indexer,%s" % i for i in
-                           cls.get_notification_exchanges()]
-        if topic_exchanges:
-            opts.append(cfg.MultiOpt(
-                'topic_exchanges',
-                item_type=types.MultiString(),
-                default=topic_exchanges))
+        if cls.NotificationHandlerCls:
+            opts.extend(cls.NotificationHandlerCls.get_plugin_opts())
         return opts
 
     @classmethod
@@ -445,11 +433,58 @@ class IndexBase(plugin.Plugin):
 @six.add_metaclass(abc.ABCMeta)
 class NotificationBase(object):
 
-    def __init__(self, engine, index_name, document_type):
+    def __init__(self, engine, index_name, document_type, options):
         self.engine = engine
         self.index_name = index_name
         self.document_type = document_type
+        self.plugin_options = options
+
+    def get_notification_supported_events(self):
+        """Get the list of event types this plugin responds to."""
+        return list(six.iterkeys(self.get_event_handlers()))
 
     @abc.abstractmethod
+    def get_event_handlers(self):
+        """Returns a mapping of event name to function"""
+
+    @classmethod
+    def _get_notification_exchanges(cls):
+        """Return a list of oslo exchanges this plugin cares about"""
+
+    @classmethod
+    def get_plugin_opts(cls):
+        opts = []
+        exchanges = cls._get_notification_exchanges()
+        if exchanges:
+            defaults = " ".join("<notifications_topic>,%s" % i
+                                for i in exchanges)
+            opts.append(cfg.MultiOpt(
+                'notifications_topics_exchanges',
+                item_type=types.MultiString(),
+                help='Override default topic,exchange pairs. '
+                     'Defaults to %s' % defaults,
+                default=[]))
+        return opts
+
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
         """Process the incoming notification message."""
+        LOG.debug("Received %s event for %s", event_type, self.document_type)
+        try:
+            self.get_event_handlers()[event_type](payload)
+            return oslo_messaging.NotificationResult.HANDLED
+        except Exception as e:
+
+            LOG.error(encodeutils.exception_to_unicode(e))
+
+    def get_notification_topics_exchanges(self):
+        """"Returns a list of (topic,exchange), (topic,exchange)..)
+        This will either be (CONF.notifications_topic,<exchange>) for
+        each exchange in _get_notification_exchanges OR the list of
+        values for CONF.plugin.notifications_topics_exchanges.
+        """
+        configured = self.plugin_options.notifications_topics_exchanges
+        if configured:
+            return [tuple(i.split(',')) for i in configured]
+        else:
+            return [(CONF.resource_plugin.notifications_topic, exchange)
+                    for exchange in self._get_notification_exchanges()]

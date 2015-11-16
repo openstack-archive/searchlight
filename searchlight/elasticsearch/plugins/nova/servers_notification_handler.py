@@ -15,8 +15,6 @@
 
 import novaclient.exceptions
 from oslo_log import log as logging
-import oslo_messaging
-from oslo_utils import encodeutils
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
@@ -33,34 +31,28 @@ class InstanceHandler(base.NotificationBase):
     a user action (like a name change, state change etc) or as a result of
     periodic auditing notifications nova sends
     """
-    def __init__(self, *args, **kwargs):
-        super(InstanceHandler, self).__init__(*args, **kwargs)
 
-    def process(self, ctxt, publisher_id, event_type, payload, metadata):
-        LOG.debug("Received nova event %s for server %s",
-                  event_type,
-                  payload.get('instance_id', '<unknown>'))
-        try:
-            actions = {
-                # compute.instance.update seems to be the event set as a
-                # result of a state change etc
-                'compute.instance.update': self.create_or_update,
-                'compute.instance.exists': self.create_or_update,
-                'compute.instance.create.end': self.create_or_update,
-                'compute.instance.power_on.end': self.create_or_update,
-                'compute.instance.power_off.end': self.create_or_update,
-                'compute.instance.delete.end': self.delete,
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['nova', 'neutron']
 
-                # Neutron events
-                'port.create.end': self.update_from_neutron,
-                # TODO(sjmc7) Remind myself why i commented this out,
-                # and also whether neutron events should be separate
-                # 'port.delete.end': self.update_neutron_ports,
-            }
-            actions[event_type](payload)
-            return oslo_messaging.NotificationResult.HANDLED
-        except Exception as e:
-            LOG.error(encodeutils.exception_to_unicode(e))
+    def get_event_handlers(self):
+        return {
+            # compute.instance.update seems to be the event set as a
+            # result of a state change etc
+            'compute.instance.update': self.create_or_update,
+            'compute.instance.exists': self.create_or_update,
+            'compute.instance.create.end': self.create_or_update,
+            'compute.instance.power_on.end': self.create_or_update,
+            'compute.instance.power_off.end': self.create_or_update,
+            'compute.instance.delete.end': self.delete,
+
+            # Neutron events
+            'port.create.end': self.update_from_neutron,
+            # TODO(sjmc7) Remind myself why i commented this out,
+            # and also whether neutron events should be separate
+            # 'port.delete.end': self.update_neutron_ports,
+        }
 
     def create_or_update(self, payload):
         instance_id = payload['instance_id']

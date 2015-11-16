@@ -17,6 +17,8 @@ from searchlight.elasticsearch.plugins.designate import notification_handlers
 
 
 class RecordSetIndex(designate.DesignateBase):
+    NotificationHandlerCls = notification_handlers.RecordSetHandler
+
     @classmethod
     def get_document_type(self):
         return "OS::Designate::RecordSet"
@@ -93,20 +95,3 @@ class RecordSetIndex(designate.DesignateBase):
     def serialize(self, obj):
         obj["_parent"] = obj["zone_id"]
         return designate._serialize_recordset(obj)
-
-    def get_notification_handler(self):
-        return notification_handlers.RecordSetHandler(
-            self.engine,
-            self.get_index_name(),
-            self.get_document_type()
-        )
-
-    @classmethod
-    def get_notification_exchanges(cls):
-        return ['designate']
-
-    def get_notification_supported_events(self):
-        return [
-            "dns.recordset.create",
-            "dns.recordset.update",
-            "dns.recordset.delete"]

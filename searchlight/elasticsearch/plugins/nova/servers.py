@@ -25,11 +25,10 @@ LIST_LIMIT = 100
 
 
 class ServerIndex(base.IndexBase):
+    NotificationHandlerCls = servers_notification_handler.InstanceHandler
+
     # Will be combined with 'unsearchable_fields' from config
     UNSEARCHABLE_FIELDS = ['OS-EXT-SRV-ATTR:*']
-
-    def __init__(self):
-        super(ServerIndex, self).__init__()
 
     @classmethod
     def get_document_type(self):
@@ -153,24 +152,3 @@ class ServerIndex(base.IndexBase):
 
     def serialize(self, server):
         return serialize_nova_server(server)
-
-    @classmethod
-    def get_notification_exchanges(cls):
-        return ['nova', 'neutron']
-
-    def get_notification_handler(self):
-        return servers_notification_handler.InstanceHandler(
-            self.engine,
-            self.get_index_name(),
-            self.get_document_type()
-        )
-
-    def get_notification_supported_events(self):
-        # TODO(sjmc7): DRY
-        # Most events are duplicated by instance.update
-        return [
-            'compute.instance.update', 'compute.instance.exists',
-            'compute.instance.create.end', 'compute.instance.delete.end',
-            'compute.instance.power_on.end', 'compute.instance.power_off.end',
-            'port.delete.end', 'port.create.end',
-        ]

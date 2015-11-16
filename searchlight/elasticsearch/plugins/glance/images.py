@@ -22,6 +22,8 @@ from searchlight.elasticsearch.plugins.glance import serialize_glance_image
 
 
 class ImageIndex(base.IndexBase):
+    NotificationHandlerCls = images_notification_handler.ImageHandler
+
     def __init__(self, policy_enforcer=None):
         super(ImageIndex, self).__init__()
         self.policy = policy_enforcer or policy.Enforcer()
@@ -114,19 +116,3 @@ class ImageIndex(base.IndexBase):
 
     def serialize(self, obj):
         return serialize_glance_image(obj)
-
-    @classmethod
-    def get_notification_exchanges(cls):
-        return ['glance']
-
-    def get_notification_handler(self):
-        return images_notification_handler.ImageHandler(
-            self.engine,
-            self.get_index_name(),
-            self.get_document_type()
-        )
-
-    def get_notification_supported_events(self):
-        return ['image.create', 'image.update', 'image.delete',
-                'image.member.create', 'image.member.update',
-                'image.member.delete']

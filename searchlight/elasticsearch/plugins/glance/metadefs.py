@@ -21,8 +21,7 @@ from searchlight.elasticsearch.plugins.glance \
 
 
 class MetadefIndex(base.IndexBase):
-    def __init__(self):
-        super(MetadefIndex, self).__init__()
+    NotificationHandlerCls = metadefs_notification_handler.MetadefHandler
 
     @classmethod
     def get_document_type(cls):
@@ -116,35 +115,3 @@ class MetadefIndex(base.IndexBase):
 
     def serialize(self, metadef_obj):
         return serialize_glance_metadef_ns(metadef_obj)
-
-    @classmethod
-    def get_notification_exchanges(cls):
-        return ['glance']
-
-    def get_notification_handler(self):
-        return metadefs_notification_handler.MetadefHandler(
-            self.engine,
-            self.get_index_name(),
-            self.get_document_type()
-        )
-
-    def get_notification_supported_events(self):
-        return [
-            "metadef_namespace.create",
-            "metadef_namespace.update",
-            "metadef_namespace.delete",
-            "metadef_object.create",
-            "metadef_object.update",
-            "metadef_object.delete",
-            "metadef_property.create",
-            "metadef_property.update",
-            "metadef_property.delete",
-            "metadef_tag.create",
-            "metadef_tag.update",
-            "metadef_tag.delete",
-            "metadef_resource_type.create",
-            "metadef_resource_type.delete",
-            "metadef_namespace.delete_properties",
-            "metadef_namespace.delete_objects",
-            "metadef_namespace.delete_tags"
-        ]

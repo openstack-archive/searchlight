@@ -19,9 +19,11 @@ import oslo_messaging
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins import designate
+from searchlight import i18n
 
 
 LOG = logging.getLogger(__name__)
+_LW = i18n._LW
 
 
 class DomainHandler(base.NotificationBase):
@@ -29,6 +31,18 @@ class DomainHandler(base.NotificationBase):
         super(DomainHandler, self).__init__(*args, **kwargs)
         self.domain_delete_keys = ['deleted_at', 'deleted',
                                    'attributes', 'recordsets']
+
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['designate']
+
+    def get_event_handlers(self):
+        return {
+            "dns.domain.create": self.create_or_update,
+            "dns.domain.update": self.create_or_update,
+            "dns.domain.delete": self.delete,
+            "dns.domain.exists": self.create_or_update
+        }
 
     def _serialize(self, payload):
         for key in self.domain_delete_keys:
@@ -45,19 +59,18 @@ class DomainHandler(base.NotificationBase):
         return payload
 
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
+        handled = super(DomainHandler, self).process(
+            ctxt, publisher_id, event_type, payload, metadata)
         try:
-            actions = {
-                "dns.domain.create": self.create_or_update,
-                "dns.domain.update": self.create_or_update,
-                "dns.domain.delete": self.delete,
-                "dns.domain.exists": self.create_or_update
-            }
-            actions[event_type](payload)
-
             # NOTE: So if this is a initial zone we need to index the SOA / NS
             # records it will have. Let's do this when recieving the create
             # event.
             if event_type == 'dns.domain.create':
+                if handled != oslo_messaging.NotificationResult.HANDLED:
+                    LOG.warning(_LW("Not writing initial recordsets; exception"
+                                    "occurred during domain indexing"))
+                    return None
+
                 recordsets = designate._get_recordsets(payload['id'])
                 for rs in recordsets:
                     rs = designate._serialize_recordset(rs)
@@ -142,17 +155,16 @@ class RecordSetHandler(base.NotificationBase):
         self.record_delete_keys = ['deleted_at', 'deleted',
                                    'attributes']
 
-    def process(self, ctxt, publisher_id, event_type, payload, metadata):
-        try:
-            actions = {
-                "dns.recordset.create": self.create_or_update,
-                "dns.recordset.update": self.create_or_update,
-                "dns.recordset.delete": self.delete
-            }
-            actions[event_type](payload)
-            return oslo_messaging.NotificationResult.HANDLED
-        except Exception as e:
-            LOG.exception(e)
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['designate']
+
+    def get_event_handlers(self):
+        return {
+            "dns.recordset.create": self.create_or_update,
+            "dns.recordset.update": self.create_or_update,
+            "dns.recordset.delete": self.delete
+        }
 
     def create_or_update(self, payload):
         id_ = payload['id']
