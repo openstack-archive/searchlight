@@ -73,15 +73,20 @@ any suggestions for fixing it, and a recommendation of the priority.
 Security Bugs
 ~~~~~~~~~~~~~
 
-Security bugs with vulnerabilities in released versions of Searchlight follow
-a slightly different process. You should first contact the PTL or a member of
-the Searchlight core security contacts team to discuss the bug privately.
-Depending on the result of this discussion, the bug will either need to be
-filed as a private security bug and reported to the vulnerability management
-team or may be deemed that it is okay to file an open visibility bug.
+Reporting bugs referencing security related vulnerabilities in released
+versions of Searchlight requires additional consideration. A bug with security
+implications should be filed as a private security bug. This prevents public
+disclosure of potential security issues before they can be addressed.
+
+To mark a bug as a private security bug, set the value for the field "This bug
+contains information that is:" from "Public" to "Private Security". If you have
+questions, please contact either of the following groups:
 
  * `Searchlight Core Security Team <https://launchpad.net/~searchlight-coresec>`_
  * `Openstack Vulnerability Management Process <https://security.openstack.org/vmt-process.html>`_
+
+In the event that a bug filed as a private security bug is determined not to
+have security implications, the bug will be moved to a public bug report.
 
 .. _blueprint:
 

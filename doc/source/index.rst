@@ -55,7 +55,6 @@ Overview
 .. toctree::
    :maxdepth: 1
 
-   features-and-bugs
    searchlightapi
    indexingservice
    authentication
