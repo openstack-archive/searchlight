@@ -41,7 +41,8 @@ class NotificationEndpoint(object):
         self.notification_target_map = {}
         for plugin_type, plugin in six.iteritems(self.plugins):
             try:
-                event_list = plugin.obj.get_notification_supported_events()
+                handler = plugin.obj.get_notification_handler()
+                event_list = handler.get_notification_supported_events()
                 for event in event_list:
                     LOG.debug("Registering event '%s' for plugin '%s'",
                               event, plugin.name)
@@ -78,8 +79,9 @@ class ListenerService(os_service.Service):
         topics_exchanges = set()
         for plugin_type, plugin in six.iteritems(self.plugins):
             try:
-                plugin_obj = plugin.obj.get_notification_topics_exchanges()
-                for plugin_topic in plugin_obj:
+                handler = plugin.obj.get_notification_handler()
+                topic_exchanges = handler.get_notification_topics_exchanges()
+                for plugin_topic in topic_exchanges:
                     if isinstance(plugin_topic, basestring):
                         raise Exception(
                             _LE("Plugin %s should return a list of topic"

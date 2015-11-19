@@ -114,6 +114,22 @@ example::
     [resource_plugin:os_glance_image]
     enabled = false
 
+Notification topics are a special case. It is possible to override
+the notification ``topic`` as a shared setting; it is also possible to
+override ``<topic>,<exchange>`` pairs per-plugin in the case where some
+services are using different topics. For instance, in a setup where (for
+example) neutron is using a separate notification topic::
+
+    [resource_plugin]
+    notifications_topic = searchlight_indexer
+
+    [resource_plugin:os_nova_server]
+    notifications_topics_exchanges = searchlight_indexer,nova
+    notifications_topics_exchanges = another-topic,neutron
+
+If you override one service topic, you must provide topic,exchange pairs
+for all service notifications a plugin supports.
+
 See :ref:`individual-plugin-configuration` for more information and examples
 on individual plugin configuration.
 
@@ -127,6 +143,11 @@ Inheritable Common Configuration Options
 |                     |               | plugin resource documents will be   | | Re-index affected types |
 |                     |               | stored in. It is recommended to not |                           |
 |                     |               | change this unless needed.          |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+| notifications_topic | searchlight\_ | The oslo.messaging topic on which   | | Restart listener        |
+|                     |   indexer     | services send notifications. Each   |                           |
+|                     |               | plugin defines a list of exchanges  |                           |
+|                     |               | to which it will subscribe.         |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 
 Non-Inheritable Common Configuration Options
@@ -156,6 +177,11 @@ Non-Inheritable Common Configuration Options
 |                     |               | mapping for a specific field, it    |                           |
 |                     |               | will take precedence over this      |                           |
 |                     |               | configuration option.               |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+| notifications\_     | <none>        | Override topic,exchange pairs (see  | | Restart services        |
+|  topics_exchanges   |               | note above). Use when services      |                           |
+|                     |               | output notifications on dissimilar  |                           |
+|                     |               | topics.                             |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 
 .. _individual-plugin-configuration:

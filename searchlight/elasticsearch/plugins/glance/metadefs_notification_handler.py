@@ -16,8 +16,6 @@
 import six
 
 from oslo_log import log as logging
-import oslo_messaging
-from oslo_utils import encodeutils
 
 from searchlight.elasticsearch.plugins import base
 
@@ -33,31 +31,30 @@ class MetadefHandler(base.NotificationBase):
         self.property_delete_keys = ['deleted', 'deleted_at',
                                      'name_old', 'namespace']
 
-    def process(self, ctxt, publisher_id, event_type, payload, metadata):
-        try:
-            actions = {
-                "metadef_namespace.create": self.create_ns,
-                "metadef_namespace.update": self.update_ns,
-                "metadef_namespace.delete": self.delete_ns,
-                "metadef_object.create": self.create_obj,
-                "metadef_object.update": self.update_obj,
-                "metadef_object.delete": self.delete_obj,
-                "metadef_property.create": self.create_prop,
-                "metadef_property.update": self.update_prop,
-                "metadef_property.delete": self.delete_prop,
-                "metadef_resource_type.create": self.create_rs,
-                "metadef_resource_type.delete": self.delete_rs,
-                "metadef_tag.create": self.create_tag,
-                "metadef_tag.update": self.update_tag,
-                "metadef_tag.delete": self.delete_tag,
-                "metadef_namespace.delete_properties": self.delete_props,
-                "metadef_namespace.delete_objects": self.delete_objects,
-                "metadef_namespace.delete_tags": self.delete_tags
-            }
-            actions[event_type](payload)
-            return oslo_messaging.NotificationResult.HANDLED
-        except Exception as e:
-            LOG.error(encodeutils.exception_to_unicode(e))
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['glance']
+
+    def get_event_handlers(self):
+        return {
+            "metadef_namespace.create": self.create_ns,
+            "metadef_namespace.update": self.update_ns,
+            "metadef_namespace.delete": self.delete_ns,
+            "metadef_object.create": self.create_obj,
+            "metadef_object.update": self.update_obj,
+            "metadef_object.delete": self.delete_obj,
+            "metadef_property.create": self.create_prop,
+            "metadef_property.update": self.update_prop,
+            "metadef_property.delete": self.delete_prop,
+            "metadef_resource_type.create": self.create_rs,
+            "metadef_resource_type.delete": self.delete_rs,
+            "metadef_tag.create": self.create_tag,
+            "metadef_tag.update": self.update_tag,
+            "metadef_tag.delete": self.delete_tag,
+            "metadef_namespace.delete_properties": self.delete_props,
+            "metadef_namespace.delete_objects": self.delete_objects,
+            "metadef_namespace.delete_tags": self.delete_tags
+        }
 
     def run_create(self, id, payload):
         self.engine.create(

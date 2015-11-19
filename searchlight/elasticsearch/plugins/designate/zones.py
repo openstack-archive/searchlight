@@ -17,6 +17,8 @@ from searchlight.elasticsearch.plugins.designate import notification_handlers
 
 
 class ZoneIndex(designate.DesignateBase):
+    NotificationHandlerCls = notification_handlers.DomainHandler
+
     @classmethod
     def get_document_type(cls):
         return "OS::Designate::Zone"
@@ -88,21 +90,3 @@ class ZoneIndex(designate.DesignateBase):
         if not obj['updated_at'] and obj['created_at']:
             obj['updated_at'] = obj['created_at']
         return obj
-
-    @classmethod
-    def get_notification_exchanges(cls):
-        return ['designate']
-
-    def get_notification_handler(self):
-        return notification_handlers.DomainHandler(
-            self.engine,
-            self.get_index_name(),
-            self.get_document_type()
-        )
-
-    def get_notification_supported_events(self):
-        return [
-            "dns.domain.create",
-            "dns.domain.update",
-            "dns.domain.delete",
-            "dns.domain.exists"]

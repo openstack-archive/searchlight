@@ -14,8 +14,6 @@
 # limitations under the License.
 
 from oslo_log import log as logging
-import oslo_messaging
-from oslo_utils import encodeutils
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance \
@@ -33,20 +31,19 @@ class ImageHandler(base.NotificationBase):
         self.image_delete_keys = ['deleted_at', 'deleted',
                                   'is_public', 'properties']
 
-    def process(self, ctxt, publisher_id, event_type, payload, metadata):
-        try:
-            actions = {
-                "image.create": self.create_or_update,
-                "image.update": self.create_or_update,
-                "image.delete": self.delete,
-                "image.member.create": self.sync_members,
-                "image.member.update": self.sync_members,
-                "image.member.delete": self.sync_members
-            }
-            actions[event_type](payload)
-            return oslo_messaging.NotificationResult.HANDLED
-        except Exception as e:
-            LOG.error(encodeutils.exception_to_unicode(e))
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['glance']
+
+    def get_event_handlers(self):
+        return {
+            "image.create": self.create_or_update,
+            "image.update": self.create_or_update,
+            "image.delete": self.delete,
+            "image.member.create": self.sync_members,
+            "image.member.update": self.sync_members,
+            "image.member.delete": self.sync_members
+        }
 
     def serialize_notification(self, notification):
         return serialize_glance_notification(notification)
