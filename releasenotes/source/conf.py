@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Searchlight Release Notes'
-copyright = u'2015, Searchlight Developers'
+copyright = u'2015, OpenStack Foundation'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

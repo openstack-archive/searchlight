@@ -154,7 +154,7 @@ Release Notes
 The release notes for a patch should be included in the patch. If not, the
 release notes should be in a follow-on review.
 
-If the following applies to the patch, a release note is required:
+If any of the following applies to the patch, a release note is required:
 
 * The deployer needs to take an action when upgrading
 * A new feature is implemented
@@ -163,6 +163,10 @@ If the following applies to the patch, a release note is required:
 * A new config option is added that the deployer should consider changing from
   the default
 * A security bug is fixed
+* Change may break previous versions of the client library(ies)
+* Requirement changes are introduced for important libraries like oslo, six
+  requests, etc.
+* Deprecation period starts or code is purged
 
 A release note is suggested if a long-standing or important bug is fixed.
 Otherwise, a release note is not required.
