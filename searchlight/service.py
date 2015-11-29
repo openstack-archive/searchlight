@@ -15,7 +15,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import socket
 import sys
 
 from oslo_config import cfg
@@ -27,33 +26,12 @@ from searchlight.common import utils
 
 CONF = cfg.CONF
 
-OPTS = [
-    cfg.StrOpt('host',
-               default=socket.gethostname(),
-               help='Name of this node, which must be valid in an AMQP '
-               'key. Can be an opaque identifier. For ZeroMQ only, must '
-               'be a valid host name, FQDN, or IP address.'),
-    cfg.IntOpt('listener_workers',
-               default=1,
-               help='Number of workers for notification service. A single '
-               'notification agent is enabled by default.'),
-    cfg.IntOpt('http_timeout',
-               default=600,
-               help='Timeout seconds for HTTP requests. Set it to None to '
-                    'disable timeout.'),
-]
-CONF.register_opts(OPTS)
-
 LOG = log.getLogger(__name__)
 _DEFAULT_LOG_LEVELS = ['keystonemiddleware=WARN', 'stevedore=WARN']
 
 
 class WorkerException(Exception):
     """Exception for errors relating to service workers."""
-
-
-def get_workers(name):
-    return 1
 
 
 def prepare_service(argv=None):

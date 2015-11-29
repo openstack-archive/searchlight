@@ -30,8 +30,16 @@ LOG = logging.getLogger(__name__)
 _ = i18n._
 _LE = i18n._LE
 
+listener_opts = [
+    cfg.IntOpt('workers',
+               default=1,
+               help='Number of workers for notification service. A single '
+               'notification agent is enabled by default.'),
+]
 
-oslo_policy_opts._register(cfg.CONF)
+CONF = cfg.CONF
+oslo_policy_opts._register(CONF)
+CONF.register_opts(listener_opts, group="listener")
 
 
 class NotificationEndpoint(object):
@@ -97,7 +105,7 @@ class ListenerService(os_service.Service):
 
     def start(self):
         super(ListenerService, self).start()
-        transport = oslo_messaging.get_transport(cfg.CONF)
+        transport = oslo_messaging.get_transport(CONF)
         targets = [
             oslo_messaging.Target(topic=pl_topic, exchange=pl_exchange)
             for pl_topic, pl_exchange in self.topics_exchanges_set
