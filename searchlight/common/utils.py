@@ -293,7 +293,7 @@ def get_test_suite_socket():
         sock = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
         if six.PY2:
             sock = socket.SocketType(_sock=sock)
-        sock.listen(CONF.backlog)
+        sock.listen(CONF.api.backlog)
         del os.environ[SEARCHLIGHT_TEST_SOCKET_FD_STR]
         os.close(fd)
         return sock
@@ -414,12 +414,12 @@ def stash_conf_values():
     when the config is reloaded.
     """
     conf = {}
-    conf['bind_host'] = CONF.bind_host
-    conf['bind_port'] = CONF.bind_port
-    conf['tcp_keepidle'] = CONF.cert_file
-    conf['backlog'] = CONF.backlog
-    conf['key_file'] = CONF.key_file
-    conf['cert_file'] = CONF.cert_file
+    conf['bind_host'] = CONF.api.bind_host
+    conf['bind_port'] = CONF.api.bind_port
+    conf['tcp_keepidle'] = CONF.api.cert_file
+    conf['backlog'] = CONF.api.backlog
+    conf['key_file'] = CONF.api.key_file
+    conf['cert_file'] = CONF.api.cert_file
 
     return conf
 

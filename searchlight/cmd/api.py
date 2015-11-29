@@ -53,6 +53,7 @@ from searchlight import notifier
 
 CONF = cfg.CONF
 CONF.import_group("profiler", "searchlight.common.wsgi")
+CONF.import_group("api", "searchlight.common.wsgi")
 logging.register_options(CONF)
 
 KNOWN_EXCEPTIONS = (RuntimeError,
@@ -73,17 +74,17 @@ def main():
         logging.setup(CONF, 'searchlight')
         utils.register_plugin_opts()
 
-        if cfg.CONF.profiler.enabled:
+        if CONF.profiler.enabled:
             _notifier = osprofiler.notifier.create("Messaging",
                                                    notifier.messaging, {},
                                                    notifier.get_transport(),
                                                    "searchlight", "search",
-                                                   cfg.CONF.bind_host)
+                                                   CONF.api.bind_host)
             osprofiler.notifier.set(_notifier)
         else:
             osprofiler.web.disable()
 
-        server = wsgi.Server()
+        server = wsgi.Server(workers=CONF.api.workers)
         server.start(config.load_paste_app('searchlight'),
                      default_port=9393)
         server.wait()

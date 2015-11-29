@@ -94,7 +94,7 @@ function configure_searchlight {
 
     # API Configuration
     sudo cp $SEARCHLIGHT_DIR/etc/api-paste.ini $SEARCHLIGHT_APIPASTE_CONF
-    iniset $SEARCHLIGHT_CONF DEFAULT public_endpoint $SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/
+    iniset $SEARCHLIGHT_CONF api public_endpoint $SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/
 
     # OpenStack users
     # FIXME(ekarlso): Make this configurable to support ks v3 also
@@ -114,9 +114,9 @@ function configure_searchlight {
     # TLS Proxy Configuration
     if is_service_enabled tls-proxy; then
         # Set the service port for a proxy to take the original
-        iniset $SEARCHLIGHT_CONF service:api bind_port $SEARCHLIGHT_SERVICE_PORT_INT
+        iniset $SEARCHLIGHT_CONF api bind_port $SEARCHLIGHT_SERVICE_PORT_INT
     else
-        iniset $SEARCHLIGHT_CONF service:api bind_port $SEARCHLIGHT_SERVICE_PORT
+        iniset $SEARCHLIGHT_CONF api bind_port $SEARCHLIGHT_SERVICE_PORT
     fi
 
     # Logging Configuration

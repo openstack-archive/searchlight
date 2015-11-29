@@ -15,6 +15,7 @@
 
 import itertools
 
+import searchlight.api.versions
 import searchlight.common.config
 import searchlight.common.property_utils
 import searchlight.common.wsgi
@@ -25,13 +26,15 @@ import searchlight.listener
 def list_opts():
     return [
         ('DEFAULT',
-         itertools.chain(searchlight.common.wsgi.bind_opts,
-                         searchlight.common.wsgi.socket_opts,
-                         searchlight.common.wsgi.eventlet_opts,
-                         searchlight.common.property_utils.property_opts,
+         itertools.chain(searchlight.common.property_utils.property_opts,
                          searchlight.common.config.common_opts)),
         ('elasticsearch', searchlight.elasticsearch.search_opts),
         ('paste_deploy', searchlight.common.config.paste_deploy_opts),
         ('profiler', searchlight.common.wsgi.profiler_opts),
         ('listener', searchlight.listener.listener_opts),
+        ('api',
+         itertools.chain(searchlight.api.versions.versions_opts,
+                         searchlight.common.wsgi.bind_opts,
+                         searchlight.common.wsgi.socket_opts,
+                         searchlight.common.wsgi.eventlet_opts)),
     ]

@@ -35,7 +35,7 @@ versions_opts = [
 ]
 
 CONF = cfg.CONF
-CONF.register_opts(versions_opts)
+CONF.register_opts(versions_opts, group='api')
 
 
 class Controller(object):
@@ -45,7 +45,7 @@ class Controller(object):
     def index(self, req):
         """Respond to a request for all OpenStack API versions."""
         def build_version_object(version, path, status):
-            url = CONF.public_endpoint or req.host_url
+            url = CONF.api.public_endpoint or req.host_url
             url = url.rstrip("/")
             return {
                 'id': 'v%s' % version,

@@ -27,7 +27,7 @@ class VersionsTest(test_utils.BaseTestCase):
     def test_get_version_list(self):
         req = webob.Request.blank('/', base_url='http://127.0.0.1:9393/')
         req.accept = 'application/json'
-        self.config(bind_host='127.0.0.1', bind_port=9393)
+        self.config(bind_host='127.0.0.1', bind_port=9393, group='api')
         res = versions.Controller().index(req)
         self.assertEqual(300, res.status_int)
         self.assertEqual('application/json', res.content_type)

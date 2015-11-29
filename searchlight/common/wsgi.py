@@ -111,9 +111,9 @@ profiler_opts = [
 LOG = logging.getLogger(__name__)
 
 CONF = cfg.CONF
-CONF.register_opts(bind_opts)
-CONF.register_opts(socket_opts)
-CONF.register_opts(eventlet_opts)
+CONF.register_opts(bind_opts, group="api")
+CONF.register_opts(socket_opts, group="api")
+CONF.register_opts(eventlet_opts, group="api")
 CONF.register_opts(profiler_opts, group="profiler")
 
 ASYNC_EVENTLET_THREAD_POOL_LIST = []
@@ -121,7 +121,7 @@ ASYNC_EVENTLET_THREAD_POOL_LIST = []
 
 def get_bind_addr(default_port=None):
     """Return the host and port to bind to."""
-    return (CONF.bind_host, CONF.bind_port or default_port)
+    return (CONF.api.bind_host, CONF.api.bind_port or default_port)
 
 
 def ssl_wrap_socket(sock):
@@ -132,17 +132,17 @@ def ssl_wrap_socket(sock):
 
     :returns: An SSL wrapped socket
     """
-    utils.validate_key_cert(CONF.key_file, CONF.cert_file)
+    utils.validate_key_cert(CONF.api.key_file, CONF.api.cert_file)
 
     ssl_kwargs = {
         'server_side': True,
-        'certfile': CONF.cert_file,
-        'keyfile': CONF.key_file,
+        'certfile': CONF.api.cert_file,
+        'keyfile': CONF.api.key_file,
         'cert_reqs': ssl.CERT_NONE,
     }
 
-    if CONF.ca_file:
-        ssl_kwargs['ca_certs'] = CONF.ca_file
+    if CONF.api.ca_file:
+        ssl_kwargs['ca_certs'] = CONF.api.ca_file
         ssl_kwargs['cert_reqs'] = ssl.CERT_REQUIRED
 
     return ssl.wrap_socket(sock, **ssl_kwargs)
@@ -172,8 +172,8 @@ def get_socket(default_port):
         if addr[0] in (socket.AF_INET, socket.AF_INET6)
     ][0]
 
-    use_ssl = CONF.key_file or CONF.cert_file
-    if use_ssl and (not CONF.key_file or not CONF.cert_file):
+    use_ssl = CONF.api.key_file or CONF.api.cert_file
+    if use_ssl and (not CONF.api.key_file or not CONF.api.cert_file):
         raise RuntimeError(_("When running server in SSL mode, you must "
                              "specify both a cert_file and key_file "
                              "option value in your configuration file"))
@@ -184,7 +184,7 @@ def get_socket(default_port):
     while not sock and time.time() < retry_until:
         try:
             sock = eventlet.listen(bind_addr,
-                                   backlog=CONF.backlog,
+                                   backlog=CONF.api.backlog,
                                    family=address_family)
         except socket.error as err:
             if err.args[0] != errno.EADDRINUSE:
@@ -234,7 +234,7 @@ class Server(object):
     """Server class to manage multiple WSGI sockets and applications.
 
     """
-    def __init__(self, threads=1000):
+    def __init__(self, threads=1000, workers=0):
         os.umask(0o27)  # ensure files are created with the correct privileges
         self._logger = logging.getLogger("eventlet.wsgi.server")
         self._wsgi_logger = loggers.WritableLogger(self._logger)
@@ -243,6 +243,7 @@ class Server(object):
         self.stale_children = set()
         self.running = True
         self.pgid = os.getpid()
+        self.workers = workers
         try:
             # NOTE(flaper87): Make sure this process
             # runs in its own process group.
@@ -286,17 +287,17 @@ class Server(object):
         self.start_wsgi()
 
     def start_wsgi(self):
-        if CONF.workers == 0:
+        if self.workers == 0:
             # Useful for profiling, test, debug etc.
             self.pool = self.create_pool()
             self.pool.spawn_n(self._single_run, self.application, self.sock)
             return
         else:
-            LOG.info(_LI("Starting %d workers") % CONF.workers)
+            LOG.info(_LI("Starting %d workers") % self.workers)
             signal.signal(signal.SIGTERM, self.kill_children)
             signal.signal(signal.SIGINT, self.kill_children)
             signal.signal(signal.SIGHUP, self.hup)
-            while len(self.children) < CONF.workers:
+            while len(self.children) < self.workers:
                 self.run_child()
 
     def create_pool(self):
@@ -323,7 +324,7 @@ class Server(object):
                     _LI('All workers have terminated. Exiting'))
                 self.running = False
         else:
-            if len(self.children) < CONF.workers:
+            if len(self.children) < self.workers:
                 self.run_child()
 
     def wait_on_children(self):
@@ -353,7 +354,7 @@ class Server(object):
         :param old_conf: Cached old configuration settings (if any)
         :param has changed: callable to determine if a parameter has changed
         """
-        eventlet.wsgi.MAX_HEADER_LINE = CONF.max_header_line
+        eventlet.wsgi.MAX_HEADER_LINE = CONF.api.max_header_line
         self.configure_socket(old_conf, has_changed)
 
     def reload(self):
@@ -436,7 +437,7 @@ class Server(object):
                                  log=self._wsgi_logger,
                                  custom_pool=self.pool,
                                  debug=False,
-                                 keepalive=CONF.http_keepalive)
+                                 keepalive=CONF.api.http_keepalive)
         except socket.error as err:
             if err[0] != errno.EINVAL:
                 raise
@@ -452,7 +453,7 @@ class Server(object):
         eventlet.wsgi.server(sock, application, custom_pool=self.pool,
                              log=self._wsgi_logger,
                              debug=False,
-                             keepalive=CONF.http_keepalive)
+                             keepalive=CONF.api.http_keepalive)
 
     def configure_socket(self, old_conf=None, has_changed=None):
         """
@@ -477,7 +478,7 @@ class Server(object):
                     has_changed('bind_host') or
                     has_changed('bind_port')))
         # Will we be using https?
-        use_ssl = not (not CONF.cert_file or not CONF.key_file)
+        use_ssl = not (not CONF.api.cert_file or not CONF.api.key_file)
         # Were we using https before?
         old_use_ssl = (old_conf is not None and not (
                        not old_conf.get('key_file') or
@@ -511,20 +512,20 @@ class Server(object):
         # Pick up newly deployed certs
         if old_conf is not None and use_ssl is True and old_use_ssl is True:
             if has_changed('cert_file') or has_changed('key_file'):
-                utils.validate_key_cert(CONF.key_file, CONF.cert_file)
+                utils.validate_key_cert(CONF.api.key_file, CONF.api.cert_file)
             if has_changed('cert_file'):
-                self.sock.certfile = CONF.cert_file
+                self.sock.certfile = CONF.api.cert_file
             if has_changed('key_file'):
-                self.sock.keyfile = CONF.key_file
+                self.sock.keyfile = CONF.api.key_file
 
         if new_sock or (old_conf is not None and has_changed('tcp_keepidle')):
             # This option isn't available in the OS X version of eventlet
             if hasattr(socket, 'TCP_KEEPIDLE'):
                 self.sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE,
-                                     CONF.tcp_keepidle)
+                                     CONF.api.tcp_keepidle)
 
         if old_conf is not None and has_changed('backlog'):
-            self.sock.listen(CONF.backlog)
+            self.sock.listen(CONF.api.backlog)
 
 
 class Middleware(object):
