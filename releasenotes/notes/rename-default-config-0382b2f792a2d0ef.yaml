@@ -1,0 +1,12 @@
+---
+prelude: >
+    The default config file for searchlight was searchlight-api.conf despite
+    the fact that this config file was used by both the API and the listener
+    processes. Therefore, we decided to rename the default config file to
+    searchlight.conf. This change also prompted us to to follow the convention
+    used by many other projects and simplify searchlight-api-paste.ini to
+    api-paste.ini.
+upgrade:
+  - During an upgrade to Mitaka, operators must rename the previous configured
+    searchlight-api.conf to searchlight.conf and searchlight-api-paste.ini
+    to api-paste.ini.
