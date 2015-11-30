@@ -1,0 +1,16 @@
+---
+prelude: >
+    Config options for searchlight-api and searchlight-listener
+    are grouped under config groups [api] and [listener].
+upgrade:
+  - Options 'bind_host', 'bind_port', 'backlog', 'tcp_keepidle', 'ca_file',
+    'cert_file', 'key_file', 'workers', 'max_header_line', 'public_endpoint',
+    and 'http_keepalive' are moved to [api] group.
+    Options 'listener_workers' is renamed to 'workers' and moved to [listener]
+    group.
+    Options 'host' and 'http_timeout' are removed since they are not
+    currently used anywhere.
+fixes:
+  - The workers for listener was always 1, so config listener_workers
+    was not work as expected. Now operators can set 'workers' under group
+    [listener] to running multiple listener processes.
