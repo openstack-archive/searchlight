@@ -15,6 +15,7 @@
 
 import json
 
+from elasticsearch import exceptions as es_exc
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import encodeutils
@@ -80,6 +81,10 @@ class SearchController(object):
             raise webob.exc.HTTPNotFound(explanation=e.msg)
         except exception.Duplicate as e:
             raise webob.exc.HTTPConflict(explanation=e.msg)
+        except es_exc.RequestError:
+            msg = _("Query malformed or search parse failure, please check "
+                    "the syntax")
+            raise webob.exc.HTTPBadRequest(explanation=msg)
         except Exception as e:
             LOG.error(encodeutils.exception_to_unicode(e))
             raise webob.exc.HTTPInternalServerError()

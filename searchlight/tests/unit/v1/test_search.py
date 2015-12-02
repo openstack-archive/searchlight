@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from elasticsearch import exceptions as es_exc
 import mock
 from oslo_serialization import jsonutils
 import six
@@ -220,6 +221,21 @@ class TestControllerSearch(test_utils.BaseTestCase):
 
         self.assertRaises(
             webob.exc.HTTPConflict, self.search_controller.search, request,
+            query, index_name, doc_type, offset, limit)
+
+    def test_search_badrequest(self):
+        request = unit_test_utils.get_fake_request()
+        repo = searchlight.elasticsearch.CatalogSearchRepo
+        repo.search = mock.Mock(side_effect=es_exc.RequestError)
+
+        query = {}
+        index_name = "searchlight"
+        doc_type = "OS::Glance::Metadef"
+        offset = 0
+        limit = 10
+
+        self.assertRaises(
+            webob.exc.HTTPBadRequest, self.search_controller.search, request,
             query, index_name, doc_type, offset, limit)
 
     def test_search_internal_server_error(self):
