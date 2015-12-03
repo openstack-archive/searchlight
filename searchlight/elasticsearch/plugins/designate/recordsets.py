@@ -20,6 +20,10 @@ class RecordSetIndex(designate.DesignateBase):
     NotificationHandlerCls = notification_handlers.RecordSetHandler
 
     @classmethod
+    def parent_plugin_type(cls):
+        return "OS::Designate::Zone"
+
+    @classmethod
     def get_document_type(self):
         return "OS::Designate::RecordSet"
 
@@ -63,7 +67,7 @@ class RecordSetIndex(designate.DesignateBase):
                 },
             },
             "_parent": {
-                "type": "OS::Designate::Zone"
+                "type": self.parent_plugin_type()
             }
         }
 

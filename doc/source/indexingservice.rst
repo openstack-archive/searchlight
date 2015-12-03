@@ -79,6 +79,27 @@ information for indexed images::
 
     searchlight-manage index sync --type OS::Glance::Image --force --no-delete
 
+Parent/child relationships
+--------------------------
+Some plugins contain multiple resources with parent/child relationships;
+the Designate plugins are an example. Because reindexing parent data independent
+of child documents does not logically make sense (without orphaning them), it
+is not possible to request indexing of a child resource type::
+
+    $ searchlight-manage index sync --type OS::Designate::RecordSet
+
+    'OS::Designate::RecordSet' is a child of 'OS::Designate::Zone' and cannot be indexed separately.
+    Indexing 'OS::Designate::Zone' will re-index all child resource types.
+
+You can see parent/child relationships in the list of resources presented prior
+to indexing::
+
+    $ searchlight-manage index sync --type OS::Designate::Zone
+
+    Resource types (and indices) matching selection:
+      OS::Designate::Zone (designate)
+          ---->  OS::Designate::RecordSet
+
 Incremental Updates
 -------------------
 

@@ -1,0 +1,15 @@
+---
+prelude: >
+  A fix for a couple of parent-child plugin relationship
+  issues related to initial indexing. Child plugins can
+  no longer be indexed separately from their parents.
+
+fixes:
+  - Child plugins cannot be indexed on their own, only as
+    a result of indexing their parent. This fixes an issue
+    whereby indexing only a parent plugin could leave orphaned
+    children (or vice versa).
+  - Applies mappings for parent/child plugins simultaneously.
+    Under elasticsearch 2.x, child mappings must be created at
+    the same time or before parents, not the other way round.
+

@@ -29,8 +29,8 @@ from searchlight.tests.functional import test_listener
 class TestGlancePlugins(functional.FunctionalTest):
     def setUp(self):
         super(TestGlancePlugins, self).setUp()
-        self.images_plugin = self.initialized_plugins['glance']['images']
-        self.metadefs_plugin = self.initialized_plugins['glance']['metadefs']
+        self.images_plugin = self.initialized_plugins['OS::Glance::Image']
+        self.metadefs_plugin = self.initialized_plugins['OS::Glance::Metadef']
 
     def test_image_property_protection(self):
         doc_with_properties = {

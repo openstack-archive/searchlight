@@ -178,7 +178,7 @@ class TestSearchApi(functional.FunctionalTest):
 
     def test_facets(self):
         """Check facets for a non-nested field (status)"""
-        servers_plugin = self.initialized_plugins['nova']['servers']
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
         server1 = {
             u'flavor': {u'id': u'1'},
             u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
@@ -238,7 +238,7 @@ class TestSearchApi(functional.FunctionalTest):
         expect a single count per server matched, not per object in the
         'networks' field
         """
-        servers_plugin = self.initialized_plugins['nova']['servers']
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
         server1 = {
             u'networks': [{
                 u'ipv4_addr': u'127.0.0.1',
@@ -324,7 +324,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'user_id': USER1
         }
 
-        servers_plugin = self.initialized_plugins['nova']['servers']
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
         servers_plugin.index_helper.save_document(doc)
         self._flush_elasticsearch(servers_plugin.index_name)
 
@@ -368,7 +368,7 @@ class TestSearchApi(functional.FunctionalTest):
             admin_field: admin_value
         }
 
-        servers_plugin = self.initialized_plugins['nova']['servers']
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
         servers_plugin.index_helper.save_document(doc)
         self._flush_elasticsearch(servers_plugin.index_name)
 

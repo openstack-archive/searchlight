@@ -21,6 +21,7 @@ import oslo_messaging
 from oslo_utils import encodeutils
 import six
 
+from searchlight.common import exception
 import searchlight.elasticsearch
 from searchlight.elasticsearch.plugins import utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
@@ -30,6 +31,8 @@ from searchlight import plugin
 
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
+_LI = i18n._LI
+_ = i18n._
 
 
 indexer_opts = [
@@ -54,6 +57,10 @@ class IndexBase(plugin.Plugin):
         self.index_name = self.get_index_name()
         self.document_type = self.get_document_type()
 
+        # This will be populated at load time.
+        self.child_plugins = []
+        self.parent_plugin = None
+
     @property
     def index_helper(self):
         if not getattr(self, '_index_helper', None):
@@ -64,9 +71,19 @@ class IndexBase(plugin.Plugin):
     def name(self):
         return "%s-%s" % (self.index_name, self.document_type)
 
-    def initial_indexing(self, clear=True):
+    def initial_indexing(self, clear=True, setup_data=True):
         """Comprehensively install search engine index and put data into it."""
+        if self.parent_plugin_type():
+            LOG.debug(_LI(
+                "Skipping initialization for %(doc_type)s; will be handled by"
+                "parent (%(parent_type)s)") %
+                {"doc_type": self.document_type,
+                 "parent_type": self.parent_plugin_type()})
+            return
+
         self.check_mapping_sort_fields()
+        for child_plugin in self.child_plugins:
+            child_plugin.check_mapping_sort_fields()
 
         if clear:
             # First delete the doc type
@@ -74,7 +91,9 @@ class IndexBase(plugin.Plugin):
 
         self.setup_index()
         self.setup_mapping()
-        self.setup_data()
+
+        if setup_data:
+            self.setup_data()
 
     def clear_data(self):
         type_exists = (self.engine.indices.exists(self.index_name) and
@@ -83,6 +102,11 @@ class IndexBase(plugin.Plugin):
         if type_exists:
             self.engine.indices.delete_mapping(self.index_name,
                                                self.document_type)
+
+            for child_plugin in self.child_plugins:
+                self.engine.indices.delete_mapping(
+                    self.index_name,
+                    child_plugin.get_document_type())
 
     def setup_index(self):
         """Create the index if it doesn't exist and update its settings."""
@@ -99,17 +123,12 @@ class IndexBase(plugin.Plugin):
 
     def setup_mapping(self):
         """Update index document mapping."""
-        index_mapping = self.get_mapping()
-
-        # Apply the RBAC field to every mapping
-        index_mapping['properties'][ROLE_USER_FIELD] = {
-            'type': 'string', 'index': 'not_analyzed', 'include_in_all': False
-        }
-
-        if index_mapping:
+        # Using 'reversed' because in e-s 2.x, child mappings must precede
+        # their parents, and the parent will be the first element
+        for doc_type, mapping in self.get_full_mapping():
             self.engine.indices.put_mapping(index=self.index_name,
-                                            doc_type=self.document_type,
-                                            body=index_mapping)
+                                            doc_type=doc_type,
+                                            body=mapping)
 
     def setup_data(self):
         """Insert all objects from database into search engine."""
@@ -120,6 +139,9 @@ class IndexBase(plugin.Plugin):
             documents.append(document)
 
         self.index_helper.save_documents(documents)
+
+        for child_plugin in self.child_plugins:
+            child_plugin.setup_data()
 
     def get_facets(self, request_context, all_projects=False, limit_terms=0):
         """Get facets available for searching, in the form of a list of
@@ -255,6 +277,14 @@ class IndexBase(plugin.Plugin):
         """
         return "id"
 
+    @classmethod
+    def parent_plugin_type(cls):
+        """If set, should be the resource type (canonical name) of
+        the parent. Setting this for a plugin means that plugin cannot be
+        initially indexed on its own, only as part of the parent indexing.
+        """
+        return None
+
     def get_parent_id_field(self):
         """Whatever field should be treated as the parent id. This is required
         for plugins with _parent definitions in their mappings. Documents to be
@@ -279,6 +309,21 @@ class IndexBase(plugin.Plugin):
         This is in the format of OS::Service::Resource typically.
         """
         raise NotImplemented()
+
+    def register_parent(self, parent):
+        if not self.parent_plugin:
+            parent.child_plugins.append(self)
+            self.parent_plugin = parent
+            self.index_name = parent.index_name
+
+    def get_index_display_name(self, indent_level=0):
+        """The string used to list this plugin when indexing"""
+        display = '\n' + '    ' * indent_level + '--> ' if indent_level else ''
+
+        display += '%s (%s)' % (self.document_type, self.index_name)
+        display += ''.join(c.get_index_display_name(indent_level + 1)
+                           for c in self.child_plugins)
+        return display
 
     def get_rbac_filter(self, request_context):
         """Get rbac filter as es json filter dsl. for non-admin queries."""
@@ -326,6 +371,41 @@ class IndexBase(plugin.Plugin):
     def get_mapping(self):
         """Get an index mapping."""
         return {}
+
+    def get_full_mapping(self):
+        """Gets the full mapping doc for this type, including children. This
+        returns a child-first (depth-first) generator.
+        """
+        # Assemble the children!
+        for child_plugin in self.child_plugins:
+            for plugin_type, mapping in child_plugin.get_full_mapping():
+                yield plugin_type, mapping
+
+        type_mapping = self.get_mapping()
+
+        def apply_rbac_field(mapping):
+            mapping['properties'][ROLE_USER_FIELD] = {
+                'type': 'string',
+                'index': 'not_analyzed',
+                'include_in_all': False
+            }
+
+        apply_rbac_field(type_mapping)
+
+        expected_parent_type = self.parent_plugin_type()
+        mapping_parent = type_mapping.get('_parent', None)
+        if mapping_parent:
+            if mapping_parent['type'] != expected_parent_type:
+                raise exception.IndexingException(
+                    _("Mapping for '%(doc_type)s' contains a _parent "
+                      "'%(actual)s' that doesn't match '%(expected)s'") %
+                    {"doc_type": self.document_type,
+                     "actual": mapping_parent['type'],
+                     "expected": expected_parent_type})
+        elif expected_parent_type:
+            type_mapping['_parent'] = {'type': expected_parent_type}
+
+        yield self.document_type, type_mapping
 
     @classmethod
     def get_plugin_type(cls):

@@ -432,5 +432,25 @@ def get_search_plugins():
     namespace = 'searchlight.index_backend'
     ext_manager = stevedore.extension.ExtensionManager(
         namespace, invoke_on_load=True)
-    return {plugin.obj.get_document_type(): plugin
-            for plugin in ext_manager.extensions if plugin.obj.enabled}
+    plugins = {plugin.obj.get_document_type(): plugin
+               for plugin in ext_manager.extensions if plugin.obj.enabled}
+
+    # Set up any parent/child relationships. Although this may be called
+    # multiple times, in practice get_search_plugins is rarely called.
+    # Unfortunately there's nowhere better to put this; stevedore instantiates
+    # the plugins before we get to them
+    for plugin_type, loaded_plugin in six.iteritems(plugins):
+        parent_type = loaded_plugin.obj.parent_plugin_type()
+        if parent_type:
+            LOG.debug("Setting up link between parent (%s) and child (%s)"
+                      % (parent_type, plugin_type))
+            parent_plugin = plugins.get(parent_type, None)
+            if not parent_plugin:
+                raise exception.SearchlightException(
+                    "Error loading %(plugin_type)s; expected parent plugin "
+                    "%(parent_type)s is not loaded" %
+                    {"plugin_type": plugin_type, "parent_type": parent_type})
+
+            loaded_plugin.obj.register_parent(parent_plugin.obj)
+
+    return plugins

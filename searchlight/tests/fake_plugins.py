@@ -59,6 +59,14 @@ SIMPLE_DATA = [
 ]
 
 
+CHILD_DATA = [
+    {
+        "id": "child1",
+        "parent_id": "simple1"
+    }
+]
+
+
 class FakePluginBase(base.IndexBase):
     def __init__(self, es_engine):
         self.options = mock.Mock()
@@ -68,6 +76,7 @@ class FakePluginBase(base.IndexBase):
 
         self.engine = es_engine
         self.index_name = 'fake'
+        self.document_type = self.get_document_type()
 
         self.parent_plugin = None
         self.child_plugins = []
@@ -83,7 +92,10 @@ class RoleSeparatedPlugin(FakePluginBase):
     def __init__(self, es_engine):
         super(RoleSeparatedPlugin, self).__init__(es_engine)
         self.options.admin_only_fields = 'admin_wildcard_*,admin_specific'
-        self.document_type = 'role-separated'
+
+    @classmethod
+    def get_document_type(cls):
+        return 'role-separated'
 
     def get_mapping(self):
         return {
@@ -113,7 +125,10 @@ class RoleSeparatedPlugin(FakePluginBase):
 class NonRoleSeparatedPlugin(FakePluginBase):
     def __init__(self, es_engine):
         super(NonRoleSeparatedPlugin, self).__init__(es_engine)
-        self.document_type = 'not-role-separated'
+
+    @classmethod
+    def get_document_type(cls):
+        return 'not-role-separated'
 
     def get_mapping(self):
         return {
@@ -140,7 +155,10 @@ class NonRoleSeparatedPlugin(FakePluginBase):
 class FakeSimplePlugin(FakePluginBase):
     def __init__(self, es_engine):
         super(FakeSimplePlugin, self).__init__(es_engine)
-        self.document_type = 'fake-simple'
+
+    @classmethod
+    def get_document_type(cls):
+        return 'fake-simple'
 
     def get_mapping(self):
         return {
@@ -152,3 +170,33 @@ class FakeSimplePlugin(FakePluginBase):
     def get_objects(self):
         self.number_documents = len(SIMPLE_DATA)
         return copy.deepcopy(SIMPLE_DATA)
+
+
+class FakeChildPlugin(FakePluginBase):
+    def __init__(self, es_engine):
+        super(FakeChildPlugin, self).__init__(es_engine)
+
+    @classmethod
+    def get_document_type(cls):
+        return 'fake-child'
+
+    def get_mapping(self):
+        # Explicit parent is not necessary; it'll get added
+        return {
+            'properties': {
+                'id': {'type': 'string', 'index': 'not_analyzed'},
+                'parent_id': {'type': 'string', 'index': 'not_analyzed'}
+            }
+        }
+
+    @classmethod
+    def parent_plugin_type(cls):
+        return "fake-simple"
+
+    @property
+    def parent_id_field(self):
+        return 'parent_id'
+
+    def get_objects(self):
+        self.number_documents = len(CHILD_DATA)
+        return copy.deepcopy(CHILD_DATA)
