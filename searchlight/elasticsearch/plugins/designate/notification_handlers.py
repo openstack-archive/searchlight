@@ -93,13 +93,7 @@ class DomainHandler(base.NotificationBase):
 
     def create_or_update(self, payload):
         payload = self._serialize(payload)
-
-        self.engine.index(
-            index=self.index_name,
-            doc_type=self.document_type,
-            body=payload,
-            id=payload["id"]
-        )
+        self.index_helper.save_document(payload)
 
     def delete(self, payload):
         zone_id = payload['id']
@@ -114,11 +108,14 @@ class DomainHandler(base.NotificationBase):
         }
 
         documents = helpers.scan(
-            client=self.engine,
+            client=self.index_helper.engine,
             index=self.index_name,
             doc_type=self.document_type,
             query=query)
 
+        # TODO(sjmc7) The code below will still work because DNS zones aren't
+        # split by role. If they ever ARE, it will stop working, since the
+        # ids won't match up (_ADMIN, _USER)
         actions = []
         for document in documents:
             action = {
@@ -132,15 +129,11 @@ class DomainHandler(base.NotificationBase):
 
         if actions:
             helpers.bulk(
-                client=self.engine,
+                client=self.index_helper.engine,
                 actions=actions)
 
         try:
-            self.engine.delete(
-                index=self.index_name,
-                doc_type=self.document_type,
-                id=zone_id
-            )
+            self.index_helper.delete_document_by_id(zone_id)
         except exceptions.NotFoundError:
             msg = "Zone %s not found when deleting"
             LOG.error(msg, zone_id)
@@ -167,16 +160,8 @@ class RecordSetHandler(base.NotificationBase):
         }
 
     def create_or_update(self, payload):
-        id_ = payload['id']
         payload = self._serialize(payload)
-
-        self.engine.index(
-            index=self.index_name,
-            doc_type=self.document_type,
-            body=payload,
-            parent=payload["zone_id"],
-            id=id_
-        )
+        self.index_helper.save_document(payload)
 
     def _serialize(self, obj):
         obj['project_id'] = obj.pop('tenant_id')
@@ -187,13 +172,4 @@ class RecordSetHandler(base.NotificationBase):
         return obj
 
     def delete(self, payload):
-        id_ = payload['id']
-        try:
-            self.engine.delete(
-                index=self.index_name,
-                doc_type=self.document_type,
-                id=id_
-            )
-        except exceptions.NotFoundError:
-            msg = "RecordSet %s not found when deleting"
-            LOG.error(msg, id_)
+        self.index_helper.delete_document_by_id(payload['id'])

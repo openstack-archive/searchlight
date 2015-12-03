@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import copy
 import datetime
 import mock
 import novaclient.exceptions
@@ -21,6 +20,7 @@ import novaclient.v2.servers as novaclient_servers
 
 from searchlight.elasticsearch.plugins.nova import\
     servers as servers_plugin
+from searchlight.elasticsearch import ROLE_USER_FIELD
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -257,77 +257,6 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         self.assertEqual(expected, serialized)
 
-    def test_protected_properties(self):
-        with mock.patch(nova_server_getter, return_value=self.instance1):
-            serialized = self.plugin.serialize(self.instance1.id)
-
-        elasticsearch_results = {
-            'hits': {
-                'hits': [{
-                    '_source': copy.deepcopy(serialized),
-                    '_type': self.plugin.get_document_type(),
-                    '_index': self.plugin.get_index_name()
-                }]
-            }
-        }
-
-        protected_fields = (u'OS-EXT-SRV-ATTR:host',
-                            u'OS-EXT-SRV-ATTR:hypervisor_hostname')
-
-        fake_request = unit_test_utils.get_fake_request(
-            USER1, TENANT1, '/v1/search', is_admin=True
-        )
-        self.plugin.filter_result(elasticsearch_results['hits']['hits'][0],
-                                  fake_request.context)
-
-        # Result should contain all the fields
-        single_result = elasticsearch_results['hits']['hits'][0]['_source']
-        self.assertEqual(serialized, single_result)
-        for field in protected_fields:
-            self.assertTrue(field in single_result)
-
-        # Refresh the mock results since they can be modified in-place
-        elasticsearch_results = {
-            'hits': {
-                'hits': [{
-                    '_source': copy.deepcopy(serialized),
-                    '_type': self.plugin.get_document_type(),
-                    '_index': self.plugin.get_index_name()
-                }]
-            }
-        }
-        # Make the same request as a non-admin
-        fake_request = unit_test_utils.get_fake_request(
-            USER1, TENANT1, '/v1/search', is_admin=False
-        )
-
-        self.plugin.filter_result(elasticsearch_results['hits']['hits'][0],
-                                  fake_request.context)
-
-        single_result = elasticsearch_results['hits']['hits'][0]['_source']
-
-        for field in protected_fields:
-            self.assertFalse(field in single_result)
-
-    def test_update_deleted(self):
-        """Test that if a server has been deleted it's deleted from the index
-        if an update notification's received.
-        """
-        mock_engine = mock.Mock()
-        self.plugin.engine = mock_engine
-
-        with mock.patch(nova_server_getter,
-                        side_effect=novaclient.exceptions.NotFound('testing')):
-            self.plugin.get_notification_handler().create_or_update(
-                {u'instance_id': u'missing'}
-            )
-
-            self.assertTrue(not mock_engine.index.called)
-            mock_engine.delete.assert_called_once_with(
-                index=self.plugin.get_index_name(),
-                doc_type=self.plugin.get_document_type(),
-                id=u'missing')
-
     def test_facets_non_admin(self):
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
@@ -372,6 +301,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 'filtered': {
                     'filter': {
                         'and': [
+                            {'term': {ROLE_USER_FIELD: 'user'}},
                             {'term': {'tenant_id': TENANT1}}
                         ]
                     }
@@ -427,6 +357,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 'filtered': {
                     'filter': {
                         'and': [
+                            {'term': {ROLE_USER_FIELD: 'admin'}},
                             {'term': {'tenant_id': TENANT1}}
                         ]
                     }
@@ -456,10 +387,12 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         )
 
         self.plugin.get_facets(fake_request.context, all_projects=True)
+
         expected_agg_query_filter = {
             'filtered': {
                 'filter': {
                     'and': [
+                        {'term': {ROLE_USER_FIELD: 'user'}},
                         {'term': {'tenant_id': TENANT1}}
                     ]
                 }
@@ -486,7 +419,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         search_call_body = search_call[2]['body']
 
         # We don't expect any filter query here, just the aggregations.
-        self.assertEqual(['aggs'], list(search_call_body.keys()))
+        self.assertEqual(set(['aggs', 'query']), set(search_call_body.keys()))
 
     def test_facets_no_mapping(self):
         mock_engine = mock.Mock()
@@ -524,3 +457,22 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         self.assertEqual(serialized['created_at'], created_now)
         self.assertEqual(serialized['updated_at'], updated_now)
+
+    def test_update_404_deletes(self):
+        """Test that if a server is missing on a notification event, it
+        gets deleted from the index
+        """
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        notification_handler = self.plugin.get_notification_handler()
+        doc_deleter = self.plugin._index_helper
+        nova_exc = novaclient.exceptions.NotFound('missing')
+        with mock.patch(nova_server_getter,
+                        side_effect=nova_exc) as mock_get:
+            with mock.patch.object(doc_deleter,
+                                   'delete_document_by_id') as mock_deleter:
+                notification_handler.create_or_update(
+                    {u'instance_id': u'missing'})
+                mock_get.assert_called_once_with(u'missing')
+                mock_deleter.assert_called_once_with(u'missing')

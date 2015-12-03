@@ -19,13 +19,16 @@ import operator
 from oslo_config import cfg
 import six
 
-from searchlight.common import utils
+from searchlight.common import utils as common_utils
 
 
 # Fields that require special handling for sort to avoid sorting
 # on tokenized values
 RAW_SORT_FIELDS = ('name',)
 
+# It's not important exactly what this is, except that it's consistent
+# across all plugins, and doesn't interfere with any real fields.
+ROLE_USER_FIELD = "__searchlight-user-role"
 
 search_opts = [
     cfg.ListOpt('hosts', default=['127.0.0.1:9200'],
@@ -49,7 +52,7 @@ class CatalogSearchRepo(object):
     def __init__(self, context, es_api):
         self.context = context
         self.es_api = es_api
-        self.plugins = utils.get_search_plugins()
+        self.plugins = common_utils.get_search_plugins()
         self.plugins_info_dict = self._get_plugin_info()
 
     def search(self, index, doc_type, query, offset,

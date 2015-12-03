@@ -13,16 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import httplib2
-from oslo_serialization import jsonutils
 import six
 import uuid
 
+from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import functional
 
 TENANT1 = str(uuid.uuid4())
 TENANT2 = str(uuid.uuid4())
 TENANT3 = str(uuid.uuid4())
+
+USER1 = str(uuid.uuid4())
 
 MATCH_ALL = {"query": {"match_all": {}}, "sort": [{"name": {"order": "asc"}}]}
 EMPTY_RESPONSE = {"hits": {"hits": [], "total": 0, "max_score": 0.0},
@@ -58,15 +59,13 @@ class TestSearchApi(functional.FunctionalTest):
                     TENANT1)
 
         # Test the raw elasticsearch response
-        es_url = "http://localhost:%s/%s/%s/%s" % (
-            self.api_server.elasticsearch_port,
+        es_doc = self._get_elasticsearch_doc(
             self.images_plugin.get_index_name(),
             self.images_plugin.get_document_type(),
             doc_id)
-
-        response, content = httplib2.Http().request(es_url)
-        json_content = jsonutils.loads(content)
-        self.assertEqual(doc, json_content["_source"])
+        self.assertEqual(['admin', 'user'],
+                         es_doc['_source'].pop(ROLE_USER_FIELD))
+        self.assertEqual(doc, es_doc['_source'])
 
     def test_empty_results(self):
         """Test an empty dataset gets empty results."""
@@ -308,3 +307,110 @@ class TestSearchApi(functional.FunctionalTest):
             expected,
             fixed_network_facet,
         )
+
+    def test_server_role_field_rbac(self):
+        """Check that admins and users get different versions of documents"""
+        doc_id = u'abc'
+        doc = {
+            u'OS-DCF:diskConfig': u'MANUAL',
+            u'OS-EXT-AZ:availability_zone': u'nova',
+            u'OS-EXT-SRV-ATTR:host': u'devstack',
+            u'OS-EXT-SRV-ATTR:hypervisor_hostname': u'devstack',
+            u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
+            u'id': doc_id,
+            u'name': 'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1
+        }
+
+        servers_plugin = self.initialized_plugins['nova']['servers']
+        servers_plugin.index_helper.save_document(doc)
+        self._flush_elasticsearch(servers_plugin.index_name)
+
+        response, json_content = self._search_request(MATCH_ALL,
+                                                      TENANT1,
+                                                      role="admin")
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, len(json_content['hits']['hits']))
+        hit = json_content['hits']['hits'][0]
+        self.assertEqual(doc_id + "_ADMIN", hit['_id'])
+        self.assertEqual(doc, hit['_source'])
+
+        # Now as a non admin
+        response, json_content = self._search_request(MATCH_ALL,
+                                                      TENANT1,
+                                                      role="member")
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, len(json_content['hits']['hits']))
+        hit = json_content['hits']['hits'][0]
+        self.assertEqual(doc_id + "_USER", hit['_id'])
+        for k, v in six.iteritems(hit):
+            self.assertFalse(k.startswith('OS-EXT-SRV-ATTR:'),
+                             'No protected attributes should be present')
+
+        for field in (u'status', u'OS-DCF:diskConfig'):
+            self.assertTrue(field in hit['_source'])
+
+    def test_role_fishing(self):
+        """Run some searches to ward against 'fishing' type attacks such that
+        'admin only' fields can't be searched by ordinary users
+        """
+        admin_field, admin_value = (u'OS-EXT-SRV-ATTR:host', u'devstack')
+
+        doc_id = u'abc'
+        doc = {
+            u'id': doc_id,
+            u'name': 'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1,
+            admin_field: admin_value
+        }
+
+        servers_plugin = self.initialized_plugins['nova']['servers']
+        servers_plugin.index_helper.save_document(doc)
+        self._flush_elasticsearch(servers_plugin.index_name)
+
+        # For each of these queries (which are really looking for the same
+        # thing) we expect a result for an admin, and no result for a user
+        term_query = {'term': {admin_field: admin_value}}
+        query_string = {'query_string': {'query': admin_value}}  # search 'all'
+        query_string_field = {'query_string': {
+            'default_field': admin_field, 'query': admin_value}}
+
+        for query in (term_query, query_string, query_string_field):
+            full_query = {'query': query}
+            response, json_content = self._search_request(full_query,
+                                                          TENANT1,
+                                                          role="admin")
+            self.assertEqual(200, response.status)
+            self.assertEqual(1, json_content['hits']['total'],
+                             "No results for: %s" % query)
+            self.assertEqual(doc_id + '_ADMIN',
+                             json_content['hits']['hits'][0]['_id'])
+
+            # The same search should not work for users
+            response, json_content = self._search_request(full_query,
+                                                          TENANT1,
+                                                          role="user")
+            self.assertEqual(200, response.status)
+            self.assertEqual(0, json_content['hits']['total'])
+
+        # Run the same queries against 'name'; should get results
+        term_query['term'] = {'name': 'instance1'}
+        query_string['query_string']['query'] = 'instance1'
+        query_string_field['query_string'] = {
+            'default_field': 'name', 'query': 'instance1'
+        }
+
+        for query in (term_query, query_string, query_string_field):
+            full_query = {'query': query}
+            response, json_content = self._search_request(full_query,
+                                                          TENANT1,
+                                                          role="user")
+            self.assertEqual(200, response.status)
+            self.assertEqual(1, json_content['hits']['total'],
+                             "No results for: %s %s" % (query, json_content))
+            self.assertEqual(doc_id + '_USER',
+                             json_content['hits']['hits'][0]['_id'])

@@ -27,8 +27,8 @@ LIST_LIMIT = 100
 class ServerIndex(base.IndexBase):
     NotificationHandlerCls = servers_notification_handler.InstanceHandler
 
-    # Will be combined with 'unsearchable_fields' from config
-    UNSEARCHABLE_FIELDS = ['OS-EXT-SRV-ATTR:*']
+    # Will be combined with 'admin_only_fields' from config
+    ADMIN_ONLY_FIELDS = ['OS-EXT-SRV-ATTR:*']
 
     @classmethod
     def get_document_type(self):
@@ -100,9 +100,9 @@ class ServerIndex(base.IndexBase):
         }
 
     @property
-    def unsearchable_fields(self):
-        from_conf = super(ServerIndex, self).unsearchable_fields
-        return ServerIndex.UNSEARCHABLE_FIELDS + from_conf
+    def admin_only_fields(self):
+        from_conf = super(ServerIndex, self).admin_only_fields
+        return ServerIndex.ADMIN_ONLY_FIELDS + from_conf
 
     @property
     def facets_with_options(self):

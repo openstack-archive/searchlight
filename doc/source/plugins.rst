@@ -75,7 +75,7 @@ Please read the rest of the guide for detailed information.::
     [resource_plugin:os_server_nova]
     index_name = nova
     enabled = True
-    unsearchable_fields = OS-EXT-SRV*,OS-EXT-STS:vm_state
+    admin_only_fields = OS-EXT-SRV*,OS-EXT-STS:vm_state
 
     [resource_plugin:os_glance_image]
     enabled = True
@@ -162,16 +162,17 @@ Non-Inheritable Common Configuration Options
 |                     |               | for bulk indexing, notification     |                           |
 |                     |               | listening, or searching.            |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
-| unsearchable_fields | <none>        | A comma separated list of fields    | | Restart services        |
-|                     |               | (wildcards allowed) that are stored | | Re-index affected types |
-|                     |               | in ElasticSearch, but can not be    |                           |
-|                     |               | searched on regardless of the       |                           |
-|                     |               | user's role (admin or not).         |                           |
-|                     |               | The fields will still be returned   |                           |
-|                     |               | in search results for admin users,  |                           |
-|                     |               | but not normal users. These fields  |                           |
-|                     |               | are typically specified for search  |                           |
-|                     |               | performance, search accuracy,       |                           |
+| admin_only_fields   | <none>        | A comma separated list of fields    | | Restart services        |
+|                     |               | (wildcards allowed) that are only   | | Re-index affected types |
+|                     |               | visible to administrators, and only |                           |
+|                     |               | searchable by administrators. Non-  |                           |
+|                     |               | administrative users will not be    |                           |
+|                     |               | able to see or search on these      |                           |
+|                     |               | fields.                             |                           |
+|                     |               | These fields are typically          |                           |
+|                     |               | specified for search performance,   |                           |
+|                     |               | search accuracy, or security        |                           |
+|                     |               | reasons.                            |                           |
 |                     |               | or security reasons.                |                           |
 |                     |               | If a plugin has a hard-coded        |                           |
 |                     |               | mapping for a specific field, it    |                           |

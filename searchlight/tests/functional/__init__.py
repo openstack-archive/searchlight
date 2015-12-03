@@ -22,6 +22,7 @@ and spinning down the servers.
 """
 
 import atexit
+import copy
 import datetime
 import elasticsearch
 import httplib2
@@ -45,6 +46,7 @@ from six.moves import range
 import testtools
 
 from searchlight.common import utils
+from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import utils as test_utils
 
 
@@ -371,12 +373,11 @@ class FunctionalTest(test_utils.BaseTestCase):
             plugin.options = mock.Mock()
             plugin.options.index_name = "searchlight"
             plugin.options.enabled = True
-            plugin.options.unsearchable_fields = None
+            plugin.options.admin_only_fields = None
 
             plugin.engine = self.elastic_connection
             plugin.index_name = plugin.get_index_name()
             plugin.document_type = plugin.get_document_type()
-            plugin.document_id_field = plugin.get_document_id_field()
 
         plugin_classes = {
             'glance': {'images': 'ImageIndex', 'metadefs': 'MetadefIndex'},
@@ -423,7 +424,28 @@ class FunctionalTest(test_utils.BaseTestCase):
                     index=plugin_instance.get_index_name(),
                     ignore=404)
 
-    def _index(self, index_name, doc_type, docs, tenant, refresh_index=True):
+    def _index(self, index_name, doc_type, docs, tenant,
+               role_separation=False, refresh_index=True):
+
+        def apply_role_separation(apply_to_docs):
+            if role_separation:
+                for doc in apply_to_docs:
+                    user_doc = copy.deepcopy(doc)
+                    user_doc[ROLE_USER_FIELD] = 'user'
+                    user_doc['id'] = user_doc['id'] + '_USER'
+                    yield user_doc
+
+                    doc[ROLE_USER_FIELD] = 'admin'
+                    user_doc['id'] = user_doc['id'] + '_ADMIN'
+                    yield user_doc
+
+            else:
+                for doc in apply_to_docs:
+                    doc = copy.deepcopy(doc)
+                    if ROLE_USER_FIELD not in doc:
+                        doc[ROLE_USER_FIELD] = ['admin', 'user']
+                    yield doc
+
         if not isinstance(docs, list):
             docs = [docs]
 
@@ -431,7 +453,7 @@ class FunctionalTest(test_utils.BaseTestCase):
             '_id': doc['id'],
             '_source': doc,
             '_op_type': 'index',
-        } for doc in docs]
+        } for doc in apply_role_separation(docs)]
 
         result = elasticsearch.helpers.bulk(
             client=self.elastic_connection,
@@ -511,6 +533,14 @@ class FunctionalTest(test_utils.BaseTestCase):
         response, content = httplib2.Http().request(es_url)
         self.assertEqual(200, response.status)
         return jsonutils.loads(content)
+
+    def _get_elasticsearch_doc(self, index_name, doc_type, doc_id):
+        es_url = "http://localhost:%s/%s/%s/%s" % (
+            self.api_server.elasticsearch_port, index_name, doc_type, doc_id)
+
+        response, content = httplib2.Http().request(es_url)
+        json_content = jsonutils.loads(content)
+        return json_content
 
     def set_policy_rules(self, rules):
         fap = open(self.policy_file, 'w')

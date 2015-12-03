@@ -18,6 +18,7 @@ import mock
 
 from searchlight.elasticsearch.plugins.designate import \
     recordsets as recordsets_plugin
+from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests.unit import utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -127,6 +128,7 @@ class TestZonePlugin(test_utils.BaseTestCase):
                 'filtered': {
                     'filter': {
                         'and': [
+                            {'term': {ROLE_USER_FIELD: 'user'}},
                             {'term': {'project_id': TENANT1}}
                         ]
                     }

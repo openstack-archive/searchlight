@@ -13,10 +13,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
+from elasticsearch import helpers
+import fnmatch
 import logging
 import six
 
+from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight import i18n
+
+
+# Refer to ROLE_USER_FIELD
+ADMIN_ID_SUFFIX = "_ADMIN"
+USER_ID_SUFFIX = "_USER"
 
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
@@ -111,3 +120,144 @@ def transform_facets_results(result_aggregations, resource_type):
                 "defined correctly?") % format_msg)
             facet_terms[term] = []
     return facet_terms
+
+
+class IndexingHelper(object):
+    def __init__(self, plugin):
+        self.plugin = plugin
+
+        # Retain some state here for convenience
+        self.engine = self.plugin.engine
+        self.index_name = plugin.index_name
+        self.document_type = plugin.document_type
+
+    @property
+    def index_chunk_size(self):
+        return 200
+
+    def save_document(self, document):
+        self.save_documents([document])
+
+    def save_documents(self, documents):
+        """Send list of serialized documents into search engine."""
+        result = helpers.bulk(
+            client=self.engine,
+            index=self.index_name,
+            doc_type=self.document_type,
+            chunk_size=self.index_chunk_size,
+            actions=self._apply_role_filtering(documents))
+        LOG.debug("Indexing result: %s", result)
+
+    def delete_document_by_id(self, document_id):
+        ids = ((document_id,)
+               if not self.plugin.requires_role_separation else
+               (document_id + ADMIN_ID_SUFFIX, document_id + USER_ID_SUFFIX))
+
+        actions = [{
+            '_op_type': 'delete',
+            '_id': _id
+        } for _id in ids]
+
+        # TODO(sjmc7): Catch 404s, warn and ignore
+        helpers.bulk(
+            client=self.plugin.engine,
+            index=self.index_name,
+            doc_type=self.document_type,
+            actions=actions
+        )
+
+    def get_document(self, doc_id, for_admin=False):
+        if self.plugin.requires_role_separation:
+            doc_id += (ADMIN_ID_SUFFIX if for_admin else USER_ID_SUFFIX)
+
+        return self.engine.get(
+            index=self.index_name,
+            doc_type=self.document_type,
+            id=doc_id
+        )
+
+    def update_document(self, document, doc_id, update_as_script):
+        """Updates are a little simpler than inserts because the documents
+        already exist. Note that scripted updates are not filtered in the same
+        way as partial document updates. Script updates should be passed as
+        a dict {"script": .., "parameters": ..}. Partial document updates
+        should be the raw document.
+        """
+        def _get_update_action(doc, id_suffix=''):
+            action = {'_id': doc_id, '_op_type': 'update'}
+            if update_as_script:
+                action.update(doc)
+            else:
+                action['doc'] = doc
+
+            return action
+
+        if self.plugin.requires_role_separation:
+            user_doc = (self._remove_admin_fields(document)
+                        if update_as_script else document)
+            actions = [_get_update_action(document, ADMIN_ID_SUFFIX),
+                       _get_update_action(user_doc, USER_ID_SUFFIX)]
+        else:
+            actions = [_get_update_action(document)]
+        result = helpers.bulk(
+            client=self.engine,
+            index=self.index_name,
+            doc_type=self.document_type,
+            chunk_size=self.index_chunk_size,
+            actions=actions)
+        LOG.debug("Update result: %s", result)
+
+    def _apply_role_filtering(self, documents):
+        """Returns a generator of indexable 'actions'. If the plugin requires
+        role-based separation, two actions will be yielded per document,
+        otherwise one. _id and USER_ROLE_FIELD are set as appropriate
+        """
+        def _get_index_action(doc, id_suffix=''):
+            """Return an 'action' the ES bulk indexer understands"""
+            action = {
+                '_id': doc[self.plugin.get_document_id_field()] + id_suffix,
+                '_source': doc
+            }
+            parent_field = self.plugin.get_parent_id_field()
+            if parent_field:
+                action['_parent'] = doc[parent_field]
+            return action
+
+        for document in documents:
+            # Although elasticsearch copies the input when indexing, it's
+            # easier from a debugging and testing perspective not to meddle
+            # with the input, so make a copy
+            document = copy.deepcopy(document)
+
+            if self.plugin.requires_role_separation:
+                LOG.debug("Applying role separation to %s id %s" %
+                          (self.plugin.name,
+                           document[self.plugin.get_document_id_field()]))
+                document[ROLE_USER_FIELD] = 'admin'
+                yield _get_index_action(document, ADMIN_ID_SUFFIX)
+
+                user_doc = self._remove_admin_fields(document)
+                user_doc[ROLE_USER_FIELD] = 'user'
+                yield _get_index_action(user_doc, USER_ID_SUFFIX)
+
+            else:
+                LOG.debug("Not applying role separation to %s id %s" %
+                          (self.plugin.name,
+                           document[self.plugin.get_document_id_field()]))
+                document[ROLE_USER_FIELD] = ['user', 'admin']
+                yield _get_index_action(document)
+
+    def _remove_admin_fields(self, document):
+        """Prior to indexing, remove any fields that shouldn't be indexed
+        and available to users who do not have administrative privileges.
+        Returns a copy of the document even if there's nothing to remove.
+        """
+        sanitized_document = {}
+        for k, v in six.iteritems(document):
+            # Only return a field if it doesn't have ANY matches against
+            # admin_only_fields
+            if not any(fnmatch.fnmatch(k, field)
+                       for field in self.plugin.admin_only_fields):
+                sanitized_document[k] = v
+
+        return sanitized_document
