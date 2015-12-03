@@ -80,6 +80,13 @@ class IndexCommands(object):
             print("Aborting.")
             sys.exit(1)
 
+        if clear:
+            from searchlight.elasticsearch import using_elasticsearch_v2
+            using_v2_message = using_elasticsearch_v2()
+            if using_v2_message:
+                print(using_v2_message)
+                sys.exit(1)
+
         if not force:
             def format_selection(selection):
                 resource_type, ext = selection

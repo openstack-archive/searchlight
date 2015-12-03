@@ -17,10 +17,14 @@
 
 Installing and Configuring Elasticsearch
 ========================================
-The Searchlight indexing service is responsible for indexing data in 
+The Searchlight indexing service is responsible for indexing data in
 `Elasticsearch <http://http://www.elasticsearch.org/>`_;
 Elasticsearch has very good documentation on installation but some pointers
 are provided here.
+
+.. IMPORTANT:: We *strongly* recommend using Elasticsearch 1.x and the
+   accompanying python client version. Searchlight has not been tested with
+   v2 and has some known issues around indexing data.
 
 Installation
 ~~~~~~~~~~~~
@@ -176,7 +180,7 @@ a good fit, you can use unicast discovery::
     discovery.zen.ping.unicast.hosts: ['w.x.y.z', 'w.x.y.z']
 
 
-See `<http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modules-discovery-zen.html>`_ 
+See `<http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modules-discovery-zen.html>`_
 for more details.
 
 JVM settings
@@ -185,4 +189,3 @@ For production, Elasticsearch recommends setting the ES_HEAP_SIZE environment
 variable to a value around 60% of a dedicated machine's memory::
 
     export ES_HEAP_SIZE=2g
-
