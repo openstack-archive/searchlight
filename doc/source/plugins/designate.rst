@@ -99,13 +99,15 @@ local.conf (devstack)
 
 The Designate plugin must be enabled and run with devstack to include Designate
 with your devstack deployment. Follow the instructions here:
-http://docs.openstack.org/developer/designate/devstack.html
+https://github.com/openstack/designate/tree/master/devstack
 
-Additionally, make sure to enable notifications in local.conf with the
-following::
+The settings above may be automatically configured by ``stack.sh``
+by adding them to the following post config section in devstack.
+Just place the following in local.conf and copy the above settings
+underneath it.::
 
-  DESIGNATE_NOTIFICATION_TOPICS=notifications,searchlight_indexer
-  DESIGNATE_NOTIFICATION_DRIVER=messaging
+    [[post-config|$DESIGNATE_CONF]]
+    [DEFAULT]
 
 Release Notes
 =============
