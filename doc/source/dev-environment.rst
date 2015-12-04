@@ -233,6 +233,47 @@ registered in keystone (e.g. glance).
 
 This command may be re-run at any time to perform a full re-index.
 
+The V2 Elasticsearch Client
+---------------------------
+
+.. IMPORTANT:: Please read if you receive a warning about using the
+   elasticsearch v2 client when running `index sync`
+
+The v2 elasticsearch client removed functionality Searchlight uses to
+clear existing data. If the v2 client is installed, you will receive a
+warning when attempting to index data. A workaround is to run the
+`index sync` command below with the `--no-delete` flag. If you have
+existing data indexed, at present it is necessary to delete the entire
+index and reindex. You can do this by running
+
+::
+
+   # Assume elasticsearch is running on localhost, and the default
+   # 'searchlight' index is in use
+   curl -X DELETE localhost:9200/searchlight
+
+   (venv) $ searchlight-manage --config-file etc/searchlight.conf index sync --no-delete
+
+Alternatively, install the Elasticsearch 1.9.0 client by editing
+`requirements.txt` and making the following change
+
+::
+
+   # Change THIS
+   elasticsearch>=1.3.0
+   # To THIS
+   elasticsearch>=1.3.0,<2.0.0
+
+Then re-install requirements and index
+
+::
+
+   (venv) $ pip install -r requirements.txt
+   (venv) $ searchlight-manage --config-file etc/searchlight.conf index sync
+
+Note that if you are running a version 2 elasticsearch *server*, the 1.x
+*client* will not work and you must follow the workaround above.
+
 Start Index Update Monitoring
 =============================
 
