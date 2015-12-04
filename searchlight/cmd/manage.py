@@ -85,7 +85,7 @@ class IndexCommands(object):
             using_v2_message = using_elasticsearch_v2()
             if using_v2_message:
                 print(using_v2_message)
-                sys.exit(1)
+                sys.exit(0)
 
         if not force:
             def format_selection(selection):
