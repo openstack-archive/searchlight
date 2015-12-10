@@ -17,10 +17,10 @@ import copy
 import datetime
 import mock
 
+from searchlight.elasticsearch.plugins.base import NotificationBase
 from searchlight.elasticsearch.plugins.glance import metadefs as md_plugin
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
-
 
 # Metadefinitions
 USER1 = '54492ba0-f4df-4e4e-be62-27f4d76b29cf'
@@ -55,6 +55,7 @@ now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
 def _namespace_fixture(**kwargs):
     obj = {
         'created_at': now,
+        'updated_at': now,
         'namespace': None,
         'display_name': None,
         'description': None,
@@ -351,7 +352,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             with mock.patch.object(self.plugin.index_helper,
                                    'save_documents') as mock_save:
                 self.plugin.setup_data()
-
+                versions = [NotificationBase.get_version(obj)
+                            for obj in self.namespaces]
                 mock_get.assert_called_once_with()
                 mock_save.assert_called_once_with([
                     {
@@ -440,7 +442,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                             {'name': 'Tag3'},
                         ],
                     }
-                ])
+                ], versions=versions)
 
     def test_metadef_rbac(self):
         """Test metadefs RBAC query terms"""

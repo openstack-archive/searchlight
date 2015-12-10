@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import json
 import mock
 import six
@@ -299,7 +300,6 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
 
     def setUp(self):
         super(TestGlanceListener, self).setUp()
-
         openstack_client_mod = "searchlight.elasticsearch.plugins." \
                                "openstack_clients.get_glanceclient"
         osclient_patcher = mock.patch(
@@ -318,12 +318,31 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
 
     def test_image_create_event(self):
         """Send image.create notification event to listener"""
-
         create_event = self.image_events["image.create"]
         self._send_event_to_listener(create_event, self.images_index)
         result = self._verify_event_processing(create_event)
         verification_keys = ['id', 'status']
         self._verify_result(create_event, verification_keys, result)
+
+    def test_image_update_conflict(self):
+        """Send a outdated image.update notification event to listener,
+           test if the document will be updated
+        """
+        create_event = self.image_events["image.create"]
+        self._send_event_to_listener(create_event, self.images_index)
+
+        update_event = self.image_events["image.update"]
+        self._send_event_to_listener(update_event, self.images_index)
+
+        outdate_update_event = copy.deepcopy(update_event)
+        outdate_update_event['payload']['updated_at'] = ("2015-09-01T"
+                                                         "09:06:18.000000")
+        self._send_event_to_listener(outdate_update_event, self.images_index)
+        result = self._verify_event_processing(update_event)
+
+        # Check if outdated update notification failed
+        verification_keys = ['updated_at']
+        self._verify_result(update_event, verification_keys, result)
 
     def test_image_update_event(self):
         """Send image.update notification event to listener"""
@@ -420,7 +439,29 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         update_event = self.metadef_events["metadef_namespace.update"]
         self._send_event_to_listener(update_event, self.metadefs_index)
         result = self._verify_event_processing(update_event)
-        verification_keys = ['visibility', 'protected']
+        verification_keys = ['display_name', 'description', 'namespace',
+                             'created_at', 'updated_at', 'owner', 'visibility',
+                             'protected']
+        self._verify_result(update_event, verification_keys, result)
+
+    def test_md_namespace_update_conflict(self):
+        """Send a outdated metadef_namespace.update notification event to
+        listener, test if the document will be updated
+        """
+
+        create_event = self.metadef_events['metadef_namespace.create']
+        self._send_event_to_listener(create_event, self.metadefs_index)
+
+        update_event = self.metadef_events['metadef_namespace.update']
+        self._send_event_to_listener(update_event, self.metadefs_index)
+
+        outdate_update_event = copy.deepcopy(update_event)
+        outdate_update_event['payload']['updated_at'] = '2015-09-01T03:51:54Z'
+        self._send_event_to_listener(outdate_update_event, self.metadefs_index)
+        result = self._verify_event_processing(outdate_update_event)
+
+        # check if outdated update event failed
+        verification_keys = ['updated_at']
         self._verify_result(update_event, verification_keys, result)
 
     def test_md_namespace_delete_event(self):

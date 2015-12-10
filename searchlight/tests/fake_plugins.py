@@ -25,7 +25,8 @@ ROLE_SEPARATED_DATA = [
         "admin_wildcard_this": "this is admin only",
         "admin_wildcard_that": "this is admin too",
         "admin_specific": "specific admin field",
-        "tenant_id": "tenant1"
+        "tenant_id": "tenant1",
+        "updated_at": "2015-08-06T12:48:14.000000"
     },
     {
         "id": "role-fake2",
@@ -33,7 +34,8 @@ ROLE_SEPARATED_DATA = [
         "admin_wildcard_this": "still admin",
         "admin_wildcard_that": "still admin too",
         "admin_specific": "specific admin field",
-        "tenant_id": "tenant1"
+        "tenant_id": "tenant1",
+        "updated_at": "2015-08-06T12:48:14.000000"
     }
 ]
 
@@ -42,12 +44,14 @@ NON_ROLE_SEPARATED_DATA = [
     {
         "id": "non-role-fake1",
         "public_field": "this is public",
-        "tenant_id": "tenant1"
+        "tenant_id": "tenant1",
+        "updated_at": "2015-08-06T12:48:14.000000"
     },
     {
         "id": "non-role-fake2",
         "public_field": "still public",
-        "tenant_id": "tenant1"
+        "tenant_id": "tenant1",
+        "updated_at": "2015-08-06T12:48:14.000000"
     }
 ]
 
@@ -68,6 +72,8 @@ CHILD_DATA = [
 
 
 class FakePluginBase(base.IndexBase):
+    NotificationHandlerCls = base.NotificationBase
+
     def __init__(self, es_engine):
         self.options = mock.Mock()
         self.options.admin_only_fields = None

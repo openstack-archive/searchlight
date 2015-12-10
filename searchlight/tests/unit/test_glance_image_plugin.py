@@ -21,6 +21,7 @@ import six
 import glanceclient.exc
 from oslo_utils import timeutils
 
+from searchlight.elasticsearch.plugins.base import NotificationBase
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
 from searchlight.elasticsearch import ROLE_USER_FIELD
 import searchlight.tests.unit.utils as unit_test_utils
@@ -321,7 +322,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                         self.plugin.index_helper,
                         'save_documents') as mock_save:
                     self.plugin.setup_data()
-
+                    versions = [NotificationBase.get_version(img)
+                                for img in self.images]
                     mock_list.assert_called_once_with()
                     mock_members.assert_called_once_with(
                         self.members_image['id'])
@@ -430,7 +432,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'created_at': '2012-05-16T15:27:36Z',
                             'id': 'KERNEL-eae7-4c0f-b50d-RAMDISK'
                         }
-                    ])
+                    ], versions=versions)
 
     def test_image_rbac(self):
         """Test the image plugin RBAC query terms"""

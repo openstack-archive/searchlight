@@ -14,11 +14,13 @@
 #    under the License.
 
 import abc
+import calendar
 import logging
 from oslo_config import cfg
 from oslo_config import types
 import oslo_messaging
 from oslo_utils import encodeutils
+from oslo_utils import timeutils
 import six
 
 from searchlight.common import exception
@@ -28,12 +30,10 @@ from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight import i18n
 from searchlight import plugin
 
-
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 _LI = i18n._LI
 _ = i18n._
-
 
 indexer_opts = [
     cfg.StrOpt('index_name', default="searchlight",
@@ -132,11 +132,13 @@ class IndexBase(plugin.Plugin):
         """Insert all objects from database into search engine."""
         object_list = self.get_objects()
         documents = []
+        versions = []
         for obj in object_list:
             document = self.serialize(obj)
             documents.append(document)
-
-        self.index_helper.save_documents(documents)
+            version = self.NotificationHandlerCls.get_version(document)
+            versions.append(version)
+        self.index_helper.save_documents(documents, versions=versions)
 
         for child_plugin in self.child_plugins:
             child_plugin.setup_data()
@@ -484,10 +486,10 @@ class NotificationBase(object):
                   event_type,
                   self.index_helper.document_type)
         try:
-            self.get_event_handlers()[event_type](payload)
+            self.get_event_handlers()[event_type](payload,
+                                                  metadata['timestamp'])
             return oslo_messaging.NotificationResult.HANDLED
         except Exception as e:
-
             LOG.error(encodeutils.exception_to_unicode(e))
 
     def get_notification_topics_exchanges(self):
@@ -502,3 +504,64 @@ class NotificationBase(object):
         else:
             return [(CONF.resource_plugin.notifications_topic, exchange)
                     for exchange in self._get_notification_exchanges()]
+
+    @classmethod
+    def get_version(cls, payload, timestamp=None):
+        """Combine updated_at|created_at epoch with notification timestamp as a
+        version number, format is
+        <right 9 digits update epoch(create epoch)><right 9 digits timestamp
+        in milliseconds>, if timestamp is not present(sync indexing), fill in
+        9 digits of zero instead.
+
+        The reason we combine update time and timestamp together is the
+        precision of update time is limit to seconds. It's not accurate enough
+        to use as a version.
+
+        The max version in Elasticsearch is 9.2e+18, allowing 19 digits at
+        most. Our version is 18 digits long, leaves 1 digit for conservation.
+
+        The updated epoch is 10 digits long, we strip off its leading digit,
+        concatenate it with the right 9 digits of timestamp in milliseconds,
+        and we get a 18 digits long version.
+
+        The truncating has some potential things to be noted, similar to Y2K
+        problem.
+
+        Let's say we have an updated epoch 1450161655. Stripping off the
+        leading '1' from the current epoch seconds 'rebases' our epoch around
+        1984(450161655). By the time we get to an updated epoch beginning '199'
+        we're somewhere around 2033, and truncating epoch to 2001. Once the
+        clock flips round to begin '200'(year 2033) things will stop working
+        because we'll suddenly be using epoch that look like they're from 1969.
+        We can address this before that happens; worst case is that you'd have
+        to reindex everything, or reset the version.
+
+        The "timestamp" has similiar issues. When the "timestamp" overflowed
+        the 9-digit field, time becomes indistinguishable. The 9 digits
+        millisecond precision gives us around 27 hours. It should be enough to
+        distinguish notifications with different timestamps.
+        """
+        updated = None
+        if payload.get('updated_at'):
+            updated = payload['updated_at']
+        elif payload.get('created_at'):
+            updated = payload['created_at']
+        else:
+            msg = ('Failed to build elasticsearch version, updated_at and '
+                   'created_at not exist, %s' % str(payload)
+                   )
+            raise exception.SearchlightException(message=msg)
+
+        updated_obj = timeutils.parse_isotime(updated)
+        updated_epoch = int(calendar.timegm(updated_obj.utctimetuple()))
+        if timestamp:
+            timestamp_obj = timeutils.parse_isotime(timestamp)
+            timestamp_epoch = int(calendar.timegm(
+                timestamp_obj.utctimetuple()))
+            timestamp_milli = (timestamp_epoch * 1000 +
+                               timestamp_obj.microsecond // 1000)
+            truncate_timestamp = str(timestamp_milli)[-9:].zfill(9)
+            # truncate updated epoch because we are run out of numbers.
+            return '%s%s' % (str(updated_epoch)[-9:], truncate_timestamp)
+        else:
+            return '%s%s' % (str(updated_epoch)[-9:], '0' * 9)
