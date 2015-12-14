@@ -47,13 +47,14 @@ class SearchController(object):
         self.plugins = plugins or {}
 
     def search(self, req, query, index=None, doc_type=None,
-               offset=0, limit=10, **kwargs):
+               offset=0, limit=None, **kwargs):
         """Supported kwargs:
         :param _source:
         :param _source_include:
         :param _source_exclude:
         :return:
         """
+        limit = limit or CONF.limit_param_default
         try:
             search_repo = self.gateway.get_catalog_search_repo(req.context)
             result = search_repo.search(index,
