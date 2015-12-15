@@ -19,6 +19,7 @@ import searchlight.common.config
 import searchlight.common.property_utils
 import searchlight.common.wsgi
 import searchlight.elasticsearch
+import searchlight.listener
 
 
 def list_opts():
@@ -32,4 +33,5 @@ def list_opts():
         ('elasticsearch', searchlight.elasticsearch.search_opts),
         ('paste_deploy', searchlight.common.config.paste_deploy_opts),
         ('profiler', searchlight.common.wsgi.profiler_opts),
+        ('listener', searchlight.listener.listener_opts),
     ]

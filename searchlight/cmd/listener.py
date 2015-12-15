@@ -20,12 +20,16 @@ from searchlight import listener
 from searchlight import service
 
 
+CONF = cfg.CONF
+CONF.import_group("listener", "searchlight.listener")
+
+
 def main():
     service.prepare_service()
-    launcher = os_service.ProcessLauncher(cfg.CONF)
+    launcher = os_service.ProcessLauncher(CONF)
     launcher.launch_service(
         listener.ListenerService(),
-        workers=service.get_workers('listener'))
+        workers=CONF.listener.workers)
     launcher.wait()
 
 if __name__ == "__main__":
