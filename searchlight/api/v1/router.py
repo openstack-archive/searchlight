@@ -63,15 +63,4 @@ class API(wsgi.Router):
                        conditions={'method': ['POST', 'PUT', 'DELETE',
                                               'PATCH', 'HEAD']})
 
-        mapper.connect('/index',
-                       controller=search_catalog_resource,
-                       action='index',
-                       conditions={'method': ['POST']})
-        mapper.connect('/index',
-                       controller=reject_method_resource,
-                       action='reject',
-                       allowed_methods='POST',
-                       conditions={'method': ['GET', 'PUT', 'DELETE',
-                                              'PATCH', 'HEAD']})
-
         super(API, self).__init__(mapper)
