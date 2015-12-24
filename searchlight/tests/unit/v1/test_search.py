@@ -280,6 +280,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Glance::Image',
             'OS::Glance::Metadef',
             'OS::Nova::Server',
+            'OS::Nova::Hypervisor',
             'OS::Neutron::Net',
             'OS::Neutron::Port',
             'OS::Neutron::Subnet',

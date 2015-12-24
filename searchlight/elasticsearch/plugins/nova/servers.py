@@ -14,9 +14,9 @@
 # limitations under the License.
 
 from searchlight.elasticsearch.plugins import base
-from searchlight.elasticsearch.plugins.nova import serialize_nova_server
 from searchlight.elasticsearch.plugins.nova \
-    import servers_notification_handler
+    import notification_handler
+from searchlight.elasticsearch.plugins.nova import serialize_nova_server
 from searchlight.elasticsearch.plugins import openstack_clients
 
 
@@ -25,7 +25,7 @@ LIST_LIMIT = 100
 
 
 class ServerIndex(base.IndexBase):
-    NotificationHandlerCls = servers_notification_handler.InstanceHandler
+    NotificationHandlerCls = notification_handler.InstanceHandler
 
     # Will be combined with 'admin_only_fields' from config
     ADMIN_ONLY_FIELDS = ['OS-EXT-SRV-ATTR:*']

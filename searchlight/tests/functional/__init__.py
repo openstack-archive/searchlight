@@ -369,7 +369,8 @@ class FunctionalTest(test_utils.BaseTestCase):
         """
         plugin_classes = {
             'glance': {'images': 'ImageIndex', 'metadefs': 'MetadefIndex'},
-            'nova': {'servers': 'ServerIndex'},
+            'nova': {'servers': 'ServerIndex',
+                     'hypervisors': 'HypervisorIndex'},
             'cinder': {'volumes': 'VolumeIndex', 'snapshots': 'SnapshotIndex'},
             'neutron': {'networks': 'NetworkIndex', 'ports': 'PortIndex',
                         'subnets': 'SubnetIndex', 'routers': 'RouterIndex'},
@@ -382,7 +383,7 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         plugins = include_plugins or (
             ('glance', 'images'), ('glance', 'metadefs'),
-            ('nova', 'servers'),
+            ('nova', 'servers'), ('nova', 'hypervisors'),
             ('cinder', 'volumes'), ('cinder', 'snapshots'),
             ('neutron', 'networks'), ('neutron', 'ports'),
             ('neutron', 'subnets'), ('neutron', 'routers'),

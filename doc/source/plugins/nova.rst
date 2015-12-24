@@ -46,6 +46,19 @@ Plugin: OS::Nova::Server
     [resource_plugin:os_nova_server]
     enabled = true
 
+Plugin: OS::Nova::Hypervisor
+^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_nova_hypervisor]
+    enabled = true
+
+.. note::
+
+    There are no notifications for hypervisor from nova yet, so we recommend
+    putting it to its own resource group and scheduling a cron job to re-sync
+    with little overhead.
+
 Nova Configuration
 ==================
 
