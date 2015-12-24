@@ -14,7 +14,6 @@
 #    under the License.
 
 import itertools
-from keystoneauth1 import loading as ks_loading
 import operator
 
 import keystoneclient.auth.conf
@@ -57,7 +56,7 @@ def list_auth_opts():
     # Inspired by similar code in neutron
     opt_list = []
     for plugin in ['password', 'v2password', 'v3password']:
-        plugin_options = ks_loading.get_plugin_loader(plugin).get_options()
+        plugin_options = keystoneclient.auth.conf.get_plugin_options(plugin)
         for plugin_option in plugin_options:
             if all(option.name != plugin_option.name for option in opt_list):
                 opt_list.append(plugin_option)
