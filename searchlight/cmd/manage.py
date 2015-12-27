@@ -20,6 +20,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import encodeutils
 
+from keystoneclient import exceptions
 from searchlight.common import config
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import utils as es_utils
@@ -31,6 +32,7 @@ LOG = logging.getLogger(__name__)
 _ = i18n._
 _LE = i18n._LE
 _LI = i18n._LI
+_LW = i18n._LW
 
 
 # Decorators for actions
@@ -186,6 +188,9 @@ class IndexCommands(object):
             group_name = plugin_obj.resource_group_name
             try:
                 plugin_obj.initial_indexing(index_name=index_names[group_name])
+            except exceptions.EndpointNotFound:
+                LOG.warning(_LW("Service is not available for plugin: "
+                                "%(ext)s") % {"ext": ext.name})
             except Exception as e:
                 LOG.error(_LE("Failed to setup index extension "
                               "%(ext)s: %(e)s") % {'ext': ext.name, 'e': e})
