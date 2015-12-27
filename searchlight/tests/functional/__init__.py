@@ -359,6 +359,7 @@ class FunctionalTest(test_utils.BaseTestCase):
                               "api_port",
                               max_retries=3,
                               **self.__dict__.copy())
+        self.addCleanup(self.cleanup)
 
         self.initialized_plugins = {}
         self.configurePlugins()
@@ -437,20 +438,9 @@ class FunctionalTest(test_utils.BaseTestCase):
             instance.initial_indexing(index_name=index, setup_data=False)
 
     def tearDown(self):
-        if not self.disabled:
-            self.cleanup()
-
         super(FunctionalTest, self).tearDown()
 
         self.api_server.dump_log('api_server')
-
-        for plugin_instance in self.initialized_plugins.values():
-            self.elastic_connection.indices.delete(
-                index=plugin_instance.alias_name_search,
-                ignore=404)
-            self.elastic_connection.indices.delete(
-                index=plugin_instance.alias_name_listener,
-                ignore=404)
 
     def _index(self, plugin, docs, refresh_index=True):
         """Index data exactly as the plugin would under searchlight-manage.
@@ -591,6 +581,14 @@ class FunctionalTest(test_utils.BaseTestCase):
         for f in self.files_to_destroy:
             if os.path.exists(f):
                 os.unlink(f)
+
+        for plugin_instance in self.initialized_plugins.values():
+            self.elastic_connection.indices.delete(
+                index=plugin_instance.alias_name_search,
+                ignore=404)
+            self.elastic_connection.indices.delete(
+                index=plugin_instance.alias_name_listener,
+                ignore=404)
 
     def start_server(self,
                      server,
