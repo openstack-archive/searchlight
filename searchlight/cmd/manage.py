@@ -264,12 +264,16 @@ class IndexCommands(object):
                 es_utils.alias_search_update(search, index_names[group])
 
         # Step #5: Update the "listener" alias.
-        #   The "search" alias has been updated. This involves both removing
-        #   the old index from the alias as well as deleting the old index.
-        #   These actions need to happen outside of the plugins.
+        #   The "search" alias has been updated. The old index is deleted
+        #   in this step. The action need to happen outside of the plugins.
         #   NB: The "search" alias remains unchanged for this step.
         for group, search, listen in resource_groups:
-            es_utils.alias_listener_update(listen, old_index[group])
+            try:
+                # If any exception raises, ignore and continue to delete
+                # any other old indexes.
+                es_utils.delete_index(old_index[group])
+            except Exception as e:
+                LOG.error(encodeutils.exception_to_unicode(e))
 
 
 def add_command_parsers(subparsers):

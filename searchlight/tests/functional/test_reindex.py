@@ -114,7 +114,7 @@ class TestReindexing(functional.FunctionalTest):
 
         # Update aliases.
         old_index = es_utils.alias_search_update(alias_search, new_index)
-        es_utils.alias_listener_update(alias_listener, old_index)
+        es_utils.delete_index(old_index)
         self._flush_elasticsearch(alias_listener)
 
         self.verify_new_alias_state(new_index=new_index,
@@ -158,7 +158,7 @@ class TestReindexing(functional.FunctionalTest):
 
         # Update aliases.
         old_index = es_utils.alias_search_update(alias_search, new_index)
-        es_utils.alias_listener_update(alias_listener, old_index)
+        es_utils.delete_index(old_index)
         self._flush_elasticsearch(alias_listener)
 
         self.verify_new_alias_state(new_index=new_index,
@@ -203,7 +203,7 @@ class TestReindexing(functional.FunctionalTest):
 
         # Update aliases.
         old_index = es_utils.alias_search_update(alias_search, new_index)
-        es_utils.alias_listener_update(alias_listener, old_index)
+        es_utils.delete_index(old_index)
         self._flush_elasticsearch(alias_listener)
 
         self.verify_new_alias_state(new_index=new_index,
