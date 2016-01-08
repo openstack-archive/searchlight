@@ -231,7 +231,6 @@ class SearchServer(Server):
         self.elasticsearch_port = elasticsearch_wrapper.elasticsearch_port
         self.pid_file = os.path.join(self.test_dir, "searchlight.pid")
         self.log_file = os.path.join(self.test_dir, "searchlight.log")
-        self.workers = 0
         self.api_version = 1
         self.policy_file = policy_file
         self.policy_default_rule = 'default'
@@ -240,11 +239,8 @@ class SearchServer(Server):
         self.conf_base = """[DEFAULT]
 verbose = %(verbose)s
 debug = %(debug)s
-bind_host = 127.0.0.1
-bind_port = %(bind_port)s
 log_file = %(log_file)s
 api_limit_max = 1000
-workers = %(workers)s
 policy_file = %(policy_file)s
 policy_default_rule = %(policy_default_rule)s
 
@@ -256,6 +252,12 @@ flavor = %(deployment_flavor)s
 
 [elasticsearch]
 hosts = 127.0.0.1:%(elasticsearch_port)s
+
+[api]
+# Hardcoding a single worker; the cleanup code can't deal with more
+workers = 0
+bind_host = 127.0.0.1
+bind_port = %(bind_port)s
 """
         self.paste_conf_base = """[pipeline:searchlight]
 pipeline = versionnegotiation unauthenticated-context rootapp
