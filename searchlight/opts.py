@@ -14,12 +14,17 @@
 #    under the License.
 
 import itertools
+from keystoneauth1 import loading as ks_loading
+import operator
 
+import keystoneclient.auth.conf
 import searchlight.api.versions
 import searchlight.common.config
 import searchlight.common.property_utils
 import searchlight.common.wsgi
 import searchlight.elasticsearch
+import searchlight.elasticsearch.plugins.base
+import searchlight.elasticsearch.plugins.openstack_clients
 import searchlight.listener
 
 
@@ -29,6 +34,14 @@ def list_opts():
          itertools.chain(searchlight.common.property_utils.property_opts,
                          searchlight.common.config.common_opts)),
         ('elasticsearch', searchlight.elasticsearch.search_opts),
+        ('service_credentials',
+         itertools.chain(
+             searchlight.elasticsearch.plugins.openstack_clients.client_opts,
+             keystoneclient.auth.conf.get_common_conf_options(),
+             keystoneclient.session.Session.get_conf_options(),
+             list_auth_opts())),
+        ('resource_plugin',
+         searchlight.elasticsearch.plugins.base.indexer_opts),
         ('paste_deploy', searchlight.common.config.paste_deploy_opts),
         ('profiler', searchlight.common.wsgi.profiler_opts),
         ('listener', searchlight.listener.listener_opts),
@@ -38,3 +51,16 @@ def list_opts():
                          searchlight.common.wsgi.socket_opts,
                          searchlight.common.wsgi.eventlet_opts)),
     ]
+
+
+def list_auth_opts():
+    # Inspired by similar code in neutron
+    opt_list = []
+    for plugin in ['password', 'v2password', 'v3password']:
+        plugin_options = ks_loading.get_plugin_loader(plugin).get_options()
+        for plugin_option in plugin_options:
+            if all(option.name != plugin_option.name for option in opt_list):
+                opt_list.append(plugin_option)
+
+    opt_list.sort(key=operator.attrgetter('name'))
+    return opt_list
