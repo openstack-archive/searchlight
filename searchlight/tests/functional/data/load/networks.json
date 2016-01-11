@@ -1,0 +1,46 @@
+[{
+ "admin_state_up": true,
+ "id": "ef14a7a7-4808-4c88-8c3b-56fb48f2b1db",
+ "mtu": 0,
+ "name": "test",
+ "port_security_enabled": true,
+ "provider:network_type": "vxlan",
+ "provider:physical_network": null,
+ "provider:segmentation_id": 1078,
+ "router:external": false,
+ "shared": false,
+ "status": "ACTIVE",
+ "subnets": ["63785b90-f3d1-4124-b2e9-1e62dd7c8dab"],
+ "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d"
+},
+{
+ "admin_state_up": true,
+ "id": "deadbeef-4808-4c88-8c3b-deadbeefdead",
+ "mtu": 0,
+ "name": "test-shared",
+ "port_security_enabled": true,
+ "provider:network_type": "vxlan",
+ "provider:physical_network": null,
+ "provider:segmentation_id": 1078,
+ "router:external": false,
+ "shared": true,
+ "status": "ACTIVE",
+ "subnets": ["63785b90-f3d1-4124-b2e9-1e62dd7c8dab"],
+ "tenant_id": "aaaaaabbbbbbccccc555552222255511"
+},
+{
+ "admin_state_up": true,
+ "id": "11112222-4808-4c88-8c3b-111122223333",
+ "mtu": 0,
+ "name": "test-external-router",
+ "port_security_enabled": true,
+ "provider:network_type": "vxlan",
+ "provider:physical_network": null,
+ "provider:segmentation_id": 1078,
+ "router:external": true,
+ "shared": false,
+ "status": "ACTIVE",
+ "subnets": ["63785b90-f3d1-4124-b2e9-1e62dd7c8dab"],
+ "tenant_id": "aaaaaabbbbbbccccc555552222255511"
+}
+]

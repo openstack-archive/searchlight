@@ -18,7 +18,9 @@ from designateclient.v2 import client as designateclient
 from glanceclient.v2 import client as glance
 from keystoneclient import auth as ks_auth
 from keystoneclient import session as ks_session
+import neutronclient.v2_0.client
 import novaclient.client
+
 from oslo_config import cfg
 
 
@@ -79,4 +81,12 @@ def get_designateclient():
     return designateclient.Client(
         session=session,
         region_name=cfg.CONF.service_credentials.os_region_name,
+    )
+
+
+def get_neutronclient():
+    session = _get_session()
+    return neutronclient.v2_0.client.Client(
+        session=session,
+        region_name=cfg.CONF.service_credentials.os_region_name
     )

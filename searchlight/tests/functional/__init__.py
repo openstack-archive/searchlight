@@ -385,11 +385,13 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         plugin_classes = {
             'glance': {'images': 'ImageIndex', 'metadefs': 'MetadefIndex'},
-            'nova': {'servers': 'ServerIndex'}
+            'nova': {'servers': 'ServerIndex'},
+            'neutron': {'networks': 'NetworkIndex', 'ports': 'PortIndex'}
         }
         plugins = include_plugins or (
             ('glance', 'images'), ('glance', 'metadefs'),
-            ('nova', 'servers')
+            ('nova', 'servers'),
+            ('neutron', 'networks'), ('neutron', 'ports')
         )
         plugins = filter(lambda plugin: plugin not in exclude_plugins, plugins)
 
@@ -450,8 +452,8 @@ class FunctionalTest(test_utils.BaseTestCase):
                     yield user_doc
 
                     doc[ROLE_USER_FIELD] = 'admin'
-                    user_doc['id'] = user_doc['id'] + '_ADMIN'
-                    yield user_doc
+                    doc['id'] = doc['id'] + '_ADMIN'
+                    yield doc
 
             else:
                 for doc in apply_to_docs:
@@ -534,6 +536,10 @@ class FunctionalTest(test_utils.BaseTestCase):
             url += '?type=%s' % doc_type
         return self._request("GET", url, tenant, role=role,
                              decode_json=decode_json)
+
+    def _plugin_list_request(self, tenant, role="member"):
+        url = "/search/plugins"
+        return self._request("GET", url, tenant, role=role)
 
     def _get_hit_source(self, es_response):
         """Parse the _source from the elasticsearch hits"""

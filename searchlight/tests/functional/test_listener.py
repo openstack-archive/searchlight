@@ -20,7 +20,9 @@ from searchlight.tests import functional
 
 
 MATCH_ALL = {"query": {"match_all": {}}}
+
 OWNER1 = str(uuid.uuid4())
+NETWORK_TENANT_ID = '8eaac046b2c44ab99246cb0850c7f06d'
 
 
 class StevedoreMock(object):
@@ -60,6 +62,7 @@ class TestSearchListenerBase(functional.FunctionalTest):
         expected = event['payload']
         if inner_key:
             expected = expected[inner_key]
+
         result = result_json['hits']['hits'][0]['_source']
         for key in verification_keys:
             self.assertEqual(expected[key], result[key])
