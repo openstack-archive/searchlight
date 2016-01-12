@@ -23,8 +23,11 @@ and spinning down the servers.
 
 import atexit
 import datetime
+import elasticsearch
 import httplib2
+import importlib
 import logging
+import mock
 import os
 import platform
 import shutil
@@ -43,6 +46,7 @@ import testtools
 
 from searchlight.common import utils
 from searchlight.tests import utils as test_utils
+
 
 execute, get_unused_port = test_utils.execute, test_utils.get_unused_port
 tracecmd_osmap = {'Linux': 'strace', 'FreeBSD': 'truss'}
@@ -308,6 +312,8 @@ class FunctionalTest(test_utils.BaseTestCase):
     disabled = False
     launched_servers = []
 
+    @test_utils.depends_on_exe("elasticsearch")
+    @test_utils.skip_if_disabled
     def setUp(self):
         super(FunctionalTest, self).setUp()
         self.test_dir = self.useFixture(fixtures.TempDir()).path
@@ -338,6 +344,71 @@ class FunctionalTest(test_utils.BaseTestCase):
         self.files_to_destroy = []
         self.launched_servers = []
 
+        self.elastic_connection = elasticsearch.Elasticsearch(
+            "http://localhost:%s" % self.api_server.elasticsearch_port)
+        self.initialized_plugins = {}
+
+        self.api_server.deployment_flavor = "trusted-auth"
+        # Use the role-based policy file all over; we need it for the property
+        # protection tests
+        self.api_server.property_protection_file = self.property_file_roles
+
+        self.base_url = "http://127.0.0.1:%d/v1" % self.api_port
+        self.start_with_retry(self.api_server,
+                              "api_port",
+                              max_retries=3,
+                              **self.__dict__.copy())
+
+        self.configurePlugins()
+        self.images_plugin = self.initialized_plugins['glance']['images']
+        self.metadefs_plugin = self.initialized_plugins['glance']['metadefs']
+
+    def configurePlugins(self, include_plugins=None, exclude_plugins=()):
+        """Specify 'exclude_plugins' or 'include_plugins' as a list of
+        tuples.
+        """
+        def dummy_plugin_init(plugin):
+            plugin.options = mock.Mock()
+            plugin.options.index_name = "searchlight"
+            plugin.options.enabled = True
+            plugin.options.unsearchable_fields = None
+
+            plugin.engine = self.elastic_connection
+            plugin.index_name = plugin.get_index_name()
+            plugin.document_type = plugin.get_document_type()
+            plugin.document_id_field = plugin.get_document_id_field()
+
+        plugin_classes = {
+            'glance': {'images': 'ImageIndex', 'metadefs': 'MetadefIndex'},
+            'nova': {'servers': 'ServerIndex'}
+        }
+        plugins = include_plugins or (
+            ('glance', 'images'), ('glance', 'metadefs'),
+            ('nova', 'servers')
+        )
+        plugins = filter(lambda plugin: plugin not in exclude_plugins, plugins)
+
+        for service, plugin_type in plugins:
+            mod = "searchlight.elasticsearch.plugins.%s.%s.base.IndexBase" \
+                  % (service, plugin_type)
+            plugin_patcher = \
+                mock.patch("%s.__init__" % mod, dummy_plugin_init)
+            plugin_patcher.start()
+            self.addCleanup(plugin_patcher.stop)
+
+            plugin_mod_name = ("searchlight.elasticsearch.plugins.%s.%s"
+                               % (service, plugin_type))
+            plugin_cls_name = plugin_classes[service][plugin_type]
+
+            plugin_mod = importlib.import_module(plugin_mod_name)
+            plugin_cls = getattr(plugin_mod, plugin_cls_name)
+            plugin_instance = plugin_cls()
+            service_plugins = self.initialized_plugins.setdefault(service, {})
+            service_plugins[plugin_type] = plugin_instance
+
+            plugin_instance.setup_index()
+            plugin_instance.setup_mapping()
+
     def tearDown(self):
         if not self.disabled:
             self.cleanup()
@@ -345,6 +416,93 @@ class FunctionalTest(test_utils.BaseTestCase):
         super(FunctionalTest, self).tearDown()
 
         self.api_server.dump_log('api_server')
+
+        for service in self.initialized_plugins.values():
+            for plugin_instance in service.values():
+                self.elastic_connection.indices.delete(
+                    index=plugin_instance.get_index_name(),
+                    ignore=404)
+
+    def _index(self, index_name, doc_type, docs, tenant, refresh_index=True):
+        if not isinstance(docs, list):
+            docs = [docs]
+
+        actions = [{
+            '_id': doc['id'],
+            '_source': doc,
+            '_op_type': 'index',
+        } for doc in docs]
+
+        result = elasticsearch.helpers.bulk(
+            client=self.elastic_connection,
+            index=index_name,
+            doc_type=doc_type,
+            actions=actions)
+
+        if refresh_index:
+            # Force elasticsearch to update its search index
+            self._flush_elasticsearch(index_name)
+
+        return result
+
+    def _flush_elasticsearch(self, index_name=None):
+        self.elastic_connection.indices.flush(index_name)
+
+    def _headers(self, tenant_id, custom_headers={}):
+        base_headers = {
+            "X-Identity-Status": "Confirmed",
+            "X-Auth-Token": "932c5c84-02ac-4fe5-a9ba-620af0e2bb96",
+            "X-User-Id": "f9a41d13-0c13-47e9-bee2-ce4e8bfe958e",
+            "X-Tenant-Id": tenant_id,
+            "X-Roles": "member",
+            "Content-Type": "application/json"
+        }
+        base_headers.update(custom_headers)
+        return base_headers
+
+    def _request(self, method, uri, tenant, body,
+                 role="member", decode_json=True):
+        custom_headers = {
+            "X-Tenant-Id": tenant,
+            "X-Roles": role,
+        }
+        headers = self._headers(tenant, custom_headers)
+
+        kwargs = {
+            "headers": headers
+        }
+        if body:
+            kwargs["body"] = jsonutils.dumps(body)
+
+        http = httplib2.Http()
+        response, content = http.request(
+            self.base_url + uri,
+            method,
+            **kwargs
+        )
+        if decode_json:
+            content = jsonutils.loads(content)
+        return response, content
+
+    def _search_request(self, body, tenant, role="member", decode_json=True):
+        """Conduct a search against all elasticsearch indices unless specified
+        in `body`. Returns the response and json-decoded content.
+        """
+        return self._request("POST", "/search", tenant, body,
+                             role, decode_json)
+
+    def _get_hit_source(self, es_response):
+        """Parse the _source from the elasticsearch hits"""
+        if isinstance(es_response, six.string_types):
+            es_response = jsonutils.loads(es_response)
+        return [h["_source"] for h in es_response["hits"]["hits"]]
+
+    def _get_all_elasticsearch_docs(self):
+        es_url = "http://localhost:%s/_search" % (
+            self.api_server.elasticsearch_port)
+        response, content = httplib2.Http().request(es_url)
+        self.assertEqual(200, response.status)
+        return jsonutils.loads(content)
 
     def set_policy_rules(self, rules):
         fap = open(self.policy_file, 'w')
