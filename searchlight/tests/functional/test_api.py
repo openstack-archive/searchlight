@@ -13,9 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import copy
 import elasticsearch
+import elasticsearch.helpers
 import httplib2
 import mock
 from oslo_serialization import jsonutils
@@ -107,33 +106,23 @@ class TestSearchApi(functional.FunctionalTest):
         if not isinstance(docs, list):
             docs = [docs]
 
-        index_doc = {"actions": [
-            {
-                "data": copy.deepcopy(doc),
-                "action": "index",
-                "index": index_name,
-                "id": doc["id"],
-                "type": doc_type
-            } for doc in docs]
-        }
+        actions = [{
+            '_id': doc['id'],
+            '_source': doc,
+            '_op_type': 'index',
+        } for doc in docs]
 
-        custom_headers = {
-            "X-Tenant-Id": tenant,
-            "X-Roles": "admin" if as_admin else "member"
-        }
-        headers = self._headers(custom_headers)
-        http = httplib2.Http()
-        response, content = http.request(
-            self.base_url + "/index",
-            "POST",
-            headers=headers,
-            body=jsonutils.dumps(index_doc))
+        result = elasticsearch.helpers.bulk(
+            client=self.elastic_connection,
+            index=index_name,
+            doc_type=doc_type,
+            actions=actions)
 
         if refresh_index:
             # Force elasticsearch to update its search index
             self._flush_elasticsearch(index_name)
 
-        return response, content
+        return result
 
     def _headers(self, custom_headers={}):
         base_headers = {

@@ -101,29 +101,6 @@ class SearchController(object):
             LOG.error(encodeutils.exception_to_unicode(e))
             raise webob.exc.HTTPInternalServerError()
 
-    def index(self, req, actions, default_index=None, default_type=None):
-        try:
-            search_repo = self.gateway.get_catalog_search_repo(req.context)
-            success, errors = search_repo.index(
-                default_index,
-                default_type,
-                actions)
-            return {
-                'success': success,
-                'failed': len(errors),
-                'errors': errors,
-            }
-
-        except exception.Forbidden as e:
-            raise webob.exc.HTTPForbidden(explanation=e.msg)
-        except exception.NotFound as e:
-            raise webob.exc.HTTPNotFound(explanation=e.msg)
-        except exception.Duplicate as e:
-            raise webob.exc.HTTPConflict(explanation=e.msg)
-        except Exception as e:
-            LOG.error(encodeutils.exception_to_unicode(e))
-            raise webob.exc.HTTPInternalServerError()
-
     def facets(self, req, index_name=None, doc_type=None,
                all_projects=False, limit_terms=0):
         try:
@@ -431,38 +408,6 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         return query_params
 
-    def index(self, request):
-        body = self._get_request_body(request)
-        self._check_allowed(body)
-
-        default_index = body.pop('default_index', None)
-        if default_index is not None:
-            default_index = self._validate_index(default_index)
-
-        default_type = body.pop('default_type', None)
-        if default_type is not None:
-            default_type = self._validate_doc_type(default_type)
-
-        actions = self._validate_actions(body.pop('actions', None))
-        if not all([default_index, default_type]):
-            for action in actions:
-                if not any([action['_index'], default_index]):
-                    msg = (_("Action index is missing and no default "
-                             "index has been set."))
-                    raise webob.exc.HTTPBadRequest(explanation=msg)
-
-                if not any([action['_type'], default_type]):
-                    msg = (_("Action document type is missing and no default "
-                             "type has been set."))
-                    raise webob.exc.HTTPBadRequest(explanation=msg)
-
-        query_params = {
-            'default_index': default_index,
-            'default_type': default_type,
-            'actions': actions,
-        }
-        return query_params
-
     def facets(self, request):
         all_projects = request.params.get('all_projects', 'false')
         query_params = {
@@ -485,11 +430,6 @@ class ResponseSerializer(wsgi.JSONResponseSerializer):
         response.content_type = 'application/json'
 
     def plugins_info(self, response, query_result):
-        body = json.dumps(query_result, ensure_ascii=False)
-        response.unicode_body = six.text_type(body)
-        response.content_type = 'application/json'
-
-    def index(self, response, query_result):
         body = json.dumps(query_result, ensure_ascii=False)
         response.unicode_body = six.text_type(body)
         response.content_type = 'application/json'

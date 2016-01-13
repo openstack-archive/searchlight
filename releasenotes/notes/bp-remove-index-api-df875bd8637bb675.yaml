@@ -1,0 +1,14 @@
+---
+prelude: >
+    Remove the 'index' API. It is currently a passthrough
+    to elasticsearch, allowing direct index access and
+    bypassing any document transforms. As such it is
+    dangerous, and only marginally useful. Administrators
+    wishing to do this should do so directly in Elasticsearch.
+features:
+  - Removes the /index api and related tests. If an admin
+    needs to directly modify data in Elasticsearch they
+    should do so in Elasticsearch.
+security:
+  - Removes the admin-only '/index' api, which allowed
+    an unnecessary amount of access to Elasticsearch.
