@@ -1,4 +1,9 @@
 # Devstack settings
 
+#Searchlight client settings
+SEARCHLIGHTCLIENT_DIR=$DEST/python-searchlightclient
+SEARCHLIGHTCLIENT_REPO=${SEARCHLIGHTCLIENT_REPO:-${GIT_BASE}/openstack/python-searchlightclient.git}
+SEARCHLIGHTCLIENT_BRANCH=${SEARCHLIGHTCLIENT_BRANCH:-master}
+
 # we have to add searchlight to enabled services for screen_it to work
 enable_service searchlight
