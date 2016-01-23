@@ -283,7 +283,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Neutron::Net',
             'OS::Neutron::Port',
             'OS::Cinder::Volume',
-            'OS::Cinder::Snapshot',
+            'OS::Cinder::Snapshot'
         ]
 
         self.assertEqual(['searchlight-search'], output['index'])
@@ -602,7 +602,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         self.assertEqual(expected_query, output['query'])
 
     def test_rbac_admin(self):
-        """Test that admins have RBAC applied unless 'all_projects' is true"""
+        """Test that admins have RBAC applied"""
         request = unit_test_utils.get_fake_request(is_admin=True)
         request.body = six.b(jsonutils.dumps({
             'query': {'match_all': {}},

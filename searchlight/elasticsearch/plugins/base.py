@@ -475,6 +475,16 @@ class IndexBase(plugin.Plugin):
         return len(self.admin_only_fields) > 0
 
     @classmethod
+    def is_plugin_enabled_by_default(cls):
+        '''
+        Each plugin can overwrite the default value of whether a
+        plugin should be enabled if the value is not explicitly
+        set in the configuration
+
+        '''
+        return True
+
+    @classmethod
     def get_plugin_opts(cls):
         """Options that can be overridden per plugin. Note that
         resource_group_name is not present while we determine a fix for
@@ -482,7 +492,7 @@ class IndexBase(plugin.Plugin):
         sets of types (https://bugs.launchpad.net/searchlight/+bug/1558240)
         """
         opts = [
-            cfg.BoolOpt("enabled", default=True),
+            cfg.BoolOpt("enabled", default=cls.is_plugin_enabled_by_default()),
             cfg.StrOpt("admin_only_fields"),
             cfg.BoolOpt('mapping_use_doc_values')
         ]

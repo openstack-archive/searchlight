@@ -101,6 +101,14 @@ Please read the rest of the guide for detailed information.::
     [resource_plugin:os_designate_recordset]
     enabled = False
 
+    [resource_plugin:os_swift_account]
+    enabled = False
+
+    [resource_plugin:os_swift_container]
+    enabled = False
+
+    [resource_plugin:os_swift_object]
+    enabled = False
 
 Common Plugin Configuration Options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

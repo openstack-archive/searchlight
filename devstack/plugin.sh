@@ -132,6 +132,11 @@ function configure_searchlight {
     # Plugin config - disable designate by default since it's not typically installed
     iniset $SEARCHLIGHT_CONF resource_plugin:os_designate_zone enabled False
     iniset $SEARCHLIGHT_CONF resource_plugin:os_designate_recordset enabled False
+
+    # Plugin config - disable swift by default since it's not typically installed
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_account enabled False
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_container enabled False
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_object enabled False
 }
 
 # create_searchlight_accounts - Set up common required searchlight accounts

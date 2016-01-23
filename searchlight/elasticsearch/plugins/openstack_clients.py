@@ -19,8 +19,10 @@ from designateclient.v2 import client as designateclient
 from glanceclient.v2 import client as glance
 from keystoneclient import auth as ks_auth
 from keystoneclient import session as ks_session
+from keystoneclient.v2_0 import client as ks_client
 import neutronclient.v2_0.client
 import novaclient.client
+import swiftclient
 
 from oslo_config import cfg
 
@@ -100,3 +102,84 @@ def get_cinderclient():
         session=session,
         region_name=cfg.CONF.service_credentials.os_region_name,
     )
+
+# Swift still needs special handling because it doesn't support
+# keystone sessions. Rather than maintain two codepaths, we'll do this
+_swiftclient = None
+
+
+def clear_cached_swiftclient_on_unauthorized(fn):
+    def wrapper(*args, **kwargs):
+        global _session
+        global _swiftclient
+        try:
+            return fn(*args, **kwargs)
+        except swiftclient.exceptions.ClientException:
+            _session = None
+            _swiftclient = None
+            return fn(*args, **kwargs)
+    return wrapper
+
+
+def get_swiftclient():
+
+    global _swiftclient
+    if _swiftclient:
+        return _swiftclient
+    _get_session()
+
+    service_type = 'object-store'
+
+    os_options = {
+        'service_type': service_type,
+        'region_name': cfg.CONF.service_credentials.os_region_name,
+        'endpoint_type': cfg.CONF.service_credentials.os_endpoint_type,
+    }
+
+    # When swiftclient supports session, use session instead of
+    # preauthtoken param below
+    _swiftclient = swiftclient.client.Connection(
+        auth_version='2',
+        user=cfg.CONF.service_credentials.username,
+        key=cfg.CONF.service_credentials.password,
+        authurl=cfg.CONF.service_credentials.auth_url,
+        tenant_name=cfg.CONF.service_credentials.tenant_name,
+        os_options=os_options,
+        cacert=cfg.CONF.service_credentials.cafile,
+        insecure=cfg.CONF.service_credentials.insecure
+    )
+
+    return _swiftclient
+
+
+# TODO(lakshmiS) See if we can cache this.
+# Cached members will be equal to # of accounts at max.
+def get_swiftclient_st(storageurl):
+    service_type = 'object-store'
+    _get_session()
+
+    os_options = {
+        'service_type': service_type,
+        'region_name': cfg.CONF.service_credentials.os_region_name,
+        'endpoint_type': cfg.CONF.service_credentials.os_endpoint_type,
+    }
+    swift_client = swiftclient.client.Connection(
+        auth_version='2',
+        user=cfg.CONF.service_credentials.username,
+        key=cfg.CONF.service_credentials.password,
+        authurl=cfg.CONF.service_credentials.auth_url,
+        tenant_name=cfg.CONF.service_credentials.tenant_name,
+        os_options=os_options,
+        cacert=cfg.CONF.service_credentials.cafile,
+        insecure=cfg.CONF.service_credentials.insecure,
+        preauthurl=storageurl,
+    )
+    return swift_client
+
+
+def get_keystoneclient():
+    session = _get_session()
+
+    return ks_client.Client(
+        session=session,
+        region_name=cfg.CONF.service_credentials.os_region_name)

@@ -1,0 +1,14 @@
+---
+prelude: >
+    Swift plugin for searchlight
+features:
+  - Three resource types are introduced for swift
+    plugin.
+
+    OS::Swift:Account
+    ->OS::Swift::Container
+    -->OS::Swift::Object
+issues:
+  - The Swift service currently doesn't send notifications.
+    Follow the swift plugin documentation for current
+    solutions.
