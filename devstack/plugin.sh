@@ -175,6 +175,12 @@ function install_searchlight {
     ${TOP_DIR}/pkg/elasticsearch.sh install
 }
 
+# install_searchlightclient - Collect source and prepare
+function install_searchlightclient {
+    git_clone $SEARCHLIGHTCLIENT_REPO $SEARCHLIGHTCLIENT_DIR $SEARCHLIGHTCLIENT_BRANCH
+    setup_develop $SEARCHLIGHTCLIENT_DIR
+}
+
 # start_searchlight - Start running processes, including screen
 function start_searchlight {
     if is_service_enabled searchlight-api; then
@@ -208,6 +214,9 @@ if is_service_enabled searchlight; then
     if [[ "$1" == "stack" && "$2" == "install" ]]; then
         echo_summary "Installing Searchlight"
         install_searchlight
+
+        echo_summary "Installing Searchlight client"
+        install_searchlightclient
     elif [[ "$1" == "stack" && "$2" == "post-config" ]]; then
         echo_summary "Configuring Searchlight"
         configure_searchlight
