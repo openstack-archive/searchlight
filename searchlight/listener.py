@@ -33,6 +33,7 @@ _LE = i18n._LE
 listener_opts = [
     cfg.IntOpt('workers',
                default=1,
+               min=1,
                help='Number of workers for notification service. A single '
                'notification agent is enabled by default.'),
 ]
