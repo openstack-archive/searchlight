@@ -42,9 +42,6 @@ class MetadefIndex(base.IndexBase):
             }
         }
         mapping = {
-            '_id': {
-                'path': 'namespace',
-            },
             'properties': {
                 'created_at': {'type': 'date'},
                 'updated_at': {'type': 'date'},
