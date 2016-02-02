@@ -281,9 +281,10 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         else:
             filtered_query_list = []
-            for resource_type, plugin in six.iteritems(self.plugins):
+            for resource_type in resource_types:
+                plugin = self.plugins[resource_type].obj
                 try:
-                    rbac_filter = plugin.obj.get_rbac_filter(context)
+                    rbac_filter = plugin.get_rbac_filter(context)
                 except Exception as e:
                     msg = _("Error processing %s RBAC filter") % resource_type
                     LOG.error(_LE("Failed to retrieve RBAC filters "
@@ -292,15 +293,14 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                               {'ext': plugin.name, 'e': e})
                     raise webob.exc.HTTPInternalServerError(explanation=msg)
 
-                if resource_type in resource_types:
-                    filter_query = {
-                        "query": query,
-                        "filter": rbac_filter
-                    }
-                    filtered_query = {
-                        'filtered': filter_query
-                    }
-                    filtered_query_list.append(filtered_query)
+                filter_query = {
+                    "query": query,
+                    "filter": rbac_filter
+                }
+                filtered_query = {
+                    'filtered': filter_query
+                }
+                filtered_query_list.append(filtered_query)
 
             es_query['filtered']['query'] = {
                 'bool': {
