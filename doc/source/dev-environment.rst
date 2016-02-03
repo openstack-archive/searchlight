@@ -291,7 +291,7 @@ images).
    $ source .tox/venv/bin/activate
 
    # Start the index update monitoring.
-   (venv) $ searchlight-listener
+   (venv) $ searchlight-listener --config-file etc/searchlight.conf
 
    # Alternatively, you can directly invoke the command using the following.
    (venv) $ python searchlight/cmd/listener.py --config-file
@@ -314,7 +314,7 @@ communicating with your server).
    $ source .tox/venv/bin/activate
 
    # Start the API Service.
-   (venv) $ searchlight-api
+   (venv) $ searchlight-api --config-file etc/searchlight.conf
 
    # Alternatively, you can directly invoke the command using the following.
    (venv) $ python searchlight/cmd/api.py --config-file etc/searchlight.conf
