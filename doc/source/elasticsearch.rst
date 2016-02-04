@@ -106,7 +106,7 @@ Scripts
 #######
 The scripting module allows to use scripts in order to evaluate custom expressions.
 Scripting is turned off by default in elasticsearch latest versions.
-Searchlight doesnt allow scripts in the search api but requires scripts to sync Index updates
+Searchlight doesn't allow scripts in the search api but requires scripts to sync Index updates
 from notifications. For security purpose index updates are allowed only for admin role::
 
     script.engine.groovy.inline.update: on

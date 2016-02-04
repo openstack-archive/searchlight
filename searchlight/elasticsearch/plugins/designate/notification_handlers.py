@@ -63,7 +63,7 @@ class DomainHandler(base.NotificationBase):
             ctxt, publisher_id, event_type, payload, metadata)
         try:
             # NOTE: So if this is a initial zone we need to index the SOA / NS
-            # records it will have. Let's do this when recieving the create
+            # records it will have. Let's do this when receiving the create
             # event.
             if event_type == 'dns.domain.create':
                 if handled != oslo_messaging.NotificationResult.HANDLED:

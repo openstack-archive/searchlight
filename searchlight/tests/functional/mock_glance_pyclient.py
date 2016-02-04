@@ -62,7 +62,7 @@ class FakeNamespace(dict):
     def __init__(self, **kwargs):
         super(FakeNamespace, self).__init__(**kwargs)
 
-        # Actual glance client doesnt return all the fields while listing the
+        # Actual glance client doesn't return all the fields while listing the
         # namespaces. Simulate the similar behaviour by keeping a copy of the
         # field as private for future retrieval during individual get() on
         # a single namespace
