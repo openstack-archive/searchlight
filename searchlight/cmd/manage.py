@@ -47,7 +47,7 @@ class IndexCommands(object):
     @args('--index', metavar='<index>', dest='index',
           help='Index only this index (or a comma separated list)')
     @args('--type', metavar='<type>', dest='_type',
-          help='Index only this type (or a comma seperated list)')
+          help='Index only this type (or a comma separated list)')
     @args('--force', dest='force', action='store_true',
           help="Don't prompt (answer 'y')")
     @args('--no-delete', dest='clear', action='store_false',
