@@ -96,8 +96,13 @@ function configure_searchlight {
     sudo cp $SEARCHLIGHT_DIR/etc/api-paste.ini $SEARCHLIGHT_APIPASTE_CONF
     iniset $SEARCHLIGHT_CONF api public_endpoint $SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/
 
-    # Service Credentials configuration
-    configure_auth_token_middleware $SEARCHLIGHT_CONF searchlight $SEARCHLIGHT_AUTH_CACHE_DIR service_credentials
+    # OpenStack users
+    # FIXME(ekarlso): Make this configurable to support ks v3 also
+    iniset $SEARCHLIGHT_CONF service_credentials auth_plugin password
+    iniset $SEARCHLIGHT_CONF service_credentials username searchlight
+    iniset $SEARCHLIGHT_CONF service_credentials tenant_name $SERVICE_TENANT_NAME
+    iniset $SEARCHLIGHT_CONF service_credentials password $SERVICE_PASSWORD
+    iniset $SEARCHLIGHT_CONF service_credentials auth_url $KEYSTONE_AUTH_URI/v2.0
 
     # Keystone Middleware
     iniset $SEARCHLIGHT_CONF paste_deploy flavor keystone
