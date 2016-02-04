@@ -84,7 +84,7 @@ contains information that is:" from "Public" to "Private Security". If you have
 questions, please contact either of the following groups:
 
  * `Searchlight Core Security Team <https://launchpad.net/~searchlight-coresec>`_
- * `Openstack Vulnerability Management Process <https://security.openstack.org/vmt-process.html>`_
+ * `OpenStack Vulnerability Management Process <https://security.openstack.org/vmt-process.html>`_
 
 In the event that a bug filed as a private security bug is determined not to
 have security implications, the bug will be moved to a public bug report.
