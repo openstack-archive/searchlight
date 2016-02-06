@@ -34,8 +34,10 @@ _LW = i18n._LW
 
 
 indexer_opts = [
-    cfg.StrOpt('index_name', default="searchlight"),
-    cfg.StrOpt('notifications_topic', default="searchlight_indexer")
+    cfg.StrOpt('index_name', default="searchlight",
+               help="The default Elasticsearch index for plugins"),
+    cfg.StrOpt('notifications_topic', default="searchlight_indexer",
+               help="The default messaging notifications topic")
 ]
 
 CONF = cfg.CONF
