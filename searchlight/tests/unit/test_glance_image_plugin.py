@@ -22,6 +22,7 @@ import glanceclient.exc
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
+from searchlight.elasticsearch import ROLE_USER_FIELD
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -317,7 +318,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                 # This is not testing the elasticsearch call, just
                 # that the documents being indexed are as expected
                 with mock.patch.object(
-                        self.plugin,
+                        self.plugin.index_helper,
                         'save_documents') as mock_save:
                     self.plugin.setup_data()
 
@@ -668,6 +669,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                 'filtered': {
                     'filter': {
                         'and': [
+                            {'term': {ROLE_USER_FIELD: 'user'}},
                             {
                                 "or": [
                                     {'term': {'owner': TENANT1}},

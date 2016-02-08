@@ -17,6 +17,7 @@ import datetime
 import mock
 
 from searchlight.elasticsearch.plugins.designate import zones as zones_plugin
+from searchlight.elasticsearch import ROLE_USER_FIELD
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -117,6 +118,7 @@ class TestZonePlugin(test_utils.BaseTestCase):
                 'filtered': {
                     'filter': {
                         'and': [
+                            {'term': {ROLE_USER_FIELD: 'user'}},
                             {'term': {'project_id': TENANT1}}
                         ]
                     }

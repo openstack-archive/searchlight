@@ -27,6 +27,13 @@ METADEF_EVENTS_FILE = "searchlight/tests/functional/data/events/metadefs.json"
 OWNER1 = str(uuid.uuid4())
 
 
+class StevedoreMock(object):
+    """Act like a stevedore-loaded plugin for the sake of the listener code"""
+    def __init__(self, plugin):
+        self.obj = plugin
+        self.name = plugin.document_type
+
+
 class TestSearchListenerBase(functional.FunctionalTest):
 
     def __init__(self, *args, **kwargs):

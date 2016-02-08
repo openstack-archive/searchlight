@@ -348,7 +348,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
     def test_setup_data(self):
         with mock.patch.object(self.plugin, 'get_objects',
                                return_value=self.namespaces) as mock_get:
-            with mock.patch.object(self.plugin, 'save_documents') as mock_save:
+            with mock.patch.object(self.plugin.index_helper,
+                                   'save_documents') as mock_save:
                 self.plugin.setup_data()
 
                 mock_get.assert_called_once_with()

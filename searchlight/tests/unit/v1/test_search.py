@@ -306,7 +306,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight'], output['index'])
         self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
-        self.assertEqual(['description'], output['_source'])
+        self.assertEqual(['description'], output['_source_include'])
 
     def test_fields_include_exclude(self):
         request = unit_test_utils.get_fake_request()
@@ -322,7 +322,60 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         output = self.deserializer.search(request)
         self.assertFalse('_source' in output)
         self.assertEqual(['some', 'thing.*'], output['_source_include'])
-        self.assertEqual(['other.*', 'thing'], output['_source_exclude'])
+        # Don't test the role filter exclusion here
+        self.assertTrue(set(['other.*', 'thing']) <=
+                        set(output['_source_exclude']))
+
+    def test_fields_exclude_rbac(self):
+        """Test various forms for source_exclude"""
+        role_field = searchlight.elasticsearch.ROLE_USER_FIELD
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            '_source': {
+                'exclude': ['something', 'other thing']
+            }
+        }))
+        output = self.deserializer.search(request)
+        self.assertEqual([role_field, 'something', 'other thing'],
+                         output['_source_exclude'])
+
+        # Test with a single field
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            '_source': {
+                'exclude': "something"
+            }
+        }))
+        output = self.deserializer.search(request)
+        self.assertEqual([role_field, 'something'],
+                         output['_source_exclude'])
+
+        # Test with a single field
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            '_source': "includeme"
+        }))
+        output = self.deserializer.search(request)
+        self.assertEqual([role_field],
+                         output['_source_exclude'])
+        self.assertEqual("includeme",
+                         output['_source_include'])
+
+        # Test with a single field
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            '_source': ["includeme", "andme"]
+        }))
+        output = self.deserializer.search(request)
+        self.assertEqual([role_field],
+                         output['_source_exclude'])
+        self.assertEqual(["includeme", "andme"],
+                         output['_source_include'])
 
     def test_bad_field_include(self):
         request = unit_test_utils.get_fake_request()
@@ -522,19 +575,18 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }
 
         expected_query = {
-            'query': {
-                'bool': {
-                    'should': [{
-                        'filtered': {
-                            'filter': [nova_rbac_filter],
-                            'query': {u'match_all': {}}
-                        }
-                    }]
-                }
+            'bool': {
+                'should': [{
+                    'filtered': {
+                        'filter': [nova_rbac_filter],
+                        'query': {u'match_all': {}}
+                    }
+                }]
             }
         }
-
-        self.assertEqual(expected_query, output['query'])
+        output_query = output['query']
+        self.assertEqual(expected_query,
+                         output_query['query']['filtered']['query'])
 
     def test_rbac_admin(self):
         """Test that admins have RBAC applied unless 'all_projects' is true"""
@@ -559,19 +611,19 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             }
         }
         expected_query = {
-            'query': {
-                'bool': {
-                    'should': [{
-                        'filtered': {
-                            'filter': [nova_rbac_filter],
-                            'query': {u'match_all': {}}
-                        }
-                    }]
-                }
+            'bool': {
+                'should': [{
+                    'filtered': {
+                        'filter': [nova_rbac_filter],
+                        'query': {u'match_all': {}}
+                    }
+                }]
             }
         }
 
-        self.assertEqual(expected_query, output['query'])
+        output_query = output['query']
+        self.assertEqual(expected_query,
+                         output_query['query']['filtered']['query'])
 
         request.body = six.b(jsonutils.dumps({
             'query': {'match_all': {}},
@@ -581,9 +633,12 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         output = self.deserializer.search(request)
 
         expected_query = {
-            'query': {'match_all': {}},
+            'match_all': {}
         }
-        self.assertEqual(expected_query, output['query'])
+
+        output_query = output['query']
+        self.assertEqual(expected_query,
+                         output_query['query']['filtered']['query'])
 
     def test_default_facet_options(self):
         request = unit_test_utils.get_fake_request(path='/v1/search/facets')

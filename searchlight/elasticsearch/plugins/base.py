@@ -14,8 +14,6 @@
 #    under the License.
 
 import abc
-from elasticsearch import helpers
-import fnmatch
 import logging
 from oslo_config import cfg
 from oslo_config import types
@@ -25,6 +23,7 @@ import six
 
 import searchlight.elasticsearch
 from searchlight.elasticsearch.plugins import utils
+from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight import i18n
 from searchlight import plugin
 
@@ -46,7 +45,6 @@ CONF.register_opts(indexer_opts, group='resource_plugin')
 
 @six.add_metaclass(abc.ABCMeta)
 class IndexBase(plugin.Plugin):
-    chunk_size = 200
     NotificationHandlerCls = None
 
     def __init__(self):
@@ -55,9 +53,16 @@ class IndexBase(plugin.Plugin):
         self.engine = searchlight.elasticsearch.get_api()
         self.index_name = self.get_index_name()
         self.document_type = self.get_document_type()
-        self.document_id_field = self.get_document_id_field()
 
-        self.name = "%s-%s" % (self.index_name, self.document_type)
+    @property
+    def index_helper(self):
+        if not getattr(self, '_index_helper', None):
+            self._index_helper = utils.IndexingHelper(self)
+        return self._index_helper
+
+    @property
+    def name(self):
+        return "%s-%s" % (self.index_name, self.document_type)
 
     def initial_indexing(self, clear=True):
         """Comprehensively install search engine index and put data into it."""
@@ -95,17 +100,11 @@ class IndexBase(plugin.Plugin):
     def setup_mapping(self):
         """Update index document mapping."""
         index_mapping = self.get_mapping()
-        dynamic_templates = index_mapping.setdefault("dynamic_templates", [])
-        for unsearchable_field in self.unsearchable_fields:
-            dynamic_templates.append({
-                unsearchable_field: {
-                    'match': unsearchable_field,
-                    'mapping': {
-                        'index': 'no',
-                        'include_in_all': False
-                    }
-                }
-            })
+
+        # Apply the RBAC field to every mapping
+        index_mapping['properties'][ROLE_USER_FIELD] = {
+            'type': 'string', 'index': 'not_analyzed', 'include_in_all': False
+        }
 
         if index_mapping:
             self.engine.indices.put_mapping(index=self.index_name,
@@ -120,28 +119,7 @@ class IndexBase(plugin.Plugin):
             document = self.serialize(obj)
             documents.append(document)
 
-        self.save_documents(documents)
-
-    def save_documents(self, documents):
-        """Send list of serialized documents into search engine."""
-        actions = []
-        for document in documents:
-            parent_field = self.get_parent_id_field()
-            action = {
-                '_id': document.get(self.document_id_field),
-                '_source': document,
-            }
-            if parent_field:
-                action['_parent'] = document[parent_field]
-
-            actions.append(action)
-
-        helpers.bulk(
-            client=self.engine,
-            index=self.index_name,
-            doc_type=self.document_type,
-            chunk_size=self.chunk_size,
-            actions=actions)
+        self.index_helper.save_documents(documents)
 
     def get_facets(self, request_context, all_projects=False, limit_terms=0):
         """Get facets available for searching, in the form of a list of
@@ -211,14 +189,20 @@ class IndexBase(plugin.Plugin):
             body = {
                 'aggs': term_aggregations,
             }
+
+            role_filter = request_context.user_role_filter
+            plugin_filters = [{
+                "term": {ROLE_USER_FIELD: role_filter}
+            }]
             if not (request_context.is_admin and all_projects):
-                plugin_filters = self._get_rbac_field_filters(request_context)
-                if plugin_filters:
-                    body['query'] = {
-                        "filtered": {
-                            "filter":
-                                {"and": plugin_filters}
-                        }}
+                plugin_filters.extend(
+                    self._get_rbac_field_filters(request_context))
+
+            body['query'] = {
+                "filtered": {
+                    "filter": {
+                        "and": plugin_filters
+                    }}}
 
             results = self.engine.search(
                 index=self.get_index_name(),
@@ -266,7 +250,8 @@ class IndexBase(plugin.Plugin):
 
     def get_document_id_field(self):
         """Whatever document field should be treated as the id. This field
-        should also be mapped to _id in the elasticsearch mapping
+        should also be mapped to _id in the elasticsearch mapping, though
+        under role-based filtering, it will be modified to avoid clashes.
         """
         return "id"
 
@@ -308,7 +293,7 @@ class IndexBase(plugin.Plugin):
                     'index': self.get_index_name(),
                     'no_match_filter': 'none',
                     'filter': {
-                        "and": filter_fields
+                        'and': filter_fields
                     }
                 }
             }
@@ -319,30 +304,20 @@ class IndexBase(plugin.Plugin):
         """Return any RBAC field filters to be injected into an indices
         query. Document type will be added to this list.
         """
+        return []
 
     def get_notification_handler(self):
         """Get the notification handler which implements NotificationBase."""
         if self.NotificationHandlerCls:
-            return self.NotificationHandlerCls(self.engine,
-                                               self.get_index_name(),
-                                               self.get_document_type(),
+            return self.NotificationHandlerCls(self.index_helper,
                                                self.options)
         return None
 
     def filter_result(self, hit, request_context):
-        """Filter each outgoing search result; document in hit['_source']"""
-        if self.admin_only_fields and not request_context.is_admin:
-            admin_only_fields = self.admin_only_fields
-            source = hit['_source']
-            for key in list(source.keys()):
-                # fnmatch technically is 'filename match', but all it really
-                # is is a unix shell-style wildcard matcher which supports
-                # ? and *, and therefore models elasticsearch's wildcard format
-                # for pattern matching (though that does not include '?')
-                for aof in admin_only_fields:
-                    if fnmatch.fnmatch(key, aof):
-                        del hit['_source'][key]
-                        break
+        """Filter each outgoing search result; document in hit['_source']. By
+        default, this does nothing since information shouldn't be indexed.
+        """
+        pass
 
     def get_settings(self):
         """Get an index settings."""
@@ -361,25 +336,22 @@ class IndexBase(plugin.Plugin):
         return cls.get_document_type().replace("::", "_").lower()
 
     @property
-    def unsearchable_fields(self):
-        unsearchable = self.options.unsearchable_fields
-        if not unsearchable:
+    def admin_only_fields(self):
+        admin_only = self.options.admin_only_fields
+        if not admin_only:
             return []
-        return self.options.unsearchable_fields.split(',')
+        return self.options.admin_only_fields.split(',')
 
     @property
-    def admin_only_fields(self):
-        """Fields excluded from search results for non-admins"""
-        # For now, default to unsearchable_fields until we have a separate
-        # admin index.
-        return self.unsearchable_fields
+    def requires_role_separation(self):
+        return len(self.admin_only_fields) > 0
 
     @classmethod
     def get_plugin_opts(cls):
         opts = [
             cfg.StrOpt("index_name"),
             cfg.BoolOpt("enabled", default=True),
-            cfg.StrOpt("unsearchable_fields")
+            cfg.StrOpt("admin_only_fields")
         ]
         if cls.NotificationHandlerCls:
             opts.extend(cls.NotificationHandlerCls.get_plugin_opts())
@@ -397,10 +369,8 @@ class IndexBase(plugin.Plugin):
 @six.add_metaclass(abc.ABCMeta)
 class NotificationBase(object):
 
-    def __init__(self, engine, index_name, document_type, options):
-        self.engine = engine
-        self.index_name = index_name
-        self.document_type = document_type
+    def __init__(self, index_helper, options):
+        self.index_helper = index_helper
         self.plugin_options = options
 
     def get_notification_supported_events(self):
@@ -432,7 +402,9 @@ class NotificationBase(object):
 
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
         """Process the incoming notification message."""
-        LOG.debug("Received %s event for %s", event_type, self.document_type)
+        LOG.debug("Received %s event for %s",
+                  event_type,
+                  self.index_helper.document_type)
         try:
             self.get_event_handlers()[event_type](payload)
             return oslo_messaging.NotificationResult.HANDLED

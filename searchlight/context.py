@@ -17,6 +17,9 @@ from oslo_context import context
 
 from searchlight.api import policy
 
+ADMIN_ROLE_FILTER = "admin"
+USER_ROLE_FILTER = "user"
+
 
 class RequestContext(context.RequestContext):
     """Stores information about the security context.
@@ -36,6 +39,8 @@ class RequestContext(context.RequestContext):
         self.policy_enforcer = policy_enforcer or policy.Enforcer()
         if not self.is_admin:
             self.is_admin = self.policy_enforcer.check_is_admin(self)
+        self.user_role_filter = (ADMIN_ROLE_FILTER if self.is_admin
+                                 else USER_ROLE_FILTER)
 
     def to_dict(self):
         d = super(RequestContext, self).to_dict()

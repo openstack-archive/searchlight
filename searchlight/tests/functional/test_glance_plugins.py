@@ -303,16 +303,9 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         osclient_patcher.start()
         self.addCleanup(osclient_patcher.stop)
 
-        self.images_plugin.obj = self.images_plugin
-        self.images_plugin.name = "image"
-
-        self.metadefs_plugin.obj = self.metadefs_plugin
-        self.metadefs_plugin.name = "metadef"
-
         notification_plugins = {
-            self.images_plugin.get_document_type(): self.images_plugin,
-            self.metadefs_plugin.get_document_type(): self.metadefs_plugin,
-        }
+            plugin.document_type: test_listener.StevedoreMock(plugin)
+            for plugin in (self.images_plugin, self.metadefs_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 
     def test_image_create_event(self):

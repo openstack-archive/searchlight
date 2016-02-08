@@ -19,6 +19,7 @@ from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
 
+
 LOG = logging.getLogger(__name__)
 
 
@@ -56,39 +57,11 @@ class MetadefHandler(base.NotificationBase):
             "metadef_namespace.delete_tags": self.delete_tags
         }
 
-    def run_create(self, id, payload):
-        self.engine.create(
-            index=self.index_name,
-            doc_type=self.document_type,
-            body=payload,
-            id=id
-        )
-
     def run_update(self, id, payload, script=False):
-        if script:
-            self.engine.update(
-                index=self.index_name,
-                doc_type=self.document_type,
-                body=payload,
-                id=id)
-        else:
-            doc = {"doc": payload}
-            self.engine.update(
-                index=self.index_name,
-                doc_type=self.document_type,
-                body=doc,
-                id=id)
-
-    def run_delete(self, id):
-        self.engine.delete(
-            index=self.index_name,
-            doc_type=self.document_type,
-            id=id
-        )
+        self.index_helper.update_document(payload, id, update_as_script=script)
 
     def create_ns(self, payload):
-        id = payload['namespace']
-        self.run_create(id, self.format_namespace(payload))
+        self.index_helper.save_document(self.format_namespace(payload))
 
     def update_ns(self, payload):
         id = payload['namespace_old']
@@ -96,7 +69,7 @@ class MetadefHandler(base.NotificationBase):
 
     def delete_ns(self, payload):
         id = payload['namespace']
-        self.run_delete(id)
+        self.index_helper.delete_document_by_id(id)
 
     def create_obj(self, payload):
         id = payload['namespace']

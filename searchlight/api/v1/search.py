@@ -262,14 +262,23 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             output.append(bulk_action)
         return output
 
-    def _get_query(self, context, query, resource_types, all_projects=False):
+    def _get_es_query(self, context, query, resource_types,
+                      all_projects=False):
         is_admin = context.is_admin
-        if is_admin and all_projects:
-            query_params = {
-                'query': {
-                    'query': query
-                }
+        role_field = searchlight.elasticsearch.ROLE_USER_FIELD
+        role_filter = {
+            'term': {role_field: context.user_role_filter}
+        }
+
+        es_query = {
+            'filtered': {
+                'filter': role_filter
             }
+        }
+
+        if is_admin and all_projects:
+            es_query['filtered']['query'] = query
+
         else:
             filtered_query_list = []
             for resource_type, plugin in six.iteritems(self.plugins):
@@ -293,17 +302,13 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                     }
                     filtered_query_list.append(filtered_query)
 
-            query_params = {
-                'query': {
-                    'query': {
-                        "bool": {
-                            "should": filtered_query_list
-                        },
-                    }
+            es_query['filtered']['query'] = {
+                'bool': {
+                    'should': filtered_query_list
                 }
             }
 
-        return query_params
+        return {'query': es_query}
 
     def _get_sort_order(self, sort_order):
         if isinstance(sort_order, (six.text_type, dict)):
@@ -374,25 +379,37 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         if not isinstance(indices, (list, tuple)):
             indices = [indices]
 
-        query_params = self._get_query(request.context, query, types,
-                                       all_projects=all_projects)
+        query_params = {
+            'query': self._get_es_query(request.context, query, types,
+                                        all_projects=all_projects)
+        }
 
         # Apply an additional restriction to elasticsearch to speed things up
         # in addition to the RBAC filters
         query_params['index'] = indices
         query_params['doc_type'] = types
 
+        # Don't set query_params['_source'] any more; we ALWAYS want to
+        # exclude the role user field, so if the query specifies just
+        # _source=<string>, put that in _source_include
+        source_exclude = [searchlight.elasticsearch.ROLE_USER_FIELD]
+
         if _source is not None:
             if isinstance(_source, dict):
                 if 'include' in _source:
                     query_params['_source_include'] = _source['include']
                 if 'exclude' in _source:
-                    query_params['_source_exclude'] = _source['exclude']
+                    if isinstance(_source['exclude'], six.text_type):
+                        source_exclude.append(_source['exclude'])
+                    else:
+                        source_exclude.extend(_source['exclude'])
             elif isinstance(_source, (list, six.text_type)):
-                query_params['_source'] = _source
+                query_params['_source_include'] = _source
             else:
                 msg = _("'_source' must be a string, dict or list")
                 raise webob.exc.HTTPBadRequest(explanation=msg)
+
+        query_params['_source_exclude'] = source_exclude
 
         if offset is not None:
             query_params['offset'] = self._validate_offset(offset)

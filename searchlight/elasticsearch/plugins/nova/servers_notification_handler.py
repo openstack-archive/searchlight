@@ -70,26 +70,16 @@ class InstanceHandler(base.NotificationBase):
     def _update_instance(self, instance_id):
         try:
             payload = serialize_nova_server(instance_id)
+            self.index_helper.save_document(payload)
         except novaclient.exceptions.NotFound:
             LOG.warning(_LW("Instance %s not found; deleting") % instance_id)
             try:
-                self.engine.delete(
-                    index=self.index_name,
-                    doc_type=self.document_type,
-                    id=instance_id
-                )
-            except Exception as e:
+                self.index_helper.delete_document_by_id(instance_id)
+            except Exception as exc:
                 LOG.error(_LE(
                     'Error deleting instance %(instance_id)s '
-                    'from index: %(exc)s') % (instance_id, e))
-            return
-
-        self.engine.index(
-            index=self.index_name,
-            doc_type=self.document_type,
-            body=payload,
-            id=instance_id
-        )
+                    'from index: %(exc)s') %
+                    {'instance_id': instance_id, 'exc': exc})
 
     def delete(self, payload):
         instance_id = payload['instance_id']
@@ -97,8 +87,10 @@ class InstanceHandler(base.NotificationBase):
         if not instance_id:
             return
 
-        self.engine.delete(
-            index=self.index_name,
-            doc_type=self.document_type,
-            id=instance_id
-        )
+        try:
+            self.index_helper.delete_document_by_id(instance_id)
+        except Exception as exc:
+            LOG.error(_LE(
+                'Error deleting instance %(instance_id)s '
+                'from index: %(exc)s') %
+                {'instance_id': instance_id, 'exc': exc})

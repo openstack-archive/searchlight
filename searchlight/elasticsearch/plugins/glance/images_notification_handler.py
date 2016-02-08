@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import glanceclient.exc
 from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
@@ -20,8 +21,12 @@ from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_image_members
 from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_notification
+from searchlight import i18n
+
 
 LOG = logging.getLogger(__name__)
+_LW = i18n._LW
+_LE = i18n._LE
 
 
 class ImageHandler(base.NotificationBase):
@@ -49,34 +54,33 @@ class ImageHandler(base.NotificationBase):
         return serialize_glance_notification(notification)
 
     def create_or_update(self, payload):
-        id = payload['id']
-        payload = self.serialize_notification(payload)
-        self.engine.index(
-            index=self.index_name,
-            doc_type=self.document_type,
-            body=payload,
-            id=id
-        )
+        image_id = payload['id']
+        try:
+            payload = self.serialize_notification(payload)
+            self.index_helper.save_document(payload)
+        except glanceclient.exceptions.NotFound:
+            LOG.warning(_LW("Image %s not found; deleting") % image_id)
+            try:
+                self.index_helper.delete_document_by_id(image_id)
+            except Exception as exc:
+                LOG.error(_LE(
+                    'Error deleting image %(image_id)s from index: %(exc)s') %
+                    {'image_id': image_id, 'exc': exc})
 
     def delete(self, payload):
-        id = payload['id']
-        self.engine.delete(
-            index=self.index_name,
-            doc_type=self.document_type,
-            id=id
-        )
+        image_id = payload['id']
+        try:
+            self.index_helper.delete_document_by_id(image_id)
+        except Exception as exc:
+            LOG.error(_LE(
+                'Error deleting image %(image_id)s from index: %(exc)s') %
+                {'image_id': image_id, 'exc': exc})
 
     def sync_members(self, payload):
         image_id = payload['image_id']
-        image_es = self.engine.get(
-            index=self.index_name,
-            doc_type=self.document_type,
-            id=image_id
-        )
+        image_es = self.index_helper.get_document(image_id,
+                                                  for_admin=True)
+
         payload = serialize_glance_image_members(image_es['_source'], payload)
-        self.engine.index(
-            index=self.index_name,
-            doc_type=self.document_type,
-            body=payload,
-            id=image_id
-        )
+
+        self.index_helper.save_document(payload)
