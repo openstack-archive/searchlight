@@ -53,14 +53,14 @@ class TestSearchApi(functional.FunctionalTest):
             "members": [TENANT1]
         }
 
-        self._index(self.images_plugin.get_index_name(),
+        self._index(self.images_plugin.alias_name_search,
                     self.images_plugin.get_document_type(),
                     doc,
                     TENANT1)
 
         # Test the raw elasticsearch response
         es_doc = self._get_elasticsearch_doc(
-            self.images_plugin.get_index_name(),
+            self.images_plugin.alias_name_search,
             self.images_plugin.get_document_type(),
             doc_id)
         self.assertEqual(['admin', 'user'],
@@ -104,7 +104,7 @@ class TestSearchApi(functional.FunctionalTest):
             ]
         }
 
-        self._index(self.metadefs_plugin.get_index_name(),
+        self._index(self.metadefs_plugin.alias_name_search,
                     self.metadefs_plugin.get_document_type(),
                     [doc1, doc2],
                     TENANT1)
@@ -166,7 +166,7 @@ class TestSearchApi(functional.FunctionalTest):
             "members": []
         }
 
-        self._index(self.images_plugin.get_index_name(),
+        self._index(self.images_plugin.alias_name_search,
                     self.images_plugin.get_document_type(),
                     [tenant1_doc],
                     TENANT1)
@@ -206,7 +206,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'tenant_id': TENANT1,
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
-        self._index(servers_plugin.get_index_name(),
+        self._index(servers_plugin.alias_name_search,
                     servers_plugin.get_document_type(),
                     [server1, server2, server3],
                     TENANT1)
@@ -277,7 +277,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
 
-        self._index(servers_plugin.get_index_name(),
+        self._index(servers_plugin.alias_name_search,
                     servers_plugin.get_document_type(),
                     [server1, server2],
                     TENANT1)
@@ -326,7 +326,7 @@ class TestSearchApi(functional.FunctionalTest):
 
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
         servers_plugin.index_helper.save_document(doc)
-        self._flush_elasticsearch(servers_plugin.index_name)
+        self._flush_elasticsearch(servers_plugin.alias_name_listener)
 
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
@@ -370,7 +370,7 @@ class TestSearchApi(functional.FunctionalTest):
 
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
         servers_plugin.index_helper.save_document(doc)
-        self._flush_elasticsearch(servers_plugin.index_name)
+        self._flush_elasticsearch(servers_plugin.alias_name_listener)
 
         # For each of these queries (which are really looking for the same
         # thing) we expect a result for an admin, and no result for a user

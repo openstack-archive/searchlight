@@ -15,22 +15,30 @@
 
 import copy
 import datetime
+from elasticsearch import exceptions as es_exc
 from elasticsearch import helpers
 import fnmatch
 import logging
 import oslo_utils
 import six
 
+
+from oslo_utils import encodeutils
+import searchlight.elasticsearch
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight import i18n
-
 
 # Refer to ROLE_USER_FIELD
 ADMIN_ID_SUFFIX = "_ADMIN"
 USER_ID_SUFFIX = "_USER"
 
+# Format for datetime when creating a unique index.
+FORMAT = "%Y_%m_%d_%H_%M_%S"
+
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
+_LE = i18n._LE
+
 VERSION_CONFLICT_MSG = 'version_conflict_engine_exception'
 
 DOC_VALUE_TYPES = ('integer', 'short', 'boolean', 'short', 'byte',
@@ -42,6 +50,134 @@ def get_now_str():
     and keep it in one place in case oslo changes
     """
     return oslo_utils.timeutils.isotime(datetime.datetime.utcnow())
+
+
+def create_new_index(group):
+    """Create a new index for a specific Resource Type Group. Upon
+       exit of this method, the index is still not ready to be used.
+       The index still needs to have the settings/mappings set for
+       each plugin (Document Type).
+    """
+    es_engine = searchlight.elasticsearch.get_api()
+
+    index_name = None
+    while not index_name:
+        # Use utcnow() to ensure that the name is unique.
+        index_name = group + '-' + datetime.datetime.utcnow().strftime(FORMAT)
+        try:
+            es_engine.indices.create(index=index_name)
+        except es_exc.ConflictError:
+            # This index already exists! Try again.
+            index_name = None
+
+    return index_name
+
+
+def setup_alias(index_name, alias_search, alias_listener):
+    """Create all needed aliases. Each Resource Type Group will have two
+       aliases. Each alias will point to the same internal index. As a
+       reminder, all ES CRUD operations should go to the listener alias.
+       All ES Query operations should go to the search alias.
+    """
+    es_engine = searchlight.elasticsearch.get_api()
+
+    if not es_engine.indices.exists_alias(name=alias_search):
+        # Search alias does not exist, create it and continue.
+        try:
+            es_engine.indices.put_alias(index=index_name,
+                                        name=alias_search)
+        except Exception as e:
+            LOG.error(encodeutils.exception_to_unicode(e))
+            es_engine.indices.delete(index=index_name)
+            raise
+
+    if not es_engine.indices.exists_alias(name=alias_listener):
+        # Listener alias does not exist, create it and return.
+        try:
+            es_engine.indices.put_alias(index=index_name,
+                                        name=alias_listener)
+        except Exception as e:
+            LOG.error(encodeutils.exception_to_unicode(e))
+            es_engine.indices.delete(index=index_name)
+            es_engine.indices.delete_alias(index='_all',
+                                           name=alias_search)
+            raise
+        return
+
+    # Listener alias exists, add the new index to it.
+    body = {
+        'actions': [
+            {'add': {
+                'index': index_name,
+                'alias': alias_listener}}
+        ]
+    }
+    es_engine.indices.update_aliases(body=body)
+
+
+def alias_search_update(alias_search, index_name):
+    """Replace the current index with the specified index in the
+       search alias. To avoid a race condition we will need to
+       perform the remove and add atomically (within ElasticSearch).
+    """
+    if not index_name:
+        return None
+
+    es_engine = searchlight.elasticsearch.get_api()
+
+    body = {
+        'actions': [
+            {'add': {
+                'index': index_name,
+                'alias': alias_search}}
+        ]
+    }
+    try:
+        current_indices = es_engine.indices.get_alias(
+            name=alias_search, ignore=404)
+        # Grab first (and only) index in the list from get_alias().
+        old_index = current_indices.keys()[0]
+        if old_index == index_name:
+            return None
+        body['actions'].insert(0,
+                               {'remove': {
+                                   'index': old_index,
+                                   'alias': alias_search}})
+    except Exception:
+        # Alias doesn't exist. strange. Nothing to remove, only an add.
+        pass
+
+    es_engine.indices.update_aliases(body)
+
+    return old_index
+
+
+def delete_index(index_name):
+    """Delete the specified index. Used to clean up."""
+    if index_name:
+        es_engine = searchlight.elasticsearch.get_api()
+        es_engine.indices.delete(index=index_name, ignore=404)
+
+
+def alias_listener_update(alias_listener, index_name):
+    """Delete the specified index from the listener alias. """
+
+    if not index_name:
+        return
+
+    es_engine = searchlight.elasticsearch.get_api()
+
+    body = {
+        'actions': [
+            {'remove': {
+                'index': index_name,
+                'alias': alias_listener}}
+        ]
+    }
+
+    # If the index no longer exists, ignore and continue.
+    es_engine.indices.update_aliases(body=body, ignore=404)
+    es_engine.indices.delete(index=index_name, ignore=404)
 
 
 def normalize_date_fields(document,
@@ -164,12 +300,66 @@ class IndexingHelper(object):
 
         # Retain some state here for convenience
         self.engine = self.plugin.engine
-        self.index_name = plugin.index_name
+        self.alias_name = plugin.alias_name_listener
         self.document_type = plugin.document_type
 
     @property
     def index_chunk_size(self):
         return 200
+
+    def _index_alias_multiple_indexes_bulk(self, documents=None, actions=None,
+                                           versions=None):
+        # Indexing an alias that has multiple indexes, it will fail
+        # with an ElasticSearch "IllegalArgument" excpetion. When
+        # we detect this case, we will need to iterate on all indexes
+        # indivdually and retry the indexing. We will handle indexing
+        # only through the ES bulk() method here.
+        indexes = self.engine.indices.get_alias(index=self.alias_name)
+        for index_name in indexes:
+            try:
+                if documents:
+                    result = helpers.bulk(
+                        client=self.engine,
+                        index=index_name,
+                        doc_type=self.document_type,
+                        chunk_size=self.index_chunk_size,
+                        actions=self._apply_role_filtering(documents,
+                                                           versions))
+                if actions:
+                    result = helpers.bulk(
+                        client=self.engine,
+                        index=index_name,
+                        doc_type=self.document_type,
+                        chunk_size=self.index_chunk_size,
+                        actions=actions)
+                LOG.debug("Indexing result: %s", result)
+            except Exception as e:
+                format_msg = {
+                    'doc': self.document_type,
+                    'msg': str(e)
+                }
+                LOG.error(_LE("Failed Indexing %(doc)s: %(msg)s") % format_msg)
+
+    def _index_alias_multiple_indexes_get(self, doc_id):
+        """Getting a document from an alias with multiple indexes will fail.
+           We need to retrive it from one of the indexes. We will choose
+           the latest index. Since the indexes are named with a timestamp,
+           a reverse sort will bring the latest to the front.
+        """
+        indexes = self.engine.indices.get_alias(index=self.alias_name)
+        index_list = indexes.keys()
+        index_list.sort(reverse=True)
+        try:
+            return self.engine.get(
+                index=index_list[0],
+                doc_type=self.document_type,
+                id=doc_id)
+        except Exception as e:
+            format_msg = {
+                'doc': self.document_type,
+                'msg': str(e)
+            }
+            LOG.error(_LE("Failed Indexing %(doc)s: %(msg)s") % format_msg)
 
     def save_document(self, document, version=None):
         if version:
@@ -177,12 +367,31 @@ class IndexingHelper(object):
         else:
             self.save_documents([document])
 
-    def save_documents(self, documents, versions=None):
+    def save_documents(self, documents, versions=None, index=None):
         """Send list of serialized documents into search engine."""
+
+        """Warning: Index vs Alias usage.
+           Listeners [plugins/*/notification_handlers.py]:
+           When the plugin listeners are indexing documents, we will want
+           to use the normal ES alias for their resource group. In this case
+           the index parameter will not be set. Listeners are by far the most
+           common usage case.
+
+           Re-Indexing [plugins/base.py::initial_indexing()]:
+           When we are re-indexing we will want to use the new ES index.
+           Bypassing the alias means we will not send duplicate documents
+           to the old index. In this case the index will be set. Re-indexing
+           is an event that will rarely happen.
+        """
+        if not index:
+            use_index = self.alias_name
+        else:
+            use_index = index
+
         try:
             result = helpers.bulk(
                 client=self.engine,
-                index=self.index_name,
+                index=use_index,
                 doc_type=self.document_type,
                 chunk_size=self.index_chunk_size,
                 actions=self._apply_role_filtering(documents, versions))
@@ -193,6 +402,13 @@ class IndexingHelper(object):
                     raise e
                 err_msg.append("id %(_id)s: %(error)s" % err['index'])
             LOG.warning(_LW('Version conflict %s') % ';'.join(err_msg))
+            result = 0
+        except es_exc.RequestError:
+            # TODO(ricka) Verify this is the IllegalArgument exception.
+            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
+                      {'alias': self.alias_name})
+            self._index_alias_multiple_indexes_bulk(documents=documents,
+                                                    versions=versions)
             result = 0
         LOG.debug("Indexing result: %s", result)
 
@@ -238,7 +454,7 @@ class IndexingHelper(object):
         try:
             helpers.bulk(
                 client=self.plugin.engine,
-                index=self.index_name,
+                index=self.alias_name,
                 doc_type=self.document_type,
                 actions=actions
             )
@@ -261,6 +477,11 @@ class IndexingHelper(object):
                     {"doc_type": self.plugin.document_type, "ids": doc_ids})
             else:
                 raise
+        except es_exc.RequestError:
+            # TODO(ricka) Verify this is the IllegalArgument exception.
+            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
+                      {'alias': self.alias_name})
+            self._index_alias_multiple_indexes_bulk(actions=actions)
 
     def delete_documents_with_parent(self, parent_id, version=None):
         # This is equivalent in result to _parent: parent_id but offers
@@ -293,7 +514,7 @@ class IndexingHelper(object):
 
         documents = helpers.scan(
             client=self.engine,
-            index=self.index_name,
+            index=self.alias_name,
             doc_type=self.document_type,
             query=query)
 
@@ -314,11 +535,18 @@ class IndexingHelper(object):
         if self.plugin.requires_role_separation:
             doc_id += (ADMIN_ID_SUFFIX if for_admin else USER_ID_SUFFIX)
 
-        return self.engine.get(
-            index=self.index_name,
-            doc_type=self.document_type,
-            id=doc_id
-        )
+        try:
+            return self.engine.get(
+                index=self.alias_name,
+                doc_type=self.document_type,
+                id=doc_id
+            )
+        except es_exc.RequestError:
+            # TODO(ricka) Verify this is the IllegalArgument exception.
+            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
+                      {'alias': self.alias_name})
+            #
+            return self._index_alias_multiple_indexes_get(doc_id=doc_id)
 
     def update_document(self, document, doc_id, update_as_script):
         """Updates are a little simpler than inserts because the documents
@@ -343,13 +571,19 @@ class IndexingHelper(object):
                        _get_update_action(user_doc, USER_ID_SUFFIX)]
         else:
             actions = [_get_update_action(document)]
-        result = helpers.bulk(
-            client=self.engine,
-            index=self.index_name,
-            doc_type=self.document_type,
-            chunk_size=self.index_chunk_size,
-            actions=actions)
-        LOG.debug("Update result: %s", result)
+        try:
+            result = helpers.bulk(
+                client=self.engine,
+                index=self.alias_name,
+                doc_type=self.document_type,
+                chunk_size=self.index_chunk_size,
+                actions=actions)
+            LOG.debug("Update result: %s", result)
+        except es_exc.RequestError:
+            # TODO(ricka) Verify this is the IllegalArgument exception.
+            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
+                      {'alias': self.alias_name})
+            self._index_alias_multiple_indexes_bulk(actions=actions)
 
     def _apply_role_filtering(self, documents, versions=None):
         """Returns a generator of indexable 'actions'. If the plugin requires

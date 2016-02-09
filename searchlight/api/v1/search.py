@@ -152,12 +152,12 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         indices, doc_types = set(), set()
         for resource_type in resource_types:
             plugin = self.plugins[resource_type].obj
-            indices.add(plugin.get_index_name())
+            indices.add(plugin.alias_name_search)
             doc_types.add(plugin.get_document_type())
         return list(indices), list(doc_types)
 
     def _get_available_indices(self, types=[]):
-        return list(set(p.obj.get_index_name()
+        return list(set(p.obj.alias_name_search
                         for p in self.plugins.values()
                         if p.obj.get_document_type() in types or not types))
 

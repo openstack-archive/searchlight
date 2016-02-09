@@ -46,7 +46,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "x_foo_anybody": "anybody may read",
             "spl_read_only_prop": "spl_role only"
         }
-        self._index(self.images_plugin.get_index_name(),
+        self._index(self.images_plugin.alias_name_search,
                     self.images_plugin.get_document_type(),
                     [doc_with_properties],
                     test_api.TENANT1)
@@ -105,7 +105,7 @@ class TestGlancePlugins(functional.FunctionalTest):
                  "title": "bye"}
             ]
         }
-        self._index(self.images_plugin.get_index_name(),
+        self._index(self.images_plugin.alias_name_search,
                     self.images_plugin.get_document_type(),
                     [image_doc, metadef_doc],
                     test_api.TENANT1)
@@ -150,7 +150,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "name": "owned by tenant 2",
             "members": []
         }
-        self._index(self.images_plugin.get_index_name(),
+        self._index(self.images_plugin.alias_name_search,
                     self.images_plugin.get_document_type(),
                     [tenant1_doc, tenant2_doc],
                     test_api.TENANT1)
@@ -192,7 +192,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "name": "inaccessible_doc doc",
             "members": [str(uuid.uuid4())]
         }
-        self._index(self.images_plugin.get_index_name(),
+        self._index(self.images_plugin.alias_name_search,
                     self.images_plugin.get_document_type(),
                     [accessible_doc, inaccessible_doc],
                     test_api.TENANT1)
@@ -229,7 +229,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "name": "visible doc",
             "members": [str(uuid.uuid4())]
         }
-        self._index(self.images_plugin.get_index_name(),
+        self._index(self.images_plugin.alias_name_search,
                     self.images_plugin.get_document_type(),
                     [visible_doc, invisible_doc],
                     test_api.TENANT1)
@@ -253,7 +253,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "visibility": "private",
             "name": "visible doc"
         }
-        self._index(self.metadefs_plugin.get_index_name(),
+        self._index(self.metadefs_plugin.alias_name_search,
                     self.metadefs_plugin.get_document_type(),
                     [visible_doc, invisible_doc],
                     test_api.TENANT1)
@@ -276,7 +276,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "visibility": "private",
             "name": "visible doc"
         }
-        self._index(self.metadefs_plugin.get_index_name(),
+        self._index(self.metadefs_plugin.alias_name_search,
                     self.metadefs_plugin.get_document_type(),
                     [visible_doc, invisible_doc],
                     test_api.TENANT1)
@@ -313,8 +313,8 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
             for plugin in (self.images_plugin, self.metadefs_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 
-        self.images_index = self.images_plugin.get_index_name()
-        self.metadefs_index = self.metadefs_plugin.get_index_name()
+        self.images_index = self.images_plugin.alias_name_listener
+        self.metadefs_index = self.metadefs_plugin.alias_name_listener
 
     def test_image_create_event(self):
         """Send image.create notification event to listener"""
@@ -655,9 +655,9 @@ class TestGlanceLoad(functional.FunctionalTest):
         """Test that all the indexed images data is served from api server"""
 
         self.images_plugin.initial_indexing()
-        self._flush_elasticsearch(self.images_plugin.get_index_name())
+        self._flush_elasticsearch(self.images_plugin.alias_name_search)
         glance_images_query = test_api.MATCH_ALL.copy()
-        glance_images_query['index'] = self.images_plugin.get_index_name()
+        glance_images_query['index'] = self.images_plugin.alias_name_search
         glance_images_query['type'] = self.images_plugin.get_document_type()
         response, json_content = self._search_request(
             glance_images_query,
@@ -668,9 +668,9 @@ class TestGlanceLoad(functional.FunctionalTest):
     def test_searchlight_glance_metadefs_data(self):
         """Test that all the indexed metadefs data is served from api server"""
         self.metadefs_plugin.initial_indexing()
-        self._flush_elasticsearch(self.metadefs_plugin.get_index_name())
+        self._flush_elasticsearch(self.metadefs_plugin.alias_name_search)
         metadefs_query = test_api.MATCH_ALL.copy()
-        metadefs_query['index'] = self.metadefs_plugin.get_index_name()
+        metadefs_query['index'] = self.metadefs_plugin.alias_name_search
         metadefs_query['type'] = self.metadefs_plugin.get_document_type()
         metadefs_query['sort'] = {'namespace': {'order': 'asc'}}
         response, json_content = self._search_request(metadefs_query,

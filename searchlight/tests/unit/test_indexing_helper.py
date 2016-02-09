@@ -110,7 +110,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
             ]
             mock_bulk.assert_called_once_with(
                 client=plugin.engine,
-                index=plugin.index_name,
+                index=plugin.alias_name_listener,
                 doc_type=plugin.document_type,
                 actions=expected_delete_actions)
 
@@ -130,7 +130,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
             ]
             mock_bulk.assert_called_once_with(
                 client=plugin.engine,
-                index=plugin.index_name,
+                index=plugin.alias_name_listener,
                 doc_type=plugin.document_type,
                 actions=expected_delete_actions)
 

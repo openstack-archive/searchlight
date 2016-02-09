@@ -81,12 +81,17 @@ class CatalogSearchRepo(object):
         return self.plugins_info_dict
 
     def _get_plugin_info(self):
+        """Note: Even though we are using aliases to access ElasticSearch
+           instead of indexes, we are still keeping the index field. This
+           will allow the end-user to continue using other ElasticSearch
+           tools which need an index to operate.
+        """
         plugin_list = []
         for plugin_type, plugin in six.iteritems(self.plugins):
             plugin_list.append({
                 'name': plugin_type,
                 'type': plugin.obj.get_document_type(),
-                'index': plugin.obj.get_index_name()
+                'index': plugin.obj.alias_name_search
             })
         return {'plugins': sorted(plugin_list,
                                   key=operator.itemgetter('name'))}
@@ -94,7 +99,7 @@ class CatalogSearchRepo(object):
     def facets(self, for_index, for_doc_type, all_projects, limit_terms):
         facets = {}
         for resource_type, plugin in six.iteritems(self.plugins):
-            index_name = plugin.obj.get_index_name()
+            index_name = plugin.obj.alias_name_search
             doc_type = plugin.obj.get_document_type()
             if ((not for_index or index_name == for_index) and
                     (not for_doc_type or doc_type == for_doc_type)):

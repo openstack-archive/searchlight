@@ -64,7 +64,7 @@ class TestNetworkLoaderPlugin(test_utils.BaseTestCase):
         self.networks = [self.network1]
 
     def test_default_index_name(self):
-        self.assertEqual('searchlight', self.plugin.get_index_name())
+        self.assertEqual('searchlight', self.plugin.resource_group_name)
 
     def test_document_type(self):
         self.assertEqual('OS::Neutron::Net',

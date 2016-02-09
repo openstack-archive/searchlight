@@ -40,7 +40,7 @@ class TestPlugin(test_utils.BaseTestCase):
         mock_engine = mock.Mock()
         simple_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
 
-        simple_plugin.setup_mapping()
+        simple_plugin.setup_index_mapping(index_name='fake')
 
         mock_engine.indices.put_mapping.assert_called_once_with(
             index='fake', doc_type='fake-simple',
@@ -65,7 +65,7 @@ class TestPlugin(test_utils.BaseTestCase):
 
         child_plugin.register_parent(parent_plugin)
 
-        parent_plugin.setup_mapping()
+        parent_plugin.setup_index_mapping(index_name='fake')
 
         # Testing a couple of things; that
         expected_calls = [
@@ -111,7 +111,7 @@ class TestPlugin(test_utils.BaseTestCase):
 
         child_plugin.get_mapping = types.MethodType(explicit_parent_mapping,
                                                     child_plugin)
-        parent_plugin.setup_mapping()
+        parent_plugin.setup_index_mapping(index_name='fake')
 
         mock_engine.indices.put_mapping.assert_has_calls(expected_calls)
 
@@ -137,7 +137,8 @@ class TestPlugin(test_utils.BaseTestCase):
         self.assertRaisesRegexp(
             exception.IndexingException,
             expected_error,
-            parent_plugin.setup_mapping)
+            parent_plugin.setup_index_mapping,
+            index_name='fake')
 
     def test_doc_values(self):
         mock_engine = mock.Mock()

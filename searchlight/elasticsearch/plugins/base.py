@@ -36,8 +36,8 @@ _LI = i18n._LI
 _ = i18n._
 
 indexer_opts = [
-    cfg.StrOpt('index_name', default="searchlight",
-               help="The default Elasticsearch index for plugins"),
+    cfg.StrOpt('resource_group_name', default="searchlight",
+               help="The default base name for accessing Elasticsearch"),
     cfg.StrOpt('notifications_topic', default="searchlight_indexer",
                help="The default messaging notifications topic"),
     cfg.BoolOpt('mapping_use_doc_values', default=True,
@@ -58,7 +58,6 @@ class IndexBase(plugin.Plugin):
         self.options = cfg.CONF[self.get_config_group_name()]
 
         self.engine = searchlight.elasticsearch.get_api()
-        self.index_name = self.get_index_name()
         self.document_type = self.get_document_type()
 
         # This will be populated at load time.
@@ -73,7 +72,7 @@ class IndexBase(plugin.Plugin):
 
     @property
     def name(self):
-        return "%s-%s" % (self.index_name, self.document_type)
+        return "%s-%s" % (self.resource_group_name, self.document_type)
 
     @property
     def mapping_use_doc_values(self):
@@ -83,11 +82,29 @@ class IndexBase(plugin.Plugin):
         else:
             return cfg.CONF.resource_plugin.mapping_use_doc_values
 
-    def initial_indexing(self, clear=True, setup_data=True):
-        """Comprehensively install search engine index and put data into it."""
+    @property
+    def resource_group_name(self):
+        if not getattr(self, '_group_name', None):
+            if self.options.resource_group_name is not None:
+                self._group_name = self.options.resource_group_name
+            elif cfg.CONF.resource_plugin.resource_group_name is not None:
+                self._group_name = cfg.CONF.resource_plugin.resource_group_name
+            else:
+                self._group_name = "searchlight"
+        return self._group_name
+
+    @property
+    def alias_name_listener(self):
+        return "%s-listener" % self.resource_group_name
+
+    @property
+    def alias_name_search(self):
+        return "%s-search" % self.resource_group_name
+
+    def prepare_index(self, index_name):
         if self.parent_plugin_type():
             LOG.debug(_LI(
-                "Skipping initialization for %(doc_type)s; will be handled by"
+                "Skipping index prep for %(doc_type)s; will be handled by"
                 "parent (%(parent_type)s)") %
                 {"doc_type": self.document_type,
                  "parent_type": self.parent_plugin_type()})
@@ -97,51 +114,50 @@ class IndexBase(plugin.Plugin):
         for child_plugin in self.child_plugins:
             child_plugin.check_mapping_sort_fields()
 
-        if clear:
-            # First delete the doc type
-            self.clear_data()
+        # Prepare the new index for this document type.
+        self.setup_index_settings(index_name=index_name)
+        self.setup_index_mapping(index_name=index_name)
 
-        self.setup_index()
-        self.setup_mapping()
+    def initial_indexing(self, index_name=None, setup_data=True):
+        """Add data for this resource type. This method is called per plugin.
+           The assumption is that the aliases/indexes have already been setup
+           correctly before calling us. See the comments in the method
+           cmd/manage.py::sync() for more details.
+        """
+        if self.parent_plugin_type():
+            LOG.debug(_LI(
+                "Skipping initialization for %(doc_type)s; will be handled by"
+                "parent (%(parent_type)s)") %
+                {"doc_type": self.document_type,
+                 "parent_type": self.parent_plugin_type()})
+            return
 
         if setup_data:
-            self.setup_data()
+            self.setup_data(index_name)
 
-    def clear_data(self):
-        self.engine.indices.delete_mapping(self.index_name,
-                                           self.document_type,
-                                           ignore=404)
-
-        for child_plugin in self.child_plugins:
-            self.engine.indices.delete_mapping(
-                self.index_name,
-                child_plugin.get_document_type(),
-                ignore=404)
-
-    def setup_index(self):
-        """Create the index if it doesn't exist and update its settings."""
-        index_exists = self.engine.indices.exists(self.index_name)
-        if not index_exists:
-            self.engine.indices.create(index=self.index_name)
-
+    def setup_index_settings(self, index_name):
+        """Update index settings. """
         index_settings = self.get_settings()
         if index_settings:
-            self.engine.indices.put_settings(index=self.index_name,
-                                             body=index_settings)
+            self.engine.indices.put_settings(body=index_settings,
+                                             index=index_name)
 
-        return index_exists
-
-    def setup_mapping(self):
+    def setup_index_mapping(self, index_name):
         """Update index document mapping."""
         # Using 'reversed' because in e-s 2.x, child mappings must precede
         # their parents, and the parent will be the first element
         for doc_type, mapping in self.get_full_mapping():
-            self.engine.indices.put_mapping(index=self.index_name,
+            self.engine.indices.put_mapping(index=index_name,
                                             doc_type=doc_type,
                                             body=mapping)
 
-    def setup_data(self):
-        """Insert all objects from database into search engine."""
+    def setup_data(self, index=None):
+        """Insert all objects from database into search engine.
+           We are assuming this helper method is called by initial_indexing().
+           If you wish to call this method from somewhere else, please make
+           sure you understand the usage of the "index" parameter. See the
+           comment in plugins/utils.py::save_documents() for more details.
+        """
         object_list = self.get_objects()
         documents = []
         versions = []
@@ -150,10 +166,11 @@ class IndexBase(plugin.Plugin):
             documents.append(document)
             version = self.NotificationHandlerCls.get_version(document)
             versions.append(version)
-        self.index_helper.save_documents(documents, versions=versions)
+        self.index_helper.save_documents(documents, versions=versions,
+                                         index=index)
 
         for child_plugin in self.child_plugins:
-            child_plugin.setup_data()
+            child_plugin.setup_data(index)
 
     def get_facets(self, request_context, all_projects=False, limit_terms=0):
         """Get facets available for searching, in the form of a list of
@@ -239,7 +256,7 @@ class IndexBase(plugin.Plugin):
                     }}}
 
             results = self.engine.search(
-                index=self.get_index_name(),
+                index=self.alias_name_search,
                 doc_type=self.get_document_type(),
                 body=body,
                 ignore_unavailable=True,
@@ -267,7 +284,7 @@ class IndexBase(plugin.Plugin):
                 raw = field_mapping.get('fields', {}).get('raw', None)
                 if not raw:
                     msg_vals = {"field_name": field_name,
-                                "index_name": self.get_index_name(),
+                                "index_name": self.alias_name_listener,
                                 "document_type": self.get_document_type()}
                     message = ("Field '%(field_name)s' for %(index_name)s/"
                                "%(document_type)s must contain a subfield "
@@ -304,12 +321,6 @@ class IndexBase(plugin.Plugin):
         """
         return None
 
-    def get_index_name(self):
-        if self.options.index_name is not None:
-            return self.options.index_name
-        else:
-            return cfg.CONF.resource_plugin.index_name
-
     @property
     def enabled(self):
         return self.options.enabled
@@ -326,13 +337,12 @@ class IndexBase(plugin.Plugin):
         if not self.parent_plugin:
             parent.child_plugins.append(self)
             self.parent_plugin = parent
-            self.index_name = parent.index_name
 
     def get_index_display_name(self, indent_level=0):
         """The string used to list this plugin when indexing"""
         display = '\n' + '    ' * indent_level + '--> ' if indent_level else ''
 
-        display += '%s (%s)' % (self.document_type, self.index_name)
+        display += '%s (%s)' % (self.document_type, self.resource_group_name)
         display += ''.join(c.get_index_display_name(indent_level + 1)
                            for c in self.child_plugins)
         return display
@@ -347,7 +357,7 @@ class IndexBase(plugin.Plugin):
         return [
             {
                 'indices': {
-                    'index': self.get_index_name(),
+                    'index': self.alias_name_search,
                     'no_match_filter': 'none',
                     'filter': {
                         'and': filter_fields
@@ -448,7 +458,7 @@ class IndexBase(plugin.Plugin):
     @classmethod
     def get_plugin_opts(cls):
         opts = [
-            cfg.StrOpt("index_name"),
+            cfg.StrOpt("resource_group_name"),
             cfg.BoolOpt("enabled", default=True),
             cfg.StrOpt("admin_only_fields"),
             cfg.BoolOpt('mapping_use_doc_values')

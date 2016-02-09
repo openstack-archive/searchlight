@@ -22,6 +22,7 @@ from oslo_utils import encodeutils
 
 from searchlight.common import config
 from searchlight.common import utils
+from searchlight.elasticsearch.plugins import utils as es_utils
 from searchlight import i18n
 
 
@@ -44,62 +45,79 @@ class IndexCommands(object):
     def __init__(self):
         utils.register_plugin_opts()
 
-    @args('--index', metavar='<index>', dest='index',
-          help='Index only this index (or a comma separated list)')
+    @args('--group', metavar='<group>', dest='group',
+          help='Index only this Resource Group (or a comma separated list)')
     @args('--type', metavar='<type>', dest='_type',
           help='Index only this type (or a comma separated list)')
     @args('--force', dest='force', action='store_true',
           help="Don't prompt (answer 'y')")
-    @args('--no-delete', dest='clear', action='store_false',
-          help="Don't delete existing data")
-    def sync(self, index=None, _type=None, force=False, clear=False):
+    def sync(self, group=None, _type=None, force=False):
         # Verify all indices and types have registered plugins.
         # index and _type are lists because of nargs='*'
-        index = index.split(',') if index else []
+        group = group.split(',') if group else []
         _type = _type.split(',') if _type else []
 
-        indices_set = set(index)
-        types_set = set(_type)
+        group_set = set(group)
+        type_set = set(_type)
 
+        """
+        The caller can specify a sync based on either the Document Type or the
+        Resource Group. With the Zero Downtime functionality, we are using
+        aliases to index into ElasticSearch. We now have multiple Document
+        Types sharing a single alias. If any member of a Resource Group (an
+        ES alias) is re-syncing *all* members of that Resoruce Group needs
+        to re-sync.
+
+        The final list of plugins to use for re-syncing *must* come only from
+        the Resource Group specifications. The "type" list is used only to make
+        the "group" list complete. We need a two pass algorithm for this.
+
+        First pass: Analyze the plugins according to the "type" list. This
+          turns a type in the "type" list to a group in the "group" list.
+
+        Second pass: Analyze the plugins according to the "group" list. Create
+          the plugin list that will be used for re-syncing.
+
+        Note: We cannot call any plugin's sync() during these two passes. The
+        sync needs to be a separate step. The API states that if any invalid
+        plugin was specified by the caller, the entire operation fails.
+        """
+
+        # First Pass: Document Types.
+        if _type:
+            for res_type, ext in six.iteritems(utils.get_search_plugins()):
+                plugin_obj = ext.obj
+                type_set.discard(plugin_obj.get_document_type())
+                if plugin_obj.get_document_type() in _type:
+                    group.append(plugin_obj.resource_group_name)
+
+        # Second Pass: Resource Groups (including those from types).
+        # This pass is a little tricky. If "group" is empty, it implies every
+        # resource gets re-synced. The command group_set.discard() is a no-op
+        # when "group" is empty.
+        resource_groups = []
+        plugin_objs = {}
         plugins_to_index = []
-        for resource_type, ext in six.iteritems(utils.get_search_plugins()):
+        for res_type, ext in six.iteritems(utils.get_search_plugins()):
             plugin_obj = ext.obj
-            if plugin_obj.parent_plugin:
-                parent_type = plugin_obj.parent_plugin.document_type
-                if resource_type in _type:
-                    print("'%s' is a child of '%s' and cannot be indexed "
-                          "separately.\nIndexing '%s' will re-index all "
-                          "child resource types." %
-                          (resource_type, parent_type, parent_type))
-                    print("Aborting.")
-                    sys.exit(1)
-                else:
-                    LOG.debug("Ignoring %s; it is a child of %s" %
-                              (resource_type, parent_type))
-                    continue
+            group_set.discard(plugin_obj.resource_group_name)
+            if (not group) or (plugin_obj.resource_group_name in group):
+                plugins_to_index.append((res_type, ext))
+                plugin_objs[plugin_obj.resource_group_name] = plugin_obj
+                if not (plugin_obj.resource_group_name,
+                        plugin_obj.alias_name_search,
+                        plugin_obj.alias_name_listener) in resource_groups:
+                    resource_groups.append((plugin_obj.resource_group_name,
+                                            plugin_obj.alias_name_search,
+                                            plugin_obj.alias_name_listener))
 
-            indices_set.discard(plugin_obj.get_index_name())
-            types_set.discard(plugin_obj.get_document_type())
-
-            skip = (index and plugin_obj.get_index_name() not in index or
-                    _type and plugin_obj.get_document_type() not in _type)
-            if not skip:
-                plugins_to_index.append((resource_type, ext))
-
-        if indices_set or types_set:
+        if group_set or type_set:
             print("Some index names or types do not have plugins "
                   "registered. Index names: %s. Types: %s" %
-                  (",".join(indices_set) or "<None>",
-                   ",".join(types_set) or "<None>"))
+                  (",".join(group_set) or "<None>",
+                   ",".join(type_set) or "<None>"))
             print("Aborting.")
             sys.exit(1)
-
-        if clear:
-            from searchlight.elasticsearch import using_elasticsearch_v2
-            using_v2_message = using_elasticsearch_v2()
-            if using_v2_message:
-                print(using_v2_message)
-                sys.exit(0)
 
         if not force:
             def format_selection(selection):
@@ -109,28 +127,75 @@ class IndexCommands(object):
             print("\nResource types (and indices) matching selection:\n%s\n" %
                   '\n'.join(map(format_selection, plugins_to_index)))
 
-            if clear:
-                ans = raw_input(
-                    "Indexing will delete existing data and mapping(s) before "
-                    "reindexing.\nUse '--force' to suppress this "
-                    "message.\nOK to continue? [y/n]: ")
-            else:
-                ans = raw_input(
-                    "Indexing will NOT delete existing data or mapping(s). It "
-                    "will reindex all resources. \nUse '--force' to suppress "
-                    "this message.\nOK to continue? [y/n]: ")
+            ans = raw_input(
+                "Indexing will NOT delete existing data or mapping(s). It "
+                "will reindex all resources. \nUse '--force' to suppress "
+                "this message.\nOK to continue? [y/n]: ")
             if ans.lower() != 'y':
                 print("Aborting.")
                 sys.exit(0)
 
+        # Start the re-indexing process
+
+        # Step #1: Create new indexes for each Resource Group Type.
+        #   The index needs to be fully functional before it gets
+        #   added to any aliases. This inclues all settings and
+        #   mappings. Only then can we add it to the aliases.
+        #   NB: The "search" aliases remain unchanged for this step.
+        index_names = {}
+        try:
+            for group, search, listen in resource_groups:
+                index_names[group] = es_utils.create_new_index(group)
+            for resource_type, ext in plugins_to_index:
+                plugin_obj = ext.obj
+                group_name = plugin_obj.resource_group_name
+                plugin_obj.prepare_index(index_name=index_names[group_name])
+        except Exception:
+            for group, search, listen in resource_groups:
+                if group in index_names.keys():
+                    es_utils.delete_index(index_name=index_names[group])
+            print("Error creating index or mapping, aborting without indexing")
+            raise
+
+        # Step #2: Setup the aliases for all Resource Type Group.
+        #   These actions need to happen outside of the plugins.
+        for group, search, listen in resource_groups:
+            es_utils.setup_alias(index_names[group], search, listen)
+
+        # Step #3: Re-index all resource types in this Resource Type Group.
+        #   Implicit in this step is to create the settings/mappings needed
+        #   for each document type in the new index.
+        #   NB: The "search" and "listener" aliases remain unchanged for this
+        #       step.
         for resource_type, ext in plugins_to_index:
             plugin_obj = ext.obj
+            group_name = plugin_obj.resource_group_name
             try:
-                plugin_obj.initial_indexing(clear=clear)
+                plugin_obj.initial_indexing(index_name=index_names[group_name])
             except Exception as e:
                 LOG.error(_LE("Failed to setup index extension "
-                              "%(ext)s: %(e)s") % {'ext': ext.name,
-                                                   'e': e})
+                              "%(ext)s: %(e)s") % {'ext': ext.name, 'e': e})
+
+        # Step #4: All re-indexing has occurred. Update the "search" alias.
+        #   The index/alias is the same for all resource types within this
+        #   Resource Group. These actions need to happen outside of the
+        #   plugins.
+        #   NB: The "listener" alias remains unchanged for this step.
+        # for (k1, index_name), (k2, plugin_obj) in (
+        #         zip(index_names.items(), plugin_obj.itmes())):
+        #     plugin_obj.alias_search_update(index_name)
+        old_index = {}
+        for group, search, listen in resource_groups:
+            old_index[group] = \
+                es_utils.alias_search_update(search, index_names[group])
+
+        # Step #5: The "search" alias has been updated. Update the "listener"
+        #   alias. This involves both removing the old index from the alias
+        #   as well as deleting the old index. These actions need to happen
+        #   outside of the plugins.
+        #   NB: The "search" alias remains unchanged for this step.
+        for group, search, listen in resource_groups:
+            es_utils.alias_listener_update(listen, old_index[group])
 
 
 def add_command_parsers(subparsers):

@@ -76,7 +76,7 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
         self.port1 = _create_port_fixture(ID1, TENANT1, NETWORK1)
 
     def test_default_index_name(self):
-        self.assertEqual('searchlight', self.plugin.get_index_name())
+        self.assertEqual('searchlight', self.plugin.resource_group_name)
 
     def test_document_type(self):
         self.assertEqual('OS::Neutron::Port',

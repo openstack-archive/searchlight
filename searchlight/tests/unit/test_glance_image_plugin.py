@@ -154,8 +154,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                        self.complex_image, self.members_image,
                        self.kernel_ramdisk_image]
 
-    def test_index_name(self):
-        self.assertEqual('searchlight', self.plugin.get_index_name())
+    def test_resource_group_name(self):
+        self.assertEqual('searchlight', self.plugin.resource_group_name)
 
     def test_document_type(self):
         self.assertEqual('OS::Glance::Image', self.plugin.get_document_type())
@@ -414,7 +414,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'created_at': '2012-05-16T15:27:36Z',
                             'id': 'KERNEL-eae7-4c0f-b50d-RAMDISK'
                         }
-                    ], versions=versions)
+                    ], index=None, versions=versions)
 
     def test_image_rbac(self):
         """Test the image plugin RBAC query terms"""
@@ -424,7 +424,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
         expected_fragment = [{
             "indices": {
-                "index": "searchlight",
+                "index": "searchlight-search",
                 "no_match_filter": "none",
                 "filter": {
                     "and": [
@@ -465,7 +465,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                 'hits': [{
                     '_source': copy.deepcopy(serialized),
                     '_type': self.plugin.get_document_type(),
-                    '_index': self.plugin.get_index_name()
+                    '_index': self.plugin.alias_name_search
                 }]
             }
         }
@@ -513,7 +513,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                 'hits': [{
                     '_source': copy.deepcopy(serialized),
                     '_type': self.plugin.get_document_type(),
-                    '_index': self.plugin.get_index_name()
+                    '_index': self.plugin.alias_name_search
                 }]
             }
         }
@@ -668,7 +668,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         }
 
         mock_engine.search.assert_called_with(
-            index=self.plugin.get_index_name(),
+            index=self.plugin.alias_name_search,
             doc_type=self.plugin.get_document_type(),
             body=expected_agg_query,
             ignore_unavailable=True,

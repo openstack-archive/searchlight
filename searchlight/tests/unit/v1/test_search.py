@@ -43,7 +43,7 @@ def _action_fixture(op_type, data, index=None, doc_type=None, _id=None,
     return action
 
 
-def _image_fixture(op_type, _id=None, index='searchlight',
+def _image_fixture(op_type, _id=None, index='searchlight-search',
                    doc_type='OS::Glance::Image',
                    data=None, **kwargs):
     image_data = {
@@ -192,25 +192,28 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
         expected = {
             "plugins": [
                 {
-                    "index": "searchlight",
+                    "index": "searchlight-search",
                     "type": "OS::Designate::RecordSet",
                     "name": "OS::Designate::RecordSet"
                 },
                 {
-                    "index": "searchlight",
+                    "index": "searchlight-search",
                     "type": "OS::Designate::Zone",
                     "name": "OS::Designate::Zone"
                 },
                 {
-                    "index": "searchlight", "type": "OS::Glance::Image",
+                    "index": "searchlight-search",
+                    "type": "OS::Glance::Image",
                     "name": "OS::Glance::Image"
                 },
                 {
-                    "index": "searchlight", "type": "OS::Glance::Metadef",
+                    "index": "searchlight-search",
+                    "type": "OS::Glance::Metadef",
                     "name": "OS::Glance::Metadef"
                 },
                 {
-                    "index": "searchlight", "type": "OS::Nova::Server",
+                    "index": "searchlight-search",
+                    "type": "OS::Nova::Server",
                     "name": "OS::Nova::Server"
                 }
             ]
@@ -231,11 +234,11 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_single_index(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
-            'index': 'searchlight',
+            'index': 'searchlight-search',
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['searchlight-search'], output['index'])
 
     def test_single_type(self):
         request = unit_test_utils.get_fake_request()
@@ -244,7 +247,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['searchlight-search'], output['index'])
         self.assertEqual(['OS::Glance::Image'], output['doc_type'])
 
     def test_empty_request(self):
@@ -253,7 +256,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         request.body = six.b(jsonutils.dumps({}))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['searchlight-search'], output['index'])
 
         types = [
             'OS::Designate::RecordSet',
@@ -265,7 +268,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Neutron::Port'
         ]
 
-        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['searchlight-search'], output['index'])
         self.assertEqual(sorted(types), sorted(output['doc_type']))
 
     def test_forbidden_schema(self):
@@ -295,7 +298,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['searchlight-search'], output['index'])
         self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
         self.assertEqual(['description'], output['_source_include'])
 
@@ -391,7 +394,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['searchlight-search'], output['index'])
         self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
         self.assertEqual({'name': {}}, output['query']['highlight']['fields'])
 
@@ -449,7 +452,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['searchlight'], output['index'])
+        self.assertEqual(['searchlight-search'], output['index'])
         self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
         self.assertEqual(1, output['limit'])
         self.assertEqual(2, output['offset'])
@@ -560,7 +563,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
                         }},
                         {'type': {'value': 'OS::Nova::Server'}}
                     ]},
-                'index': 'searchlight',
+                'index': 'searchlight-search',
                 'no_match_filter': 'none'
             }
         }
@@ -597,7 +600,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
                         }},
                         {'type': {'value': 'OS::Nova::Server'}}
                     ]},
-                'index': 'searchlight',
+                'index': 'searchlight-search',
                 'no_match_filter': 'none'
             }
         }
@@ -650,13 +653,13 @@ class TestResponseSerializer(test_utils.BaseTestCase):
             'plugins': [
                 {
                     'OS::Glance::Image': {
-                        'index': 'searchlight',
+                        'index': 'searchlight-search',
                         'type': 'OS::Glance::Image'
                     }
                 },
                 {
                     'OS::Glance::Metadef': {
-                        'index': 'searchlight',
+                        'index': 'searchlight-search',
                         'type': 'OS::Glance::Metadef'
                     }
                 }
@@ -669,13 +672,13 @@ class TestResponseSerializer(test_utils.BaseTestCase):
             'plugins': [
                 {
                     'OS::Glance::Image': {
-                        'index': 'searchlight',
+                        'index': 'searchlight-search',
                         'type': 'OS::Glance::Image'
                     }
                 },
                 {
                     'OS::Glance::Metadef': {
-                        'index': 'searchlight',
+                        'index': 'searchlight-search',
                         'type': 'OS::Glance::Metadef'
                     }
                 }

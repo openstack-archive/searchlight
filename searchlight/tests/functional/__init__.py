@@ -47,6 +47,7 @@ from six.moves import range
 import testtools
 
 from searchlight.common import utils
+from searchlight.elasticsearch.plugins import utils as es_utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import utils as test_utils
 
@@ -389,6 +390,8 @@ class FunctionalTest(test_utils.BaseTestCase):
         es_conn_patcher.start()
         self.addCleanup(es_conn_patcher.stop)
 
+        index_name = es_utils.create_new_index('searchlight')
+
         for service, plugin_type in plugins:
             plugin_mod_name = ("searchlight.elasticsearch.plugins.%s.%s"
                                % (service, plugin_type))
@@ -407,13 +410,21 @@ class FunctionalTest(test_utils.BaseTestCase):
         # parent/child relationships; the stevedore structure is different
         for instance in six.itervalues(self.initialized_plugins):
             parent_plugin_name = instance.parent_plugin_type()
-            if instance.parent_plugin_type():
+            if parent_plugin_name:
                 parent_plugin = self.initialized_plugins[parent_plugin_name]
                 instance.register_parent(parent_plugin)
 
+        # Reproduce the logic from cmd.manage to prepare the index.
+        for instance in six.itervalues(self.initialized_plugins):
+            instance.prepare_index(index_name=index_name)
+
+        # Create the aliases
+        index = es_utils.setup_alias(index_name, 'searchlight-search',
+                                     'searchlight-listener')
+
         # Finally, set up mappings etc in elasticsearch
         for instance in six.itervalues(self.initialized_plugins):
-            instance.initial_indexing(clear=False, setup_data=False)
+            instance.initial_indexing(index_name=index, setup_data=False)
 
     def tearDown(self):
         if not self.disabled:
@@ -425,7 +436,10 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         for plugin_instance in self.initialized_plugins.values():
             self.elastic_connection.indices.delete(
-                index=plugin_instance.index_name,
+                index=plugin_instance.alias_name_search,
+                ignore=404)
+            self.elastic_connection.indices.delete(
+                index=plugin_instance.alias_name_listener,
                 ignore=404)
 
     def _index(self, index_name, doc_type, docs, tenant,

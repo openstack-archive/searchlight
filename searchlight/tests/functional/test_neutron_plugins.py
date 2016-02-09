@@ -41,7 +41,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
 
         serialized_networks = [self.networks_plugin.serialize(net)
                                for net in self.network_objects]
-        self._index(self.networks_plugin.get_index_name(),
+        self._index(self.networks_plugin.alias_name_listener,
                     self.networks_plugin.get_document_type(),
                     serialized_networks,
                     TENANT2,
@@ -73,7 +73,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
 
         serialized_networks = [self.networks_plugin.serialize(net)
                                for net in self.network_objects]
-        self._index(self.networks_plugin.get_index_name(),
+        self._index(self.networks_plugin.alias_name_listener,
                     self.networks_plugin.get_document_type(),
                     serialized_networks,
                     TENANT2,
@@ -109,7 +109,7 @@ class TestNeutronListener(test_listener.TestSearchListenerBase):
             for plugin in (self.networks_plugin, self.ports_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 
-        self.index_name = self.networks_plugin.get_index_name()
+        self.index_name = self.networks_plugin.alias_name_listener
 
     def test_network_create_event(self):
         '''Send network.create.end notification event to listener'''

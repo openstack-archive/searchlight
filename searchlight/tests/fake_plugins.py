@@ -77,12 +77,13 @@ class FakePluginBase(base.IndexBase):
     def __init__(self, es_engine):
         self.options = mock.Mock()
         self.options.admin_only_fields = None
-        self.options.index_name = 'fake'
+        self.options.resource_group_name = 'searchlight'
+        self.options.index_name = self.alias_name_listener
         self.options.enabled = True
         self.options.mapping_use_doc_values = True
 
         self.engine = es_engine
-        self.index_name = 'fake'
+        self.index_name = self.alias_name_listener
         self.document_type = self.get_document_type()
 
         self.parent_plugin = None

@@ -34,7 +34,7 @@ class TestSearchLoad(functional.FunctionalTest):
         self.initialized_plugins['role-separated'] = role_plugin
 
     def test_role_separation(self):
-        index_name = self.role_plugin.index_name
+        index_name = self.role_plugin.alias_name_listener
         doc_type = self.role_plugin.document_type
 
         self.role_plugin.initial_indexing()
@@ -68,7 +68,7 @@ class TestSearchLoad(functional.FunctionalTest):
                          admin1_doc['_source'][ROLE_USER_FIELD])
 
     def test_non_separated(self):
-        index_name = self.non_role_plugin.index_name
+        index_name = self.non_role_plugin.alias_name_listener
 
         self.non_role_plugin.initial_indexing()
         self._flush_elasticsearch(index_name)
@@ -85,8 +85,13 @@ class TestSearchLoad(functional.FunctionalTest):
         self.assertEqual(
             ['admin', 'user'], sorted(es_hits[0][ROLE_USER_FIELD]))
 
-    def test_gc_delete_setting(self):
-        index_name = self.images_plugin.index_name
-        settings = self.elastic_connection.indices.get_settings(index_name)
+    def test_gc_verify_setting(self):
+        alias_name = self.images_plugin.alias_name_listener
+        settings = self.elastic_connection.indices.get_settings(alias_name)
+        # We are alias-based, not index-based. We pass in an alias to
+        # get_setings() but it returns a dict based on the indexes. We
+        # do not know the index name(s). We will verify the first index
+        # in the dict.
+        index_name = settings.keys()[0]
         self.assertEqual(
             "300s", settings[index_name]['settings']['index']['gc_deletes'])

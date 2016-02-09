@@ -245,8 +245,8 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             del ns_copy['objects']
             yield ns_copy
 
-    def test_index_name(self):
-        self.assertEqual('searchlight', self.plugin.get_index_name())
+    def test_resource_group_name(self):
+        self.assertEqual('searchlight', self.plugin.resource_group_name)
 
     def test_document_type(self):
         self.assertEqual('OS::Glance::Metadef',
@@ -442,7 +442,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                             {'name': 'Tag3'},
                         ],
                     }
-                ], versions=versions)
+                ], index=None, versions=versions)
 
     def test_metadef_rbac(self):
         """Test metadefs RBAC query terms"""
@@ -452,7 +452,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
         expected_fragment = [{
             "indices": {
-                "index": "searchlight",
+                "index": "searchlight-search",
                 "no_match_filter": "none",
                 "filter": {
                     "and": [

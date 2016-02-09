@@ -136,7 +136,7 @@ class TestZonePlugin(test_utils.BaseTestCase):
             }
         }
         mock_engine.search.assert_called_with(
-            index=self.plugin.get_index_name(),
+            index=self.plugin.alias_name_search,
             doc_type=self.plugin.get_document_type(),
             body=expected_agg_query,
             ignore_unavailable=True,
