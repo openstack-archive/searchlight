@@ -19,6 +19,15 @@ from searchlight.elasticsearch.plugins.designate import notification_handlers
 class ZoneIndex(designate.DesignateBase):
     NotificationHandlerCls = notification_handlers.DomainHandler
 
+    def get_notification_handler(self):
+        """Override because the zone handler needs a handle to recordset
+        indexer (for initial recordset indexing).
+        """
+        return self.NotificationHandlerCls(
+            self.index_helper,
+            self.options,
+            recordset_helper=self.child_plugins[0].index_helper)
+
     @classmethod
     def get_document_type(cls):
         return "OS::Designate::Zone"

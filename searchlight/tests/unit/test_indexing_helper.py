@@ -132,3 +132,95 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 index=plugin.index_name,
                 doc_type=plugin.document_type,
                 actions=expected_delete_actions)
+
+    def test_delete_children_role_separated(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSeparatedChildPlugin(es_engine=mock_engine)
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        scan_name = 'searchlight.elasticsearch.plugins.utils.helpers.scan'
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+
+        mock_scan_data = [
+            {'_id': '1_ADMIN', 'fields': {'_parent': 'p1_ADMIN'}},
+            {'_id': '1_USER', 'fields': {'_parent': 'p1_USER'}}
+        ]
+        with mock.patch(scan_name, return_value=mock_scan_data) as mock_scan:
+            with mock.patch(bulk_name) as mock_bulk:
+                indexing_helper.delete_documents_with_parent('p1')
+
+                parent_type = plugin.parent_plugin_type()
+                base_full_parent_type = '%s#%s' % (parent_type, 'p1')
+                expected_scan_query = {
+                    'fields': ['_parent'],
+                    'query': {
+                        'term': {
+                            '_parent': [base_full_parent_type + '_ADMIN',
+                                        base_full_parent_type + '_USER']
+                        }
+                    }
+                }
+                mock_scan.assert_called_with(
+                    client=plugin.engine,
+                    index=plugin.index_name,
+                    doc_type=plugin.document_type,
+                    query=expected_scan_query
+                )
+
+                expected_delete_actions = [
+                    {'_op_type': 'delete',
+                     '_id': '1_ADMIN',
+                     '_parent': 'p1_ADMIN'},
+                    {'_op_type': 'delete',
+                     '_id': '1_USER',
+                     '_parent': 'p1_USER'}
+                ]
+                mock_bulk.assert_called_with(
+                    client=plugin.engine,
+                    index=plugin.index_name,
+                    doc_type=plugin.document_type,
+                    actions=expected_delete_actions
+                )
+
+    def test_delete_children_non_role_separated(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        scan_name = 'searchlight.elasticsearch.plugins.utils.helpers.scan'
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+
+        mock_scan_data = [
+            {'_id': '1', 'fields': {'_parent': 'p1'}},
+        ]
+        with mock.patch(scan_name, return_value=mock_scan_data) as mock_scan:
+            with mock.patch(bulk_name) as mock_bulk:
+                indexing_helper.delete_documents_with_parent('p1')
+
+                parent_type = plugin.parent_plugin_type()
+                expected_scan_query = {
+                    'fields': ['_parent'],
+                    'query': {
+                        'term': {
+                            '_parent': '%s#%s' % (parent_type, 'p1')
+                        }
+                    }
+                }
+                mock_scan.assert_called_with(
+                    client=plugin.engine,
+                    index=plugin.index_name,
+                    doc_type=plugin.document_type,
+                    query=expected_scan_query
+                )
+
+                expected_delete_actions = [
+                    {'_op_type': 'delete',
+                     '_id': '1',
+                     '_parent': 'p1'}
+                ]
+                mock_bulk.assert_called_with(
+                    client=plugin.engine,
+                    index=plugin.index_name,
+                    doc_type=plugin.document_type,
+                    actions=expected_delete_actions
+                )

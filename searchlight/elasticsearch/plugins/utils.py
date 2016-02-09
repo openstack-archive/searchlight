@@ -171,14 +171,29 @@ class IndexingHelper(object):
         LOG.debug("Indexing result: %s", result)
 
     def delete_document_by_id(self, document_id):
-        ids = ((document_id,)
-               if not self.plugin.requires_role_separation else
-               (document_id + ADMIN_ID_SUFFIX, document_id + USER_ID_SUFFIX))
+        self.delete_documents([{"_id": document_id}])
 
-        actions = [{
-            '_op_type': 'delete',
-            '_id': _id
-        } for _id in ids]
+    def delete_documents(self, documents, override_role_separation=False):
+        """Each document should be a dict with at an _id, and if
+         applicable, a _parent. override_role_separation will treat the _ids
+         and _parents in the documents as their actual indexed values
+         rather than determining role separation
+         """
+        def _get_delete_action(doc, id_suffix=''):
+            action = {'_op_type': 'delete', '_id': document['_id'] + id_suffix}
+            if '_parent' in doc:
+                action['_parent'] = doc['_parent'] + id_suffix
+            return action
+
+        actions = []
+        for document in documents:
+            if (not override_role_separation and
+                    self.plugin.requires_role_separation):
+                actions.extend([
+                    _get_delete_action(document, ADMIN_ID_SUFFIX),
+                    _get_delete_action(document, USER_ID_SUFFIX)])
+            else:
+                actions.append(_get_delete_action(document))
 
         # TODO(sjmc7): Catch 404s, warn and ignore
         helpers.bulk(
@@ -187,6 +202,41 @@ class IndexingHelper(object):
             doc_type=self.document_type,
             actions=actions
         )
+
+    def delete_documents_with_parent(self, parent_id):
+        # This is equivalent in result to _parent: parent_id but offers
+        # a significant performance boost because of the implementation
+        # of _parent filtering
+        parent_type = self.plugin.parent_plugin_type()
+        if self.plugin.requires_role_separation:
+            full_parent_ids = [
+                '%s#%s%s' % (parent_type, parent_id, ADMIN_ID_SUFFIX),
+                '%s#%s%s' % (parent_type, parent_id, USER_ID_SUFFIX)
+            ]
+        else:
+            full_parent_ids = '%s#%s' % (parent_type, parent_id)
+
+        # It's easier to retrieve the actual parent id here because otherwise
+        # we have to figure out role separation. _parent is (in 1.x) not
+        # return by default and has to be requested in 'fields'
+        query = {
+            'fields': ['_parent'],
+            'query': {
+                'term': {
+                    '_parent': full_parent_ids
+                }
+            }
+        }
+
+        documents = helpers.scan(
+            client=self.engine,
+            index=self.index_name,
+            doc_type=self.document_type,
+            query=query)
+
+        to_delete = [{'_id': doc['_id'], '_parent': doc['fields']['_parent']}
+                     for doc in documents]
+        self.delete_documents(to_delete, override_role_separation=True)
 
     def get_document(self, doc_id, for_admin=False):
         if self.plugin.requires_role_separation:
@@ -246,6 +296,8 @@ class IndexingHelper(object):
 
             parent_field = self.plugin.get_parent_id_field()
             if parent_field:
+                # TODO(sjmc7) This needs a separate fix; the parent id may
+                # need to have role separation applied
                 action['_parent'] = doc[parent_field]
             return action
 

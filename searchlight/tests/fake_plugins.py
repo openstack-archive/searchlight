@@ -206,3 +206,37 @@ class FakeChildPlugin(FakePluginBase):
     def get_objects(self):
         self.number_documents = len(CHILD_DATA)
         return copy.deepcopy(CHILD_DATA)
+
+
+class FakeSeparatedChildPlugin(FakePluginBase):
+    def __init__(self, es_engine):
+        super(FakeSeparatedChildPlugin, self).__init__(es_engine)
+
+    @classmethod
+    def get_document_type(cls):
+        return 'fake-role-separated-child'
+
+    def get_mapping(self):
+        # Explicit parent is not necessary; it'll get added
+        return {
+            'properties': {
+                'id': {'type': 'string', 'index': 'not_analyzed'},
+                'parent_id': {'type': 'string', 'index': 'not_analyzed'}
+            }
+        }
+
+    @classmethod
+    def parent_plugin_type(cls):
+        return "role-separated"
+
+    @property
+    def parent_id_field(self):
+        return 'parent_id'
+
+    @property
+    def requires_role_separation(self):
+        return True
+
+    def get_objects(self):
+        self.number_documents = len(CHILD_DATA)
+        return copy.deepcopy(CHILD_DATA)
