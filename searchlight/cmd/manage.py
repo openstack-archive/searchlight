@@ -64,6 +64,20 @@ class IndexCommands(object):
         plugins_to_index = []
         for resource_type, ext in six.iteritems(utils.get_search_plugins()):
             plugin_obj = ext.obj
+            if plugin_obj.parent_plugin:
+                parent_type = plugin_obj.parent_plugin.document_type
+                if resource_type in _type:
+                    print("'%s' is a child of '%s' and cannot be indexed "
+                          "separately.\nIndexing '%s' will re-index all "
+                          "child resource types." %
+                          (resource_type, parent_type, parent_type))
+                    print("Aborting.")
+                    sys.exit(1)
+                else:
+                    LOG.debug("Ignoring %s; it is a child of %s" %
+                              (resource_type, parent_type))
+                    continue
+
             indices_set.discard(plugin_obj.get_index_name())
             types_set.discard(plugin_obj.get_document_type())
 
@@ -90,8 +104,7 @@ class IndexCommands(object):
         if not force:
             def format_selection(selection):
                 resource_type, ext = selection
-                return '  %s (%s)' % (ext.obj.get_document_type(),
-                                      ext.obj.get_index_name())
+                return '  ' + ext.obj.get_index_display_name()
 
             print("\nResource types (and indices) matching selection:\n%s\n" %
                   '\n'.join(map(format_selection, plugins_to_index)))

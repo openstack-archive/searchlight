@@ -348,7 +348,6 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         self.elastic_connection = elasticsearch.Elasticsearch(
             "http://localhost:%s" % self.api_server.elasticsearch_port)
-        self.initialized_plugins = {}
 
         self.api_server.deployment_flavor = "trusted-auth"
         # Use the role-based policy file all over; we need it for the property
@@ -361,9 +360,10 @@ class FunctionalTest(test_utils.BaseTestCase):
                               max_retries=3,
                               **self.__dict__.copy())
 
+        self.initialized_plugins = {}
         self.configurePlugins()
-        self.images_plugin = self.initialized_plugins['glance']['images']
-        self.metadefs_plugin = self.initialized_plugins['glance']['metadefs']
+        self.images_plugin = self.initialized_plugins['OS::Glance::Image']
+        self.metadefs_plugin = self.initialized_plugins['OS::Glance::Metadef']
 
     def configurePlugins(self, include_plugins=None, exclude_plugins=()):
         """Specify 'exclude_plugins' or 'include_plugins' as a list of
@@ -378,6 +378,9 @@ class FunctionalTest(test_utils.BaseTestCase):
             plugin.engine = self.elastic_connection
             plugin.index_name = plugin.get_index_name()
             plugin.document_type = plugin.get_document_type()
+
+            plugin.parent_plugin = None
+            plugin.child_plugins = []
 
         plugin_classes = {
             'glance': {'images': 'ImageIndex', 'metadefs': 'MetadefIndex'},
@@ -396,19 +399,30 @@ class FunctionalTest(test_utils.BaseTestCase):
                 mock.patch("%s.__init__" % mod, dummy_plugin_init)
             plugin_patcher.start()
             self.addCleanup(plugin_patcher.stop)
-
             plugin_mod_name = ("searchlight.elasticsearch.plugins.%s.%s"
                                % (service, plugin_type))
             plugin_cls_name = plugin_classes[service][plugin_type]
 
             plugin_mod = importlib.import_module(plugin_mod_name)
             plugin_cls = getattr(plugin_mod, plugin_cls_name)
-            plugin_instance = plugin_cls()
-            service_plugins = self.initialized_plugins.setdefault(service, {})
-            service_plugins[plugin_type] = plugin_instance
 
-            plugin_instance.setup_index()
-            plugin_instance.setup_mapping()
+            # This'll call our dummy init (above)
+            plugin_instance = plugin_cls()
+
+            self.initialized_plugins[plugin_instance.document_type] = \
+                plugin_instance
+
+        # Reproduce the logic from searchlight.common.utils to set up
+        # parent/child relationships; the stevedore structure is different
+        for instance in six.itervalues(self.initialized_plugins):
+            parent_plugin_name = instance.parent_plugin_type()
+            if instance.parent_plugin_type():
+                parent_plugin = self.initialized_plugins[parent_plugin_name]
+                instance.register_parent(parent_plugin)
+
+        # Finally, set up mappings etc in elasticsearch
+        for instance in six.itervalues(self.initialized_plugins):
+            instance.initial_indexing(clear=False, setup_data=False)
 
     def tearDown(self):
         if not self.disabled:
@@ -418,11 +432,10 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         self.api_server.dump_log('api_server')
 
-        for service in self.initialized_plugins.values():
-            for plugin_instance in service.values():
-                self.elastic_connection.indices.delete(
-                    index=plugin_instance.get_index_name(),
-                    ignore=404)
+        for plugin_instance in self.initialized_plugins.values():
+            self.elastic_connection.indices.delete(
+                index=plugin_instance.index_name,
+                ignore=404)
 
     def _index(self, index_name, doc_type, docs, tenant,
                role_separation=False, refresh_index=True):

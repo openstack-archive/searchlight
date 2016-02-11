@@ -24,19 +24,14 @@ class TestSearchLoad(functional.FunctionalTest):
         role_plugin = fake_plugins.RoleSeparatedPlugin(
             es_engine=self.elastic_connection)
         self.role_plugin = role_plugin
-        self.initialized_plugins['fake'] = {
-            'role-separated': role_plugin
-        }
 
         non_role_plugin = fake_plugins.NonRoleSeparatedPlugin(
             es_engine=self.elastic_connection)
 
         self.non_role_plugin = non_role_plugin
 
-        self.initialized_plugins['fake'] = {
-            'non-role-separated': non_role_plugin,
-            'role-separated': role_plugin
-        }
+        self.initialized_plugins['non-role-separated'] = non_role_plugin
+        self.initialized_plugins['role-separated'] = role_plugin
 
     def test_role_separation(self):
         index_name = self.role_plugin.index_name

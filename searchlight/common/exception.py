@@ -117,3 +117,7 @@ class InvalidJsonPatchPath(JsonPatchException):
     def __init__(self, message=None, *args, **kwargs):
         self.explanation = kwargs.get("explanation")
         super(InvalidJsonPatchPath, self).__init__(message, *args, **kwargs)
+
+
+class IndexingException(SearchlightException):
+    message = _("An error occurred during index creation or initial loading")
