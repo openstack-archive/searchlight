@@ -143,7 +143,7 @@ function create_searchlight_accounts {
     if [[ "$ENABLED_SERVICES" =~ "searchlight-" ]]; then
         create_service_user "searchlight" "admin"
 
-        if is_service_enabled searchlight-api && [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
+        if is_service_enabled searchlight-api; then
             get_or_create_service "searchlight" "search" "Searchlight Service"
             get_or_create_endpoint "search" \
                 "$REGION_NAME" \
