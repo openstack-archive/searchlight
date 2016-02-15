@@ -47,3 +47,4 @@ python-designateclient>=1.5.0 # Apache-2.0
 python-glanceclient>=2.0.0 # Apache-2.0
 python-novaclient!=2.33.0,>=2.29.0 # Apache-2.0
 python-neutronclient!=4.1.0,>=2.6.0 # Apache-2.0
+python-cinderclient>=1.3.1 # Apache-2.0

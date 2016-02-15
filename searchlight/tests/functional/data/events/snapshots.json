@@ -1,0 +1,144 @@
+{
+  "snapshot.create.end": {
+    "event_type": "snapshot.create.end",
+    "payload": {
+      "status": "available",
+      "display_name": "test snapshot",
+      "availability_zone": "nova",
+      "deleted": "",
+      "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "created_at": "2016-03-07 17:24:49+00:00",
+      "volume_id": "f54b1d2f-4514-4688-8da7-4bc66767b6be",
+      "volume_size": 1,
+      "snapshot_id": "56f91625-2fc5-4e4a-8284-4bfd3b3a1914",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "metadata": ""
+    },
+    "publisher_id": "snapshot.devstack@lvmdriver-1",
+    "ctxt": {
+      "read_only": false,
+      "domain": null,
+      "project_name": "admin",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "show_deleted": false,
+      "roles": [
+        "admin"
+      ],
+      "user_identity": "d2ac2752732444adac10fc4911fdac75 1816a16093df465dbc609cf638422a05 - - -",
+      "project_domain": null,
+      "timestamp": "2016-03-07T17:24:49.781885+00:00",
+      "auth_token": "5058fddb9a344605bca50b8d7a0180d6",
+      "remote_address": "192.168.235.1",
+      "quota_class": null,
+      "resource_uuid": null,
+      "project_id": "1816a16093df465dbc609cf638422a05",
+      "is_admin": true,
+      "user": "d2ac2752732444adac10fc4911fdac75",
+      "service_catalog": [
+        {
+          "endpoints": [
+            {
+              "adminURL": "http://192.168.235.128:35357/v2.0",
+              "region": "RegionOne",
+              "internalURL": "http://192.168.235.128:5000/v2.0",
+              "publicURL": "http://192.168.235.128:5000/v2.0"
+            }
+          ],
+          "type": "identity",
+          "name": "keystone"
+        },
+        {
+          "endpoints": [
+            {
+              "adminURL": "http://192.168.235.128:8774/v2.1/1816a16093df465dbc609cf638422a05",
+              "region": "RegionOne",
+              "internalURL": "http://192.168.235.128:8774/v2.1/1816a16093df465dbc609cf638422a05",
+              "publicURL": "http://192.168.235.128:8774/v2.1/1816a16093df465dbc609cf638422a05"
+            }
+          ],
+          "type": "compute",
+          "name": "nova"
+        }
+      ],
+      "request_id": "req-7291fcb3-598c-4e8e-b79a-fa3de811fa6d",
+      "user_domain": null,
+      "read_deleted": "no",
+      "tenant": "1816a16093df465dbc609cf638422a05"
+    },
+    "metadata": {
+      "timestamp": "2016-03-07 17:24:50.341379",
+      "message_id": "7448eb33-6eee-4a52-8e70-9bb9edea8057"
+    }
+  },
+  "snapshot.delete.end": {
+    "event_type": "snapshot.delete.end",
+    "payload": {
+      "status": "deleting",
+      "display_name": "test snapshot",
+      "availability_zone": "nova",
+      "deleted": "",
+      "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "created_at": "2016-03-07 17:24:49+00:00",
+      "volume_id": "faaad6fe-9351-4313-bce9-881b476d5751",
+      "volume_size": 1,
+      "snapshot_id": "56f91625-2fc5-4e4a-8284-4bfd3b3a1914",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "metadata": ""
+    },
+    "publisher_id": "snapshot.devstack@lvmdriver-1",
+    "ctxt": {
+      "read_only": false,
+      "domain": null,
+      "project_name": "admin",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "show_deleted": false,
+      "roles": [
+        "admin"
+      ],
+      "user_identity": "d2ac2752732444adac10fc4911fdac75 75c31cdaa3604b76b7e279de50aec9f0 - - -",
+      "project_domain": null,
+      "timestamp": "2016-03-07T17:25:34.826661+00:00",
+      "auth_token": "3b148a203ca4445cbfbdde54f29198a7",
+      "remote_address": "192.168.235.1",
+      "quota_class": null,
+      "resource_uuid": null,
+      "project_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "is_admin": true,
+      "user": "d2ac2752732444adac10fc4911fdac75",
+      "service_catalog": [
+        {
+          "endpoints": [
+            {
+              "adminURL": "http://192.168.235.128:35357/v2.0",
+              "region": "RegionOne",
+              "internalURL": "http://192.168.235.128:5000/v2.0",
+              "publicURL": "http://192.168.235.128:5000/v2.0"
+            }
+          ],
+          "type": "identity",
+          "name": "keystone"
+        },
+        {
+          "endpoints": [
+            {
+              "adminURL": "http://192.168.235.128:8774/v2.1/75c31cdaa3604b76b7e279de50aec9f0",
+              "region": "RegionOne",
+              "internalURL": "http://192.168.235.128:8774/v2.1/75c31cdaa3604b76b7e279de50aec9f0",
+              "publicURL": "http://192.168.235.128:8774/v2.1/75c31cdaa3604b76b7e279de50aec9f0"
+            }
+          ],
+          "type": "compute",
+          "name": "nova"
+        }
+      ],
+      "request_id": "req-dc7a8370-cd8f-43c6-b3fa-bf65190e346a",
+      "user_domain": null,
+      "read_deleted": "no",
+      "tenant": "75c31cdaa3604b76b7e279de50aec9f0"
+    },
+    "metadata": {
+      "timestamp": "2016-03-07 17:25:44.014014",
+      "message_id": "6661d08d-ee17-414a-847f-e24c4e58fcf9"
+    }
+  }
+}

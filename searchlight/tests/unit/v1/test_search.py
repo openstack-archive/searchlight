@@ -265,7 +265,9 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Glance::Metadef',
             'OS::Nova::Server',
             'OS::Neutron::Net',
-            'OS::Neutron::Port'
+            'OS::Neutron::Port',
+            'OS::Cinder::Volume',
+            'OS::Cinder::Snapshot',
         ]
 
         self.assertEqual(['searchlight-search'], output['index'])

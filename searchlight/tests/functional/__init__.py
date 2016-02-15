@@ -374,12 +374,14 @@ class FunctionalTest(test_utils.BaseTestCase):
         plugin_classes = {
             'glance': {'images': 'ImageIndex', 'metadefs': 'MetadefIndex'},
             'nova': {'servers': 'ServerIndex'},
-            'neutron': {'networks': 'NetworkIndex', 'ports': 'PortIndex'}
+            'neutron': {'networks': 'NetworkIndex', 'ports': 'PortIndex'},
+            'cinder': {'volumes': 'VolumeIndex', 'snapshots': 'SnapshotIndex'}
         }
         plugins = include_plugins or (
             ('glance', 'images'), ('glance', 'metadefs'),
             ('nova', 'servers'),
-            ('neutron', 'networks'), ('neutron', 'ports')
+            ('neutron', 'networks'), ('neutron', 'ports'),
+            ('cinder', 'volumes'), ('cinder', 'snapshots')
         )
         plugins = filter(lambda plugin: plugin not in exclude_plugins, plugins)
 

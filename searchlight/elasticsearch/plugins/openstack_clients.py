@@ -14,6 +14,7 @@
 # limitations under the License.
 import os
 
+import cinderclient.client
 from designateclient.v2 import client as designateclient
 from glanceclient.v2 import client as glance
 from keystoneclient import auth as ks_auth
@@ -88,5 +89,14 @@ def get_neutronclient():
     session = _get_session()
     return neutronclient.v2_0.client.Client(
         session=session,
-        region_name=cfg.CONF.service_credentials.os_region_name
+        region_name=cfg.CONF.service_credentials.os_region_name)
+
+
+def get_cinderclient():
+    session = _get_session()
+
+    return cinderclient.client.Client(
+        version=2,
+        session=session,
+        region_name=cfg.CONF.service_credentials.os_region_name,
     )

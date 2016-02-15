@@ -1,0 +1,9 @@
+---
+prelude: >
+  Adds cinder plugins for volumes and snapshots.
+features:
+  - Cinder plugins for volumes and snapshots.
+issues:
+  - Backups cannot currently be implemented because the
+    cinder API does not provide enough information for
+    RBAC. They will be added when that is resolved.
