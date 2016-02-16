@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = searchlight
+omit = searchlight/tests/*
+
+[report]
+ignore_errors = True

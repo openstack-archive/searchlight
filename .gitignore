@@ -20,6 +20,8 @@ searchlight.egg-info
 tests.sqlite
 searchlight/versioninfo
 etc/searchlight.conf.sample
+!/.coveragerc
+
 #Files created by releasenotes build
 releasenotes/build
 # Swap files range from .saa to .swp
