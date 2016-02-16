@@ -96,17 +96,15 @@ class IndexBase(plugin.Plugin):
             self.setup_data()
 
     def clear_data(self):
-        type_exists = (self.engine.indices.exists(self.index_name) and
-                       self.engine.indices.exists_type(self.index_name,
-                                                       self.document_type))
-        if type_exists:
-            self.engine.indices.delete_mapping(self.index_name,
-                                               self.document_type)
+        self.engine.indices.delete_mapping(self.index_name,
+                                           self.document_type,
+                                           ignore=404)
 
-            for child_plugin in self.child_plugins:
-                self.engine.indices.delete_mapping(
-                    self.index_name,
-                    child_plugin.get_document_type())
+        for child_plugin in self.child_plugins:
+            self.engine.indices.delete_mapping(
+                self.index_name,
+                child_plugin.get_document_type(),
+                ignore=404)
 
     def setup_index(self):
         """Create the index if it doesn't exist and update its settings."""
