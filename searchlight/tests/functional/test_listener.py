@@ -14,16 +14,12 @@
 # limitations under the License.
 
 import copy
-import json
 import uuid
 
 from searchlight.tests import functional
 
 
 MATCH_ALL = {"query": {"match_all": {}}}
-IMAGES_EVENTS_FILE = "searchlight/tests/functional/data/events/images.json"
-METADEF_EVENTS_FILE = "searchlight/tests/functional/data/events/metadefs.json"
-
 OWNER1 = str(uuid.uuid4())
 
 
@@ -38,16 +34,8 @@ class TestSearchListenerBase(functional.FunctionalTest):
 
     def __init__(self, *args, **kwargs):
         super(TestSearchListenerBase, self).__init__(*args, **kwargs)
-        self.image_events, self.metadef_events = self._load_events()
 
-    def _load_events(self):
-        with open(IMAGES_EVENTS_FILE, "r") as file:
-            image_events = json.load(file)
-        with open(METADEF_EVENTS_FILE, "r") as file:
-            metadef_events = json.load(file)
-        return image_events, metadef_events
-
-    def _send_event_to_listener(self, event):
+    def _send_event_to_listener(self, event, index_to_flush):
         event = copy.deepcopy(event)
         self.notification_endpoint.info(
             event['ctxt'],
@@ -56,8 +44,7 @@ class TestSearchListenerBase(functional.FunctionalTest):
             event['payload'],
             event['metadata']
         )
-        self._flush_elasticsearch(self.images_plugin.get_index_name())
-        self._flush_elasticsearch(self.metadefs_plugin.get_index_name())
+        self._flush_elasticsearch(index_to_flush)
 
     def _verify_event_processing(self, event, count=1, owner=None):
         if not owner:
@@ -68,8 +55,11 @@ class TestSearchListenerBase(functional.FunctionalTest):
         self.assertEqual(count, json_content['hits']['total'])
         return json_content
 
-    def _verify_result(self, event, verification_keys, result_json):
-        input = event['payload']
+    def _verify_result(self, event, verification_keys, result_json,
+                       inner_key=None):
+        expected = event['payload']
+        if inner_key:
+            expected = expected[inner_key]
         result = result_json['hits']['hits'][0]['_source']
         for key in verification_keys:
-            self.assertEqual(input[key], result[key])
+            self.assertEqual(expected[key], result[key])

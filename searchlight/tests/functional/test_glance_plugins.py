@@ -292,6 +292,11 @@ class TestGlancePlugins(functional.FunctionalTest):
 
 
 class TestGlanceListener(test_listener.TestSearchListenerBase):
+    def __init__(self, *args, **kwargs):
+        super(TestGlanceListener, self).__init__(*args, **kwargs)
+        self.image_events = self._load_fixture_data('events/images.json')
+        self.metadef_events = self._load_fixture_data('events/metadefs.json')
+
     def setUp(self):
         super(TestGlanceListener, self).setUp()
 
@@ -308,11 +313,14 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
             for plugin in (self.images_plugin, self.metadefs_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 
+        self.images_index = self.images_plugin.get_index_name()
+        self.metadefs_index = self.metadefs_plugin.get_index_name()
+
     def test_image_create_event(self):
         """Send image.create notification event to listener"""
 
         create_event = self.image_events["image.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.images_index)
         result = self._verify_event_processing(create_event)
         verification_keys = ['id', 'status']
         self._verify_result(create_event, verification_keys, result)
@@ -321,10 +329,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send image.update notification event to listener"""
 
         create_event = self.image_events["image.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.images_index)
 
         update_event = self.image_events["image.update"]
-        self._send_event_to_listener(update_event)
+        self._send_event_to_listener(update_event, self.images_index)
         result = self._verify_event_processing(update_event)
         verification_keys = ['name', 'protected']
         self._verify_result(update_event, verification_keys, result)
@@ -333,21 +341,21 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send image.delete notification event to listener"""
 
         create_event = self.image_events["image.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.images_index)
         self._verify_event_processing(create_event)
 
         delete_event = self.image_events["image.delete"]
-        self._send_event_to_listener(delete_event)
+        self._send_event_to_listener(delete_event, self.images_index)
         self._verify_event_processing(delete_event, 0)
 
     def test_image_member_create_event(self):
         """Send member.create notification event to listener"""
 
         create_event = self.image_events["image.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.images_index)
 
         create_event = self.image_events["image.member.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.images_index)
         result = self._verify_event_processing(create_event,
                                                owner=test_listener.OWNER1)
 
@@ -360,10 +368,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send member.update notification event to listener"""
 
         create_event = self.image_events["image.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.images_index)
 
         update_event = self.image_events["image.member.update"]
-        self._send_event_to_listener(update_event)
+        self._send_event_to_listener(update_event, self.images_index)
         result = self._verify_event_processing(update_event,
                                                owner=test_listener.OWNER1)
 
@@ -376,17 +384,17 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send member.delete notification event to listener"""
 
         create_event = self.image_events["image.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.images_index)
 
         update_event = self.image_events["image.member.update"]
-        self._send_event_to_listener(update_event)
+        self._send_event_to_listener(update_event, self.images_index)
         result = self._verify_event_processing(update_event,
                                                owner=test_listener.OWNER1)
         self.assertEqual(1,
                          len(result['hits']['hits'][0]['_source']['members']))
 
         delete_event = self.image_events["image.member.delete"]
-        self._send_event_to_listener(delete_event)
+        self._send_event_to_listener(delete_event, self.images_index)
         result = self._verify_event_processing(delete_event,
                                                owner=test_listener.OWNER1)
 
@@ -398,7 +406,7 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send metadef_namespace.create notification event to listener"""
 
         create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.metadefs_index)
         result = self._verify_event_processing(create_event)
         verification_keys = ['namespace', 'display_name']
         self._verify_result(create_event, verification_keys, result)
@@ -407,10 +415,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send metadef_namespace.update notification event to listener"""
 
         create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.metadefs_index)
 
         update_event = self.metadef_events["metadef_namespace.update"]
-        self._send_event_to_listener(update_event)
+        self._send_event_to_listener(update_event, self.metadefs_index)
         result = self._verify_event_processing(update_event)
         verification_keys = ['visibility', 'protected']
         self._verify_result(update_event, verification_keys, result)
@@ -419,20 +427,20 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send metadef_namespace.delete notification event to listener"""
 
         create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(create_event)
+        self._send_event_to_listener(create_event, self.metadefs_index)
         self._verify_event_processing(create_event)
 
         delete_event = self.metadef_events["metadef_namespace.delete"]
-        self._send_event_to_listener(delete_event)
+        self._send_event_to_listener(delete_event, self.metadefs_index)
         self._verify_event_processing(delete_event, 0)
 
     def test_md_object_create_event(self):
         """Send metadef_object.create notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         obj_create_event = self.metadef_events["metadef_object.create"]
-        self._send_event_to_listener(obj_create_event)
+        self._send_event_to_listener(obj_create_event, self.metadefs_index)
         result = self._verify_event_processing(
             obj_create_event,
             owner=ns_create_event['payload']['owner'])
@@ -444,13 +452,13 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
     def test_md_object_update_event(self):
         """Send metadef_object.update notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         obj_create_event = self.metadef_events["metadef_object.create"]
-        self._send_event_to_listener(obj_create_event)
+        self._send_event_to_listener(obj_create_event, self.metadefs_index)
 
         obj_update_event = self.metadef_events["metadef_object.update"]
-        self._send_event_to_listener(obj_update_event)
+        self._send_event_to_listener(obj_update_event, self.metadefs_index)
         result = self._verify_event_processing(
             obj_update_event,
             owner=ns_create_event['payload']['owner'])
@@ -460,10 +468,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
     def test_md_object_delete_event(self):
         """Send metadef_object.delete notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         obj_create_event = self.metadef_events["metadef_object.create"]
-        self._send_event_to_listener(obj_create_event)
+        self._send_event_to_listener(obj_create_event, self.metadefs_index)
         result = self._verify_event_processing(
             obj_create_event,
             owner=ns_create_event['payload']['owner'])
@@ -471,7 +479,7 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         self.assertEqual(1, len(result))
 
         obj_delete_event = self.metadef_events["metadef_object.delete"]
-        self._send_event_to_listener(obj_delete_event)
+        self._send_event_to_listener(obj_delete_event, self.metadefs_index)
         result = self._verify_event_processing(
             obj_delete_event,
             owner=ns_create_event['payload']['owner'])
@@ -481,10 +489,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
     def test_md_property_create_event(self):
         """Send metadef_property.create notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         prop_create_event = self.metadef_events["metadef_property.create"]
-        self._send_event_to_listener(prop_create_event)
+        self._send_event_to_listener(prop_create_event, self.metadefs_index)
         result = self._verify_event_processing(
             prop_create_event,
             owner=ns_create_event['payload']['owner'])
@@ -496,10 +504,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
     def test_md_property_update_event(self):
         """Send metadef_property.update notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         prop_update_event = self.metadef_events["metadef_property.update"]
-        self._send_event_to_listener(prop_update_event)
+        self._send_event_to_listener(prop_update_event, self.metadefs_index)
         result = self._verify_event_processing(
             prop_update_event,
             owner=ns_create_event['payload']['owner'])
@@ -511,10 +519,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
     def test_md_property_delete_event(self):
         """Send metadef_object.delete notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         prop_create_event = self.metadef_events["metadef_property.create"]
-        self._send_event_to_listener(prop_create_event)
+        self._send_event_to_listener(prop_create_event, self.metadefs_index)
         result = self._verify_event_processing(
             prop_create_event,
             owner=ns_create_event['payload']['owner'])
@@ -522,7 +530,7 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         self.assertEqual(1, len(result))
 
         prop_delete_event = self.metadef_events["metadef_property.delete"]
-        self._send_event_to_listener(prop_delete_event)
+        self._send_event_to_listener(prop_delete_event, self.metadefs_index)
         result = self._verify_event_processing(
             prop_delete_event,
             owner=ns_create_event['payload']['owner'])
@@ -532,11 +540,12 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
     def test_md_resource_type_create_event(self):
         """Send metadef_property.create notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         res_type_create_event = \
             self.metadef_events["metadef_resource_type.create"]
-        self._send_event_to_listener(res_type_create_event)
+        self._send_event_to_listener(res_type_create_event,
+                                     self.metadefs_index)
         result = self._verify_event_processing(
             res_type_create_event,
             owner=ns_create_event['payload']['owner'])
@@ -548,11 +557,12 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
     def test_md_resource_type_delete_event(self):
         """Send metadef_property.create notification event to listener"""
         ns_create_event = self.metadef_events["metadef_namespace.create"]
-        self._send_event_to_listener(ns_create_event)
+        self._send_event_to_listener(ns_create_event, self.metadefs_index)
 
         res_type_create_event = \
             self.metadef_events["metadef_resource_type.create"]
-        self._send_event_to_listener(res_type_create_event)
+        self._send_event_to_listener(res_type_create_event,
+                                     self.metadefs_index)
         result = self._verify_event_processing(
             res_type_create_event,
             owner=ns_create_event['payload']['owner'])
@@ -561,7 +571,7 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
 
         rs_type_delete_event = \
             self.metadef_events["metadef_resource_type.delete"]
-        self._send_event_to_listener(rs_type_delete_event)
+        self._send_event_to_listener(rs_type_delete_event, self.metadefs_index)
         result = self._verify_event_processing(
             rs_type_delete_event,
             owner=ns_create_event['payload']['owner'])
