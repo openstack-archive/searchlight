@@ -1,0 +1,11 @@
+---
+prelude: >
+  In order to allow policy files to more be useful
+  in Searchlight, we now support limited control over
+  individual resource types via oslo policy control.
+features:
+  - Policy rules can now be specified per resource type
+    and per operation per resource type.
+issues:
+  - RBAC is still separate from policy restriction; this
+    is targeted for the Newton release.

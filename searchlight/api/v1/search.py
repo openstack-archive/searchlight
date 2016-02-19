@@ -90,10 +90,10 @@ class SearchController(object):
             LOG.error(encodeutils.exception_to_unicode(e))
             raise webob.exc.HTTPInternalServerError()
 
-    def plugins_info(self, req):
+    def plugins_info(self, req, doc_type):
         try:
             search_repo = self.gateway.get_catalog_search_repo(req.context)
-            return search_repo.plugins_info()
+            return search_repo.plugins_info(doc_type)
         except exception.Forbidden as e:
             raise webob.exc.HTTPForbidden(explanation=e.msg)
         except exception.NotFound as e:
@@ -121,9 +121,10 @@ class SearchController(object):
 class RequestDeserializer(wsgi.JSONRequestDeserializer):
     _disallowed_properties = ['self', 'schema']
 
-    def __init__(self, plugins, schema=None):
+    def __init__(self, plugins, schema=None, policy_enforcer=None):
         super(RequestDeserializer, self).__init__()
         self.plugins = plugins
+        self.policy_enforcer = policy_enforcer or policy.Enforcer()
 
     def _get_request_body(self, request):
         output = super(RequestDeserializer, self).default(request)
@@ -164,6 +165,30 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
     def _get_available_types(self):
         return list(set(p.obj.get_document_type()
                         for p in self.plugins.values()))
+
+    def _filter_types_by_policy(self, context, types, operation):
+        def type_allowed(_type):
+            policy_actions = ('resource:%s:allow' % (_type,),
+                              'resource:%s:%s' % (_type, operation))
+
+            for action in policy_actions:
+                try:
+                    self.policy_enforcer.enforce(context, action, {})
+                except exception.Forbidden:
+                    LOG.debug("Policy for '%s' forbids '%s' on '%s'",
+                              action, operation, _type)
+                    return False
+            return True
+
+        allowed_types = list(filter(type_allowed, types))
+        if not allowed_types:
+            disallowed = set(types) - set(allowed_types)
+            disallowed_str = ", ".join(sorted(disallowed))
+            msg = _("There are no resource types accessible to you to serve "
+                    "your request. You do not have access to the "
+                    "following resource types: %s") % disallowed_str
+            raise webob.exc.HTTPForbidden(explanation=msg)
+        return allowed_types
 
     def _validate_index(self, index):
         available_indices = self._get_available_indices()
@@ -357,26 +382,31 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         if not types:
             types = available_types
         else:
-            types = [types] if not isinstance(types, list) else types
+            if not isinstance(types, (list, tuple)):
+                types = [types]
+
             for requested_type in types:
                 if requested_type not in available_types:
                     msg = _("Resource type '%s' is not in the list of enabled "
                             "plugins") % requested_type
                     raise webob.exc.HTTPBadRequest(explanation=msg)
 
+        # Filter the list by policy before determining which indices to use
+        types = self._filter_types_by_policy(request.context, types, "query")
+
         available_indices = self._get_available_indices(types)
         if not indices:
             indices = available_indices
         else:
-            indices = [indices] if not isinstance(indices, list) else indices
+            if not isinstance(indices, (list, tuple)):
+                indices = [indices]
+
             for requested_index in indices:
                 if requested_index not in available_indices:
                     msg = _("Index '%s' is not in the list of enabled "
                             "plugins") % requested_index
                     raise webob.exc.HTTPBadRequest(explanation=msg)
 
-        if not isinstance(types, (list, tuple)):
-            types = [types]
         if not isinstance(indices, (list, tuple)):
             indices = [indices]
 
@@ -428,13 +458,29 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
     def facets(self, request):
         all_projects = request.params.get('all_projects', 'false')
-        query_params = {
+
+        available_types = request.params.get('type',
+                                             self._get_available_types())
+        if not isinstance(available_types, (list, tuple)):
+            available_types = [available_types]
+
+        doc_types = self._filter_types_by_policy(request.context,
+                                                 available_types,
+                                                 'facets')
+        return {
             'index_name': request.params.get('index', None),
-            'doc_type': request.params.get('type', None),
+            'doc_type': doc_types,
             'all_projects': all_projects.lower() == 'true',
             'limit_terms': int(request.params.get('limit_terms', 0))
         }
-        return query_params
+
+    def plugins_info(self, request):
+        doc_types = self._filter_types_by_policy(request.context,
+                                                 self._get_available_types(),
+                                                 'plugins_info')
+        return {
+            'doc_type': doc_types
+        }
 
 
 class ResponseSerializer(wsgi.JSONResponseSerializer):
@@ -461,7 +507,9 @@ class ResponseSerializer(wsgi.JSONResponseSerializer):
 def create_resource():
     """Search resource factory method"""
     plugins = utils.get_search_plugins()
-    deserializer = RequestDeserializer(plugins)
+    policy_enforcer = policy.Enforcer()
+    deserializer = RequestDeserializer(plugins,
+                                       policy_enforcer=policy_enforcer)
     serializer = ResponseSerializer()
-    controller = SearchController(plugins)
+    controller = SearchController(plugins, policy_enforcer=policy_enforcer)
     return wsgi.Resource(controller, deserializer, serializer)

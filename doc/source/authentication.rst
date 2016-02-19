@@ -43,8 +43,7 @@ must be deployed in place of the ``unauthenticated-context`` middleware.
 The ``authtoken`` middleware performs the authentication token validation
 and retrieves actual user authentication information. It can be found in
 the keystone distribution. For more information, please refer to the Keystone
-documentation on the ``auth_token`` middleware::
-
+documentation on the ``auth_token`` middleware:
 http://docs.openstack.org/developer/keystonemiddleware/middlewarearchitecture.html
 
 api-paste.ini
@@ -115,3 +114,68 @@ keystone. Typically, this is done with the following commands (v3 keystone)::
 For more information on keystone service accounts, see:
 
 http://docs.openstack.org/developer/keystone/configuringservices.html#creating-service-users
+
+Policy restriction
+==================
+
+Searchlight uses the oslo policy library to allow control over the level of
+access a user has based on their authenticated roles. Policy rules are defined
+in a configuration file (by default, `etc/policy.json`). By default, all
+operations are allowed.
+
+See http://docs.openstack.org/developer/oslo.policy/api.html for details on
+rule formatting.
+
+Access to operations
+--------------------
+
+It is possible to restrict access to functionality by setting rules for
+``query``, ``facets`` or ``plugins_info``. For instance, to restrict facet
+listing to administrators and disable plugin information for all users::
+
+    "facets": "role:admin",
+    "plugins_info": "!"
+
+Where a request is disallowed on this basis, the user will receive a
+403 Forbidden response.
+
+Note that policy rules are applied on the fly; no server restart is required.
+Policy rules denying access to operations take precedence over the per-resource
+access described below.
+
+Access to resources
+-------------------
+
+Perhaps more interesting is restricting access to specific resource types.
+For every operation (``query``, ``facets``, ``plugins_info``) it is possible
+to set a rule for any resource types. In addition, the `allow` operation acts
+as a default for a resource type. To allow access to Server resources only to
+administrators, and disallow faceting for that resource type entirely::
+
+    "resource:OS::Nova::Server:allow": "role:admin",
+    "resource:OS::Nova::Server:facets": "!",
+
+To restrict queries on Glance images to administrators::
+
+    "resource:OS::Glance::Image:query": "role:admin",
+
+To disable plugin information listing for Glance plugins::
+
+    "resource:OS::Glance::Image:plugins_info": "!",
+    "resource:OS::Glance::Metadef:plugins_info": "!",
+
+.. note::
+
+    At current plugins still apply RBAC separately from policy rules. We
+    aim to bring the two closer together in a later patch.
+
+When resources are restricted in this way resources will be excluded
+from the search (which may result in empty search results). No Forbidden
+response will be returned.
+
+.. note::
+
+    It is *not* possible to apply a more restrictive rule with `allow`
+    and less restrictive rules with specific operations because of the
+    way the policy engine works. Rules can only become more restrictive.
+

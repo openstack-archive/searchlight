@@ -15,6 +15,7 @@
 
 from elasticsearch import exceptions as es_exc
 import mock
+import operator
 from oslo_serialization import jsonutils
 import six
 import webob.exc
@@ -161,6 +162,15 @@ class TestControllerSearch(test_utils.BaseTestCase):
                 self.search_controller.search,
                 request, query, index_name, doc_type, offset, limit)
 
+    @mock.patch(REPO_SEARCH, return_value={})
+    def test_search_policy_check(self, _):
+        request = unit_test_utils.get_fake_request()
+        with mock.patch.object(self.search_controller.policy,
+                               'enforce') as mock_enforce:
+
+            self.search_controller.search(request, query={"match_all": {}})
+            mock_enforce.assert_called_with(request.context, 'query', {})
+
 
 class TestControllerPluginsInfo(test_utils.BaseTestCase):
 
@@ -173,19 +183,19 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
         with mock.patch(REPO_PLUGINS, side_effect=exception.Forbidden):
             self.assertRaises(
                 webob.exc.HTTPForbidden, self.search_controller.plugins_info,
-                request)
+                request, [])
 
     def test_plugins_info_not_found(self):
         request = unit_test_utils.get_fake_request()
         with mock.patch(REPO_PLUGINS, side_effect=exception.NotFound):
             self.assertRaises(webob.exc.HTTPNotFound,
-                              self.search_controller.plugins_info, request)
+                              self.search_controller.plugins_info, request, [])
 
     def test_plugins_info_internal_server_error(self):
         request = unit_test_utils.get_fake_request()
         with mock.patch(REPO_PLUGINS, side_effect=Exception):
             self.assertRaises(webob.exc.HTTPInternalServerError,
-                              self.search_controller.plugins_info, request)
+                              self.search_controller.plugins_info, request, [])
 
     def test_plugins_info(self):
         request = unit_test_utils.get_fake_request()
@@ -219,8 +229,14 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
             ]
         }
 
-        actual = self.search_controller.plugins_info(request)
-        self.assertEqual(sorted(expected), sorted(actual))
+        # Simulate policy filtering
+        doc_types = [p['name'] for p in expected['plugins']]
+        actual = self.search_controller.plugins_info(request, doc_types)
+        self.assertEqual(['plugins'], list(actual.keys()))
+
+        self.assertEqual(
+            sorted(expected['plugins'], key=operator.itemgetter('name')),
+            sorted(actual['plugins'], key=operator.itemgetter('name')))
 
 
 class TestSearchDeserializer(test_utils.BaseTestCase):
@@ -640,7 +656,9 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         request = unit_test_utils.get_fake_request(path='/v1/search/facets')
         output = self.deserializer.facets(request)
 
-        expected = {'index_name': None, 'doc_type': None,
+        output['doc_type'] = sorted(output['doc_type'])
+        expected_doc_types = sorted(utils.get_search_plugins().keys())
+        expected = {'index_name': None, 'doc_type': expected_doc_types,
                     'all_projects': False, 'limit_terms': 0}
         self.assertEqual(expected, output)
 

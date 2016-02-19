@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import six
+import time
 import uuid
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
@@ -414,3 +416,82 @@ class TestSearchApi(functional.FunctionalTest):
                              "No results for: %s %s" % (query, json_content))
             self.assertEqual(doc_id + '_USER',
                              json_content['hits']['hits'][0]['_id'])
+
+    def test_resource_policy(self):
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        server_doc = {
+            u'id': 'abcdef',
+            u'name': 'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1
+        }
+        servers_plugin.index_helper.save_document(server_doc)
+
+        image_doc = {
+            "owner": TENANT1,
+            "id": "1234567890",
+            "visibility": "public",
+            "name": "image",
+        }
+        self.images_plugin.index_helper.save_document(image_doc)
+        self._flush_elasticsearch(servers_plugin.alias_name_listener)
+        self._flush_elasticsearch(self.images_plugin.alias_name_listener)
+
+        # Modify the policy file to disallow some things
+        with open(self.policy_file, 'r') as policy_file:
+            existing_policy = json.load(policy_file)
+
+        existing_policy["resource:OS::Nova::Server:allow"] = "role:admin"
+        existing_policy["resource:OS::Nova::Server:facets"] = "!"
+
+        existing_policy["resource:OS::Glance::Image:facets"] = "!"
+
+        existing_policy["resource:OS::Glance::Metadef:facets"] = "role:admin"
+
+        with open(self.policy_file, 'w') as policy_file:
+            json.dump(existing_policy, policy_file)
+
+        # Policy file reloads; sleep until then
+        time.sleep(2)
+
+        response, json_content = self._search_request(MATCH_ALL,
+                                                      TENANT1,
+                                                      role="user")
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual('OS::Glance::Image',
+                         json_content['hits']['hits'][0]['_type'])
+
+        response, json_content = self._search_request(MATCH_ALL,
+                                                      TENANT1,
+                                                      role="admin")
+        self.assertEqual(2, json_content['hits']['total'])
+        self.assertEqual(set(['OS::Glance::Image', 'OS::Nova::Server']),
+                         set([hit['_type']
+                              for hit in json_content['hits']['hits']]))
+
+        response, json_content = self._facet_request(TENANT1, role="user")
+        self.assertNotIn('OS::Nova::Server', json_content)
+        self.assertNotIn('OS::Glance::Image', json_content)
+        self.assertNotIn('OS::Glance::Metadef', json_content)
+
+        response, json_content = self._facet_request(TENANT1, role="admin")
+        # We DO expect some facets for metadefs for admins
+        self.assertIn('OS::Glance::Metadef', json_content)
+        # .. but not Server or Image
+        self.assertNotIn('OS::Nova::Server', json_content)
+        self.assertNotIn('OS::Glance::Image', json_content)
+
+        response, json_content = self._request('GET', '/search/plugins',
+                                               TENANT1,
+                                               role='user')
+        self.assertEqual(
+            0, len(list(filter(lambda p: p['name'] == 'OS::Nova::Server',
+                               json_content['plugins']))))
+
+        response, json_content = self._request('GET', '/search/plugins',
+                                               TENANT1,
+                                               role='admin')
+        self.assertEqual(
+            1, len(list(filter(lambda p: p['name'] == 'OS::Nova::Server',
+                               json_content['plugins']))))

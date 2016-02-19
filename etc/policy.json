@@ -2,9 +2,17 @@
     "context_is_admin":  "role:admin",
     "default": "",
 
-    "catalog_index": "role:admin",
-    "catalog_search": "",
-    "catalog_plugins": "",
+    "query": "",
+    "plugins_info": "",
+    "facets": "",
 
-    "catalog_facets": ""
+    "resource:OS::Glance::Image:allow": "",
+    "resource:OS::Glance::Metadef:allow": "",
+    "resource:OS::Nova::Server:allow": "",
+    "resource:OS::Cinder::Volume:allow": "",
+    "resource:OS::Cinder::Snapshot:allow": "",
+    "resource:OS::Designate::Zone:allow": "",
+    "resource:OS::Designate::RecordSet:allow": "",
+    "resource:OS::Neutron::Net:allow": "",
+    "resource:OS::Neutron::Port:allow": ""
 }

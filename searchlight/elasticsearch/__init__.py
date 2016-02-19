@@ -14,7 +14,6 @@
 #    under the License.
 
 import elasticsearch
-from elasticsearch import helpers
 import operator
 from oslo_config import cfg
 import six
@@ -57,7 +56,7 @@ class CatalogSearchRepo(object):
         self.context = context
         self.es_api = es_api
         self.plugins = common_utils.get_search_plugins()
-        self.plugins_info_dict = self._get_plugin_info()
+        self._plugins_list = self._get_plugin_list()
 
     def search(self, index, doc_type, query, offset,
                limit, ignore_unavailable=True, **kwargs):
@@ -70,22 +69,20 @@ class CatalogSearchRepo(object):
             ignore_unavailable=ignore_unavailable,
             **kwargs)
 
-    def index(self, default_index, default_type, actions):
-        return helpers.bulk(
-            client=self.es_api,
-            index=default_index,
-            doc_type=default_type,
-            actions=actions)
-
-    def plugins_info(self):
-        return self.plugins_info_dict
-
-    def _get_plugin_info(self):
+    def plugins_info(self, doc_type):
         """Note: Even though we are using aliases to access ElasticSearch
-           instead of indexes, we are still keeping the index field. This
-           will allow the end-user to continue using other ElasticSearch
-           tools which need an index to operate.
+        instead of indexes, we are still keeping the index field. This
+        will allow the end-user to continue using other ElasticSearch
+        tools which need an index to operate.
         """
+        masked_plugins = filter(lambda p: p['type'] in doc_type,
+                                self._plugins_list)
+        return {
+            'plugins': sorted(masked_plugins,
+                              key=operator.itemgetter('name'))
+        }
+
+    def _get_plugin_list(self):
         plugin_list = []
         for plugin_type, plugin in six.iteritems(self.plugins):
             plugin_list.append({
@@ -93,16 +90,15 @@ class CatalogSearchRepo(object):
                 'type': plugin.obj.get_document_type(),
                 'index': plugin.obj.alias_name_search
             })
-        return {'plugins': sorted(plugin_list,
-                                  key=operator.itemgetter('name'))}
+        return plugin_list
 
-    def facets(self, for_index, for_doc_type, all_projects, limit_terms):
+    def facets(self, for_index, for_doc_types, all_projects, limit_terms):
         facets = {}
         for resource_type, plugin in six.iteritems(self.plugins):
             index_name = plugin.obj.alias_name_search
             doc_type = plugin.obj.get_document_type()
             if ((not for_index or index_name == for_index) and
-                    (not for_doc_type or doc_type == for_doc_type)):
+                    (doc_type in for_doc_types)):
                 facets[resource_type] = plugin.obj.get_facets(self.context,
                                                               all_projects,
                                                               limit_terms)
