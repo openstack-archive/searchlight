@@ -56,6 +56,11 @@ def _image_fixture(op_type, _id=None, index='searchlight',
     return _action_fixture(op_type, image_data, index, doc_type, _id, **kwargs)
 
 
+# To avoid repeating these in all the mocks
+REPO_SEARCH = 'searchlight.elasticsearch.CatalogSearchRepo.search'
+REPO_PLUGINS = 'searchlight.elasticsearch.CatalogSearchRepo.plugins_info'
+
+
 class TestControllerSearch(test_utils.BaseTestCase):
 
     def setUp(self):
@@ -64,107 +69,97 @@ class TestControllerSearch(test_utils.BaseTestCase):
 
     def test_search_all(self):
         request = unit_test_utils.get_fake_request()
-        self.search_controller.search = mock.Mock(return_value="{}")
-
-        query = {"match_all": {}}
-        index_name = "searchlight"
-        doc_type = "OS::Glance::Metadef"
-        offset = 0
-        limit = 10
-        self.search_controller.search(
-            request, query, index_name, doc_type, offset, limit)
-        self.search_controller.search.assert_called_once_with(
-            request, query, index_name, doc_type, offset, limit)
+        with mock.patch.object(self.search_controller, 'search',
+                               return_value={}) as mock_search:
+            query = {"match_all": {}}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
+            self.search_controller.search(
+                request, query, index_name, doc_type, offset, limit)
+            mock_search.assert_called_once_with(
+                request, query, index_name, doc_type, offset, limit)
 
     def test_search_all_repo(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(return_value={})
-        query = {"match_all": {}}
-        index_name = "searchlight"
-        doc_type = "OS::Glance::Metadef"
-        offset = 0
-        limit = 10
-        self.search_controller.search(
-            request, query, index_name, doc_type, offset, limit)
-        repo.search.assert_called_once_with(
-            index_name, doc_type, query, offset,
-            limit, ignore_unavailable=True)
+        with mock.patch(REPO_SEARCH, return_value={}) as mock_search:
+            query = {"match_all": {}}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
+            self.search_controller.search(
+                request, query, index_name, doc_type, offset, limit)
+            mock_search.assert_called_once_with(
+                index_name, doc_type, query, offset,
+                limit, ignore_unavailable=True)
 
     def test_search_forbidden(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=exception.Forbidden)
+        with mock.patch(REPO_SEARCH, side_effect=exception.Forbidden):
+            query = {"match_all": {}}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
 
-        query = {"match_all": {}}
-        index_name = "searchlight"
-        doc_type = "OS::Glance::Metadef"
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPForbidden, self.search_controller.search,
-            request, query, index_name, doc_type, offset, limit)
+            self.assertRaises(
+                webob.exc.HTTPForbidden, self.search_controller.search,
+                request, query, index_name, doc_type, offset, limit)
 
     def test_search_not_found(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=exception.NotFound)
+        with mock.patch(REPO_SEARCH, side_effect=exception.NotFound):
+            query = {"match_all": {}}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
 
-        query = {"match_all": {}}
-        index_name = "searchlight"
-        doc_type = "OS::Glance::Metadef"
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPNotFound, self.search_controller.search, request,
-            query, index_name, doc_type, offset, limit)
+            self.assertRaises(
+                webob.exc.HTTPNotFound, self.search_controller.search, request,
+                query, index_name, doc_type, offset, limit)
 
     def test_search_duplicate(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=exception.Duplicate)
+        with mock.patch(REPO_SEARCH, side_effect=exception.Duplicate):
+            query = {"match_all": {}}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
 
-        query = {"match_all": {}}
-        index_name = "searchlight"
-        doc_type = "OS::Glance::Metadef"
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPConflict, self.search_controller.search, request,
-            query, index_name, doc_type, offset, limit)
+            self.assertRaises(
+                webob.exc.HTTPConflict, self.search_controller.search, request,
+                query, index_name, doc_type, offset, limit)
 
     def test_search_badrequest(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=es_exc.RequestError)
+        with mock.patch(REPO_SEARCH, side_effect=es_exc.RequestError):
+            query = {}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
 
-        query = {}
-        index_name = "searchlight"
-        doc_type = "OS::Glance::Metadef"
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPBadRequest, self.search_controller.search, request,
-            query, index_name, doc_type, offset, limit)
+            self.assertRaises(
+                webob.exc.HTTPBadRequest, self.search_controller.search,
+                request, query, index_name, doc_type, offset, limit)
 
     def test_search_internal_server_error(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.search = mock.Mock(side_effect=Exception)
+        with mock.patch(REPO_SEARCH, side_effect=Exception):
+            query = {"match_all": {}}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
 
-        query = {"match_all": {}}
-        index_name = "searchlight"
-        doc_type = "OS::Glance::Metadef"
-        offset = 0
-        limit = 10
-
-        self.assertRaises(
-            webob.exc.HTTPInternalServerError, self.search_controller.search,
-            request, query, index_name, doc_type, offset, limit)
+            self.assertRaises(
+                webob.exc.HTTPInternalServerError,
+                self.search_controller.search,
+                request, query, index_name, doc_type, offset, limit)
 
 
 class TestControllerPluginsInfo(test_utils.BaseTestCase):
@@ -175,28 +170,22 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
 
     def test_plugins_info_forbidden(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.plugins_info = mock.Mock(side_effect=exception.Forbidden)
-
-        self.assertRaises(
-            webob.exc.HTTPForbidden, self.search_controller.plugins_info,
-            request)
+        with mock.patch(REPO_PLUGINS, side_effect=exception.Forbidden):
+            self.assertRaises(
+                webob.exc.HTTPForbidden, self.search_controller.plugins_info,
+                request)
 
     def test_plugins_info_not_found(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.plugins_info = mock.Mock(side_effect=exception.NotFound)
-
-        self.assertRaises(webob.exc.HTTPNotFound,
-                          self.search_controller.plugins_info, request)
+        with mock.patch(REPO_PLUGINS, side_effect=exception.NotFound):
+            self.assertRaises(webob.exc.HTTPNotFound,
+                              self.search_controller.plugins_info, request)
 
     def test_plugins_info_internal_server_error(self):
         request = unit_test_utils.get_fake_request()
-        repo = searchlight.elasticsearch.CatalogSearchRepo
-        repo.plugins_info = mock.Mock(side_effect=Exception)
-
-        self.assertRaises(webob.exc.HTTPInternalServerError,
-                          self.search_controller.plugins_info, request)
+        with mock.patch(REPO_PLUGINS, side_effect=Exception):
+            self.assertRaises(webob.exc.HTTPInternalServerError,
+                              self.search_controller.plugins_info, request)
 
     def test_plugins_info(self):
         request = unit_test_utils.get_fake_request()
