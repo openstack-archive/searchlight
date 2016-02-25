@@ -68,6 +68,9 @@ searchable via a plugin mechanism.
 See :ref:`searchlight-plugins` for plugin installation and general
 configuration information.
 
+See :ref:`searchlight-plugin-authoring` for documentation about authoring
+plugins.
+
 See each plugin below for detailed information about specific plugins:
 
 .. toctree::
