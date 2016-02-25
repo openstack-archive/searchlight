@@ -19,6 +19,7 @@ import oslo_messaging
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins import designate
+from searchlight.elasticsearch.plugins.utils import VERSION_CONFLICT_MSG
 from searchlight import i18n
 
 
@@ -81,19 +82,33 @@ class DomainHandler(base.NotificationBase):
                     # TODO(ekarlso,sjmc7): doc_type below should come from
                     # the recordset plugin
                     # registers options
-                    self.engine.index(
-                        index=self.index_name,
-                        doc_type=RecordSetHandler.DOCUMENT_TYPE,
-                        body=rs,
-                        parent=rs["zone_id"],
-                        id=rs["id"])
+                    version = self.get_version(rs)
+                    try:
+                        self.engine.index(
+                            index=self.index_name,
+                            doc_type=RecordSetHandler.DOCUMENT_TYPE,
+                            body=rs,
+                            parent=rs["zone_id"],
+                            id=rs["id"],
+                            version_type='external',
+                            version=version
+                        )
+                    except exceptions.ConflictError as e:
+                        if e.error != VERSION_CONFLICT_MSG:
+                            raise e
+                        LOG.warning(_LW('Version conflict at updating'
+                                        'recordset %(id)s with version '
+                                        '%(version)s') % {'id': rs['id'],
+                                                          'version': version})
             return oslo_messaging.NotificationResult.HANDLED
         except Exception as e:
             LOG.exception(e)
 
-    def create_or_update(self, payload):
+    def create_or_update(self, payload, timestamp):
         payload = self._serialize(payload)
-        self.index_helper.save_document(payload)
+        self.index_helper.save_document(
+            payload,
+            version=self.get_version(payload, timestamp))
 
     def delete(self, payload):
         zone_id = payload['id']
@@ -159,9 +174,11 @@ class RecordSetHandler(base.NotificationBase):
             "dns.recordset.delete": self.delete
         }
 
-    def create_or_update(self, payload):
+    def create_or_update(self, payload, timestamp):
         payload = self._serialize(payload)
-        self.index_helper.save_document(payload)
+        self.index_helper.save_document(
+            payload,
+            version=self.get_version(payload, timestamp))
 
     def _serialize(self, obj):
         obj['project_id'] = obj.pop('tenant_id')
@@ -171,5 +188,5 @@ class RecordSetHandler(base.NotificationBase):
             obj['updated_at'] = obj['created_at']
         return obj
 
-    def delete(self, payload):
+    def delete(self, payload, timestamp):
         self.index_helper.delete_document_by_id(payload['id'])

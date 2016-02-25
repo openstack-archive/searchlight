@@ -158,7 +158,8 @@ def serialize_glance_metadef_ns(metadef_namespace):
     # The CIS code specifically serialized some fields rather than indexing
     # everything; do the same.
     namespace_fields = ('namespace', 'display_name', 'description',
-                        'visibility', 'owner', 'protected', 'created_at')
+                        'visibility', 'owner', 'protected', 'created_at',
+                        'updated_at')
     document = {f: metadef_namespace.get(f, None) for f in namespace_fields}
     document['id'] = document['namespace']
     if document['display_name']:
@@ -182,7 +183,6 @@ def serialize_glance_metadef_ns(metadef_namespace):
         for rt in metadef_namespace.get('resource_type_associations', [])
     ], key=operator.itemgetter('name'))
 
-    utils.normalize_date_fields(document, created_at=None,
-                                updated_at='created_at')
+    utils.normalize_date_fields(document)
 
     return document

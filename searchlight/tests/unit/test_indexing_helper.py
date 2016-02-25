@@ -32,7 +32,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
         bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
-            indexing_helper.save_documents(plugin.get_objects())
+            count = len(plugin.get_objects())
+            fake_versions = range(1, count + 1)
+            indexing_helper.save_documents(plugin.get_objects(), fake_versions)
             self.assertEqual(1, len(mock_bulk.call_args_list))
             actions = list(mock_bulk.call_args_list[0][1]['actions'])
 
@@ -40,7 +42,10 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         self.assertEqual(set(['role-fake1_ADMIN', 'role-fake2_ADMIN',
                              'role-fake1_USER', 'role-fake2_USER']),
                          set(action['_id'] for action in actions))
-
+        self.assertEqual(set(fake_versions),
+                         set(action['_version'] for action in actions))
+        self.assertEqual(['external'] * 4,
+                         [action['_version_type'] for action in actions])
         # This plugin filters on admin_wildcard_* and admin_specific
         fake1_admin = list(filter(lambda a: a['_id'] == 'role-fake1_ADMIN',
                                   actions))[0]['_source']
@@ -67,14 +72,19 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
         bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
-            indexing_helper.save_documents(plugin.get_objects())
+            count = len(plugin.get_objects())
+            fake_versions = range(1, count + 1)
+            indexing_helper.save_documents(plugin.get_objects(), fake_versions)
             self.assertEqual(1, len(mock_bulk.call_args_list))
             actions = list(mock_bulk.call_args_list[0][1]['actions'])
 
         self.assertEqual(2, len(actions))
         self.assertEqual(set(['non-role-fake1', 'non-role-fake2']),
                          set(action['_id'] for action in actions))
-
+        self.assertEqual(set(fake_versions),
+                         set(action['_version'] for action in actions))
+        self.assertEqual(['external'] * 2,
+                         [action['_version_type'] for action in actions])
         fake1 = actions[0]['_source']
         self.assertEqual(['admin', 'user'],
                          sorted(fake1.pop(ROLE_USER_FIELD)))

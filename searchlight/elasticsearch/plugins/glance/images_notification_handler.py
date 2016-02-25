@@ -53,11 +53,13 @@ class ImageHandler(base.NotificationBase):
     def serialize_notification(self, notification):
         return serialize_glance_notification(notification)
 
-    def create_or_update(self, payload):
+    def create_or_update(self, payload, timestamp):
         image_id = payload['id']
         try:
             payload = self.serialize_notification(payload)
-            self.index_helper.save_document(payload)
+            self.index_helper.save_document(
+                payload,
+                version=self.get_version(payload, timestamp))
         except glanceclient.exceptions.NotFound:
             LOG.warning(_LW("Image %s not found; deleting") % image_id)
             try:
@@ -67,7 +69,7 @@ class ImageHandler(base.NotificationBase):
                     'Error deleting image %(image_id)s from index: %(exc)s') %
                     {'image_id': image_id, 'exc': exc})
 
-    def delete(self, payload):
+    def delete(self, payload, timestamp):
         image_id = payload['id']
         try:
             self.index_helper.delete_document_by_id(image_id)
@@ -76,7 +78,7 @@ class ImageHandler(base.NotificationBase):
                 'Error deleting image %(image_id)s from index: %(exc)s') %
                 {'image_id': image_id, 'exc': exc})
 
-    def sync_members(self, payload):
+    def sync_members(self, payload, timestamp):
         image_id = payload['image_id']
         image_es = self.index_helper.get_document(image_id,
                                                   for_admin=True)

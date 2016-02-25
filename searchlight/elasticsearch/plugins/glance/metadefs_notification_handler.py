@@ -18,17 +18,19 @@ import six
 from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
+from searchlight import i18n
 
 
 LOG = logging.getLogger(__name__)
+_LW = i18n._LW
 
 
 class MetadefHandler(base.NotificationBase):
 
     def __init__(self, *args, **kwargs):
         super(MetadefHandler, self).__init__(*args, **kwargs)
-        self.namespace_delete_keys = ['deleted_at', 'deleted', 'created_at',
-                                      'updated_at', 'namespace_old']
+        self.namespace_delete_keys = ['deleted_at', 'deleted',
+                                      'namespace_old']
         self.property_delete_keys = ['deleted', 'deleted_at',
                                      'name_old', 'namespace']
 
@@ -60,48 +62,58 @@ class MetadefHandler(base.NotificationBase):
     def run_update(self, id, payload, script=False):
         self.index_helper.update_document(payload, id, update_as_script=script)
 
-    def create_ns(self, payload):
-        self.index_helper.save_document(self.format_namespace(payload))
+    def create_ns(self, payload, timestamp):
+        namespace = self.format_namespace(payload)
+        self.index_helper.save_document(
+            namespace,
+            version=self.get_version(namespace, timestamp))
 
-    def update_ns(self, payload):
-        id = payload['namespace_old']
-        self.run_update(id, self.format_namespace(payload))
+    def update_ns(self, payload, timestamp):
+        # Update operation in es doesn't support external version,
+        # so we have to manually update the doc and reindex it.
+        namespace_es = self.index_helper.get_document(
+            payload['namespace_old'], for_admin=True)['_source']
+        namespace = self.format_namespace(payload)
+        namespace_es.update(namespace)
+        self.index_helper.save_document(
+            namespace_es,
+            version=self.get_version(namespace_es, timestamp))
 
-    def delete_ns(self, payload):
+    def delete_ns(self, payload, timestamp):
         id = payload['namespace']
         self.index_helper.delete_document_by_id(id)
 
-    def create_obj(self, payload):
+    def create_obj(self, payload, timestamp):
         id = payload['namespace']
         object = self.format_object(payload)
         self.create_entity(id, "objects", object)
 
-    def update_obj(self, payload):
+    def update_obj(self, payload, timestamp):
         id = payload['namespace']
         object = self.format_object(payload)
         self.update_entity(id, "objects", object,
                            payload['name_old'], "name")
 
-    def delete_obj(self, payload):
+    def delete_obj(self, payload, timestamp):
         id = payload['namespace']
         self.delete_entity(id, "objects", payload['name'], "name")
 
-    def create_prop(self, payload):
+    def create_prop(self, payload, timestamp):
         id = payload['namespace']
         property = self.format_property(payload)
         self.create_entity(id, "properties", property)
 
-    def update_prop(self, payload):
+    def update_prop(self, payload, timestamp):
         id = payload['namespace']
         property = self.format_property(payload)
         self.update_entity(id, "properties", property,
                            payload['name_old'], "name")
 
-    def delete_prop(self, payload):
+    def delete_prop(self, payload, timestamp):
         id = payload['namespace']
         self.delete_entity(id, "properties", payload['name'], "name")
 
-    def create_rs(self, payload):
+    def create_rs(self, payload, timestamp):
         id = payload['namespace']
         resource_type = {}
         resource_type['name'] = payload['name']
@@ -112,35 +124,35 @@ class MetadefHandler(base.NotificationBase):
 
         self.create_entity(id, "resource_types", resource_type)
 
-    def delete_rs(self, payload):
+    def delete_rs(self, payload, timestamp):
         id = payload['namespace']
         self.delete_entity(id, "resource_types", payload['name'], "name")
 
-    def create_tag(self, payload):
+    def create_tag(self, payload, timestamp):
         id = payload['namespace']
         tag = {}
         tag['name'] = payload['name']
 
         self.create_entity(id, "tags", tag)
 
-    def update_tag(self, payload):
+    def update_tag(self, payload, timestamp):
         id = payload['namespace']
         tag = {}
         tag['name'] = payload['name']
 
         self.update_entity(id, "tags", tag, payload['name_old'], "name")
 
-    def delete_tag(self, payload):
+    def delete_tag(self, payload, timestamp):
         id = payload['namespace']
         self.delete_entity(id, "tags", payload['name'], "name")
 
-    def delete_props(self, payload):
+    def delete_props(self, payload, timestamp):
         self.delete_field(payload, "properties")
 
-    def delete_objects(self, payload):
+    def delete_objects(self, payload, timestamp):
         self.delete_field(payload, "objects")
 
-    def delete_tags(self, payload):
+    def delete_tags(self, payload, timestamp):
         self.delete_field(payload, "tags")
 
     def create_entity(self, id, entity, entity_data):
@@ -154,7 +166,7 @@ class MetadefHandler(base.NotificationBase):
             "entity_list": [entity_data]
         }
         payload = {"script": script, "params": params}
-        self.run_update(id, payload=payload, script=True)
+        self.run_update(id, payload, script=True)
 
     def update_entity(self, id, entity, entity_data, entity_id, field_name):
         entity_id = entity_id.lower()
@@ -172,7 +184,7 @@ class MetadefHandler(base.NotificationBase):
             "entity_id": entity_id
         }
         payload = {"script": script, "params": params}
-        self.run_update(id, payload=payload, script=True)
+        self.run_update(id, payload, script=True)
 
     def delete_entity(self, id, entity, entity_id, field_name):
         entity_id = entity_id.lower()
@@ -185,14 +197,14 @@ class MetadefHandler(base.NotificationBase):
             "entity_id": entity_id
         }
         payload = {"script": script, "params": params}
-        self.run_update(id, payload=payload, script=True)
+        self.run_update(id, payload, script=True)
 
     def delete_field(self, payload, field):
         id = payload['namespace']
         script = ("if (ctx._source.containsKey('%(field)s'))"
                   "{ctx._source.remove('%(field)s')}") % {"field": field}
         payload = {"script": script}
-        self.run_update(id, payload=payload, script=True)
+        self.run_update(id, payload, script=True)
 
     def format_namespace(self, payload):
         for key in self.namespace_delete_keys:

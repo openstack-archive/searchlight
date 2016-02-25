@@ -54,23 +54,25 @@ class InstanceHandler(base.NotificationBase):
             # 'port.delete.end': self.update_neutron_ports,
         }
 
-    def create_or_update(self, payload):
+    def create_or_update(self, payload, timestamp):
         instance_id = payload['instance_id']
         LOG.debug("Updating nova server information for %s", instance_id)
-        self._update_instance(instance_id)
+        self._update_instance(instance_id, timestamp)
 
-    def update_from_neutron(self, payload):
+    def update_from_neutron(self, payload, timestamp):
         instance_id = payload['port']['device_id']
         LOG.debug("Updating server %s from neutron notification",
                   instance_id)
         if not instance_id:
             return
-        self._update_instance(instance_id)
+        self._update_instance(instance_id, timestamp)
 
-    def _update_instance(self, instance_id):
+    def _update_instance(self, instance_id, timestamp):
         try:
             payload = serialize_nova_server(instance_id)
-            self.index_helper.save_document(payload)
+            self.index_helper.save_document(
+                payload,
+                version=self.get_version(payload, timestamp))
         except novaclient.exceptions.NotFound:
             LOG.warning(_LW("Instance %s not found; deleting") % instance_id)
             try:
@@ -81,7 +83,7 @@ class InstanceHandler(base.NotificationBase):
                     'from index: %(exc)s') %
                     {'instance_id': instance_id, 'exc': exc})
 
-    def delete(self, payload):
+    def delete(self, payload, timestamp):
         instance_id = payload['instance_id']
         LOG.debug("Deleting nova instance information for %s", instance_id)
         if not instance_id:

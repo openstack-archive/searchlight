@@ -29,6 +29,7 @@ USER_ID_SUFFIX = "_USER"
 
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
+VERSION_CONFLICT_MSG = 'version_conflict_engine_exception'
 
 
 def normalize_date_fields(document,
@@ -135,17 +136,29 @@ class IndexingHelper(object):
     def index_chunk_size(self):
         return 200
 
-    def save_document(self, document):
-        self.save_documents([document])
+    def save_document(self, document, version=None):
+        if version:
+            self.save_documents([document], [version])
+        else:
+            self.save_documents([document])
 
-    def save_documents(self, documents):
+    def save_documents(self, documents, versions=None):
         """Send list of serialized documents into search engine."""
-        result = helpers.bulk(
-            client=self.engine,
-            index=self.index_name,
-            doc_type=self.document_type,
-            chunk_size=self.index_chunk_size,
-            actions=self._apply_role_filtering(documents))
+        try:
+            result = helpers.bulk(
+                client=self.engine,
+                index=self.index_name,
+                doc_type=self.document_type,
+                chunk_size=self.index_chunk_size,
+                actions=self._apply_role_filtering(documents, versions))
+        except helpers.BulkIndexError as e:
+            err_msg = []
+            for err in e.errors:
+                if "VersionConflict" not in err['index']['error']:
+                    raise e
+                err_msg.append("id %(_id)s: %(error)s" % err['index'])
+            LOG.warning(_LW('Version conflict %s') % ';'.join(err_msg))
+            result = 0
         LOG.debug("Indexing result: %s", result)
 
     def delete_document_by_id(self, document_id):
@@ -207,45 +220,53 @@ class IndexingHelper(object):
             actions=actions)
         LOG.debug("Update result: %s", result)
 
-    def _apply_role_filtering(self, documents):
+    def _apply_role_filtering(self, documents, versions=None):
         """Returns a generator of indexable 'actions'. If the plugin requires
         role-based separation, two actions will be yielded per document,
         otherwise one. _id and USER_ROLE_FIELD are set as appropriate
         """
-        def _get_index_action(doc, id_suffix=''):
+        def _get_index_action(doc, version=None, id_suffix=''):
             """Return an 'action' the ES bulk indexer understands"""
             action = {
                 '_id': doc[self.plugin.get_document_id_field()] + id_suffix,
                 '_source': doc
             }
+            if version:
+                action['_version_type'] = 'external'
+                action['_version'] = version
+
             parent_field = self.plugin.get_parent_id_field()
             if parent_field:
                 action['_parent'] = doc[parent_field]
             return action
 
-        for document in documents:
+        for index, document in enumerate(documents):
             # Although elasticsearch copies the input when indexing, it's
             # easier from a debugging and testing perspective not to meddle
             # with the input, so make a copy
             document = copy.deepcopy(document)
-
+            version = versions[index] if versions else None
             if self.plugin.requires_role_separation:
                 LOG.debug("Applying role separation to %s id %s" %
                           (self.plugin.name,
                            document[self.plugin.get_document_id_field()]))
                 document[ROLE_USER_FIELD] = 'admin'
-                yield _get_index_action(document, ADMIN_ID_SUFFIX)
+                yield _get_index_action(document,
+                                        version=version,
+                                        id_suffix=ADMIN_ID_SUFFIX)
 
                 user_doc = self._remove_admin_fields(document)
                 user_doc[ROLE_USER_FIELD] = 'user'
-                yield _get_index_action(user_doc, USER_ID_SUFFIX)
+                yield _get_index_action(user_doc,
+                                        version=version,
+                                        id_suffix=USER_ID_SUFFIX)
 
             else:
                 LOG.debug("Not applying role separation to %s id %s" %
                           (self.plugin.name,
                            document[self.plugin.get_document_id_field()]))
                 document[ROLE_USER_FIELD] = ['user', 'admin']
-                yield _get_index_action(document)
+                yield _get_index_action(document, version=version)
 
     def _remove_admin_fields(self, document):
         """Prior to indexing, remove any fields that shouldn't be indexed
