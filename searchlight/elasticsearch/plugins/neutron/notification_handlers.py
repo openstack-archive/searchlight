@@ -53,7 +53,7 @@ class NetworkHandler(base.NotificationBase):
         try:
             # Note that it's not necessary to delete ports; neutron will not
             # allow deletion of a network that has ports assigned on it
-            self.index_helper.delete_document_by_id(network_id)
+            self.index_helper.delete_document({'_id': network_id})
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting network %(network_id)s '
@@ -88,7 +88,7 @@ class PortHandler(base.NotificationBase):
         port_id = payload['port_id']
         LOG.debug("Deleting port information for %s", port_id)
         try:
-            self.index_helper.delete_document_by_id(port_id)
+            self.index_helper.delete_document({'_id': port_id})
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting port %(port_id)s '

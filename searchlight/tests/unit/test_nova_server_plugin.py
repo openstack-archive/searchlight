@@ -471,9 +471,12 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         with mock.patch(nova_server_getter,
                         side_effect=nova_exc) as mock_get:
             with mock.patch.object(doc_deleter,
-                                   'delete_document_by_id') as mock_deleter:
+                                   'delete_document') as mock_deleter:
                 fake_timestamp = '2015-09-01 08:57:35.282586'
                 notification_handler.create_or_update(
-                    {u'instance_id': u'missing'}, fake_timestamp)
+                    {u'instance_id': u'missing',
+                     u'updated_at': u'2016-02-01T00:00:00Z'}, fake_timestamp)
                 mock_get.assert_called_once_with(u'missing')
-                mock_deleter.assert_called_once_with(u'missing')
+                mock_deleter.assert_called_once_with(
+                    # Version should really be integer; see bug #1550494
+                    {'_id': u'missing', '_version': '454284800097855282'})

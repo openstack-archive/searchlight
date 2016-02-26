@@ -57,7 +57,7 @@ class InstanceHandler(base.NotificationBase):
     def create_or_update(self, payload, timestamp):
         instance_id = payload['instance_id']
         LOG.debug("Updating nova server information for %s", instance_id)
-        self._update_instance(instance_id, timestamp)
+        self._update_instance(payload, instance_id, timestamp)
 
     def update_from_neutron(self, payload, timestamp):
         instance_id = payload['port']['device_id']
@@ -65,23 +65,23 @@ class InstanceHandler(base.NotificationBase):
                   instance_id)
         if not instance_id:
             return
-        self._update_instance(instance_id, timestamp)
+        self._update_instance(payload, instance_id, timestamp)
 
-    def _update_instance(self, instance_id, timestamp):
+    def _update_instance(self, payload, instance_id, timestamp):
         try:
-            payload = serialize_nova_server(instance_id)
+            serialized_payload = serialize_nova_server(instance_id)
             self.index_helper.save_document(
-                payload,
-                version=self.get_version(payload, timestamp))
+                serialized_payload,
+                version=self.get_version(serialized_payload, timestamp))
         except novaclient.exceptions.NotFound:
             LOG.warning(_LW("Instance %s not found; deleting") % instance_id)
-            try:
-                self.index_helper.delete_document_by_id(instance_id)
-            except Exception as exc:
-                LOG.error(_LE(
-                    'Error deleting instance %(instance_id)s '
-                    'from index: %(exc)s') %
-                    {'instance_id': instance_id, 'exc': exc})
+
+            # Where a notification represents an in-progress delete, we will
+            # also receive an 'instance.delete' notification shortly
+            deleted = (payload.get('state_description') == 'deleting' or
+                       payload.get('state') == 'deleted')
+            if not deleted:
+                self.delete(payload, timestamp)
 
     def delete(self, payload, timestamp):
         instance_id = payload['instance_id']
@@ -90,7 +90,10 @@ class InstanceHandler(base.NotificationBase):
             return
 
         try:
-            self.index_helper.delete_document_by_id(instance_id)
+            version = self.get_version(payload, timestamp,
+                                       preferred_date_field='deleted_at')
+            self.index_helper.delete_document(
+                {'_id': instance_id, '_version': version})
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting instance %(instance_id)s '

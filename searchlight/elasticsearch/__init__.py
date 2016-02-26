@@ -35,6 +35,10 @@ search_opts = [
                 help='List of nodes where Elasticsearch instances are '
                      'running. A single node should be defined as an IP '
                      'address and port number.'),
+    cfg.StrOpt('index_gc_deletes', default='300s',
+               help='Time for which deleted documents are held in order to'
+                    'prevent older, out-of-order updates causing them to be'
+                    'created fresh in error.')
 ]
 
 CONF = cfg.CONF

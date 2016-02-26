@@ -100,7 +100,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
         bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
-            indexing_helper.delete_document_by_id('role-fake1')
+            indexing_helper.delete_document({'_id': 'role-fake1'})
 
             expected_delete_actions = [
                 {'_op_type': 'delete',
@@ -122,7 +122,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
         bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
-            indexing_helper.delete_document_by_id('non-role-fake1')
+            indexing_helper.delete_document({'_id': 'non-role-fake1'})
 
             expected_delete_actions = [
                 {'_op_type': 'delete',

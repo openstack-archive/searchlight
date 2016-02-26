@@ -109,10 +109,13 @@ class DomainHandler(base.NotificationBase):
 
     def delete(self, payload, timestamp):
         zone_id = payload['id']
-        self.recordset_helper.delete_documents_with_parent(zone_id)
+        version = self.get_version(payload, timestamp)
+        self.recordset_helper.delete_documents_with_parent(zone_id,
+                                                           version=version)
 
         try:
-            self.index_helper.delete_document_by_id(zone_id)
+            self.index_helper.delete_document(
+                {'_id': zone_id, '_version': version})
         except exceptions.NotFoundError:
             msg = "Zone %s not found when deleting"
             LOG.error(msg, zone_id)
@@ -153,4 +156,7 @@ class RecordSetHandler(base.NotificationBase):
         return obj
 
     def delete(self, payload, timestamp):
-        self.index_helper.delete_document_by_id(payload['id'])
+        version = self.get_version(payload, timestamp)
+        self.index_helper.delete_document(
+            {'_id': payload['id'], '_version': version,
+             '_parent': payload['zone_id']})

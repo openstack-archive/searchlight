@@ -366,7 +366,11 @@ class IndexBase(plugin.Plugin):
 
     def get_settings(self):
         """Get an index settings."""
-        return {}
+        return {
+            "index": {
+                "gc_deletes": CONF.elasticsearch.index_gc_deletes
+            }
+        }
 
     def get_mapping(self):
         """Get an index mapping."""
@@ -506,9 +510,9 @@ class NotificationBase(object):
                     for exchange in self._get_notification_exchanges()]
 
     @classmethod
-    def get_version(cls, payload, timestamp=None):
-        """Combine updated_at|created_at epoch with notification timestamp as a
-        version number, format is
+    def get_version(cls, payload, timestamp=None, preferred_date_field=None):
+        """Combine <preferred_date_field>|updated_at|created_at epoch with
+        notification timestamp as a version number, format is
         <right 9 digits update epoch(create epoch)><right 9 digits timestamp
         in milliseconds>, if timestamp is not present(sync indexing), fill in
         9 digits of zero instead.
@@ -542,14 +546,20 @@ class NotificationBase(object):
         distinguish notifications with different timestamps.
         """
         updated = None
-        if payload.get('updated_at'):
-            updated = payload['updated_at']
-        elif payload.get('created_at'):
-            updated = payload['created_at']
+
+        # Pick the best/preferred date field to calculate version from
+        date_fields = ('updated_at', 'created_at')
+        if preferred_date_field:
+            date_fields = (preferred_date_field,) + date_fields
+
+        for date_field in date_fields:
+            if date_field and payload.get(date_field):
+                updated = payload.get(date_field)
+                break
         else:
-            msg = ('Failed to build elasticsearch version, updated_at and '
-                   'created_at not exist, %s' % str(payload)
-                   )
+            date_fields_str = ', '.join(date_fields)
+            msg = ('Failed to build elasticsearch version; none of %s'
+                   'found in payload: %s' % (date_fields_str, payload))
             raise exception.SearchlightException(message=msg)
 
         updated_obj = timeutils.parse_isotime(updated)

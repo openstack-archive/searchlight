@@ -193,8 +193,11 @@ class IndexingHelper(object):
             result = 0
         LOG.debug("Indexing result: %s", result)
 
-    def delete_document_by_id(self, document_id):
-        self.delete_documents([{"_id": document_id}])
+    def delete_document(self, document):
+        """'document' must contain an '_id', but can include '_parent' and
+        '_version', each of which will be passed to the bulk helper
+        """
+        self.delete_documents([document])
 
     def delete_documents(self, metadocs, override_role_separation=False):
         """Each metadoc should be a dict with at an _id, and if
@@ -204,6 +207,11 @@ class IndexingHelper(object):
          """
         def _get_delete_action(doc, id_suffix=''):
             action = {'_op_type': 'delete', '_id': doc['_id'] + id_suffix}
+
+            if doc.get('_version'):
+                action['_version'] = doc['_version']
+                action['_version_type'] = 'external'
+
             parent_entity_id = doc.get('_parent')
             if parent_entity_id:
                 if (not override_role_separation and
@@ -212,7 +220,6 @@ class IndexingHelper(object):
                     # security issue because of potential fishing queries
                     parent_entity_id += (id_suffix or USER_ID_SUFFIX)
                 action['_parent'] = parent_entity_id
-
             return action
 
         actions = []
@@ -225,15 +232,34 @@ class IndexingHelper(object):
             else:
                 actions.append(_get_delete_action(metadoc))
 
-        # TODO(sjmc7): Catch 404s, warn and ignore
-        helpers.bulk(
-            client=self.plugin.engine,
-            index=self.index_name,
-            doc_type=self.document_type,
-            actions=actions
-        )
+        try:
+            helpers.bulk(
+                client=self.plugin.engine,
+                index=self.index_name,
+                doc_type=self.document_type,
+                actions=actions
+            )
+        except helpers.BulkIndexError as exc:
+            exc_payload = exc[1]
+            doc_ids = ', '.join(e['delete']['_id'] for e in exc_payload)
 
-    def delete_documents_with_parent(self, parent_id):
+            if all(e['delete']['status'] == 404 for e in exc_payload):
+                LOG.warning(
+                    _LW("Error deleting %(doc_type)s %(ids)s; "
+                        "already deleted") %
+                    {"doc_type": self.plugin.document_type, "ids": doc_ids})
+
+            elif all(e['delete']['status'] == 409 for e in exc_payload):
+                # This *should* never happen. If it does, something has gone
+                # wrong but leaving this here for now
+                LOG.warning(
+                    _LW("Error deleting %(doc_type)s %(ids)s; newer versions "
+                        "of some documents have been indexed") %
+                    {"doc_type": self.plugin.document_type, "ids": doc_ids})
+            else:
+                raise
+
+    def delete_documents_with_parent(self, parent_id, version=None):
         # This is equivalent in result to _parent: parent_id but offers
         # a significant performance boost because of the implementation
         # of _parent filtering
@@ -270,6 +296,15 @@ class IndexingHelper(object):
 
         to_delete = [{'_id': doc['_id'], '_parent': doc['fields']['_parent']}
                      for doc in documents]
+
+        # Use the parent version tag; we're instructing elasticsearch to mark
+        # all the deleted child documents as 'don't apply updates received
+        # after 'version' so the fact that they don't match the child
+        # 'updated_at' fields is irrelevant
+        if version:
+            for action in to_delete:
+                action['_version'] = version
+
         self.delete_documents(to_delete, override_role_separation=True)
 
     def get_document(self, doc_id, for_admin=False):
