@@ -117,7 +117,9 @@ class ListenerService(os_service.Service):
         listener = oslo_messaging.get_notification_listener(
             transport,
             targets,
-            endpoints)
+            endpoints,
+            executor='threading')
+
         listener.start()
         self.listeners.append(listener)
 
