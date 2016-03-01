@@ -1,0 +1,151 @@
+{
+  "subnet.create.end": {
+    "event_type": "subnet.create.end",
+    "payload": {
+      "subnet": {
+        "name": "",
+        "enable_dhcp": true,
+        "network_id": "60e80dca-302d-4460-8984-9b85dc782bca",
+        "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+        "dns_nameservers": [],
+        "ipv6_ra_mode": null,
+        "allocation_pools": [
+          {
+            "start": "172.45.0.2",
+            "end": "172.45.255.254"
+          }
+        ],
+        "gateway_ip": "172.45.0.1",
+        "ipv6_address_mode": null,
+        "ip_version": 4,
+        "host_routes": [],
+        "cidr": "172.45.0.0/16",
+        "id": "4cd5c1d7-68ec-4e9a-bf16-9fd7571f8805",
+        "subnetpool_id": null,
+        "updated_at": "2016-03-13T23:41:32",
+        "created_at": "2016-03-13T23:41:32"
+      }
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "read_only": false,
+      "domain": null,
+      "project_name": "admin",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "show_deleted": false,
+      "roles": [
+        "admin"
+      ],
+      "user_identity": "d2ac2752732444adac10fc4911fdac75 75c31cdaa3604b76b7e279de50aec9f0 - - -",
+      "project_domain": null,
+      "tenant_name": "admin",
+      "auth_token": "2af46d5627ef422491be4400038b5709",
+      "resource_uuid": null,
+      "project_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "is_admin": true,
+      "user": "d2ac2752732444adac10fc4911fdac75",
+      "request_id": "req-8148c629-919d-4fac-b8ff-57220d7f10b3",
+      "user_domain": null,
+      "timestamp": "2016-03-13 23:41:32.473691",
+      "tenant": "75c31cdaa3604b76b7e279de50aec9f0",
+      "user_name": "admin"
+    },
+    "metadata": {
+      "timestamp": "2016-03-13 23:41:32.562400",
+      "message_id": "7e3277a1-68cb-4114-87bf-a622d0417ac7"
+    }
+  },
+  "subnet.update.end": {
+    "event_type": "subnet.update.end",
+    "payload": {
+      "subnet": {
+        "name": "Updated subnet",
+        "enable_dhcp": true,
+        "network_id": "60e80dca-302d-4460-8984-9b85dc782bca",
+        "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+        "dns_nameservers": [],
+        "ipv6_ra_mode": null,
+        "allocation_pools": [
+          {
+            "start": "172.45.0.2",
+            "end": "172.45.255.254"
+          }
+        ],
+        "gateway_ip": "172.45.0.1",
+        "ipv6_address_mode": null,
+        "ip_version": 4,
+        "host_routes": [],
+        "cidr": "172.45.0.0/16",
+        "id": "4cd5c1d7-68ec-4e9a-bf16-9fd7571f8805",
+        "subnetpool_id": null,
+        "updated_at": "2016-03-13T23:42:20",
+        "created_at": "2016-03-13T23:41:32"
+      }
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "read_only": false,
+      "domain": null,
+      "project_name": "admin",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "show_deleted": false,
+      "roles": [
+        "admin"
+      ],
+      "user_identity": "d2ac2752732444adac10fc4911fdac75 75c31cdaa3604b76b7e279de50aec9f0 - - -",
+      "project_domain": null,
+      "tenant_name": "admin",
+      "auth_token": "cc90d47602134401802295b0b109ab26",
+      "resource_uuid": null,
+      "project_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "is_admin": true,
+      "user": "d2ac2752732444adac10fc4911fdac75",
+      "request_id": "req-0171556b-f68e-48ff-93a4-9214b286087b",
+      "user_domain": null,
+      "timestamp": "2016-03-13 23:42:20.408564",
+      "tenant": "75c31cdaa3604b76b7e279de50aec9f0",
+      "user_name": "admin"
+    },
+    "metadata": {
+      "timestamp": "2016-03-13 23:42:20.631587",
+      "message_id": "cf136c26-9aa6-40ed-80ac-afc468ca09d7"
+    }
+  },
+  "subnet.delete.end": {
+    "event_type": "subnet.delete.end",
+    "payload": {
+      "subnet_id": "4cd5c1d7-68ec-4e9a-bf16-9fd7571f8805"
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "read_only": false,
+      "domain": null,
+      "project_name": "admin",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "show_deleted": false,
+      "roles": [
+        "admin"
+      ],
+      "user_identity": "d2ac2752732444adac10fc4911fdac75 75c31cdaa3604b76b7e279de50aec9f0 - - -",
+      "project_domain": null,
+      "tenant_name": "admin",
+      "auth_token": "f4611508539a43a6b3511e6f8bdd8492",
+      "resource_uuid": null,
+      "project_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "is_admin": true,
+      "user": "d2ac2752732444adac10fc4911fdac75",
+      "request_id": "req-0c5ccd33-730d-40ca-86d9-3b76b7dbc568",
+      "user_domain": null,
+      "timestamp": "2016-03-14 00:43:17.952733",
+      "tenant": "75c31cdaa3604b76b7e279de50aec9f0",
+      "user_name": "admin"
+    },
+    "metadata": {
+      "timestamp": "2016-03-14 00:43:18.143933",
+      "message_id": "adac0012-c79c-4905-9a24-1777f9675808"
+    }
+  }
+}

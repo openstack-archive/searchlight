@@ -18,7 +18,11 @@ from oslo_log import log as logging
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.neutron import serialize_network
 from searchlight.elasticsearch.plugins.neutron import serialize_port
+from searchlight.elasticsearch.plugins.neutron import serialize_router
+from searchlight.elasticsearch.plugins.neutron import serialize_subnet
+from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
+
 from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
@@ -73,7 +77,10 @@ class PortHandler(base.NotificationBase):
         return {
             'port.create.end': self.create_or_update,
             'port.update.end': self.create_or_update,
-            'port.delete.end': self.delete
+            'port.delete.end': self.delete,
+
+            'router.interface.create': self.create_or_update_from_interface,
+            'router.interface.delete': self.delete_from_interface
         }
 
     def create_or_update(self, payload, timestamp):
@@ -98,3 +105,90 @@ class PortHandler(base.NotificationBase):
                 'Error deleting port %(port_id)s '
                 'from index. Error: %(exc)s') %
                 {'port_id': port_id, 'exc': exc})
+
+    def create_or_update_from_interface(self, payload, timestamp):
+        """Unfortunately there seems to be no notification for ports created
+        as part of a router interface creation, nor for DHCP ports. This
+        means we need to go to the API.
+        """
+        port_id = payload['router_interface']['port_id']
+        LOG.debug("Retrieving port %s from API", port_id)
+        nc = openstack_clients.get_neutronclient()
+        port = nc.show_port(port_id)['port']
+        serialized = serialize_port(
+            port, updated_at=utils.timestamp_to_isotime(timestamp))
+        version = self.get_version(serialized, timestamp)
+        self.index_helper.save_document(serialized, version=version)
+
+    def delete_from_interface(self, payload, timestamp):
+        """The partner of create_or_update_from_interface. There's no separate
+        port deletion notification.
+        """
+        port_id = payload['router_interface']['port_id']
+        delete_payload = {'port_id': port_id}
+        self.delete(delete_payload, timestamp)
+
+
+class SubnetHandler(base.NotificationBase):
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['neutron']
+
+    def get_event_handlers(self):
+        return {
+            'subnet.create.end': self.create_or_update,
+            'subnet.update.end': self.create_or_update,
+            'subnet.delete.end': self.delete
+        }
+
+    def create_or_update(self, payload, timestamp):
+        subnet_id = payload['subnet']['id']
+        LOG.debug("Updating subnet information for %s", subnet_id)
+        subnet = serialize_subnet(payload['subnet'])
+
+        version = self.get_version(subnet, timestamp)
+        self.index_helper.save_document(subnet, version=version)
+
+    def delete(self, payload, timestamp):
+        subnet_id = payload['subnet_id']
+        LOG.debug("Deleting subnet information for %s", subnet_id)
+        try:
+            self.index_helper.delete_document({'_id': subnet_id})
+        except Exception as exc:
+            LOG.error(_LE(
+                'Error deleting subnet %(subnet_id)s '
+                'from index: %(exc)s') %
+                {'subnet_id': subnet_id, 'exc': exc})
+
+
+class RouterHandler(base.NotificationBase):
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['neutron']
+
+    def get_event_handlers(self):
+        return {
+            'router.create.end': self.create_or_update,
+            'router.update.end': self.create_or_update,
+            'router.delete.end': self.delete
+        }
+
+    def create_or_update(self, payload, timestamp):
+        router_id = payload['router']['id']
+        LOG.debug("Updating router information for %s", router_id)
+        router = serialize_router(
+            payload['router'],
+            updated_at=utils.timestamp_to_isotime(timestamp))
+        version = self.get_version(router, timestamp)
+        self.index_helper.save_document(router, version=version)
+
+    def delete(self, payload, timestamp):
+        router_id = payload['router_id']
+        LOG.debug("Deleting router information for %s", router_id)
+        try:
+            self.index_helper.delete_document({'_id': router_id})
+        except Exception as exc:
+            LOG.error(_LE(
+                'Error deleting router %(router)s '
+                'from index: %(exc)s') %
+                {'router': router_id, 'exc': exc})

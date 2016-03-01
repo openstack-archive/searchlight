@@ -14,5 +14,7 @@
     "resource:OS::Designate::Zone:allow": "",
     "resource:OS::Designate::RecordSet:allow": "",
     "resource:OS::Neutron::Net:allow": "",
-    "resource:OS::Neutron::Port:allow": ""
+    "resource:OS::Neutron::Port:allow": "",
+    "resource:OS::Neutron::Subnet:allow": "",
+    "resource:OS::Neutron::Router:allow": ""
 }

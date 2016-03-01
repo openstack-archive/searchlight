@@ -1,0 +1,60 @@
+{
+  "routers": [
+    {
+      "admin_state_up": true,
+      "availability_zone_hints": [],
+      "availability_zones": [
+        "nova"
+      ],
+      "distributed": false,
+      "external_gateway_info": {
+        "enable_snat": true,
+        "external_fixed_ips": [
+          {
+            "ip_address": "172.25.0.3",
+            "subnet_id": "8cbe9b71-ecf1-4355-b5ba-dee54ec88fa7"
+          },
+          {
+            "ip_address": "2001:db8::3",
+            "subnet_id": "d7774648-ba81-477a-9329-2acc9a810e50"
+          }
+        ],
+        "network_id": "8891323e-bf5b-48d7-a75e-669af0608538"
+      },
+      "ha": false,
+      "id": "0b143748-44d2-4545-9230-864c3abbc786",
+      "name": "renamed router",
+      "routes": [],
+      "status": "ACTIVE",
+      "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0"
+    },
+    {
+      "admin_state_up": true,
+      "availability_zone_hints": [],
+      "availability_zones": [
+        "nova"
+      ],
+      "distributed": true,
+      "external_gateway_info": {
+        "enable_snat": true,
+        "external_fixed_ips": [
+          {
+            "ip_address": "172.25.0.2",
+            "subnet_id": "8cbe9b71-ecf1-4355-b5ba-dee54ec88fa7"
+          },
+          {
+            "ip_address": "2001:db8::1",
+            "subnet_id": "d7774648-ba81-477a-9329-2acc9a810e50"
+          }
+        ],
+        "network_id": "8891323e-bf5b-48d7-a75e-669af0608538"
+      },
+      "ha": false,
+      "id": "324d16fc-c381-4ea4-8f77-feda17cea1d7",
+      "name": "router1",
+      "routes": [],
+      "status": "ACTIVE",
+      "tenant_id": "1816a16093df465dbc609cf638422a05"
+    }
+  ]
+}

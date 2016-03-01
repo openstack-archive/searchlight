@@ -53,12 +53,26 @@ Plugin: OS::Neutron::Port
     [resource_plugin:os_neutron_port]
     enabled = true
 
+Plugin: OS::Neutron::Subnet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_neutron_subnet]
+    enabled = true
+
+Plugin: OS::Neutron::Router
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_neutron_router]
+    enabled = true
+
 Neutron Configuration
 =====================
 
 Neutron sends notifications on create/update/delete actions on the
 concepts that it implements. Currently Searchlight supports indexing
-for networks and ports, with subnets and routers to follow.
+for networks, subnets, ports and routers.
 
 neutron.conf
 ------------
@@ -92,6 +106,8 @@ Release Notes
 
 All provider:* properties of networks are exposed to administrators only.
 All binding:* properties of ports are also visible only to administrators.
+The 'distributed' and 'ha' router properties are available only to
+administrators.
 
 Additional properties can be protected similarly with the `admin_only_fields`
 under each plugin's configuration section. Glob-like patterns are supported.
@@ -103,3 +119,4 @@ For instance::
 See: ADMIN_ONLY_FIELDS in:
 * searchlight/elasticsearch/plugins/neutron/networks.py
 * searchlight/elasticsearch/plugins/neutron/ports.py
+* searchlight/elasticsearch/plugins/neutron/routers.py

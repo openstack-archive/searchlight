@@ -282,6 +282,8 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Nova::Server',
             'OS::Neutron::Net',
             'OS::Neutron::Port',
+            'OS::Neutron::Subnet',
+            'OS::Neutron::Router',
             'OS::Cinder::Volume',
             'OS::Cinder::Snapshot'
         ]

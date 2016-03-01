@@ -25,7 +25,22 @@
  "router:external": false,
  "shared": true,
  "status": "ACTIVE",
- "subnets": ["63785b90-f3d1-4124-b2e9-1e62dd7c8dab"],
+ "subnets": ["def"],
+ "tenant_id": "aaaaaabbbbbbccccc555552222255511"
+},
+ {
+ "admin_state_up": true,
+ "id": "00000000-4808-4c88-8c3b-000000000000",
+ "mtu": 0,
+ "name": "test-not-shared",
+ "port_security_enabled": true,
+ "provider:network_type": "vxlan",
+ "provider:physical_network": null,
+ "provider:segmentation_id": 1078,
+ "router:external": false,
+ "shared": false,
+ "status": "ACTIVE",
+ "subnets": ["abc"],
  "tenant_id": "aaaaaabbbbbbccccc555552222255511"
 },
 {
