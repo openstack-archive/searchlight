@@ -449,22 +449,22 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search'
         )
-        rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
-        expected_fragment = [{
+        rbac_filter = self.plugin.get_query_filters(fake_request.context)
+        expected_fragment = {
             "indices": {
                 "index": "searchlight-search",
                 "no_match_filter": "none",
                 "filter": {
                     "and": [
+                        {"type": {"value": "OS::Glance::Metadef"}},
                         {
                             "or": [
                                 {"term": {"owner": TENANT1}},
                                 {"term": {"visibility": "public"}},
                             ]
-                        },
-                        {"type": {"value": "OS::Glance::Metadef"}}
+                        }
                     ]
                 }
             }
-        }]
-        self.assertEqual(expected_fragment, rbac_query_fragment)
+        }
+        self.assertEqual(expected_fragment, rbac_filter)

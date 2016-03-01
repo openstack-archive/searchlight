@@ -271,44 +271,35 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             'term': {role_field: context.user_role_filter}
         }
 
+        ignore_rbac = is_admin and all_projects
+        type_and_rbac_filters = []
+        for resource_type in resource_types:
+            plugin = self.plugins[resource_type].obj
+
+            try:
+                plugin_filter = plugin.get_query_filters(
+                    context, ignore_rbac=ignore_rbac)
+
+                type_and_rbac_filters.append(plugin_filter)
+            except Exception as e:
+                msg = _("Error processing %s RBAC filter") % resource_type
+                LOG.error(_LE("Failed to retrieve RBAC filters "
+                              "from search plugin "
+                              "%(ext)s: %(e)s") %
+                          {'ext': plugin.name, 'e': e})
+                raise webob.exc.HTTPInternalServerError(explanation=msg)
+
         es_query = {
             'filtered': {
-                'filter': role_filter
+                'filter': {
+                    'bool': {
+                        'must': role_filter,
+                        'should': type_and_rbac_filters
+                    }
+                },
+                'query': query
             }
         }
-
-        if is_admin and all_projects:
-            es_query['filtered']['query'] = query
-
-        else:
-            filtered_query_list = []
-            for resource_type in resource_types:
-                plugin = self.plugins[resource_type].obj
-                try:
-                    rbac_filter = plugin.get_rbac_filter(context)
-                except Exception as e:
-                    msg = _("Error processing %s RBAC filter") % resource_type
-                    LOG.error(_LE("Failed to retrieve RBAC filters "
-                                  "from search plugin "
-                                  "%(ext)s: %(e)s") %
-                              {'ext': plugin.name, 'e': e})
-                    raise webob.exc.HTTPInternalServerError(explanation=msg)
-
-                filter_query = {
-                    "query": query,
-                    "filter": rbac_filter
-                }
-                filtered_query = {
-                    'filtered': filter_query
-                }
-                filtered_query_list.append(filtered_query)
-
-            es_query['filtered']['query'] = {
-                'bool': {
-                    'should': filtered_query_list
-                }
-            }
-
         return {'query': es_query}
 
     def _get_sort_order(self, sort_order):
