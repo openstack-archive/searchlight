@@ -204,6 +204,7 @@ def main():
         cfg_files = cfg.find_config_files(project='searchlight',
                                           prog='searchlight')
         config.parse_args(default_config_files=cfg_files)
+        config.set_config_defaults()
         logging.setup(CONF, 'searchlight')
 
         func_kwargs = {}

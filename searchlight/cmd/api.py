@@ -70,6 +70,7 @@ def fail(e):
 def main():
     try:
         config.parse_args()
+        config.set_config_defaults()
         wsgi.set_eventlet_hub()
         logging.setup(CONF, 'searchlight')
         utils.register_plugin_opts()

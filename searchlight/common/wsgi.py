@@ -45,6 +45,7 @@ import webob.dec
 import webob.exc
 from webob import multidict
 
+from searchlight.common import config
 from searchlight.common import exception
 from searchlight.common import utils
 from searchlight import i18n
@@ -381,6 +382,7 @@ class Server(object):
 
         # Ensure any logging config changes are picked up
         logging.setup(CONF, 'searchlight')
+        config.set_config_defaults()
 
         self.configure(old_conf, has_changed)
         self.start_wsgi()
