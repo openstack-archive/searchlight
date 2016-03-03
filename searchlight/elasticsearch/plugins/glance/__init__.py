@@ -37,7 +37,7 @@ def _get_image_members(image):
         g_client = openstack_clients.get_glanceclient()
         members = g_client.image_members.list(image['id'])
         return members
-    except glanceclient.exc.HTTPForbidden:
+    except glanceclient.exc.Unauthorized:
         LOG.warning(_LW("Could not list image members for %s; forbidden") %
                     image['id'])
         return []
@@ -53,8 +53,6 @@ def _normalize_visibility(image_doc):
         image_doc['visibility'] = 'public' if is_public else 'private'
 
 
-# Remove this once we can rely on glanceclient 1.0 being present
-@openstack_clients.clear_cached_glanceclient_on_unauthorized
 def serialize_glance_image(image):
 
     # If we're being asked to index an ID, retrieve the full image information
@@ -86,7 +84,6 @@ def serialize_glance_image(image):
     return document
 
 
-@openstack_clients.clear_cached_glanceclient_on_unauthorized
 def serialize_glance_notification(note):
     """Notifications are different in several ways from v2 API images"""
     _normalize_visibility(note)

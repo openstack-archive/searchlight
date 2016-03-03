@@ -18,7 +18,6 @@ import datetime
 import mock
 import six
 
-import glanceclient.exc
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.base import NotificationBase
@@ -121,15 +120,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         self.plugin = images_plugin.ImageIndex()
         self.notification_handler = self.plugin.get_notification_handler()
 
-        self.mock_session = mock.Mock()
-        self.mock_session.get_endpoint.return_value = \
-            'http://localhost/glance/v2'
-        patched_ses = mock.patch(
-            'searchlight.elasticsearch.plugins.openstack_clients._get_session',
-            return_value=self.mock_session)
-        patched_ses.start()
-        self.addCleanup(patched_ses.stop)
-
     def _create_images(self):
         self.simple_image = _image_fixture(
             UUID1, owner=TENANT1, checksum=CHECKSUM, name='simple', size=256,
@@ -169,14 +159,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
 
     def test_document_type(self):
         self.assertEqual('OS::Glance::Image', self.plugin.get_document_type())
-
-    # This test can be removed once we can use glanceclient>=1.0
-    def test_glanceclient_unauthorized(self):
-        with mock.patch('glanceclient.v2.image_members.Controller.list',
-                        side_effect=[glanceclient.exc.Unauthorized,
-                                     self.members_image_members]) as mock_mem:
-            self.plugin.serialize(self.members_image)
-            self.assertEqual(2, mock_mem.call_count)
 
     def test_image_serialize(self):
         expected = {
