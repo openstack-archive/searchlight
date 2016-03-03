@@ -15,7 +15,6 @@
 import os
 
 from designateclient.v2 import client as designateclient
-from glanceclient import exc as glance_exc
 from glanceclient.v2 import client as glance
 from keystoneclient import auth as ks_auth
 from keystoneclient import session as ks_session
@@ -56,50 +55,13 @@ def _get_session():
     return _session
 
 
-# Glance still needs special handling because versions prior to 1.0 don't
-# support keystone sessions. Rather than maintain two codepaths, we'll do this
-_glanceclient = None
-
-
-def clear_cached_glanceclient_on_unauthorized(fn):
-    def wrapper(*args, **kwargs):
-        global _session
-        global _glanceclient
-        try:
-            return fn(*args, **kwargs)
-        except glance_exc.Unauthorized:
-            _session = None
-            _glanceclient = None
-            return fn(*args, **kwargs)
-    return wrapper
-
-
 def get_glanceclient():
-    global _glanceclient
-    if _glanceclient:
-        return _glanceclient
-
     session = _get_session()
 
-    endpoint = session.get_endpoint(
-        service_type='image',
-        region_name=cfg.CONF.service_credentials.os_region_name,
-        interface=cfg.CONF.service_credentials.os_endpoint_type)
-
-    _glanceclient = glance.Client(
-        endpoint=endpoint,
-        token=session.auth.get_token(session),
-        cacert=cfg.CONF.service_credentials.cafile,
-        insecure=cfg.CONF.service_credentials.insecure
+    return glance.Client(
+        session=session,
+        region_name=cfg.CONF.service_credentials.os_region_name
     )
-    return _glanceclient
-
-    # Once we use 1.0, use the below code.
-    # session = _get_session()
-
-    # return glance.Client(
-    #     session=session
-    # )
 
 
 def get_novaclient():
