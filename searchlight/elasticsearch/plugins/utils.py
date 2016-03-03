@@ -14,9 +14,11 @@
 #    under the License.
 
 import copy
+import datetime
 from elasticsearch import helpers
 import fnmatch
 import logging
+import oslo_utils
 import six
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
@@ -30,6 +32,13 @@ USER_ID_SUFFIX = "_USER"
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 VERSION_CONFLICT_MSG = 'version_conflict_engine_exception'
+
+
+def get_now_str():
+    """Wrapping this to make testing easier (mocking utcnow's troublesome)
+    and keep it in one place in case oslo changes
+    """
+    return oslo_utils.timeutils.isotime(datetime.datetime.utcnow())
 
 
 def normalize_date_fields(document,

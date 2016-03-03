@@ -1,0 +1,8 @@
+---
+features:
+  - Adds neutron plugins for networks and ports.
+issues:
+  - Neutron resources do not provide dates (created_at
+    or updated_at). created_at is left empty; updated_at
+    is taken from the server (and will be adjusted to
+    use the notification timestamp at a later time)
