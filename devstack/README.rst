@@ -17,9 +17,37 @@
  Enabling Searchlight in Devstack
 =================================
 
-1. Download DevStack
+1. Download DevStack (git clone)
 
-2. Add this repo as an external repository::
+2. Update local.conf
+
+You may follow the customization instructions below or use the example
+local.conf.
+
+3. Run ``stack.sh``
+
+.. note::
+   This installs a headless JRE. If you are working on a desktop based OS
+   (such as Ubuntu 14.04), this may cause tools like pycharms to no longer
+   launch. You can switch between JREs and back: to a headed JRE version using:
+   "sudo update-alternatives --config java".
+
+
+Full example local.conf
+=======================
+
+The example local.conf MAY not be up to date with the rest of devstack.
+
+:download:`local.conf <local.conf>`
+
+.. note::
+   You will need to look through the settings and potentially customize it to your
+   environment, especially ``HOST_IP``.
+
+Existing local.conf customization
+=================================
+
+1. Add this repo as an external repository::
 
      > cat local.conf
      [[local|localrc]]
@@ -27,28 +55,22 @@
      enable_service searchlight-api
      enable_service searchlight-listener
 
-2. Customize searchlight configuration
-
-To customize the searchlight configuration, add settings under the following
-section in ``local.conf``::
-
-    [[post-config|$SEARCHLIGHT_CONF]]
-
-3. Add Plugin Configuration Hooks
+2. Configure desired searchlight plugins
 
 The search service is driven using a plugin mechanism for integrating to other
-services. Each integrated service may require additional configuration
-settings. For example, typically, you will need to add the
+services. Each integrated service may need to be specifically enabled
+in devstack and may require additional configuration settings to work with
+searchlight. For example, typically, you will need to add the
 ``searchlight_indexer`` notification topic to each service's configuration.
 
 Please review the plugin documentation and add configuration appropriately:
 
  * `Searchlight Plugins <http://docs.openstack.org/developer/searchlight/plugins.html>`_
 
-4. Run ``stack.sh``
+3. Customize searchlight configuration
 
-.. note::
-   This installs a headless JRE. If you are working on a desktop based OS
-   (such as Ubuntu 14.04), this may cause tools like pycharms to no longer
-   launch. You can switch between JREs and back: to a headed JRE version using:
-   "sudo update-alternatives --config java".
+Searchlight documentation talks about settings in ``searchlight.conf``.
+To customize searchlight.conf settingss, add then under the following
+section in ``local.conf``::
+
+    [[post-config|$SEARCHLIGHT_CONF]]
