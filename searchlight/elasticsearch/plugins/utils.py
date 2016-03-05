@@ -33,6 +33,9 @@ LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 VERSION_CONFLICT_MSG = 'version_conflict_engine_exception'
 
+DOC_VALUE_TYPES = ('integer', 'short', 'boolean', 'short', 'byte',
+                   'double', 'float', 'date', 'binary', 'geo_point', 'ip')
+
 
 def get_now_str():
     """Wrapping this to make testing easier (mocking utcnow's troublesome)
@@ -416,3 +419,34 @@ class IndexingHelper(object):
                 sanitized_document[k] = v
 
         return sanitized_document
+
+    @classmethod
+    def apply_doc_values(cls, mapping):
+        """Sets 'doc_values' on fields in a mapping which allows queries to be
+        run on fields directly off disk, saving memory in analysis operations.
+        Currently all fields with the exception of analyzed strings can be set
+        as doc_values. Elasticsearch 2.x will make doc_values the default.
+        """
+        def apply_doc_values(field_def):
+            if field_def.get('type', 'object') in ('nested', 'object'):
+                for _, nested_def in six.iteritems(field_def['properties']):
+                    apply_doc_values(nested_def)
+            else:
+                if 'doc_values' not in field_def:
+                    if field_def['type'] in DOC_VALUE_TYPES:
+                        field_def['doc_values'] = True
+                    elif (field_def['type'] == 'string' and
+                          field_def.get('index', '') == 'not_analyzed'):
+                        field_def['doc_values'] = True
+
+                for _, multidef in six.iteritems(field_def.get('fields', {})):
+                    apply_doc_values(multidef)
+
+        # Check dynamic templates
+        dynamic_templates = mapping.get('dynamic_templates', {})
+        for dyn_field, dyn_mapping in six.iteritems(dynamic_templates):
+            for field, definition in six.iteritems(dyn_mapping['mapping']):
+                apply_doc_values(definition)
+
+        for field, definition in six.iteritems(mapping['properties']):
+            apply_doc_values(definition)

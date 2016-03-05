@@ -79,6 +79,7 @@ class FakePluginBase(base.IndexBase):
         self.options.admin_only_fields = None
         self.options.index_name = 'fake'
         self.options.enabled = True
+        self.options.mapping_use_doc_values = True
 
         self.engine = es_engine
         self.index_name = 'fake'
@@ -86,6 +87,9 @@ class FakePluginBase(base.IndexBase):
 
         self.parent_plugin = None
         self.child_plugins = []
+
+    def get_index_name(self):
+        return 'fake'
 
     def serialize(self, doc):
         return doc
