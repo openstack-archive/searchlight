@@ -60,6 +60,7 @@ class TestSearchApi(functional.FunctionalTest):
         self._index(images_plugin,
                     [doc])
 
+        doc["project_id"] = doc["owner"]
         # Test the raw elasticsearch response
         es_doc = self._get_elasticsearch_doc(
             images_plugin.alias_name_search,
@@ -109,7 +110,8 @@ class TestSearchApi(functional.FunctionalTest):
             'display_name': None,
             'description': None,
             'protected': None,
-            'updated_at': None
+            'updated_at': None,
+            'project_id': TENANT1
         }
         doc1.update(additional_props)
         doc2.update(additional_props)
@@ -187,6 +189,7 @@ class TestSearchApi(functional.FunctionalTest):
                                                       TENANT1)
         self.assertEqual(200, response.status)
         tenant1_doc["members"] = []
+        tenant1_doc["project_id"] = tenant1_doc["owner"]
         self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
 
     def test_facets(self):

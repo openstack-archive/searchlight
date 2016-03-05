@@ -1,0 +1,10 @@
+---
+prelude: >
+  Added project_id to mappings.
+features:
+  - Openstack is moving away from 'tenant' as the
+    nomenclature for keystone projects, preferring
+    'project' instead. Some services already return
+    tenant_id and project_id (or just project_id);
+    this patch adds project_id to those that do not.
+

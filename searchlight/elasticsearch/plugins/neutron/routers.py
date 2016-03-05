@@ -115,7 +115,7 @@ class RouterIndex(base.IndexBase):
     @property
     def facets_excluded(self):
         return {'tenant_id': True, 'distributed': True, 'ha': True,
-                'project_id': False}
+                'project_id': True}
 
     def _get_rbac_field_filters(self, request_context):
         return [

@@ -172,6 +172,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'name': 'simple',
             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'protected': False,
             'size': 256,
             'status': 'active',
@@ -196,6 +197,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'name': 'tagged',
             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'protected': False,
             'size': 512,
             'status': 'active',
@@ -222,6 +224,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'mysql_version': '5.6',
             'name': 'complex',
             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+            'project_id': '2c014f32-55eb-467d-8fcb-4bd706012f81',
             'protected': False,
             'size': 256,
             'status': 'active',
@@ -249,6 +252,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'name': 'complex',
             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+            'project_id': '2c014f32-55eb-467d-8fcb-4bd706012f81',
             'protected': False,
             'size': 256,
             'status': 'active',
@@ -277,6 +281,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'name': 'kernel_ramdisk',
             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'protected': False,
             'size': 256,
             'status': 'active',
@@ -325,7 +330,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'checksum': '93264c3edf5972c9f1cb309543d38a5c',
                             'members': [],
                             'visibility': 'public',
-                            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                            'owner': TENANT1,
+                            'project_id': TENANT1,
                             'disk_format': None,
                             'name': 'simple',
                             'created_at': '2012-05-16T15:27:36Z',
@@ -345,7 +351,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'checksum': '93264c3edf5972c9f1cb309543d38a5c',
                             'members': [],
                             'visibility': 'public',
-                            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                            'owner': TENANT1,
+                            'project_id': TENANT1,
                             'disk_format': None,
                             'name': 'tagged',
                             'created_at': '2012-05-16T15:27:36Z',
@@ -365,7 +372,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'mysql_version': '5.6',
                             'visibility': 'public',
                             'hypervisor': 'lxc',
-                            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                            'owner': TENANT2,
+                            'project_id': TENANT2,
                             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
                             'name': 'complex',
                             'created_at': '2012-05-16T15:27:36Z',
@@ -388,7 +396,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                                 '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'
                             ],
                             'visibility': 'private',
-                            'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+                            'owner': TENANT2,
+                            'project_id': TENANT2,
                             'disk_format': None,
                             'name': 'complex',
                             'created_at': '2012-05-16T15:27:36Z',
@@ -408,7 +417,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'checksum': '93264c3edf5972c9f1cb309543d38a5c',
                             'members': [],
                             'visibility': 'public',
-                            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                            'owner': TENANT1,
+                            'project_id': TENANT1,
                             'disk_format': None,
                             'name': 'kernel_ramdisk',
                             'created_at': '2012-05-16T15:27:36Z',
@@ -491,6 +501,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'name': 'simple',
             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'protected': False,
             'size': 256,
             'status': 'active',
@@ -537,6 +548,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'name': 'simple',
             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'protected': False,
             'size': 256,
             'status': 'active',
@@ -569,6 +581,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'visibility': 'public',
             'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'min_disk': None,
             'members': [],
             'virtual_size': None,
@@ -605,6 +618,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_ram': None,
             'visibility': 'private',
             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
+            'project_id': '2c014f32-55eb-467d-8fcb-4bd706012f81',
             'members': [
                 '6838eb7b-6ded-434a-882c-b344c77fe8df',
                 '2c014f32-55eb-467d-8fcb-4bd706012f81',
@@ -640,8 +654,11 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         facets = self.plugin.get_facets(fake_request.context)
         facet_names = [f['name'] for f in facets]
 
-        # Glance has no nested fields and no special ones that would be faceted
+        # Glance has no nested fields but owner and project id are excluded for
+        # non admins
         expected_facet_names = self.plugin.get_mapping()['properties'].keys()
+        expected_facet_names = set(expected_facet_names) - set(('owner',
+                                                                'project_id'))
 
         self.assertEqual(set(expected_facet_names), set(facet_names))
 

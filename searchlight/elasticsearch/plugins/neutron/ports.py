@@ -107,7 +107,7 @@ class PortIndex(base.IndexBase):
 
     @property
     def facets_excluded(self):
-        return {'tenant_id': True, 'project_id': False}
+        return {'tenant_id': True, 'project_id': True}
 
     def _get_rbac_field_filters(self, request_context):
         if request_context.is_admin:

@@ -54,6 +54,7 @@ class ServerIndex(base.IndexBase):
                 },
                 'owner': {'type': 'string', 'index': 'not_analyzed'},
                 'tenant_id': {'type': 'string', 'index': 'not_analyzed'},
+                'project_id': {'type': 'string', 'index': 'not_analyzed'},
                 'user_id': {'type': 'string', 'index': 'not_analyzed'},
                 'created': {'type': 'date'},
                 'updated': {'type': 'date'},
@@ -105,6 +106,9 @@ class ServerIndex(base.IndexBase):
                 "tenant_id": {
                     "resource_type": resource_types.KEYSTONE_PROJECT
                 },
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
                 "user_id": {
                     "resource_type": resource_types.KEYSTONE_USER
                 },
@@ -135,7 +139,7 @@ class ServerIndex(base.IndexBase):
         fields should not be offered as facet options, or those that should
         only be available to administrators.
         """
-        return {'tenant_id': True,
+        return {'tenant_id': True, 'project_id': True,
                 'created': False, 'updated': False}
 
     def _get_rbac_field_filters(self, request_context):
@@ -143,7 +147,7 @@ class ServerIndex(base.IndexBase):
         query. Document type will be added to this list.
         """
         return [
-            {'term': {'tenant_id': request_context.owner}}
+            {'term': {'tenant_id': request_context.owner}},
         ]
 
     def get_objects(self):

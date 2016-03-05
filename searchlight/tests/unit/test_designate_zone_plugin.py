@@ -132,3 +132,7 @@ class TestZonePlugin(test_utils.BaseTestCase):
             ignore_unavailable=True,
             size=0
         )
+
+    def test_serialize(self):
+        serialized = self.plugin.serialize(self.zone1)
+        self.assertEqual(TENANT1, serialized['project_id'])

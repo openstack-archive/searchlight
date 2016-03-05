@@ -66,6 +66,9 @@ def serialize_glance_image(image):
 
     document = {k: v for k, v in image.items() if k not in fields_to_ignore}
 
+    if 'project_id' not in document:
+        document['project_id'] = document['owner']
+
     members = list(members)
     older_glance_version = False
     # Make it backward compatibe with older glance version
@@ -163,6 +166,10 @@ def serialize_glance_metadef_ns(metadef_namespace):
         document['name'] = document['display_name']
     else:
         document['name'] = document['namespace']
+
+    # Add project_id as a copy of 'owner'
+    if 'project_id' not in document:
+        document['project_id'] = document['owner']
 
     document['tags'] = sorted([
         _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])])

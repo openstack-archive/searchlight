@@ -45,6 +45,7 @@ class RecordSetIndex(designate.DesignateBase):
             ],
             "properties": {
                 "id": {"type": "string", "index": "not_analyzed"},
+                "project_id": {"type": "string", "index": "not_analyzed"},
                 "created_at": {"type": "date"},
                 "updated_at": {"type": "date"},
                 "name": {
@@ -81,6 +82,11 @@ class RecordSetIndex(designate.DesignateBase):
     @property
     def facets_with_options(self):
         return ('status', 'type')
+
+    @property
+    def facets_excluded(self):
+        """Facets either not available or available only to admins"""
+        return {'project_id': True}
 
     def _get_rbac_field_filters(self, request_context):
         return [

@@ -137,3 +137,8 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
                         return_value={'ports': self.ports}):
             listed_objects = list(self.plugin.get_objects())
             self.assertEqual([self.port1], listed_objects)
+
+    def test_serialize(self):
+        serialized = self.plugin.serialize(self.port1)
+        # project id should get copied from tenant_id
+        self.assertEqual(TENANT1, serialized['project_id'])

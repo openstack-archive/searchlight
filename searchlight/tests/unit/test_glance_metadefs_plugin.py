@@ -276,6 +276,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                     'title': 'something title'
                 }]
             }],
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'resource_types': [{
                 # TODO(sjmc7): Removing these because i'm not sure we
                 # have access to them
@@ -326,6 +327,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                     'title': 'something title'
                 }]
             }],
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
             'resource_types': [{
                 # TODO(sjmc7): Removing these because i'm not sure we
                 # have access to them
@@ -381,6 +383,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'visibility': 'private',
                         'protected': True,
                         'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                        'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
                         'properties': [{
                             'name': 'Property1',
                             'type': 'string',
@@ -415,6 +418,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'visibility': 'public',
                         'protected': False,
                         'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+                        'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
                         'properties': [
                             {
                                 'name': 'Property2',

@@ -43,6 +43,8 @@ def _serialize_recordset(rs):
     # NOTE: This is a hack to make project_id from tenant_id
     rs.pop("links", None)
     rs["records"] = [{"data": i} for i in rs["records"]]
+    if "project_id" not in rs:
+        rs["project_id"] = rs["tenant_id"]
     if not rs['updated_at'] and rs['created_at']:
         rs['updated_at'] = rs['created_at']
     return rs
