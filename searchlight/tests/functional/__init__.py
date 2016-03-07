@@ -443,41 +443,52 @@ class FunctionalTest(test_utils.BaseTestCase):
                 ignore=404)
 
     def _index(self, index_name, doc_type, docs, tenant,
+               parent_id_field=None,
                role_separation=False, refresh_index=True):
+        # TODO(sjmc7) This whole function needs to use the IndexingHelper.
+        # It duplicates a lot of the behavior poorly
 
         def apply_role_separation(apply_to_docs):
             if role_separation:
                 for doc in apply_to_docs:
+                    parent_id = parent_id_field and doc.get(parent_id_field)
+
                     user_doc = copy.deepcopy(doc)
                     user_doc[ROLE_USER_FIELD] = 'user'
-                    user_doc['id'] = user_doc['id'] + '_USER'
-                    yield user_doc
+                    action = {'_id': user_doc['id'] + '_USER',
+                              '_source': user_doc, '_op_type': 'index'}
+                    if parent_id:
+                        action['_parent'] = parent_id + '_USER'
+                    yield action
 
-                    doc[ROLE_USER_FIELD] = 'admin'
-                    doc['id'] = doc['id'] + '_ADMIN'
-                    yield doc
+                    admin_doc = copy.deepcopy(doc)
+                    admin_doc[ROLE_USER_FIELD] = 'admin'
+                    action = {'_id': admin_doc['id'] + '_ADMIN',
+                              '_source': admin_doc, '_op_type': 'index'}
+                    if parent_id:
+                        action['_parent'] = parent_id + '_ADMIN'
+                    yield action
 
             else:
                 for doc in apply_to_docs:
+                    parent_id = parent_id_field and doc.get(parent_id_field)
                     doc = copy.deepcopy(doc)
                     if ROLE_USER_FIELD not in doc:
                         doc[ROLE_USER_FIELD] = ['admin', 'user']
-                    yield doc
+                    action = {'_id': doc['id'], '_source': doc,
+                              '_op_type': 'index'}
+                    if parent_id:
+                        action['_parent'] = parent_id
+                    yield action
 
         if not isinstance(docs, list):
             docs = [docs]
-
-        actions = [{
-            '_id': doc['id'],
-            '_source': doc,
-            '_op_type': 'index',
-        } for doc in apply_role_separation(docs)]
 
         result = elasticsearch.helpers.bulk(
             client=self.elastic_connection,
             index=index_name,
             doc_type=doc_type,
-            actions=actions)
+            actions=apply_role_separation(docs))
 
         if refresh_index:
             # Force elasticsearch to update its search index
