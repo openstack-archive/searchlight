@@ -256,8 +256,10 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
 
         mock_scan_data = [
-            {'_id': '1_ADMIN', 'fields': {'_parent': 'p1_ADMIN'}},
-            {'_id': '1_USER', 'fields': {'_parent': 'p1_USER'}}
+            {'_id': '1_ADMIN',
+             'fields': {'_parent': 'p1_ADMIN'}},
+            {'_id': '1_USER',
+             'fields': {'_parent': 'p1_USER'}}
         ]
         with mock.patch(scan_name, return_value=mock_scan_data) as mock_scan:
             with mock.patch(bulk_name) as mock_bulk:
@@ -266,7 +268,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 parent_type = plugin.parent_plugin_type()
                 base_full_parent_type = '%s#%s' % (parent_type, 'p1')
                 expected_scan_query = {
-                    'fields': ['_parent'],
+                    'fields': ['_parent', '_routing'],
                     'query': {
                         'term': {
                             '_parent': [base_full_parent_type + '_ADMIN',
@@ -307,7 +309,8 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
 
         mock_scan_data = [
-            {'_id': '1', 'fields': {'_parent': 'p1'}},
+            {'_id': '1',
+             'fields': {'_parent': 'p1'}},
         ]
         with mock.patch(scan_name, return_value=mock_scan_data) as mock_scan:
             with mock.patch(bulk_name) as mock_bulk:
@@ -315,7 +318,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
                 parent_type = plugin.parent_plugin_type()
                 expected_scan_query = {
-                    'fields': ['_parent'],
+                    'fields': ['_parent', '_routing'],
                     'query': {
                         'term': {
                             '_parent': '%s#%s' % (parent_type, 'p1')
@@ -340,3 +343,47 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                     doc_type=plugin.document_type,
                     actions=expected_delete_actions
                 )
+
+    def test_routing_save_docs(self):
+        """Test that for a plugin that specifies routing_id field will
+        end up with "_routing" set while indexing.
+        """
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimpleRoutingPlugin(es_engine=mock_engine)
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        with mock.patch(bulk_name) as mock_bulk:
+            count = len(plugin.get_objects())
+            fake_versions = range(1, count + 1)
+            indexing_helper.save_documents(plugin.get_objects(), fake_versions)
+            self.assertEqual(1, len(mock_bulk.call_args_list))
+            actions = list(mock_bulk.call_args_list[0][1]['actions'])
+
+        # '_routing' is added to action only if set in the plugin property
+        # FakeSimpleRoutingPlugin has it defined.
+        self.assertIs(True, '_routing' in actions[0])
+        self.assertEqual('tenant1', actions[0]['_routing'])
+
+    def test_routing_delete(self):
+        """Test that deletion for a routing based plugin deletes docs"""
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimpleRoutingPlugin(es_engine=mock_engine)
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        with mock.patch(bulk_name) as mock_bulk:
+            indexing_helper.delete_document(
+                {'_id': 'id_for_routing_plugin-fake1',
+                 '_routing': 'tenant1'})
+
+            expected_delete_actions = [
+                {'_op_type': 'delete',
+                 '_id': 'id_for_routing_plugin-fake1',
+                 '_routing': 'tenant1'}
+            ]
+            mock_bulk.assert_called_once_with(
+                client=plugin.engine,
+                index=plugin.alias_name_listener,
+                doc_type=plugin.document_type,
+                actions=expected_delete_actions)

@@ -322,6 +322,14 @@ class IndexBase(plugin.Plugin):
         return None
 
     @property
+    def routing_field(self):
+        """Whatever field should be treated as the routing value.
+        This is required for plugins which want to base all the CRUD
+        operations based on the _routing definition.
+        """
+        return None
+
+    @property
     def enabled(self):
         return self.options.enabled
 

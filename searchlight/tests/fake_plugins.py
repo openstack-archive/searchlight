@@ -55,6 +55,12 @@ NON_ROLE_SEPARATED_DATA = [
     }
 ]
 
+ROUTING_DATA = [
+    {
+        "id": "id_for_routing_plugin-fake1",
+        "tenant_id": "tenant1",
+    }
+]
 
 SIMPLE_DATA = [
     {
@@ -158,6 +164,39 @@ class NonRoleSeparatedPlugin(FakePluginBase):
     def get_objects(self):
         self.number_documents = len(NON_ROLE_SEPARATED_DATA)
         return copy.deepcopy(NON_ROLE_SEPARATED_DATA)
+
+    def serialize(self, doc):
+        return doc
+
+
+class FakeSimpleRoutingPlugin(FakePluginBase):
+    def __init__(self, es_engine):
+        super(FakeSimpleRoutingPlugin, self).__init__(es_engine)
+
+    @classmethod
+    def get_document_type(cls):
+        return 'Fake-RoutingPlugin'
+
+    def get_mapping(self):
+        return {
+            'properties': {
+                'id': {'type': 'string', 'index': 'not_analyzed'},
+                'tenant_id': {'type': 'string'}
+            }
+        }
+
+    def _get_rbac_field_filters(self, request_context):
+        return [
+            {'term': {'tenant_id': request_context.owner}}
+        ]
+
+    @property
+    def routing_field(self):
+        return "tenant_id"
+
+    def get_objects(self):
+        self.number_documents = len(ROUTING_DATA)
+        return copy.deepcopy(ROUTING_DATA)
 
     def serialize(self, doc):
         return doc

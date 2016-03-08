@@ -332,8 +332,8 @@ class IndexingHelper(object):
                         index=index_name,
                         doc_type=self.document_type,
                         chunk_size=self.index_chunk_size,
-                        actions=self._apply_role_filtering(documents,
-                                                           versions))
+                        actions=self._prepare_actions(documents,
+                                                      versions))
                 if actions:
                     result = helpers.bulk(
                         client=self.engine,
@@ -349,7 +349,7 @@ class IndexingHelper(object):
                 }
                 LOG.error(_LE("Failed Indexing %(doc)s: %(msg)s") % format_msg)
 
-    def _index_alias_multiple_indexes_get(self, doc_id):
+    def _index_alias_multiple_indexes_get(self, doc_id, routing=None):
         """Getting a document from an alias with multiple indexes will fail.
            We need to retrive it from one of the indexes. We will choose
            the latest index. Since the indexes are named with a timestamp,
@@ -359,10 +359,19 @@ class IndexingHelper(object):
         index_list = indexes.keys()
         index_list.sort(reverse=True)
         try:
-            return self.engine.get(
-                index=index_list[0],
-                doc_type=self.document_type,
-                id=doc_id)
+            if routing:
+                return self.engine.get(
+                    index=index_list[0],
+                    doc_type=self.document_type,
+                    id=doc_id,
+                    routing=routing
+                )
+            else:
+                return self.engine.get(
+                    index=index_list[0],
+                    doc_type=self.document_type,
+                    id=doc_id
+                )
         except Exception as e:
             format_msg = {
                 'doc': self.document_type,
@@ -403,7 +412,7 @@ class IndexingHelper(object):
                 index=use_index,
                 doc_type=self.document_type,
                 chunk_size=self.index_chunk_size,
-                actions=self._apply_role_filtering(documents, versions))
+                actions=self._prepare_actions(documents, versions))
         except helpers.BulkIndexError as e:
             err_msg = []
             for err in e.errors:
@@ -422,8 +431,9 @@ class IndexingHelper(object):
         LOG.debug("Indexing result: %s", result)
 
     def delete_document(self, document):
-        """'document' must contain an '_id', but can include '_parent' and
-        '_version', each of which will be passed to the bulk helper
+        """'document' must contain an '_id', but can include '_parent',
+        '_version' and '_routing', each of which will be passed to
+        the bulk helper
         """
         self.delete_documents([document])
 
@@ -448,6 +458,8 @@ class IndexingHelper(object):
                     # security issue because of potential fishing queries
                     parent_entity_id += (id_suffix or USER_ID_SUFFIX)
                 action['_parent'] = parent_entity_id
+            if '_routing' in doc:
+                action['_routing'] = doc['_routing']
             return action
 
         actions = []
@@ -513,7 +525,7 @@ class IndexingHelper(object):
         # we have to figure out role separation. _parent is (in 1.x) not
         # return by default and has to be requested in 'fields'
         query = {
-            'fields': ['_parent'],
+            'fields': ['_parent', '_routing'],
             'query': {
                 'term': {
                     '_parent': full_parent_ids
@@ -527,8 +539,12 @@ class IndexingHelper(object):
             doc_type=self.document_type,
             query=query)
 
-        to_delete = [{'_id': doc['_id'], '_parent': doc['fields']['_parent']}
-                     for doc in documents]
+        to_delete = [
+            {'_id': doc['_id'], '_parent': doc['fields']['_parent'],
+             '_routing': doc['fields']['_routing']}
+            if '_routing' in doc['fields']
+            else {'_id': doc['_id'], '_parent': doc['fields']['_parent']}
+            for doc in documents]
 
         # Use the parent version tag; we're instructing elasticsearch to mark
         # all the deleted child documents as 'don't apply updates received
@@ -540,22 +556,31 @@ class IndexingHelper(object):
 
         self.delete_documents(to_delete, override_role_separation=True)
 
-    def get_document(self, doc_id, for_admin=False):
+    def get_document(self, doc_id, for_admin=False, routing=None):
         if self.plugin.requires_role_separation:
             doc_id += (ADMIN_ID_SUFFIX if for_admin else USER_ID_SUFFIX)
 
         try:
-            return self.engine.get(
-                index=self.alias_name,
-                doc_type=self.document_type,
-                id=doc_id
-            )
+            if routing:
+                return self.engine.get(
+                    index=self.alias_name,
+                    doc_type=self.document_type,
+                    id=doc_id,
+                    routing=routing
+                )
+            else:
+                return self.engine.get(
+                    index=self.alias_name,
+                    doc_type=self.document_type,
+                    id=doc_id
+                )
         except es_exc.RequestError:
             # TODO(ricka) Verify this is the IllegalArgument exception.
             LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
                       {'alias': self.alias_name})
             #
-            return self._index_alias_multiple_indexes_get(doc_id=doc_id)
+            return self._index_alias_multiple_indexes_get(
+                doc_id=doc_id, routing=routing)
 
     def update_document(self, document, doc_id, update_as_script):
         """Updates are a little simpler than inserts because the documents
@@ -570,6 +595,10 @@ class IndexingHelper(object):
                 action.update(source)
             else:
                 action['doc'] = source
+
+            routing_field = self.plugin.routing_field
+            if routing_field:
+                action['_routing'] = source[routing_field]
 
             return action
 
@@ -594,7 +623,7 @@ class IndexingHelper(object):
                       {'alias': self.alias_name})
             self._index_alias_multiple_indexes_bulk(actions=actions)
 
-    def _apply_role_filtering(self, documents, versions=None):
+    def _prepare_actions(self, documents, versions=None):
         """Returns a generator of indexable 'actions'. If the plugin requires
         role-based separation, two actions will be yielded per document,
         otherwise one. _id and USER_ROLE_FIELD are set as appropriate
@@ -611,6 +640,7 @@ class IndexingHelper(object):
                 action['_version'] = version
 
             parent_field = self.plugin.get_parent_id_field()
+            routing_field = self.plugin.routing_field
             if parent_field:
                 parent_id = source[parent_field]
                 if self.plugin.parent_plugin.requires_role_separation:
@@ -618,6 +648,8 @@ class IndexingHelper(object):
                     # security issue because of potential fishing queries
                     parent_id += (id_suffix or USER_ID_SUFFIX)
                 action['_parent'] = parent_id
+            if routing_field:
+                action['_routing'] = source[routing_field]
             return action
 
         for index, document in enumerate(documents):
