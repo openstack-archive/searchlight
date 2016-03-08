@@ -370,19 +370,6 @@ class FunctionalTest(test_utils.BaseTestCase):
         """Specify 'exclude_plugins' or 'include_plugins' as a list of
         tuples.
         """
-        def dummy_plugin_init(plugin):
-            plugin.options = mock.Mock()
-            plugin.options.index_name = "searchlight"
-            plugin.options.enabled = True
-            plugin.options.admin_only_fields = None
-
-            plugin.engine = self.elastic_connection
-            plugin.index_name = plugin.get_index_name()
-            plugin.document_type = plugin.get_document_type()
-
-            plugin.parent_plugin = None
-            plugin.child_plugins = []
-
         plugin_classes = {
             'glance': {'images': 'ImageIndex', 'metadefs': 'MetadefIndex'},
             'nova': {'servers': 'ServerIndex'},
@@ -395,13 +382,14 @@ class FunctionalTest(test_utils.BaseTestCase):
         )
         plugins = filter(lambda plugin: plugin not in exclude_plugins, plugins)
 
+        # Make sure the plugins instantiated in this process use the same
+        # connection as the ones in the API process they'll work with
+        es_conn_patcher = mock.patch('searchlight.elasticsearch.get_api',
+                                     return_value=self.elastic_connection)
+        es_conn_patcher.start()
+        self.addCleanup(es_conn_patcher.stop)
+
         for service, plugin_type in plugins:
-            mod = "searchlight.elasticsearch.plugins.%s.%s.base.IndexBase" \
-                  % (service, plugin_type)
-            plugin_patcher = \
-                mock.patch("%s.__init__" % mod, dummy_plugin_init)
-            plugin_patcher.start()
-            self.addCleanup(plugin_patcher.stop)
             plugin_mod_name = ("searchlight.elasticsearch.plugins.%s.%s"
                                % (service, plugin_type))
             plugin_cls_name = plugin_classes[service][plugin_type]
