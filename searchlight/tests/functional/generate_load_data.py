@@ -17,61 +17,56 @@ import os
 
 import simplejson as json
 
-from oslo_config import cfg
-from searchlight.elasticsearch.plugins import openstack_clients
-
-CONF = cfg.CONF
-os_service_group = cfg.OptGroup(name='service_credentials',
-                                title='Service credentials group')
-CLI_OPTS = [
-    cfg.StrOpt('os_username',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_USERNAME', 'searchlight'),
-               help='User name to use for OpenStack service access.'),
-    cfg.StrOpt('os_password',
-               deprecated_group="DEFAULT",
-               secret=True,
-               default=os.environ.get('OS_PASSWORD', 'admin'),
-               help='Password to use for OpenStack service access.'),
-    cfg.StrOpt('os_tenant-id',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_TENANT_ID', ''),
-               help='Tenant ID to use for OpenStack service access.'),
-    cfg.StrOpt('os_tenant-name',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_TENANT_NAME', 'admin'),
-               help='Tenant name to use for OpenStack service access.'),
-    cfg.StrOpt('os_cacert',
-               default=os.environ.get('OS_CACERT'),
-               help='Certificate chain for SSL validation.'),
-    cfg.StrOpt('os_auth-url',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_AUTH_URL',
-                                      'http://localhost:5000/v2.0'),
-               help='Auth URL to use for OpenStack service access.'),
-    cfg.StrOpt('os_region-name',
-               deprecated_group="DEFAULT",
-               default=os.environ.get('OS_REGION_NAME'),
-               help='Region name to use for OpenStack service endpoints.'),
-    cfg.StrOpt('os_endpoint-type',
-               default=os.environ.get('OS_ENDPOINT_TYPE', 'publicURL'),
-               help='Type of endpoint in Identity service catalog to '
-                    'use for communication with OpenStack services.'),
-    cfg.BoolOpt('insecure',
-                default=False,
-                help='Disables X.509 certificate validation when an '
-                     'SSL connection to Identity Service is established.')
-]
-
 IMAGES_FILE = "searchlight/tests/functional/data/load/images.json"
 METADEFS_FILE = "searchlight/tests/functional/data/load/metadefs.json"
 IMAGE_MEMBERS_FILE = \
     "searchlight/tests/functional/data/load/image_members.json"
+SERVERS_FILE = "searchlight/tests/functional/data/load/servers.json"
+
+
+from glanceclient.v2 import client as glance
+from keystoneclient.auth.identity import v2
+from keystoneclient import session
+import novaclient.client
+
+_session = None
+
+
+def _get_session():
+
+    global _session
+    if not _session:
+        auth = v2.Password(auth_url=os.environ.get('OS_AUTH_URL'),
+                           username=os.environ.get('OS_USERNAME'),
+                           password=os.environ.get('OS_PASSWORD'),
+                           tenant_name=os.environ.get('OS_TENANT_NAME'))
+        ks_session = session.Session(auth=auth,
+                                     verify=os.environ.get('OS_CACERT'))
+    return ks_session
+
+
+def get_glanceclient():
+    session = _get_session()
+
+    return glance.Client(
+        session=session,
+        region_name=os.environ.get('OS_REGION_NAME')
+    )
+
+
+def get_novaclient():
+    session = _get_session()
+
+    return novaclient.client.Client(
+        version=2,
+        session=session,
+        region_name=os.environ.get('OS_REGION_NAME')
+    )
 
 
 def get_glance_images_and_members_with_pyclient():
 
-    glance_client = openstack_clients.get_glanceclient()
+    glance_client = get_glanceclient()
     images = glance_client.images.list()
     images_json = json.dumps(list(images), indent=4)
     with open(IMAGES_FILE, "w") as f:
@@ -94,7 +89,7 @@ def get_glance_images_and_members_with_pyclient():
 
 def get_glance_metadefs_with_pyclient():
 
-    glance_client = openstack_clients.get_glanceclient()
+    glance_client = get_glanceclient()
     namespace_list = []
     metadefs_namespace_list = list(glance_client.metadefs_namespace.list())
 
@@ -109,11 +104,22 @@ def get_glance_metadefs_with_pyclient():
         f.write(metadef_namespace_json)
 
 
+def get_nova_servers_with_pyclient():
+
+    nova_client = get_novaclient()
+    servers = nova_client.servers.list()
+    servers_list = []
+    for each in servers:
+        servers_list.append(each.to_dict())
+    servers_json = json.dumps(list(servers_list), indent=4)
+    with open(SERVERS_FILE, "w") as f:
+        f.write(servers_json)
+
+
 def generate():
     get_glance_images_and_members_with_pyclient()
     get_glance_metadefs_with_pyclient()
+    get_nova_servers_with_pyclient()
 
 if __name__ == "__main__":
-    CONF.register_group(os_service_group)
-    CONF.register_opts(CLI_OPTS, group=os_service_group)
     generate()
