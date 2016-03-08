@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 import mock
 
 from searchlight.elasticsearch.plugins import utils as plugin_utils
@@ -114,7 +115,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 actions=expected_delete_actions)
 
     def test_non_role_separated_delete(self):
-        """Test that deletion for a role-separated plugin deletes both docs"""
+        """Test that deletion for a role-separated plugin deletes the doc"""
         mock_engine = mock.Mock()
         plugin = fake_plugins.NonRoleSeparatedPlugin(es_engine=mock_engine)
         indexing_helper = plugin_utils.IndexingHelper(plugin)
@@ -133,9 +134,122 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 doc_type=plugin.document_type,
                 actions=expected_delete_actions)
 
+    def test_save_child_parent_both_separated(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSeparatedChildPlugin(es_engine=mock_engine)
+        parent_plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
+        plugin.register_parent(parent_plugin)
+
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+
+        child_docs = copy.deepcopy(fake_plugins.CHILD_DATA)
+
+        # First run where both child and parent are role-separated (and thus
+        # we'd expect two copies of both parent and child with appropriate
+        # ids linking them)
+        with mock.patch(bulk_name) as mock_bulk:
+            indexing_helper.save_documents(child_docs)
+
+            self.assertEqual(1, len(mock_bulk.call_args_list))
+            actions = list(mock_bulk.call_args_list[0][1]['actions'])
+
+        expected_admin_doc = copy.deepcopy(child_docs[0])
+        expected_admin_doc[ROLE_USER_FIELD] = 'admin'
+        expected_user_doc = copy.deepcopy(child_docs[0])
+        expected_user_doc[ROLE_USER_FIELD] = 'user'
+
+        expected_actions = [
+            {'_op_type': 'index', '_id': 'child1_ADMIN',
+             '_source': expected_admin_doc, '_parent': 'simple1_ADMIN'},
+            {'_op_type': 'index', '_id': 'child1_USER',
+             '_source': expected_user_doc, '_parent': 'simple1_USER'}
+        ]
+
+        self.assertEqual(expected_actions, list(actions))
+
+    @mock.patch.object(fake_plugins.FakeSeparatedChildPlugin,
+                       'requires_role_separation',
+                       new_callable=mock.PropertyMock)
+    def test_save_parent_only_separated(self, mock_role_separated):
+        """Test where the parent document is role separated but this child
+        is not; it's expected the parent's _USER documents be used for _parent
+        """
+        mock_role_separated.return_value = False
+
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSeparatedChildPlugin(es_engine=mock_engine)
+        parent_plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
+        plugin.register_parent(parent_plugin)
+
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+
+        child_docs = copy.deepcopy(fake_plugins.CHILD_DATA)
+
+        with mock.patch(bulk_name) as mock_bulk:
+            indexing_helper.save_documents(child_docs)
+
+            self.assertEqual(1, len(mock_bulk.call_args_list))
+            actions = list(mock_bulk.call_args_list[0][1]['actions'])
+
+        expected_doc = copy.deepcopy(child_docs[0])
+        expected_doc[ROLE_USER_FIELD] = ['user', 'admin']
+
+        expected_actions = [
+            {'_op_type': 'index', '_id': 'child1',
+             '_source': expected_doc, '_parent': 'simple1_USER'},
+        ]
+
+        self.assertEqual(expected_actions, list(actions))
+
+    @mock.patch.object(fake_plugins.FakeChildPlugin,
+                       'requires_role_separation',
+                       new_callable=mock.PropertyMock)
+    def test_child_only_separated(self, mock_role_separated):
+        """Test where the child (and not the parent) is separated. Expect
+        two documents with the same parent
+        """
+        mock_role_separated.return_value = True
+
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
+        parent_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        plugin.register_parent(parent_plugin)
+
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+
+        child_docs = copy.deepcopy(fake_plugins.CHILD_DATA)
+
+        with mock.patch(bulk_name) as mock_bulk:
+            indexing_helper.save_documents(child_docs)
+
+            self.assertEqual(1, len(mock_bulk.call_args_list))
+            actions = list(mock_bulk.call_args_list[0][1]['actions'])
+
+        expected_admin_doc = copy.deepcopy(child_docs[0])
+        expected_admin_doc[ROLE_USER_FIELD] = 'admin'
+        expected_user_doc = copy.deepcopy(child_docs[0])
+        expected_user_doc[ROLE_USER_FIELD] = 'user'
+
+        expected_actions = [
+            {'_op_type': 'index', '_id': 'child1_ADMIN',
+             '_source': expected_admin_doc, '_parent': 'simple1'},
+            {'_op_type': 'index', '_id': 'child1_USER',
+             '_source': expected_user_doc, '_parent': 'simple1'}
+        ]
+        self.assertEqual(expected_actions, list(actions))
+
     def test_delete_children_role_separated(self):
         mock_engine = mock.Mock()
         plugin = fake_plugins.FakeSeparatedChildPlugin(es_engine=mock_engine)
+        parent_plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
+        plugin.register_parent(parent_plugin)
+
         indexing_helper = plugin_utils.IndexingHelper(plugin)
 
         scan_name = 'searchlight.elasticsearch.plugins.utils.helpers.scan'
@@ -185,6 +299,8 @@ class TestIndexingHelper(test_utils.BaseTestCase):
     def test_delete_children_non_role_separated(self):
         mock_engine = mock.Mock()
         plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
+        parent_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        plugin.register_parent(parent_plugin)
         indexing_helper = plugin_utils.IndexingHelper(plugin)
 
         scan_name = 'searchlight.elasticsearch.plugins.utils.helpers.scan'
