@@ -199,8 +199,7 @@ class FakeChildPlugin(FakePluginBase):
     def parent_plugin_type(cls):
         return "fake-simple"
 
-    @property
-    def parent_id_field(self):
+    def get_parent_id_field(self):
         return 'parent_id'
 
     def get_objects(self):
@@ -229,8 +228,7 @@ class FakeSeparatedChildPlugin(FakePluginBase):
     def parent_plugin_type(cls):
         return "role-separated"
 
-    @property
-    def parent_id_field(self):
+    def get_parent_id_field(self):
         return 'parent_id'
 
     @property

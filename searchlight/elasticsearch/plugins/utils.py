@@ -133,6 +133,29 @@ def transform_facets_results(result_aggregations, resource_type):
 
 
 class IndexingHelper(object):
+    """Class to abstract away some of the details of indexing documents
+    including versioning, parent-child links and separation by role.
+
+    Role separation is reasonably simple; documents with admin-only fields
+    will be indexed twice, once for admins and once for normal users, with some
+    fields excluded for the second case. The document IDs use the suffixes
+    defined in ADMIN_ID_SUFFIX and USER_ID_SUFFIX.
+
+    In the case of parent child relationships things are more complicated. The
+    ids in that case follow these rules:
+    * parent is role separated
+      * child is role separated: the _USER and _ADMIN docs each refer to a
+            parent with the same suffix
+      * child is NOT separated: this case is not encouraged, but where it
+            exists the child documents will use the _USER parent document as
+            their _parent to avoid security issues with has_parent query
+            fishing
+    * parent is not role separated
+      * child is role separated: both child docs will use the parent id
+            without any prefix
+      * child is not role separated: the simple case; no suffix in either
+            case
+    """
     def __init__(self, plugin):
         self.plugin = plugin
 
@@ -173,27 +196,34 @@ class IndexingHelper(object):
     def delete_document_by_id(self, document_id):
         self.delete_documents([{"_id": document_id}])
 
-    def delete_documents(self, documents, override_role_separation=False):
-        """Each document should be a dict with at an _id, and if
+    def delete_documents(self, metadocs, override_role_separation=False):
+        """Each metadoc should be a dict with at an _id, and if
          applicable, a _parent. override_role_separation will treat the _ids
          and _parents in the documents as their actual indexed values
          rather than determining role separation
          """
         def _get_delete_action(doc, id_suffix=''):
-            action = {'_op_type': 'delete', '_id': document['_id'] + id_suffix}
-            if '_parent' in doc:
-                action['_parent'] = doc['_parent'] + id_suffix
+            action = {'_op_type': 'delete', '_id': doc['_id'] + id_suffix}
+            parent_entity_id = doc.get('_parent')
+            if parent_entity_id:
+                if (not override_role_separation and
+                        self.plugin.parent_plugin.requires_role_separation):
+                    # Default to _USER; defaulting to _ADMIN causes a
+                    # security issue because of potential fishing queries
+                    parent_entity_id += (id_suffix or USER_ID_SUFFIX)
+                action['_parent'] = parent_entity_id
+
             return action
 
         actions = []
-        for document in documents:
+        for metadoc in metadocs:
             if (not override_role_separation and
                     self.plugin.requires_role_separation):
                 actions.extend([
-                    _get_delete_action(document, ADMIN_ID_SUFFIX),
-                    _get_delete_action(document, USER_ID_SUFFIX)])
+                    _get_delete_action(metadoc, ADMIN_ID_SUFFIX),
+                    _get_delete_action(metadoc, USER_ID_SUFFIX)])
             else:
-                actions.append(_get_delete_action(document))
+                actions.append(_get_delete_action(metadoc))
 
         # TODO(sjmc7): Catch 404s, warn and ignore
         helpers.bulk(
@@ -208,7 +238,11 @@ class IndexingHelper(object):
         # a significant performance boost because of the implementation
         # of _parent filtering
         parent_type = self.plugin.parent_plugin_type()
-        if self.plugin.requires_role_separation:
+
+        if (self.plugin.parent_plugin and
+                self.plugin.parent_plugin.requires_role_separation):
+            # There will be documents with the _USER suffix; there may also
+            # be those with _ADMIN suffixes if this plugin type is separated
             full_parent_ids = [
                 '%s#%s%s' % (parent_type, parent_id, ADMIN_ID_SUFFIX),
                 '%s#%s%s' % (parent_type, parent_id, USER_ID_SUFFIX)
@@ -255,12 +289,12 @@ class IndexingHelper(object):
         a dict {"script": .., "parameters": ..}. Partial document updates
         should be the raw document.
         """
-        def _get_update_action(doc, id_suffix=''):
-            action = {'_id': doc_id, '_op_type': 'update'}
+        def _get_update_action(source, id_suffix=''):
+            action = {'_id': doc_id + id_suffix, '_op_type': 'update'}
             if update_as_script:
-                action.update(doc)
+                action.update(source)
             else:
-                action['doc'] = doc
+                action['doc'] = source
 
             return action
 
@@ -284,11 +318,12 @@ class IndexingHelper(object):
         role-based separation, two actions will be yielded per document,
         otherwise one. _id and USER_ROLE_FIELD are set as appropriate
         """
-        def _get_index_action(doc, version=None, id_suffix=''):
+        def _get_index_action(source, version=None, id_suffix=''):
             """Return an 'action' the ES bulk indexer understands"""
             action = {
-                '_id': doc[self.plugin.get_document_id_field()] + id_suffix,
-                '_source': doc
+                '_id': source[self.plugin.get_document_id_field()] + id_suffix,
+                '_source': source,
+                '_op_type': 'index'
             }
             if version:
                 action['_version_type'] = 'external'
@@ -296,9 +331,12 @@ class IndexingHelper(object):
 
             parent_field = self.plugin.get_parent_id_field()
             if parent_field:
-                # TODO(sjmc7) This needs a separate fix; the parent id may
-                # need to have role separation applied
-                action['_parent'] = doc[parent_field]
+                parent_id = source[parent_field]
+                if self.plugin.parent_plugin.requires_role_separation:
+                    # Default to _USER; defaulting to _ADMIN causes a
+                    # security issue because of potential fishing queries
+                    parent_id += (id_suffix or USER_ID_SUFFIX)
+                action['_parent'] = parent_id
             return action
 
         for index, document in enumerate(documents):
