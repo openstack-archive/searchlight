@@ -72,7 +72,7 @@ Please read the rest of the guide for detailed information.::
     [resource_plugin]
     index_name = searchlight
 
-    [resource_plugin:os_server_nova]
+    [resource_plugin:os_nova_server]
     index_name = nova
     enabled = True
     admin_only_fields = OS-EXT-SRV*,OS-EXT-STS:vm_state
@@ -81,6 +81,13 @@ Please read the rest of the guide for detailed information.::
     enabled = True
 
     [resource_plugin:os_glance_metadef]
+    enabled = True
+
+    [resource_plugin:os_neutron_net]
+    enabled = True
+    admin_only_fields=admin_state_up,status
+
+    [resource_plugin:os_neutron_port]
     enabled = True
 
     [resource_plugin:os_designate_zone]

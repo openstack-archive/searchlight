@@ -99,7 +99,7 @@ Additional properties can be protected similarly with the `admin_only_fields`
 under each plugin's configuration section. Glob-like patterns are supported.
 For instance::
 
-    [resource_plugin:os_neutron_network]
+    [resource_plugin:os_neutron_net]
     admin_only_fields=admin_state_up,status
 
 See: ADMIN_ONLY_FIELDS in:
