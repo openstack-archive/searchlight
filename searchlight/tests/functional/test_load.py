@@ -84,3 +84,9 @@ class TestSearchLoad(functional.FunctionalTest):
 
         self.assertEqual(
             ['admin', 'user'], sorted(es_hits[0][ROLE_USER_FIELD]))
+
+    def test_gc_delete_setting(self):
+        index_name = self.images_plugin.index_name
+        settings = self.elastic_connection.indices.get_settings(index_name)
+        self.assertEqual(
+            "300s", settings[index_name]['settings']['index']['gc_deletes'])

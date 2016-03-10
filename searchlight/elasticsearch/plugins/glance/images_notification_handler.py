@@ -63,7 +63,7 @@ class ImageHandler(base.NotificationBase):
         except glanceclient.exceptions.NotFound:
             LOG.warning(_LW("Image %s not found; deleting") % image_id)
             try:
-                self.index_helper.delete_document_by_id(image_id)
+                self.index_helper.delete_document({'_id': image_id})
             except Exception as exc:
                 LOG.error(_LE(
                     'Error deleting image %(image_id)s from index: %(exc)s') %
@@ -72,7 +72,10 @@ class ImageHandler(base.NotificationBase):
     def delete(self, payload, timestamp):
         image_id = payload['id']
         try:
-            self.index_helper.delete_document_by_id(image_id)
+            version = self.get_version(payload, timestamp,
+                                       preferred_date_field='deleted_at')
+            self.index_helper.delete_document(
+                {'_id': image_id, '_version': version})
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting image %(image_id)s from index: %(exc)s') %

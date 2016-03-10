@@ -81,7 +81,7 @@ class MetadefHandler(base.NotificationBase):
 
     def delete_ns(self, payload, timestamp):
         id = payload['namespace']
-        self.index_helper.delete_document_by_id(id)
+        self.index_helper.delete_document({'_id': id})
 
     def create_obj(self, payload, timestamp):
         id = payload['namespace']
