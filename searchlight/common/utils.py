@@ -50,6 +50,7 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 _ = i18n._
 _LE = i18n._LE
+_LW = i18n._LW
 
 FEATURE_BLACKLIST = ['content-length', 'content-type', 'x-image-meta-size']
 SEARCHLIGHT_TEST_SOCKET_FD_STR = 'SEARCHLIGHT_TEST_SOCKET_FD'
@@ -268,13 +269,14 @@ def validate_key_cert(key_file, cert_file):
         data = str(uuid.uuid4())
         digest = CONF.digest_algorithm
         if digest == 'sha1':
-            LOG.warn('The FIPS (FEDERAL INFORMATION PROCESSING STANDARDS)'
-                     ' state that the SHA-1 is not suitable for'
-                     ' general-purpose digital signature applications (as'
-                     ' specified in FIPS 186-3) that require 112 bits of'
-                     ' security. The default value is sha1 in Kilo for a'
-                     ' smooth upgrade process, and it will be updated'
-                     ' with sha256 in next release(L).')
+            LOG.warning(
+                _LW('The FIPS (FEDERAL INFORMATION PROCESSING STANDARDS)'
+                    ' state that the SHA-1 is not suitable for'
+                    ' general-purpose digital signature applications (as'
+                    ' specified in FIPS 186-3) that require 112 bits of'
+                    ' security. The default value is sha1 in Kilo for a'
+                    ' smooth upgrade process, and it will be updated'
+                    ' with sha256 in next release(L).'))
         out = crypto.sign(key, data, digest)
         crypto.verify(cert, out, data, digest)
     except crypto.Error as ce:

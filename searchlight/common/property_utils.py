@@ -30,6 +30,7 @@ CONFIG = configparser.SafeConfigParser(dict_type=OrderedDict)
 LOG = logging.getLogger(__name__)
 _ = i18n._
 _LE = i18n._LE
+_LW = i18n._LW
 
 property_opts = [
     cfg.StrOpt('property_protection_file',
@@ -130,10 +131,10 @@ class PropertyRules(object):
                     property_dict[operation] = permissions
                 else:
                     property_dict[operation] = []
-                    LOG.warn(
-                        _('Property protection on operation %(operation)s'
-                          ' for rule %(rule)s is not found. No role will be'
-                          ' allowed to perform this operation.') %
+                    LOG.warning(
+                        _LW('Property protection on operation %(operation)s'
+                            ' for rule %(rule)s is not found. No role will be'
+                            ' allowed to perform this operation.') %
                         {'operation': operation,
                          'rule': property_exp})
 
