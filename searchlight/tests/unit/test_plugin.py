@@ -14,7 +14,10 @@
 #    under the License.
 
 import mock
+import six
 import types
+
+from oslo_config import cfg
 
 from searchlight.common import exception
 from searchlight.elasticsearch import ROLE_USER_FIELD
@@ -22,11 +25,18 @@ from searchlight.tests import fake_plugins
 import searchlight.tests.utils as test_utils
 
 
+CONF = cfg.CONF
+
+
 class TestPlugin(test_utils.BaseTestCase):
     def setUp(self):
         super(TestPlugin, self).setUp()
 
-    def test_rbac_field_mapping(self):
+    @mock.patch('searchlight.elasticsearch.plugins.base.'
+                'IndexBase.mapping_use_doc_values',
+                new_callable=mock.PropertyMock)
+    def test_rbac_field_mapping(self, mock_use_doc_vals):
+        mock_use_doc_vals.return_value = False
         mock_engine = mock.Mock()
         simple_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
 
@@ -43,7 +53,11 @@ class TestPlugin(test_utils.BaseTestCase):
                 }
             })
 
-    def test_parent_child_mapping(self):
+    @mock.patch('searchlight.elasticsearch.plugins.base.'
+                'IndexBase.mapping_use_doc_values',
+                new_callable=mock.PropertyMock)
+    def test_parent_child_mapping(self, mock_use_doc_vals):
+        mock_use_doc_vals.return_value = False
         mock_engine = mock.Mock()
 
         parent_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
@@ -124,3 +138,107 @@ class TestPlugin(test_utils.BaseTestCase):
             exception.IndexingException,
             expected_error,
             parent_plugin.setup_mapping)
+
+    def test_doc_values(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+
+        test_doc_value_mapping = {
+            'dynamic_templates': {
+                'test': {
+                    'mapping': {
+                        'inttype': {'type': 'integer'},
+                        'nestedtype': {
+                            'type': 'nested',
+                            'properties': {
+                                'booltype': {'type': 'boolean'}
+                            }
+                        }
+                    }
+                }
+            },
+            'properties': {
+                'not_analyzed_string': {'type': 'string',
+                                        'index': 'not_analyzed'},
+                'analyzed_string': {'type': 'string'},
+                'sortable_string': {
+                    'type': 'string',
+                    'fields': {
+                        'raw': {'type': 'string', 'index': 'not_analyzed'}
+                    }
+                },
+                'no_doc_values': {'type': 'string', 'index': 'not_analyzed',
+                                  'doc_values': False},
+                'inttype': {'type': 'integer'},
+                'datetype': {'type': 'date'},
+                'booltype': {'type': 'boolean'},
+                'shorttype': {'type': 'short'},
+                'iptype': {'type': 'ip'},
+                'nested': {
+                    'type': 'nested',
+                    'properties': {
+                        'booltype': {'type': 'boolean'},
+                        'analyzed_string': {'type': 'string'},
+                        'not_analyzed_string': {'type': 'string',
+                                                'index': 'not_analyzed'}
+                    }
+                }
+            }
+        }
+
+        with mock.patch.object(plugin, 'get_mapping',
+                               return_value=test_doc_value_mapping):
+            # get_full_mapping is a generator
+            doc_type, mapping = six.next(plugin.get_full_mapping())
+            props = mapping['properties']
+
+            # These fields should all have doc_values. Explicitly testing
+            # for 'true' here rather than assertTrue
+            for field in ('not_analyzed_string', 'inttype', 'datetype',
+                          'booltype', 'shorttype'):
+                self.assertEqual(True, props[field]['doc_values'])
+
+            self.assertEqual(
+                True, props['sortable_string']['fields']['raw']['doc_values'])
+
+            # Check nested
+            for field in ('booltype', 'not_analyzed_string'):
+                self.assertEqual(
+                    True, props['nested']['properties'][field]['doc_values'])
+
+            # Check dynamic templates
+            dynamic_mapping = mapping['dynamic_templates']['test']['mapping']
+            self.assertEqual(True, dynamic_mapping['inttype']['doc_values'])
+            nested_dynamic = dynamic_mapping['nestedtype']
+            self.assertEqual(
+                True, nested_dynamic['properties']['booltype']['doc_values'])
+
+            # These should not have doc_values
+            self.assertNotIn('doc_values', props['analyzed_string'])
+            self.assertNotIn('doc_values',
+                             props['nested']['properties']['analyzed_string'])
+
+            # Test explicit setting of doc_values
+            self.assertEqual(False, props['no_doc_values']['doc_values'])
+
+    def test_rbac_field_doc_values(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        doc_Type, mapping = six.next(plugin.get_full_mapping())
+        props = mapping['properties']
+        self.assertEqual(True, props[ROLE_USER_FIELD]['doc_values'])
+
+    def test_doc_values_property(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+
+        doc_type, mapping = six.next(plugin.get_full_mapping())
+        self.assertEqual(True, mapping['properties']['id']['doc_values'])
+
+        # Test the same but disabling doc values for the plugin
+        with mock.patch.object(plugin.__class__,
+                               'mapping_use_doc_values',
+                               new_callable=mock.PropertyMock) as conf_mock:
+            conf_mock.return_value = False
+            doc_type, mapping = six.next(plugin.get_full_mapping())
+            self.assertNotIn('doc_values', mapping['properties']['id'])

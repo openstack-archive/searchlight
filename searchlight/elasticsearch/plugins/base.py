@@ -39,7 +39,11 @@ indexer_opts = [
     cfg.StrOpt('index_name', default="searchlight",
                help="The default Elasticsearch index for plugins"),
     cfg.StrOpt('notifications_topic', default="searchlight_indexer",
-               help="The default messaging notifications topic")
+               help="The default messaging notifications topic"),
+    cfg.BoolOpt('mapping_use_doc_values', default=True,
+                help='Use doc_values for mapped fields where applicable.'
+                     'Allows lower memory usage at the cost of some disk '
+                     'space. Recommended, especially in large deployments.')
 ]
 
 CONF = cfg.CONF
@@ -70,6 +74,14 @@ class IndexBase(plugin.Plugin):
     @property
     def name(self):
         return "%s-%s" % (self.index_name, self.document_type)
+
+    @property
+    def mapping_use_doc_values(self):
+        """Set to true to disable doc_values for a plugin's entire mapping"""
+        if self.options.mapping_use_doc_values is not None:
+            return self.options.mapping_use_doc_values
+        else:
+            return cfg.CONF.resource_plugin.mapping_use_doc_values
 
     def initial_indexing(self, clear=True, setup_data=True):
         """Comprehensively install search engine index and put data into it."""
@@ -396,6 +408,9 @@ class IndexBase(plugin.Plugin):
 
         apply_rbac_field(type_mapping)
 
+        if self.mapping_use_doc_values:
+            utils.IndexingHelper.apply_doc_values(type_mapping)
+
         expected_parent_type = self.parent_plugin_type()
         mapping_parent = type_mapping.get('_parent', None)
         if mapping_parent:
@@ -435,7 +450,8 @@ class IndexBase(plugin.Plugin):
         opts = [
             cfg.StrOpt("index_name"),
             cfg.BoolOpt("enabled", default=True),
-            cfg.StrOpt("admin_only_fields")
+            cfg.StrOpt("admin_only_fields"),
+            cfg.BoolOpt('mapping_use_doc_values')
         ]
         if cls.NotificationHandlerCls:
             opts.extend(cls.NotificationHandlerCls.get_plugin_opts())

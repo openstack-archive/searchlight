@@ -135,6 +135,47 @@ Some notes (expressed below as comments starting with #)::
       }
     }
 
+Doc values
+**********
+For many field types Searchlight will alter the mapping to change the format in
+which field data is stored. Prior to Elasticsearch 2.x field values by default
+were stored in 'fielddata' format, which could result in high memory usage under
+some sort and aggregation operations. An alternative format, called ``doc_values``
+trades slightly increased disk usage for better memory efficiency. In Elasticsearch
+2.x ``doc_values`` is the default, and Searchlight uses this option as the default
+regardless of Elasticsearch version. For more information see the Elasticsearch
+documentation_.
+
+.. _documentation: https://www.elastic.co/guide/en/elasticsearch/guide/current/doc-values.html
+
+Generally this default will be fine. However, there are several ways in which
+the default can be overriden:
+
+* Globally in plugin configuration; in ``searchlight.conf``::
+
+    [resource_plugin]
+    mapping_use_doc_values = false
+
+* For an individual plugin in ``searchlight.conf``::
+
+    [resource_plugin:os_nova_server]
+    mapping_use_doc_values = false
+
+* For a plugin's entire mapping; in code, override the ``disable_doc_values``
+  property::
+
+    @property
+    def disable_doc_values(self):
+        return False
+
+* For individual fields in a mapping, by setting ``doc_values`` to False::
+
+    {
+      "properties": {
+        "some_field": {"type": "date", "doc_values": False}
+      }
+    }
+
 Access control
 ^^^^^^^^^^^^^^
 Plugins must define how they are access controlled. Typically this is a
