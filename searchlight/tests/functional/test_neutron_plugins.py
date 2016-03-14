@@ -120,6 +120,9 @@ class TestNeutronListener(test_listener.TestSearchListenerBase):
         self._verify_result(create_event, verification_keys, result,
                             inner_key='network')
 
+        hit = result['hits']['hits'][0]['_source']
+        self.assertEqual('2016-01-13T17:39:04Z', hit['updated_at'])
+
     def test_network_delete_event(self):
         delete_event = self.network_events['network.delete.end']
         self._send_event_to_listener(delete_event, self.index_name)
@@ -133,6 +136,8 @@ class TestNeutronListener(test_listener.TestSearchListenerBase):
         verification_keys = ['id', 'status', 'mac_address', 'status']
         self._verify_result(create_event, verification_keys, result,
                             inner_key='port')
+        hit = result['hits']['hits'][0]['_source']
+        self.assertEqual('2016-02-17T18:48:01Z', hit['updated_at'])
 
     def test_port_rename_event(self):
         update_event = self.port_events['port_rename']

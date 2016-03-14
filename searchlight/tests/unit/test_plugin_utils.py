@@ -84,3 +84,8 @@ class TestPluginUtils(test_utils.BaseTestCase):
         }
 
         self.assertEqual(expected, formatted)
+
+    def test_timestamp_conversion(self):
+        timestamp = '2016-02-17 18:48:01.252228'
+        converted = plugin_utils.timestamp_to_isotime(timestamp)
+        self.assertEqual('2016-02-17T18:48:01Z', converted)

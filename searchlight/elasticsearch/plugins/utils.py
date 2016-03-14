@@ -52,6 +52,15 @@ def get_now_str():
     return oslo_utils.timeutils.isotime(datetime.datetime.utcnow())
 
 
+def timestamp_to_isotime(timestamp):
+    """Take a rabbitmq-style timestamp (2016-03-14 16:49:23.749458) and convert
+    to an ISO8601 timestamp.
+    """
+    fmt = '%Y-%m-%d %H:%M:%S.%f'
+    parsed_time = datetime.datetime.strptime(timestamp, fmt)
+    return oslo_utils.timeutils.isotime(parsed_time)
+
+
 def create_new_index(group):
     """Create a new index for a specific Resource Type Group. Upon
        exit of this method, the index is still not ready to be used.

@@ -18,6 +18,7 @@ from oslo_log import log as logging
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.neutron import serialize_network
 from searchlight.elasticsearch.plugins.neutron import serialize_port
+from searchlight.elasticsearch.plugins import utils
 from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
@@ -42,7 +43,9 @@ class NetworkHandler(base.NotificationBase):
         LOG.debug("Updating network information for %s", network_id)
 
         # Neutron doesn't give us any date/time information
-        network = serialize_network(payload['network'], updated_at=timestamp)
+        network = serialize_network(
+            payload['network'],
+            updated_at=utils.timestamp_to_isotime(timestamp))
         version = self.get_version(network, timestamp)
 
         self.index_helper.save_document(network, version=version)
@@ -79,7 +82,8 @@ class PortHandler(base.NotificationBase):
 
         # Version doesn't really make a huge amount of sense here but
         # is better than nothing
-        port = serialize_port(payload['port'], updated_at=timestamp)
+        port = serialize_port(payload['port'],
+                              updated_at=utils.timestamp_to_isotime(timestamp))
         version = self.get_version(port, timestamp)
 
         self.index_helper.save_document(port, version=version)

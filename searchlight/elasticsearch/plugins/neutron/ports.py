@@ -64,7 +64,7 @@ class PortIndex(base.IndexBase):
                     }
                 },
                 # Unfortunately this doesn't come from neutron
-                'updated_at': {'type': 'string', 'index': 'not_analyzed'}
+                'updated_at': {'type': 'date'}
             }
         }
 

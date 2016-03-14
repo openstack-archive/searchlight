@@ -47,7 +47,7 @@ class NetworkIndex(base.IndexBase):
                 'shared': {'type': 'boolean'},
                 'status': {'type': 'string', 'index': 'not_analyzed'},
                 'tenant_id': {'type': 'string', 'index': 'not_analyzed'},
-                'updated_at': {'type': 'string', 'index': 'not_analyzed'}
+                'updated_at': {'type': 'date'}
             }
         }
 
