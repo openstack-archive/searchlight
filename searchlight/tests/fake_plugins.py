@@ -84,19 +84,13 @@ class FakePluginBase(base.IndexBase):
         self.options = mock.Mock()
         self.options.admin_only_fields = None
         self.options.resource_group_name = 'searchlight'
-        self.options.index_name = self.alias_name_listener
         self.options.enabled = True
         self.options.mapping_use_doc_values = True
 
         self.engine = es_engine
-        self.index_name = self.alias_name_listener
         self.document_type = self.get_document_type()
-
         self.parent_plugin = None
         self.child_plugins = []
-
-    def get_index_name(self):
-        return 'fake'
 
     def serialize(self, doc):
         return doc
@@ -249,6 +243,30 @@ class FakeChildPlugin(FakePluginBase):
     def get_objects(self):
         self.number_documents = len(CHILD_DATA)
         return copy.deepcopy(CHILD_DATA)
+
+
+class FakeWrongGroupChildPlugin(FakeChildPlugin):
+    def __init__(self, es_engine):
+        super(FakeWrongGroupChildPlugin, self).__init__(es_engine)
+        self.options.resource_group_name = 'wrong-group-name'
+
+    @classmethod
+    def get_document_type(cls):
+        return 'fake-wrong-index-child'
+
+
+class FakeWrongGroupGrandchildPlugin(FakeChildPlugin):
+    def __init__(self, es_engine):
+        super(FakeWrongGroupGrandchildPlugin, self).__init__(es_engine)
+        self.options.resource_group_name = 'wrong-group-name'
+
+    @classmethod
+    def get_document_type(cls):
+        return 'fake-wrong-index-grand-child'
+
+    @classmethod
+    def parent_plugin_type(cls):
+        return "fake-wrong-index-child"
 
 
 class FakeSeparatedChildPlugin(FakePluginBase):

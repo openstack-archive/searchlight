@@ -1,0 +1,9 @@
+---
+fixes:
+  - Overwrite child plugin's resource_group_name during
+    parent registration. Child plugins must live on the
+    same resource group as their parents. This fixes a
+    issue that a misconfiguration of child plugin's
+    resource_group_name results in inconsistentency
+    with the parent plugin.
+

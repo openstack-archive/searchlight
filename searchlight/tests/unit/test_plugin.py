@@ -382,3 +382,34 @@ class TestPlugin(test_utils.BaseTestCase):
             for resource_type, plugin in six.iteritems(plugins):
                 props = plugin.obj.get_mapping()['properties']
                 merge_and_assert_conflict(resource_type, props)
+
+    def test_set_child_plugin_group(self):
+        """Test setting child plugin's resource_group_name while loading
+        plugins
+        """
+        mock_engine = mock.Mock()
+
+        parent_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        child_plugin = fake_plugins.FakeWrongGroupChildPlugin(
+            es_engine=mock_engine)
+        grandchild_plugin = fake_plugins.FakeWrongGroupGrandchildPlugin(
+            es_engine=mock_engine)
+        mock_stevedore_parent = mock.Mock()
+        mock_stevedore_parent.obj = parent_plugin
+        mock_stevedore_child = mock.Mock()
+        mock_stevedore_child.obj = child_plugin
+        mock_stevedore_grandchild = mock.Mock()
+        mock_stevedore_grandchild.obj = grandchild_plugin
+
+        with mock.patch('stevedore.extension.ExtensionManager') as mock_stev:
+            manager = mock.Mock()
+            manager.extensions = [mock_stevedore_parent,
+                                  mock_stevedore_child,
+                                  mock_stevedore_grandchild]
+
+            mock_stev.return_value = manager
+            searchlight_utils.get_search_plugins()
+            self.assertEqual(grandchild_plugin.resource_group_name,
+                             child_plugin.resource_group_name)
+            self.assertEqual(child_plugin.resource_group_name,
+                             parent_plugin.resource_group_name)
