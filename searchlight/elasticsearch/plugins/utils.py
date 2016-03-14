@@ -442,11 +442,11 @@ class IndexingHelper(object):
                 for _, multidef in six.iteritems(field_def.get('fields', {})):
                     apply_doc_values(multidef)
 
-        # Check dynamic templates
-        dynamic_templates = mapping.get('dynamic_templates', {})
-        for dyn_field, dyn_mapping in six.iteritems(dynamic_templates):
-            for field, definition in six.iteritems(dyn_mapping['mapping']):
-                apply_doc_values(definition)
+        # Check dynamic templates. These are a list of dicts each with a single
+        # key (the template name) and a mapping definition
+        for dynamic_template in mapping.get('dynamic_templates', []):
+            for dyn_field, dyn_mapping in six.iteritems(dynamic_template):
+                apply_doc_values(dyn_mapping['mapping'])
 
         for field, definition in six.iteritems(mapping['properties']):
             apply_doc_values(definition)

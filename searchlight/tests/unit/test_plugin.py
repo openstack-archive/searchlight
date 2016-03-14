@@ -144,19 +144,12 @@ class TestPlugin(test_utils.BaseTestCase):
         plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
 
         test_doc_value_mapping = {
-            'dynamic_templates': {
-                'test': {
-                    'mapping': {
-                        'inttype': {'type': 'integer'},
-                        'nestedtype': {
-                            'type': 'nested',
-                            'properties': {
-                                'booltype': {'type': 'boolean'}
-                            }
-                        }
-                    }
-                }
-            },
+            'dynamic_templates': [
+                {'test': {
+                    "path_match": "test.*",
+                    'mapping': {'type': 'integer'}
+                }}
+            ],
             'properties': {
                 'not_analyzed_string': {'type': 'string',
                                         'index': 'not_analyzed'},
@@ -207,11 +200,8 @@ class TestPlugin(test_utils.BaseTestCase):
                     True, props['nested']['properties'][field]['doc_values'])
 
             # Check dynamic templates
-            dynamic_mapping = mapping['dynamic_templates']['test']['mapping']
-            self.assertEqual(True, dynamic_mapping['inttype']['doc_values'])
-            nested_dynamic = dynamic_mapping['nestedtype']
-            self.assertEqual(
-                True, nested_dynamic['properties']['booltype']['doc_values'])
+            dyn_mapping = mapping['dynamic_templates'][0]['test']['mapping']
+            self.assertEqual(True, dyn_mapping['doc_values'])
 
             # These should not have doc_values
             self.assertNotIn('doc_values', props['analyzed_string'])
