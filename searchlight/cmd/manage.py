@@ -156,8 +156,11 @@ class IndexCommands(object):
         # Step #1: Create new indexes for each Resource Group Type.
         #   The index needs to be fully functional before it gets
         #   added to any aliases. This inclues all settings and
-        #   mappings. Only then can we add it to the aliases.
-        #   NB: The "search" aliases remain unchanged for this step.
+        #   mappings. Only then can we add it to the aliases. We first
+        #   need to create all indexes. This is done by resource group.
+        #   Once all indexes are created, we need to initialize the
+        #   indexes. This is done by document type.
+        #   NB: The aliases remain unchanged for this step.
         index_names = {}
         try:
             for group, search, listen in resource_groups:
@@ -167,22 +170,33 @@ class IndexCommands(object):
                 group_name = plugin_obj.resource_group_name
                 plugin_obj.prepare_index(index_name=index_names[group_name])
         except Exception:
-            for group, search, listen in resource_groups:
-                if group in index_names.keys():
-                    es_utils.delete_index(index_name=index_names[group])
-            print("Error creating index or mapping, aborting without indexing")
+            LOG.error(_LE("Error creating index or mapping, aborting "
+                          "without indexing"))
+            es_utils.alias_error_cleanup(index_names)
             raise
 
-        # Step #2: Setup the aliases for all Resource Type Group.
-        #   These actions need to happen outside of the plugins.
+        # Step #2: Set up the aliases for all Resource Type Group.
+        #   These actions need to happen outside of the plugins. Now that
+        #   the indexes are created and fully functional we can associate
+        #   them with the aliases.
+        #   NB: The indexes remain unchanged for this step.
         for group, search, listen in resource_groups:
-            es_utils.setup_alias(index_names[group], search, listen)
+            try:
+                es_utils.setup_alias(index_names[group], search, listen)
+            except Exception as e:
+                LOG.error(_LE("Failed to setup alias for resource group "
+                              "%(g)s: %(e)s") % {'g': group, 'e': e})
+                es_utils.alias_error_cleanup(index_names)
+                raise
 
-        # Step #3: Re-index all resource types in this Resource Type Group.
-        #   Implicit in this step is to create the settings/mappings needed
-        #   for each document type in the new index.
-        #   NB: The "search" and "listener" aliases remain unchanged for this
-        #       step.
+        # Step #3: Re-index all specified resource types.
+        #   NB: The aliases remain unchanged for this step.
+        #   NBB: There is an optimization possible here. In the future when
+        #        we have enable multiple resource_type_group entries, we
+        #        will want to look at only deleting the failing index. We do
+        #        not need to delete the indexes that successfully re-indexed.
+        #        This can get tricky since we will still need to perform
+        #        steps 4 & 5 for this aliases.
         for resource_type, ext in plugins_to_index:
             plugin_obj = ext.obj
             group_name = plugin_obj.resource_group_name
@@ -194,24 +208,23 @@ class IndexCommands(object):
             except Exception as e:
                 LOG.error(_LE("Failed to setup index extension "
                               "%(ext)s: %(e)s") % {'ext': ext.name, 'e': e})
+                es_utils.alias_error_cleanup(index_names)
+                raise
 
-        # Step #4: All re-indexing has occurred. Update the "search" alias.
-        #   The index/alias is the same for all resource types within this
-        #   Resource Group. These actions need to happen outside of the
-        #   plugins.
+        # Step #4: Update the "search" alias.
+        #   All re-indexing has occurred. The index/alias is the same for
+        #   all resource types within this Resource Group. These actions need
+        #   to happen outside of the plugins.
         #   NB: The "listener" alias remains unchanged for this step.
-        # for (k1, index_name), (k2, plugin_obj) in (
-        #         zip(index_names.items(), plugin_obj.itmes())):
-        #     plugin_obj.alias_search_update(index_name)
         old_index = {}
         for group, search, listen in resource_groups:
             old_index[group] = \
                 es_utils.alias_search_update(search, index_names[group])
 
-        # Step #5: The "search" alias has been updated. Update the "listener"
-        #   alias. This involves both removing the old index from the alias
-        #   as well as deleting the old index. These actions need to happen
-        #   outside of the plugins.
+        # Step #5: Update the "listener" alias.
+        #   The "search" alias has been updated. This involves both removing
+        #   the old index from the alias as well as deleting the old index.
+        #   These actions need to happen outside of the plugins.
         #   NB: The "search" alias remains unchanged for this step.
         for group, search, listen in resource_groups:
             es_utils.alias_listener_update(listen, old_index[group])

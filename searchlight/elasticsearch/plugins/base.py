@@ -102,6 +102,11 @@ class IndexBase(plugin.Plugin):
         return "%s-search" % self.resource_group_name
 
     def prepare_index(self, index_name):
+        """Prepare a new index for usage with this listener. We need to be
+           caled immediately after a new index is created, but before it
+           gets associated with an alias. Prepping means we will add
+           the settings and mapping for this listener's document type.
+        """
         if self.parent_plugin_type():
             LOG.debug(_LI(
                 "Skipping index prep for %(doc_type)s; will be handled by"
