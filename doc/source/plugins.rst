@@ -83,6 +83,12 @@ Please read the rest of the guide for detailed information.::
     [resource_plugin:os_glance_metadef]
     enabled = True
 
+    [resource_plugin:os_cinder_volume]
+    enabled = True
+
+    [resource_plugin:os_cinder_snapshot]
+    enabled = True
+
     [resource_plugin:os_neutron_net]
     enabled = True
     admin_only_fields=admin_state_up,status
@@ -95,9 +101,6 @@ Please read the rest of the guide for detailed information.::
 
     [resource_plugin:os_designate_recordset]
     enabled = False
-
-    [resource_plugin:os_cinder_volume]
-    admin_only_fields = encrypted,multiattach
 
 
 Common Plugin Configuration Options
