@@ -35,6 +35,9 @@ USER_ID_SUFFIX = "_USER"
 # Format for datetime when creating a unique index.
 FORMAT = "%Y_%m_%d_%H_%M_%S"
 
+# String from Alias Failure Exception. See _is_multiple_alias_exception().
+ALIAS_EXCEPTION_STRING = "has more than one indices associated with it"
+
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 _LE = i18n._LE
@@ -108,8 +111,6 @@ def setup_alias(index_name, alias_search, alias_listener):
         except Exception as e:
             LOG.error(encodeutils.exception_to_unicode(e))
             es_engine.indices.delete(index=index_name)
-            es_engine.indices.delete_alias(index='_all',
-                                           name=alias_search)
             raise
         return
 
@@ -121,7 +122,12 @@ def setup_alias(index_name, alias_search, alias_listener):
                 'alias': alias_listener}}
         ]
     }
-    es_engine.indices.update_aliases(body=body)
+    try:
+        es_engine.indices.update_aliases(body=body)
+    except Exception as e:
+        LOG.error(encodeutils.exception_to_unicode(e))
+        es_engine.indices.delete(index=index_name, ignore=404)
+        raise
 
 
 def alias_search_update(alias_search, index_name):
@@ -156,16 +162,16 @@ def alias_search_update(alias_search, index_name):
         # Alias doesn't exist. strange. Nothing to remove, only an add.
         pass
 
-    es_engine.indices.update_aliases(body)
+    try:
+        es_engine.indices.update_aliases(body)
+    except Exception as e:
+        # The alias probably still refers to the index. Log the error and stop.
+        # Continuing may result in the index being deleted and catastrophic
+        # failure later.
+        LOG.error(encodeutils.exception_to_unicode(e))
+        raise
 
     return old_index
-
-
-def delete_index(index_name):
-    """Delete the specified index. Used to clean up."""
-    if index_name:
-        es_engine = searchlight.elasticsearch.get_api()
-        es_engine.indices.delete(index=index_name, ignore=404)
 
 
 def alias_listener_update(alias_listener, index_name):
@@ -185,8 +191,55 @@ def alias_listener_update(alias_listener, index_name):
     }
 
     # If the index no longer exists, ignore and continue.
-    es_engine.indices.update_aliases(body=body, ignore=404)
-    es_engine.indices.delete(index=index_name, ignore=404)
+    try:
+        es_engine.indices.update_aliases(body=body, ignore=404)
+        es_engine.indices.delete(index=index_name, ignore=404)
+    except Exception as e:
+        # If the exception happens with the update, the alias may
+        # still refer to the index. We do not want to delete the
+        # index for this case. Log the error and continue.
+        LOG.error(encodeutils.exception_to_unicode(e))
+
+
+def alias_error_cleanup(indexes):
+    """While trying to re-index, we ran into some error. In this case, the
+       new index creation/alias updating is incorrect. We will need to clean
+       up by rolling back all of the changes. ElasticSearch must stay
+       uncluttered. We will delete the indexes explicitly here. ElasticSearch
+       will implicitly take care of removing deleted indexes from the aliases.
+    """
+
+    es_engine = searchlight.elasticsearch.get_api()
+
+    for index in indexes.values():
+        try:
+            es_engine.indices.delete(index=index, ignore=404)
+        except Exception as e:
+            msg = {'index': index}
+            LOG.error(_LE("Index [%(index)s] clean-up failed.") % msg)
+            LOG.error(encodeutils.exception_to_unicode(e))
+
+
+def _is_multiple_alias_exception(self, e):
+    """Verify that this exception is specifically the IllegalArgument
+       exception when there are multiple indexes for an alias. There
+       is no clean way of verifying this is the case. There are multiple
+       ES RequestError exceptions that return a 400 IllegalArgument.
+       In this particular case, we are expecting a message in the
+       exception like this:
+
+           ElasticsearchIllegalArgumentException[Alias [alias] has more
+           than one indices associated with it [[idx1, idx2]], can't
+           execute a single index op]
+
+       We will be dirty and parse the exception message. We need to
+       check the validity of ALIAS_EXCPTION_STRING in future
+       ElasticSearch versions.
+    """
+    if ALIAS_EXCEPTION_STRING in getattr(e, 'error', ''):
+        return True
+    else:
+        return False
 
 
 def normalize_date_fields(document,
@@ -318,11 +371,10 @@ class IndexingHelper(object):
 
     def _index_alias_multiple_indexes_bulk(self, documents=None, actions=None,
                                            versions=None):
-        # Indexing an alias that has multiple indexes, it will fail
-        # with an ElasticSearch "IllegalArgument" excpetion. When
-        # we detect this case, we will need to iterate on all indexes
-        # indivdually and retry the indexing. We will handle indexing
-        # only through the ES bulk() method here.
+        """A bulk operation failed by trying to access an alias that has
+           multiple indexes. To rememdy this we will need to iterate on all
+           indexes within the alias and retry the bulk operation individually.
+        """
         indexes = self.engine.indices.get_alias(index=self.alias_name)
         for index_name in indexes:
             try:
@@ -343,6 +395,7 @@ class IndexingHelper(object):
                         actions=actions)
                 LOG.debug("Indexing result: %s", result)
             except Exception as e:
+                # Log the error and continue to the next index.
                 format_msg = {
                     'doc': self.document_type,
                     'msg': str(e)
@@ -421,12 +474,13 @@ class IndexingHelper(object):
                 err_msg.append("id %(_id)s: %(error)s" % err['index'])
             LOG.warning(_LW('Version conflict %s') % ';'.join(err_msg))
             result = 0
-        except es_exc.RequestError:
-            # TODO(ricka) Verify this is the IllegalArgument exception.
-            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
-                      {'alias': self.alias_name})
-            self._index_alias_multiple_indexes_bulk(documents=documents,
-                                                    versions=versions)
+        except es_exc.RequestError as e:
+            if _is_multiple_alias_exception(e):
+                LOG.error(_LE("Alias [%(a)s] with multiple indexes error") %
+                          {'a': self.alias_name})
+                self._index_alias_multiple_indexes_bulk(documents=documents,
+                                                        versions=versions)
+
             result = 0
         LOG.debug("Indexing result: %s", result)
 
@@ -498,11 +552,11 @@ class IndexingHelper(object):
                     {"doc_type": self.plugin.document_type, "ids": doc_ids})
             else:
                 raise
-        except es_exc.RequestError:
-            # TODO(ricka) Verify this is the IllegalArgument exception.
-            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
-                      {'alias': self.alias_name})
-            self._index_alias_multiple_indexes_bulk(actions=actions)
+        except es_exc.RequestError as e:
+            if _is_multiple_alias_exception(e):
+                LOG.error(_LE("Alias [%(a)s] with multiple indexes error") %
+                          {'a': self.alias_name})
+                self._index_alias_multiple_indexes_bulk(actions=actions)
 
     def delete_documents_with_parent(self, parent_id, version=None):
         # This is equivalent in result to _parent: parent_id but offers
@@ -614,11 +668,11 @@ class IndexingHelper(object):
                 chunk_size=self.index_chunk_size,
                 actions=actions)
             LOG.debug("Update result: %s", result)
-        except es_exc.RequestError:
-            # TODO(ricka) Verify this is the IllegalArgument exception.
-            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
-                      {'alias': self.alias_name})
-            self._index_alias_multiple_indexes_bulk(actions=actions)
+        except es_exc.RequestError as e:
+            if _is_multiple_alias_exception(e):
+                LOG.error(_LE("Alias [%(a)s] with multiple indexes error") %
+                          {'a': self.alias_name})
+                self._index_alias_multiple_indexes_bulk(actions=actions)
 
     def _prepare_actions(self, documents, versions=None):
         """Returns a generator of indexable 'actions'. If the plugin requires
