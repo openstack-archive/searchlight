@@ -92,6 +92,6 @@ class TestSearchLoad(functional.FunctionalTest):
         # get_setings() but it returns a dict based on the indexes. We
         # do not know the index name(s). We will verify the first index
         # in the dict.
-        index_name = settings.keys()[0]
+        index_name = list(settings)[0]
         self.assertEqual(
             "300s", settings[index_name]['settings']['index']['gc_deletes'])
