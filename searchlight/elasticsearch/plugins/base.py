@@ -333,6 +333,13 @@ class IndexBase(plugin.Plugin):
     def enabled(self):
         return self.options.enabled
 
+    @property
+    def allow_admin_ignore_rbac(self):
+        """If set for a plugin, an administrative query for all_projects will
+        NOT skip RBAC filters.
+        """
+        return True
+
     @classmethod
     def get_document_type(cls):
         """Get name of the document type.
@@ -355,24 +362,28 @@ class IndexBase(plugin.Plugin):
                            for c in self.child_plugins)
         return display
 
-    def get_rbac_filter(self, request_context):
-        """Get rbac filter as es json filter dsl. for non-admin queries."""
-        # Add a document type filter to the plugin-specific fields
-        plugin_filters = self._get_rbac_field_filters(request_context)
-        document_type_filter = [{'type': {'value': self.get_document_type()}}]
-        filter_fields = plugin_filters + document_type_filter
-
-        return [
-            {
-                'indices': {
-                    'index': self.alias_name_search,
-                    'no_match_filter': 'none',
-                    'filter': {
-                        'and': filter_fields
-                    }
+    def get_query_filters(self, request_context, ignore_rbac=False):
+        """Gets an index/type filter as es json filter dsl, and include
+        plugin-specific RBAC filter terms unless `ignore_rbac` is True
+        (for admin queries).
+        """
+        query_filter = {
+            'indices': {
+                'index': self.alias_name_search,
+                'no_match_filter': 'none',
+                'filter': {
+                    'and': [
+                        {'type': {'value': self.get_document_type()}}
+                    ]
                 }
             }
-        ]
+        }
+
+        if not (ignore_rbac and self.allow_admin_ignore_rbac):
+            rbac_filters = self._get_rbac_field_filters(request_context)
+            query_filter['indices']['filter']['and'].extend(rbac_filters)
+
+        return query_filter
 
     @abc.abstractmethod
     def _get_rbac_field_filters(self, request_context):

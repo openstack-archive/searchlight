@@ -548,14 +548,14 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
                           request)
 
     @mock.patch('searchlight.elasticsearch.plugins.nova.servers.' +
-                'ServerIndex.get_rbac_filter')
-    def test_rbac_exception(self, mock_rbac_filter):
+                'ServerIndex.get_query_filters')
+    def test_rbac_exception(self, mock_query_filters):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
             'query': {'match_all': {}},
         }))
 
-        mock_rbac_filter.side_effect = Exception("Bad RBAC")
+        mock_query_filters.side_effect = Exception("Bad RBAC")
 
         self.assertRaisesRegexp(
             webob.exc.HTTPInternalServerError,
@@ -575,30 +575,31 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         nova_rbac_filter = {
             'indices': {
                 'filter': {
-                    'and': [{
-                        'term': {
-                            'tenant_id': '6838eb7b-6ded-dead-beef-b344c77fe8df'
-                        }},
-                        {'type': {'value': 'OS::Nova::Server'}}
+                    'and': [
+                        {'type': {'value': 'OS::Nova::Server'}},
+                        {'term': {'tenant_id':
+                                  '6838eb7b-6ded-dead-beef-b344c77fe8df'}}
                     ]},
                 'index': 'searchlight-search',
                 'no_match_filter': 'none'
             }
         }
 
+        role_field = searchlight.elasticsearch.ROLE_USER_FIELD
         expected_query = {
-            'bool': {
-                'should': [{
-                    'filtered': {
-                        'filter': [nova_rbac_filter],
-                        'query': {u'match_all': {}}
-                    }
-                }]
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'bool': {
+                            'must': {'term': {role_field: 'user'}},
+                            'should': [nova_rbac_filter]
+                        }
+                    },
+                    'query': {'match_all': {}}
+                }
             }
         }
-        output_query = output['query']
-        self.assertEqual(expected_query,
-                         output_query['query']['filtered']['query'])
+        self.assertEqual(expected_query, output['query'])
 
     def test_rbac_admin(self):
         """Test that admins have RBAC applied unless 'all_projects' is true"""
@@ -612,45 +613,57 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         nova_rbac_filter = {
             'indices': {
                 'filter': {
-                    'and': [{
-                        'term': {
-                            'tenant_id': '6838eb7b-6ded-dead-beef-b344c77fe8df'
-                        }},
-                        {'type': {'value': 'OS::Nova::Server'}}
+                    'and': [
+                        {'type': {'value': 'OS::Nova::Server'}},
+                        {'term': {'tenant_id':
+                                  '6838eb7b-6ded-dead-beef-b344c77fe8df'}}
                     ]},
                 'index': 'searchlight-search',
                 'no_match_filter': 'none'
             }
         }
+
+        role_field = searchlight.elasticsearch.ROLE_USER_FIELD
         expected_query = {
-            'bool': {
-                'should': [{
-                    'filtered': {
-                        'filter': [nova_rbac_filter],
-                        'query': {u'match_all': {}}
-                    }
-                }]
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'bool': {
+                            'must': {'term': {role_field: 'admin'}},
+                            'should': [nova_rbac_filter]
+                        }
+                    },
+                    'query': {'match_all': {}}
+                }
             }
         }
 
-        output_query = output['query']
-        self.assertEqual(expected_query,
-                         output_query['query']['filtered']['query'])
+        self.assertEqual(expected_query, output['query'])
 
+        # Now test with all_projects
         request.body = six.b(jsonutils.dumps({
             'query': {'match_all': {}},
             'type': 'OS::Nova::Server',
             'all_projects': True,
         }))
+
+        # Test that if a plugin doesn't allow RBAC to be ignored,
+        # it isn't. Do it with mocking, because mocking is best
+        with mock.patch('searchlight.elasticsearch.plugins.nova.servers.'
+                        'ServerIndex.allow_admin_ignore_rbac',
+                        new_callable=mock.PropertyMock) as ignore_mock:
+            ignore_mock.return_value = False
+            output = self.deserializer.search(request)
+            self.assertEqual(expected_query, output['query'])
+
+        # Now test the same under the default allow-ignore-rbac conditions,
+        # and we shouldn't see the tenant restrictions
         output = self.deserializer.search(request)
 
-        expected_query = {
-            'match_all': {}
-        }
+        # No more tenant restriction in the expected result
+        del nova_rbac_filter['indices']['filter']['and'][1]
 
-        output_query = output['query']
-        self.assertEqual(expected_query,
-                         output_query['query']['filtered']['query'])
+        self.assertEqual(expected_query, output['query'])
 
     def test_default_facet_options(self):
         request = unit_test_utils.get_fake_request(path='/v1/search/facets')

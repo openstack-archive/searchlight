@@ -421,27 +421,28 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search'
         )
-        rbac_query_fragment = self.plugin.get_rbac_filter(fake_request.context)
-        expected_fragment = [{
+        rbac_query_fragment = self.plugin.get_query_filters(
+            fake_request.context)
+        expected_fragment = {
             "indices": {
                 "index": "searchlight-search",
                 "no_match_filter": "none",
                 "filter": {
                     "and": [
                         {
+                            "type": {"value": "OS::Glance::Image"}
+                        },
+                        {
                             "or": [
                                 {"term": {"owner": TENANT1}},
                                 {"term": {"visibility": "public"}},
                                 {"term": {"members": TENANT1}}
                             ]
-                        },
-                        {
-                            "type": {"value": "OS::Glance::Image"}
-                        },
+                        }
                     ]
                 },
             }
-        }]
+        }
 
         self.assertEqual(expected_fragment, rbac_query_fragment)
 
