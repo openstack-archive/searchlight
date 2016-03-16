@@ -45,7 +45,6 @@ Plugin: OS::Nova::Server
 
     [resource_plugin:os_nova_server]
     enabled = true
-    index_name = searchlight
 
 Nova Configuration
 ==================

@@ -45,7 +45,6 @@ Plugin: OS::Neutron::Net
 
     [resource_plugin:os_neutron_net]
     enabled = true
-    index_name = searchlight
 
 Plugin: OS::Neutron::Port
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -53,7 +52,6 @@ Plugin: OS::Neutron::Port
 
     [resource_plugin:os_neutron_port]
     enabled = true
-    index_name = searchlight
 
 Neutron Configuration
 =====================

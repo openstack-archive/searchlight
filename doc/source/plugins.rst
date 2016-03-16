@@ -70,10 +70,9 @@ or default configuration values. They are intended for exemplary purposes only.
 Please read the rest of the guide for detailed information.::
 
     [resource_plugin]
-    index_name = searchlight
+    resource_group_name = searchlight
 
     [resource_plugin:os_nova_server]
-    index_name = nova
     enabled = True
     admin_only_fields = OS-EXT-SRV*,OS-EXT-STS:vm_state
 
@@ -107,20 +106,23 @@ Common Plugin Configuration Options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are common configuration options that all plugins honor. They are split
-between *inheritable* options and *non-inheritable* options.
+between *global*, *inheritable* and *non-inheritable* options.
+
+**Global** plugin configuration options apply to all plugins and cannot be
+overridden by an individual plugin.
 
 **Inheritable** common configuration options may be specified in a default
 configuration group of ``[resource_plugin]`` in ``searchlight.conf`` and
 optionally overridden in a specific plugin's configuration. For example::
 
     [resource_plugin]
-    index_name = searchlight
+    notifications_topic = searchlight_indexer
 
     [resource_plugin:os_nova_server]
-    index_name = nova
+    notifications_topic = searchlight_indexer_nova
 
 **Non-Inheritable** common configuration options are honored by all plugins,
-but must be specified directly in that plugin's configuration group. They are
+but must be specified directly in that plugin's configuration group. They
 are not inherited from the ``[resource_plugin]`` configuration group. For
 example::
 
@@ -146,16 +148,28 @@ for all service notifications a plugin supports.
 See :ref:`individual-plugin-configuration` for more information and examples
 on individual plugin configuration.
 
+Global Configuration Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++---------------------+---------------+-------------------------------------+---------------------------+
+| Option              | Default value | Description                         | Action(s) Required        |
++=====================+===============+=====================================+===========================+
+| resource_group_name | searchlight   | Determines the ElasticSearch index  |                           |
+|                     |               | and alias where documents will be   | | Restart services        |
+|                     |               | stored. Index names will be         | Re-index all types        |
+|                     |               | suffixed with a timestamp.          |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+
 Inheritable Common Configuration Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +---------------------+---------------+-------------------------------------+---------------------------+
 | Option              | Default value | Description                         | Action(s) Required        |
 +=====================+===============+=====================================+===========================+
-| index_name          | searchlight   | The ElasticSearch index where the   | | Restart services        |
-|                     |               | plugin resource documents will be   | | Re-index affected types |
-|                     |               | stored in. It is recommended to not |                           |
-|                     |               | change this unless needed.          |                           |
+| mapping_use\_       |               | Use doc_values to store documents   |                           |
+|    doc_values       | true          | rather than fieldata. doc_values    | | Full re-index           |
+|                     |               | has some advantages, particularly   |                           |
+|                     |               | around memory usage.                |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 | notifications_topic | searchlight\_ | The oslo.messaging topic on which   | | Restart listener        |
 |                     |   indexer     | services send notifications. Each   |                           |

@@ -45,7 +45,6 @@ Plugin: OS::Designate::Zone
 
     [resource_plugin:os_designate_zone]
     enabled = true
-    index_name = searchlight
 
 Plugin: OS::Designate::RecordSet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -53,15 +52,13 @@ Plugin: OS::Designate::RecordSet
 
     [resource_plugin:os_designate_recordset]
     enabled = true
-    index_name = searchlight
 
 .. warning::
 
     *OS::Designate::Zone* documents have a parent relationship to
     *OS::Designate::RecordSet* documents. Because of this you must have
     both *os_designate_zone* and *os_designate_recordset* plugin
-    configurations enabled or disabled together and be set to the same
-    index_name.
+    configurations enabled or disabled together.
 
 Designate Configuration
 =======================
