@@ -45,7 +45,6 @@ Plugin: OS::Glance::Image
 
     [resource_plugin:os_glance_image]
     enabled = true
-    index_name = searchlight
 
 **Glance Image Property Protections**
 
@@ -68,7 +67,6 @@ Plugin: OS::Glance::Metadef
 
     [resource_plugin:os_glance_metadef]
     enabled = true
-    index_name = searchlight
 
 See also: `Metadata Definitions Catalog <http://docs.openstack.org/developer/glance/metadefs-concepts.html>`_
 

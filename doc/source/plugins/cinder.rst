@@ -45,7 +45,6 @@ Plugin: OS::Cinder::Net
 
     [resource_plugin:os_cinder_net]
     enabled = true
-    index_name = searchlight
 
 Plugin: OS::Cinder::Port
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -53,7 +52,6 @@ Plugin: OS::Cinder::Port
 
     [resource_plugin:os_cinder_port]
     enabled = true
-    index_name = searchlight
 
 Cinder Configuration
 =====================

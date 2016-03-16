@@ -85,9 +85,9 @@ class IndexBase(plugin.Plugin):
     @property
     def resource_group_name(self):
         if not getattr(self, '_group_name', None):
-            if self.options.resource_group_name is not None:
-                self._group_name = self.options.resource_group_name
-            elif cfg.CONF.resource_plugin.resource_group_name is not None:
+            # We no longer allow this to be set per-plugin. See note in
+            # get_plugin_opts()
+            if cfg.CONF.resource_plugin.resource_group_name is not None:
                 self._group_name = cfg.CONF.resource_plugin.resource_group_name
             else:
                 self._group_name = "searchlight"
@@ -465,8 +465,12 @@ class IndexBase(plugin.Plugin):
 
     @classmethod
     def get_plugin_opts(cls):
+        """Options that can be overridden per plugin. Note that
+        resource_group_name is not present while we determine a fix for
+        running has_parent/has_child queries across indices with different
+        sets of types (https://bugs.launchpad.net/searchlight/+bug/1558240)
+        """
         opts = [
-            cfg.StrOpt("resource_group_name"),
             cfg.BoolOpt("enabled", default=True),
             cfg.StrOpt("admin_only_fields"),
             cfg.BoolOpt('mapping_use_doc_values')
