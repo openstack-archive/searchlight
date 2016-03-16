@@ -13,9 +13,9 @@
     License for the specific language governing permissions and limitations
     under the License.
 
-********************
+*******************
 Cinder Plugin Guide
-********************
+*******************
 
 Integration is provided via a plugin. There are multiple configuration
 settings required for proper indexing and incremental updates. Some of the
@@ -39,24 +39,22 @@ general configuration information, and an example complete configuration.
 searchlight.conf
 ----------------
 
-Plugin: OS::Cinder::Net
-^^^^^^^^^^^^^^^^^^^^^^^^
+Plugin: OS::Cinder::Volume
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-    [resource_plugin:os_cinder_net]
+    [resource_plugin:os_cinder_volume]
     enabled = true
-    index_name = searchlight
 
-Plugin: OS::Cinder::Port
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Plugin: OS::Cinder::Snapshot
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::
 
-    [resource_plugin:os_cinder_port]
+    [resource_plugin:os_cinder_snapshot]
     enabled = true
-    index_name = searchlight
 
 Cinder Configuration
-=====================
+====================
 
 Cinder sends notifications on create/update/delete actions on the
 resources that it implements. Currently Searchlight supports indexing
@@ -64,7 +62,7 @@ for volumes and snapshots of volumes. Backup support will be added but
 some changes to the cinder backup API is required first.
 
 cinder.conf
-------------
+-----------
 
 Notifications must be configured properly for searchlight to process
 incremental updates. Use the following::
@@ -91,12 +89,12 @@ Release Notes
 =============
 
 0.2.0.0 (Mitaka)
------------------
+----------------
 
 The following fields are exposed to adminstrators only for cinder volumes:
  * os-vol-mig-status-attr:*
  * os-vol-host-attr:*
- *  migration
+ * migration
 
 Additional properties can be similarly protected with the `admin_only_fields`
 under each plugin's configuration section. Glob-like patterns are supported.
