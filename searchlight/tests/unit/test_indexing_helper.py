@@ -270,7 +270,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 expected_scan_query = {
                     'fields': ['_parent', '_routing'],
                     'query': {
-                        'term': {
+                        'terms': {
                             '_parent': [base_full_parent_type + '_ADMIN',
                                         base_full_parent_type + '_USER']
                         }

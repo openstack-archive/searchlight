@@ -510,6 +510,13 @@ class IndexingHelper(object):
         # of _parent filtering
         parent_type = self.plugin.parent_plugin_type()
 
+        # It's easier to retrieve the actual parent id here because otherwise
+        # we have to figure out role separation. _parent is (in 1.x) not
+        # return by default and has to be requested in 'fields'
+        query = {
+            'fields': ['_parent', '_routing']
+        }
+
         if (self.plugin.parent_plugin and
                 self.plugin.parent_plugin.requires_role_separation):
             # There will be documents with the _USER suffix; there may also
@@ -518,20 +525,10 @@ class IndexingHelper(object):
                 '%s#%s%s' % (parent_type, parent_id, ADMIN_ID_SUFFIX),
                 '%s#%s%s' % (parent_type, parent_id, USER_ID_SUFFIX)
             ]
+            query['query'] = {'terms': {'_parent': full_parent_ids}}
         else:
-            full_parent_ids = '%s#%s' % (parent_type, parent_id)
-
-        # It's easier to retrieve the actual parent id here because otherwise
-        # we have to figure out role separation. _parent is (in 1.x) not
-        # return by default and has to be requested in 'fields'
-        query = {
-            'fields': ['_parent', '_routing'],
-            'query': {
-                'term': {
-                    '_parent': full_parent_ids
-                }
-            }
-        }
+            full_parent_id = '%s#%s' % (parent_type, parent_id)
+            query['query'] = {'term': {'_parent': full_parent_id}}
 
         documents = helpers.scan(
             client=self.engine,
