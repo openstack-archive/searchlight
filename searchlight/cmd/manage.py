@@ -120,12 +120,26 @@ class IndexCommands(object):
             sys.exit(1)
 
         if not force:
+            # For display purpose, we want to iterate on only parthenogenetic
+            # plugins that are not the children of another plugin. If there
+            # are children plugins they will be displayed when we call
+            # get_index_display_name(). Therefore any child plugins in the
+            # display list, will be listed twice.
+            display_plugins = []
+            for res, ext in plugins_to_index:
+                if not ext.obj.parent_plugin:
+                    display_plugins.append((res, ext))
+
             def format_selection(selection):
                 resource_type, ext = selection
                 return '  ' + ext.obj.get_index_display_name()
 
-            print("\nResource types (and indices) matching selection:\n%s\n" %
-                  '\n'.join(map(format_selection, plugins_to_index)))
+            # Grab the first element in the first (and only) tuple.
+            group = resource_groups[0][0]
+            print("\nAll resource types within Resource Group \"%(group)s\""
+                  " must be re-indexed" % {'group': group})
+            print("\nResource types matching selection:\n%s\n" %
+                  '\n'.join(map(format_selection, sorted(display_plugins))))
 
             ans = raw_input(
                 "Indexing will NOT delete existing data or mapping(s). It "

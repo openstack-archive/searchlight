@@ -357,7 +357,7 @@ class IndexBase(plugin.Plugin):
         """The string used to list this plugin when indexing"""
         display = '\n' + '    ' * indent_level + '--> ' if indent_level else ''
 
-        display += '%s (%s)' % (self.document_type, self.resource_group_name)
+        display += '%s' % (self.document_type)
         display += ''.join(c.get_index_display_name(indent_level + 1)
                            for c in self.child_plugins)
         return display
