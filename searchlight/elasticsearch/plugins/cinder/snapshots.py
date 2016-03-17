@@ -94,7 +94,6 @@ class SnapshotIndex(base.IndexBase):
         # FIXME: DuncanT: Need to go through these carefully
         return {'user_id': True,
                 'tenant_id': True,
-                'project_id': True,
                 'os-extended-snapshot-attributes:project_id': False}
 
     def _get_rbac_field_filters(self, request_context):
