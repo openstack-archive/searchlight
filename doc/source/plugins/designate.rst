@@ -109,6 +109,15 @@ underneath it.::
 Release Notes
 =============
 
+0.2.0.0 (Mitaka)
+----------------
+
+The Designate notification limitations mentioned in Liberty still apply.
+
+You no longer need to use the --no-delete option mentioned below. Zero
+downtime reindexing implemented in Mitaka handles all re-indexing
+transparently.
+
 0.1.0.0 (Liberty)
 -----------------
 

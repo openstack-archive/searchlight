@@ -17,13 +17,63 @@
 Swift Plugin Guide
 ******************
 
-WARNING: Swift plugin is currently EXPERIMENTAL as notifications aren't
+WARNING: The Swift plugin is currently EXPERIMENTAL as notifications aren't
 fully supported. See below on enabling notifications.
 
 Integration is provided via a plugin. There are multiple configuration
 settings required for proper indexing and incremental updates. Some of the
 settings are specified in Searchlight configuration files. Others are
 provided in other service configuration files.
+
+Swift Configuration
+====================
+
+The Swift service currently doesn't send notifications.
+Apply this patch https://review.openstack.org/#/c/249471
+for adding notification middleware to swift. Please restart swift-api.
+
+reseller_admin_role
+-------------------
+
+Users with the Keystone role defined in reseller_admin_role (ResellerAdmin by default)
+can operate on any account. The auth system sets the request environ reseller_request
+to True if a request is coming from a user with this role.
+
+Searchlight needs this role for its service user to access all the swift accounts
+for initial indexing. The searchlight user and sevice project being referred here is the
+one defined in service_credentials section of searchlight conf file. This
+must be done prior to running `searchlight-manage index sync` when any of the
+Swift plugins are enabled.
+
+::
+
+    openstack role add --user searchlight --project service ResellerAdmin
+
+
+proxy-server.conf
+-----------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Use the following::
+
+    # Add the following new section
+    [filter:oslomiddleware]
+    paste.filter_factory = swift.common.middleware.oslo_notifications:filter_factory
+    publisher_id = swift.localhost
+    #Replace <user>,<password>,<rabbitip> and <rabbitport> for your environment values
+    transport_url = rabbit://<user>:<password>@<rabbitip>:<rabbitport>/
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
+
+    # Add oslomiddleware to pipeline:main
+    # see example below.
+    [pipeline:main]
+    pipeline = catch_errors gatekeeper ...<other>... oslomiddleware proxy-logging proxy-server
+
+
+.. note::
+
+    Restart swift proxy API service (s-proxy) after making changes.
 
 Searchlight Configuration
 =========================
@@ -37,7 +87,11 @@ general configuration information, and an example complete configuration.
 .. note::
 
     Unless you are changing to a non-default value, you do not need to
-    specify any of the following configuration options.
+    specify any of the following configuration options. After enabling or
+    disabling a plugin you do need to restart the searchlight services
+    (`searchlight-api` and `searchlight-listener`).
+    After enabling a Swift plugin, you will also need to run the sync job:
+    `searchlight-manage index sync --type OS::Swift::Account`
 
 searchlight.conf
 ----------------
@@ -48,13 +102,13 @@ Plugin: OS::Swift::Account
 
     [resource_plugin:os_swift_account]
     enabled = true
-    index_name = searchlight
-    #Specify same value as in swift proxy config for reseller_prefix
+    # Specify same value as in swift proxy-server.conf for reseller_prefix
     reseller_prefix = AUTH_
 
 .. note::
 
-    os_swift_account is disabled by default. You need to explicitly set enabled = True as shown above
+    `os_swift_account` is disabled by default. You need to explicitly
+    set enabled = True as shown above.
 
 Plugin: OS::Swift::Container
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -62,11 +116,11 @@ Plugin: OS::Swift::Container
 
     [resource_plugin:os_swift_container]
     enabled = true
-    index_name = searchlight
 
 .. note::
 
-    os_swift_container is disabled by default. You need to explicitly set enabled = True as shown above
+    `os_swift_container` is disabled by default. You need to explicitly
+    set enabled = True as shown above.
 
 Plugin: OS::Swift::Object
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,69 +128,19 @@ Plugin: OS::Swift::Object
 
     [resource_plugin:os_swift_object]
     enabled = true
-    index_name = searchlight
 
 .. note::
 
-    os_swift_object is disabled by default. You need to explicitly set enabled = True as shown above
+    `os_swift_object` is disabled by default. You need to explicitly
+    set enabled = True as shown above.
 
-Swift Configuration
-====================
-
-The Swift service currently doesn't send notifications.
-Apply this patch https://review.openstack.org/#/c/249471
-for adding notification middleware to swift.
-
-reseller_admin_role
--------------------
-
-Users with the Keystone role defined in reseller_admin_role (ResellerAdmin by default)
-can operate on any account. The auth system sets the request environ reseller_request
-to True if a request is coming from a user with this role.
-
-Searchlight needs this role for its service user to access all the swift accounts
-for initial indexing. The searchlight user and sevice project being referred here is the
-one defined in service_credentials section of searchlight conf file.
-
-::
-
-    openstack role add --user searchlight --project service ResellerAdmin
-
-
-proxy-server.conf
------------------
-
-Notifications must be configured properly for searchlight to process
-incremental updates. Use the following::
-
-    #Add the following new section
-    [filter:oslomiddleware]
-    paste.filter_factory = swift.common.middleware.oslo_notifications:filter_factory
-    publisher_id = swift.localhost
-    #Replace <user>,<password>,<rabbitip> and <rabbitport> for your environment values
-    transport_url = rabbit://<user>:<password>@<rabbitip>:<rabbitport>/
-    notification_driver = messaging
-    notification_topics = searchlight_indexer
-
-    #Add oslomiddleware to pipeline:main see example below.
-    [pipeline:main]
-    pipeline = catch_errors gatekeeper healthcheck ... oslomiddleware proxy-logging  proxy-server
-
-
-.. note::
-
-    Restart swift proxy API service (s-proxy) after making changes.
 
 local.conf (devstack)
 ---------------------
 
-The settings above may be automatically configured by ``stack.sh``
-by adding them to the following post config section in devstack.
-Just place the following in local.conf and copy the above settings
-underneath it.::
-
-    [[post-config|$SWIFT_PROXY_CONF]]
-    [DEFAULT]
+At this time we recommend that you manually enable the Searchlight plugins
+and middleware for Swift after devstack has completed stacking. Please
+follow the instructions above.
 
 Release Notes
 =============
@@ -144,32 +148,38 @@ Release Notes
 0.2.0.0 (Mitaka)
 ----------------
 
+Large scale swift cluster support is targeted at a future release, but
+we encourage trial deployments to help us address issues as soon as possible.
+
 Swift did not generate notifications for account/container/object CRUD
+during the Mitaka release. This means that search results will not include
+incremental updates after the initial indexing. However, there is a patch
+available to enable notifications via oslo messaging for the Mitaka release.
 
-This means that search results will not include incremental updates after
-the initial indexing.
+* https://review.openstack.org/#/c/249471
 
-The patch (https://review.openstack.org/#/c/249471) implements this feature.
+For devstack, the easiest way to test is::
 
-For devstack, the easiest way to test is
-cd /opt/stack/swift
-git review -x 249471
+    cd /opt/stack/swift
+    git review -x 249471
+    <restart swift api>
 
 Searchlight developers/installers should apply the above patch in Swift when
-using Searchlight with the Swift Mitaka release.
+using Searchlight with the Swift Mitaka release. We are working with the
+Swift team to create a supported incremental indexing methodology for future
+releases.
 
 Alternatively, you may set up a cron job to re-index swift
 account/container/objects periodically to get updated information. The
-recommendation is to use the notifications.
+recommendation is to use the notifications, because a full re-indexing will
+not be performant in large installations.
+::
 
-You should use the ``--no-delete`` option to prevent the index from
-temporarily not containing any data (which otherwise would happen with a full
-bulk indexing job)::
+    searchlight-manage index sync --type OS::Swift::Account
 
-    searchlight-manage index sync --type OS::Swift::Account --force --no-delete
-
-Searchlight swift plugin resource types follow the hierarchy similar to
+The Searchlight Swift plugin resource types follow the hierarchy similar to
 Swift concepts
+::
 
     OS::Swift:Acccount(Parent)
      -> OS:Swift::Container(Child)
@@ -179,3 +189,13 @@ which means indexing is initiated by specifying only the top parent
 (OS::Swift::Account) and that will in-turn index all the child
 plugins(Container and Object)
 
+Searchlight is adding indexing isolation in the Newton release via a concept
+called resource group isolation. This will better support re-indexing
+scalability.
+
+Additional properties can be similarly protected with the `admin_only_fields`
+under each plugin's configuration section. Glob-like patterns are supported.
+For instance::
+
+    [resource_plugin:os_swift_object]
+    admin_only_fields=x-meta-admin*

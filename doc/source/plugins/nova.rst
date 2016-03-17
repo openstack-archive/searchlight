@@ -112,6 +112,22 @@ underneath it.::
 Release Notes
 =============
 
+0.2.0.0 (Mitaka)
+----------------
+
+The following fields are exposed to adminstrators only for nova instances:
+ * OS-EXT-SRV-ATTR:*
+
+Additional properties can be similarly protected with the `admin_only_fields`
+under each plugin's configuration section. Glob-like patterns are supported.
+For instance::
+
+    [resource_plugin:os_nova_server]
+    admin_only_fields=OS-EXT-STS:vm_state
+
+See: ADMIN_ONLY_FIELDS in:
+* searchlight/elasticsearch/plugins/nova/servers.py
+
 0.1.0.0 (Liberty)
 -----------------
 
