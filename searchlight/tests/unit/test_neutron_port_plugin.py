@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import datetime
-import mock
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.neutron import\
@@ -60,7 +59,9 @@ def _create_port_fixture(port_id, tenant_id, network_id, **kwargs):
         u'port_security_enabled': True,
         u'security_groups': [],
         u'status': u'ACTIVE',
-        u'tenant_id': tenant_id
+        u'tenant_id': tenant_id,
+        u'updated_at': _now_str,
+        u'created_at': _now_str
     }
     port.update(**kwargs)
     return port
@@ -95,10 +96,3 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
     def test_admin_only_fields(self):
         admin_only_fields = self.plugin.admin_only_fields
         self.assertEqual(['binding:*'], admin_only_fields)
-
-    @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
-    def test_serialize(self, mock_utcnow_str):
-        mock_utcnow_str.return_value = _now_str
-        serialized = self.plugin.serialize(self.port1)
-
-        self.assertEqual(_now_str, serialized['updated_at'])

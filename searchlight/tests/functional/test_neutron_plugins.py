@@ -13,9 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import mock
-from oslo_utils import timeutils
 
 from searchlight.listener import NotificationEndpoint
 from searchlight.tests import functional
@@ -23,20 +21,19 @@ from searchlight.tests.functional import test_api
 from searchlight.tests.functional import test_listener
 
 
-# This is in the load file
+# These is in the load file
 TENANT1 = "8eaac046b2c44ab99246cb0850c7f06d"
 TENANT2 = "aaaaaabbbbbbccccc555552222255511"
-
-# Subnets and routers use these
 TENANT3 = "75c31cdaa3604b76b7e279de50aec9f0"
 TENANT4 = "1816a16093df465dbc609cf638422a05"
+
+# Event tenant
+EV_TENANT = "5fe7c4e4e492490393c674089a178e19"
+
 NETID3 = "8891323e-bf5b-48d7-a75e-669af0608538"
 NETID4 = "60e80dca-302d-4460-8984-9b85dc782bca"
 
 SHARED_NET_ID = "deadbeef-4808-4c88-8c3b-deadbeefdead"
-
-
-_now_str = timeutils.isotime(datetime.datetime.utcnow())
 
 
 class TestNeutronPlugins(functional.FunctionalTest):
@@ -54,10 +51,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.router_objects = self._load_fixture_data('load/routers.json')
         self.router_objects = self.router_objects['routers']
 
-    @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
-    def test_network_rbac_tenant(self, mock_utcnow_str):
-        mock_utcnow_str.return_value = _now_str
-
+    def test_network_rbac_tenant(self):
         serialized_networks = [self.networks_plugin.serialize(net)
                                for net in self.network_objects]
         self._index(self.networks_plugin.alias_name_listener,
@@ -84,13 +78,10 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.assertEqual(200, response.status)
         self.assertEqual(4, json_content['hits']['total'])
 
-    @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
-    def test_network_rbac_shared_external(self, mock_utcnow_str):
+    def test_network_rbac_shared_external(self):
         """TENANT2 networks should be visible because they're marked
         shared or router:external
         """
-        mock_utcnow_str.return_value = _now_str
-
         serialized_networks = [self.networks_plugin.serialize(net)
                                for net in self.network_objects]
         self._index(self.networks_plugin.alias_name_listener,
@@ -111,12 +102,10 @@ class TestNeutronPlugins(functional.FunctionalTest):
 
         self.assertEqual(set(expected_names), set(actual_names))
 
-    @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
-    def test_subnet_rbac(self, mock_utcnow_str):
+    def test_subnet_rbac(self):
         """These tests intentionally don't set a parent network so that they're
         just testing the tenant id check
         """
-        mock_utcnow_str.return_value = _now_str
         serialized_subnets = [self.subnets_plugin.serialize(subnet)
                               for subnet in self.subnet_objects
                               if subnet["tenant_id"] == TENANT3]
@@ -146,9 +135,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
                          set(hit["_source"]["network_id"]
                              for hit in json_content['hits']['hits']))
 
-    @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
-    def test_shared_network_subnet(self, mock_utcnow_str):
-        mock_utcnow_str.return_value = _now_str
+    def test_shared_network_subnet(self):
         role_sep = self.networks_plugin.requires_role_separation
 
         tenant2_nets = [self.networks_plugin.serialize(net)
@@ -190,9 +177,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
             'shared-subnet',
             json_content['hits']['hits'][0]['_source']['name'])
 
-    @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
-    def test_router_rbac(self, mock_utcnow_str):
-        mock_utcnow_str.return_value = _now_str
+    def test_router_rbac(self):
         serialized_routers = [self.routers_plugin.serialize(router)
                               for router in self.router_objects
                               if router["tenant_id"] == TENANT3]
@@ -312,17 +297,17 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         '''Send network.create.end notification event to listener'''
         create_event = self.network_events['network.create.end']
         self._send_event_to_listener(create_event, self.listener_alias)
-        result = self._verify_event_processing(create_event, owner=TENANT1)
+        result = self._verify_event_processing(create_event, owner=EV_TENANT)
         verification_keys = ['id', 'status', 'port_security_enabled', 'name']
         self._verify_result(create_event, verification_keys, result,
                             inner_key='network')
 
         hit = result['hits']['hits'][0]['_source']
-        self.assertEqual('2016-01-13T17:39:04Z', hit['updated_at'])
+        self.assertEqual('2016-03-21T16:19:51', hit['updated_at'])
 
         update_event = self.network_events['network.update.end']
         self._send_event_to_listener(update_event, self.listener_alias)
-        result = self._verify_event_processing(update_event, owner=TENANT1)
+        result = self._verify_event_processing(update_event, owner=EV_TENANT)
         verification_keys = ['id', 'status', 'port_security_enabled', 'name']
         self._verify_result(update_event, verification_keys, result,
                             inner_key='network')
@@ -335,17 +320,17 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
     def test_port_create_event(self):
         create_event = self.port_events['port.create.end']
         self._send_event_to_listener(create_event, self.listener_alias)
-        result = self._verify_event_processing(create_event, owner=TENANT1)
+        result = self._verify_event_processing(create_event, owner=EV_TENANT)
         verification_keys = ['id', 'status', 'mac_address', 'status']
         self._verify_result(create_event, verification_keys, result,
                             inner_key='port')
         hit = result['hits']['hits'][0]['_source']
-        self.assertEqual('2016-02-17T18:48:01Z', hit['updated_at'])
+        self.assertEqual('2016-03-21T16:36:56', hit['updated_at'])
 
     def test_port_rename_event(self):
         update_event = self.port_events['port_rename']
         self._send_event_to_listener(update_event, self.listener_alias)
-        result = self._verify_event_processing(update_event, owner=TENANT1)
+        result = self._verify_event_processing(update_event, owner=EV_TENANT)
         verification_keys = ['name']
         self._verify_result(update_event, verification_keys, result,
                             inner_key='port')
@@ -353,21 +338,21 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
     def test_port_attach_detach_events(self):
         create_event = self.port_events['port.create.end']
         self._send_event_to_listener(create_event, self.listener_alias)
-        result = self._verify_event_processing(create_event, owner=TENANT1)
+        result = self._verify_event_processing(create_event, owner=EV_TENANT)
         verification_keys = ['device_owner', 'device_id']
         self._verify_result(create_event, verification_keys, result,
                             inner_key='port')
 
         attach_event = self.port_events['port_attach']
         self._send_event_to_listener(attach_event, self.listener_alias)
-        result = self._verify_event_processing(attach_event, owner=TENANT1)
+        result = self._verify_event_processing(attach_event, owner=EV_TENANT)
         verification_keys = ['device_owner', 'device_id']
         self._verify_result(attach_event, verification_keys, result,
                             inner_key='port')
 
         detach_event = self.port_events['port_detach']
         self._send_event_to_listener(detach_event, self.listener_alias)
-        result = self._verify_event_processing(attach_event, owner=TENANT1)
+        result = self._verify_event_processing(attach_event, owner=EV_TENANT)
         verification_keys = ['device_owner', 'device_id']
         self._verify_result(detach_event, verification_keys, result,
                             inner_key='port')
@@ -381,14 +366,14 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
     def test_subnet_create_update_delete(self):
         create_event = self.subnet_events['subnet.create.end']
         self._send_event_to_listener(create_event, self.listener_alias)
-        result = self._verify_event_processing(create_event, owner=TENANT3)
+        result = self._verify_event_processing(create_event, owner=EV_TENANT)
         verification_keys = ['network_id', 'name']
         self._verify_result(create_event, verification_keys, result,
                             inner_key='subnet')
 
         update_event = self.subnet_events['subnet.update.end']
         self._send_event_to_listener(update_event, self.listener_alias)
-        result = self._verify_event_processing(update_event, owner=TENANT3)
+        result = self._verify_event_processing(update_event, owner=EV_TENANT)
         verification_keys = ['network_id', 'name']
         self._verify_result(update_event, verification_keys, result,
                             inner_key='subnet')
@@ -401,14 +386,14 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
     def test_router_create_update_delete(self):
         create_event = self.router_events['router.create.end']
         self._send_event_to_listener(create_event, self.listener_alias)
-        result = self._verify_event_processing(create_event, owner=TENANT3)
+        result = self._verify_event_processing(create_event, owner=EV_TENANT)
         verification_keys = ['status', 'name', 'id']
         self._verify_result(create_event, verification_keys, result,
                             inner_key='router')
 
         update_event = self.router_events['router.update.end']
         self._send_event_to_listener(update_event, self.listener_alias)
-        result = self._verify_event_processing(update_event, owner=TENANT3)
+        result = self._verify_event_processing(update_event, owner=EV_TENANT)
         verification_keys = ['status', 'name', 'id']
         self._verify_result(update_event, verification_keys, result,
                             inner_key='router')
@@ -442,7 +427,9 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
                 u'port_security_enabled': False,
                 u'security_groups': [],
                 u'status': u'ACTIVE',
-                u'tenant_id': TENANT3
+                u'tenant_id': EV_TENANT,
+                u'created_at': '2016-03-17T18:54:23',
+                u'updated_at': '2016-03-17T19:58:13'
             }
         }
         create_event = self.router_events['router.interface.create']
@@ -455,7 +442,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
             "query": {"term": {"id": "a5324522-47d3-4547-85df-a01ef6bde4b1"}}
         }
         response, json_content = self._search_request(query,
-                                                      TENANT3)
+                                                      EV_TENANT)
         self.assertEqual(200, response.status)
         self.assertEqual(1, json_content['hits']['total'])
         hit = json_content['hits']['hits'][0]['_source']
@@ -467,5 +454,5 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self._send_event_to_listener(delete_event, self.listener_alias)
 
         response, json_content = self._search_request(query,
-                                                      TENANT3)
+                                                      EV_TENANT)
         self.assertEqual(0, json_content['hits']['total'])

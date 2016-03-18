@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import datetime
-import mock
 from oslo_utils import timeutils
 import random
 import uuid
@@ -46,7 +45,9 @@ def _network_fixture(network_id, tenant_id, name, **kwargs):
         "shared": False,
         "status": "ACTIVE",
         "subnets": [],
-        "tenant_id": tenant_id
+        "tenant_id": tenant_id,
+        "updated_at": _now_str,
+        "created_at": _now_str
     }
     fixture.update(kwargs)
     return fixture
@@ -70,15 +71,10 @@ class TestNetworkLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual('OS::Neutron::Net',
                          self.plugin.get_document_type())
 
-    @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
-    def test_serialize(self, mock_utcnow_str):
-        # Serialization doesn't do much right now; adds date fields
-        # and removes subnets
-        mock_utcnow_str.return_value = _now_str
+    def test_serialize(self):
+        # Serialization doesn't do much right now; removes subnets
         serialized = self.plugin.serialize(self.network1)
-
         self.assertNotIn('subnets', serialized)
-        self.assertEqual(_now_str, serialized['updated_at'])
 
     def test_rbac_filter(self):
         fake_request = unit_test_utils.get_fake_request(

@@ -1,4 +1,4 @@
- {"admin_state_up": true,
+ [{"admin_state_up": true,
    "allowed_address_pairs": [],
    "binding:host_id": "devstack",
    "binding:profile": {},
@@ -21,5 +21,7 @@
    "port_security_enabled": true,
    "security_groups": ["38fb9110-0365-46c2-acff-68f604ef6358"],
    "status": "ACTIVE",
-   "tenant_id": "3ae2ba1152364ec49f284de38c326cd1"}
- ]
+   "tenant_id": "3ae2ba1152364ec49f284de38c326cd1",
+   "created_at": "2016-02-17T18:48:01",
+   "updated_at": "2016-02-17T18:50:23"
+ }]

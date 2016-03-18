@@ -42,20 +42,27 @@ class PortIndex(base.IndexBase):
 
         # TODO(sjmc7): denormalize 'device' fields (instance_id, router_id)?
         return {
-            'dynamic': True,
+            'dynamic': False,
             'properties': {
                 'admin_state_up': {'type': 'boolean'},
                 'binding:host_id': string_not_analyzed,
+                'binding:vif_details': {'type': 'object', 'properties': {}},
+                'binding:vif_type': string_not_analyzed,
+                'binding:profile': {'type': 'object', 'properties': {}},
+                'binding:vnic_type': string_not_analyzed,
+                'created_at': {'type': 'date'},
                 # device_owner and device_id identifies e.g which router
                 # or instance 'owns' a port
                 'device_id': string_not_analyzed,
                 'device_owner': string_not_analyzed,
-                'id': string_not_analyzed,
-                'mac_address': string_not_analyzed,
-                'name': ordered_string,
-                'network_id': string_not_analyzed,
-                'tenant_id': string_not_analyzed,
-                'status': {'type': 'string'},
+                'dns_name': string_not_analyzed,
+                'extra_dhcp_opts': {
+                    'type': 'nested',
+                    'properties': {
+                        'opt_name': string_not_analyzed,
+                        'opt_value': string_not_analyzed
+                    }
+                },
                 'fixed_ips': {
                     'type': 'nested',
                     'properties': {
@@ -63,7 +70,15 @@ class PortIndex(base.IndexBase):
                         'ip_address': string_not_analyzed
                     }
                 },
-                # Unfortunately this doesn't come from neutron
+                'id': string_not_analyzed,
+                'mac_address': string_not_analyzed,
+                'name': ordered_string,
+                'network_id': string_not_analyzed,
+                'port_security_enabled': {'type': 'boolean'},
+                'project_id': string_not_analyzed,
+                'tenant_id': string_not_analyzed,
+                'security_groups': string_not_analyzed,
+                'status': string_not_analyzed,
                 'updated_at': {'type': 'date'}
             }
         }
@@ -72,6 +87,15 @@ class PortIndex(base.IndexBase):
     def admin_only_fields(self):
         from_conf = super(PortIndex, self).admin_only_fields
         return from_conf + PortIndex.ADMIN_ONLY_FIELDS
+
+    @property
+    def facets_with_options(self):
+        return ('binding:vif_type', 'device_owner', 'admin_state_up', 'status',
+                'binding:vnic_type', 'port_security_enabled')
+
+    @property
+    def facets_excluded(self):
+        return {'tenant_id': True, 'project_id': False}
 
     def _get_rbac_field_filters(self, request_context):
         return [

@@ -11,7 +11,9 @@
  "shared": false,
  "status": "ACTIVE",
  "subnets": ["63785b90-f3d1-4124-b2e9-1e62dd7c8dab"],
- "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d"
+ "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+ "created_at": "2016-02-17T18:48:01",
+ "updated_at": "2016-02-17T18:50:23"
 },
 {
  "admin_state_up": true,
@@ -26,7 +28,9 @@
  "shared": true,
  "status": "ACTIVE",
  "subnets": ["def"],
- "tenant_id": "aaaaaabbbbbbccccc555552222255511"
+ "tenant_id": "aaaaaabbbbbbccccc555552222255511",
+ "created_at": "2016-02-17T18:48:01",
+ "updated_at": "2016-02-17T18:50:23"
 },
  {
  "admin_state_up": true,
@@ -41,7 +45,9 @@
  "shared": false,
  "status": "ACTIVE",
  "subnets": ["abc"],
- "tenant_id": "aaaaaabbbbbbccccc555552222255511"
+ "tenant_id": "aaaaaabbbbbbccccc555552222255511",
+ "created_at": "2016-02-17T18:48:01",
+ "updated_at": "2016-02-17T18:50:23"
 },
 {
  "admin_state_up": true,
@@ -56,6 +62,8 @@
  "shared": false,
  "status": "ACTIVE",
  "subnets": ["63785b90-f3d1-4124-b2e9-1e62dd7c8dab"],
- "tenant_id": "aaaaaabbbbbbccccc555552222255511"
+ "tenant_id": "aaaaaabbbbbbccccc555552222255511",
+ "created_at": "2016-02-17T18:48:01",
+ "updated_at": "2016-02-17T18:50:23"
 }
 ]
