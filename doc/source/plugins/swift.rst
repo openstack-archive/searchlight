@@ -17,33 +17,32 @@
 Swift Plugin Guide
 ******************
 
-WARNING: The Swift plugin is currently EXPERIMENTAL as notifications aren't
-fully supported. See below on enabling notifications.
+WARNING: The Swift plugin is currently EXPERIMENTAL as incremental indexing is
+only provided via an experimental OSLO messaging middleware patch while
+other indexing methodologies are explored for Swift.
+See :ref:`proxy-server.conf` for additional information.
 
 Integration is provided via a plugin. There are multiple configuration
 settings required for proper indexing and incremental updates. Some of the
 settings are specified in Searchlight configuration files. Others are
-provided in other service configuration files.
+provided in Swift configuration files.
 
 Swift Configuration
 ====================
 
-The Swift service currently doesn't send notifications.
-Apply this patch https://review.openstack.org/#/c/249471
-for adding notification middleware to swift. Please restart swift-api.
-
 reseller_admin_role
 -------------------
 
-Users with the Keystone role defined in reseller_admin_role (ResellerAdmin by default)
-can operate on any account. The auth system sets the request environ reseller_request
-to True if a request is coming from a user with this role.
+Users with the Keystone role defined in `reseller_admin_role` (`ResellerAdmin`
+by default) can operate on any account. The auth system sets the request
+context variable `reseller_request` to True if a request is coming from a user
+with this role.
 
-Searchlight needs this role for its service user to access all the swift accounts
-for initial indexing. The searchlight user and sevice project being referred here is the
-one defined in service_credentials section of searchlight conf file. This
-must be done prior to running `searchlight-manage index sync` when any of the
-Swift plugins are enabled.
+Searchlight needs this role for its service user to access all of the swift
+accounts during initial indexing. The `searchlight` user and `service` project
+being referred to here are defined in the `service_credentials` section of
+`searchlight.conf` file. If any of the Swift plugins are enabled, this
+role must be added prior to running `searchlight-manage index sync`.
 
 ::
 
@@ -53,8 +52,19 @@ Swift plugins are enabled.
 proxy-server.conf
 -----------------
 
-Notifications must be configured properly for searchlight to process
-incremental updates. Use the following::
+Incremental indexing for searchlight is typically provided via OSLO
+messaging. The Swift service currently doesn't send notifications, but
+work has been started to investigate more performant ways to achieve
+indexing.  In the meantime, experimental support for providing notifications
+via middleware is provided in the following patch:
+
+ * https://review.openstack.org/#/c/249471
+
+ #. Apply the patch to the Swift proxy server
+ #. Make the below configuration changes to `proxy-server.conf`
+ #. Restart the Swift proxy server
+
+::
 
     # Add the following new section
     [filter:oslomiddleware]
@@ -73,7 +83,7 @@ incremental updates. Use the following::
 
 .. note::
 
-    Restart swift proxy API service (s-proxy) after making changes.
+    Restart the swift proxy API service (s-proxy) after making changes.
 
 Searchlight Configuration
 =========================
