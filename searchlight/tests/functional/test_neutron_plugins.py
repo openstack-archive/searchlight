@@ -111,19 +111,25 @@ class TestNeutronListener(test_listener.TestSearchListenerBase):
 
         self.index_name = self.networks_plugin.alias_name_listener
 
-    def test_network_create_event(self):
+    def test_network_create_update_delete(self):
         '''Send network.create.end notification event to listener'''
         create_event = self.network_events['network.create.end']
         self._send_event_to_listener(create_event, self.index_name)
         result = self._verify_event_processing(create_event, owner=TENANT1)
-        verification_keys = ['id', 'status', 'port_security_enabled']
+        verification_keys = ['id', 'status', 'port_security_enabled', 'name']
         self._verify_result(create_event, verification_keys, result,
                             inner_key='network')
 
         hit = result['hits']['hits'][0]['_source']
         self.assertEqual('2016-01-13T17:39:04Z', hit['updated_at'])
 
-    def test_network_delete_event(self):
+        update_event = self.network_events['network.update.end']
+        self._send_event_to_listener(update_event, self.index_name)
+        result = self._verify_event_processing(update_event, owner=TENANT1)
+        verification_keys = ['id', 'status', 'port_security_enabled', 'name']
+        self._verify_result(update_event, verification_keys, result,
+                            inner_key='network')
+
         delete_event = self.network_events['network.delete.end']
         self._send_event_to_listener(delete_event, self.index_name)
         self._verify_event_processing(delete_event, count=0,

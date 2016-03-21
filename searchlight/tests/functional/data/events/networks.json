@@ -113,10 +113,57 @@
       "message_id": "1a316fdc-b4a3-4673-8afd-a2180bb03126"
     }
   },
+  "network.update.end": {
+    "event_type": "network.update.end",
+    "payload": {
+      "network": {
+        "status": "ACTIVE",
+        "subnets": [],
+        "name": "test-renamed-net",
+        "provider:physical_network": null,
+        "admin_state_up": true,
+        "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+        "mtu": 0,
+        "router:external": false,
+        "port_security_enabled": true,
+        "shared": false,
+        "provider:network_type": "vxlan",
+        "id": "813dd936-663e-4e5b-877c-986021b73e2c",
+        "provider:segmentation_id": 1084
+      }
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "read_only": false,
+      "domain": null,
+      "project_name": "admin",
+      "user_id": "8c0e8ada54be4c2e911be779806d6bc9",
+      "show_deleted": false,
+      "roles": ["admin"],
+      "user_identity": "8c0e8ada54be4c2e911be779806d6bc9 8eaac046b2c44ab99246cb0850c7f06d - - -",
+      "project_domain": null,
+      "tenant_name": "admin",
+      "auth_token": "de38ce2044ec4c92a9c1bd26f4d25fea",
+      "resource_uuid": null,
+      "project_id": "8eaac046b2c44ab99246cb0850c7f06d",
+      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+      "is_admin": true,
+      "user": "8c0e8ada54be4c2e911be779806d6bc9",
+      "request_id": "req-83b77e92-de2a-4a67-8c3e-aaf61421edad",
+      "user_domain": null,
+      "timestamp": "2016-01-13 17:40:34.406418",
+      "tenant": "8eaac046b2c44ab99246cb0850c7f06d",
+      "user_name": "admin"
+    },
+    "metadata": {
+      "timestamp": "2016-01-13 17:40:34.461311",
+      "message_id": "419576c7-1f52-4384-ad37-455303897345"
+    }
+  },
   "network.delete.end": {
     "event_type": "network.delete.end",
     "payload": {
-      "network_id": "52a3818f-015c-4b3b-a061-d686a0aec3de"
+      "network_id": "813dd936-663e-4e5b-877c-986021b73e2c"
     },
     "publisher_id": "network.devstack",
     "ctxt": {

@@ -33,8 +33,8 @@ class NetworkHandler(base.NotificationBase):
 
     def get_event_handlers(self):
         return {
-            # TODO(sjmc7): update? it seems only to support QoS updating
             'network.create.end': self.create_or_update,
+            'network.update.end': self.create_or_update,
             'network.delete.end': self.delete
         }
 
