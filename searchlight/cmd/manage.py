@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 import six
 import sys
 
@@ -99,12 +100,12 @@ class IndexCommands(object):
         # when "group" is empty.
         resource_groups = []
         plugin_objs = {}
-        plugins_to_index = []
+        plugins_list = []
         for res_type, ext in six.iteritems(utils.get_search_plugins()):
             plugin_obj = ext.obj
             group_set.discard(plugin_obj.resource_group_name)
             if (not group) or (plugin_obj.resource_group_name in group):
-                plugins_to_index.append((res_type, ext))
+                plugins_list.append((res_type, ext))
                 plugin_objs[plugin_obj.resource_group_name] = plugin_obj
                 if not (plugin_obj.resource_group_name,
                         plugin_obj.alias_name_search,
@@ -128,7 +129,7 @@ class IndexCommands(object):
             # get_index_display_name(). Therefore any child plugins in the
             # display list, will be listed twice.
             display_plugins = []
-            for res, ext in plugins_to_index:
+            for res, ext in plugins_list:
                 if not ext.obj.parent_plugin:
                     display_plugins.append((res, ext))
 
@@ -165,7 +166,7 @@ class IndexCommands(object):
         try:
             for group, search, listen in resource_groups:
                 index_names[group] = es_utils.create_new_index(group)
-            for resource_type, ext in plugins_to_index:
+            for resource_type, ext in plugins_list:
                 plugin_obj = ext.obj
                 group_name = plugin_obj.resource_group_name
                 plugin_obj.prepare_index(index_name=index_names[group_name])
@@ -189,27 +190,53 @@ class IndexCommands(object):
                 es_utils.alias_error_cleanup(index_names)
                 raise
 
-        # Step #3: Re-index all specified resource types.
-        #   NB: The aliases remain unchanged for this step.
-        #   NBB: There is an optimization possible here. In the future when
-        #        we have enable multiple resource_type_group entries, we
-        #        will want to look at only deleting the failing index. We do
-        #        not need to delete the indexes that successfully re-indexed.
-        #        This can get tricky since we will still need to perform
-        #        steps 4 & 5 for this aliases.
-        for resource_type, ext in plugins_to_index:
-            plugin_obj = ext.obj
-            group_name = plugin_obj.resource_group_name
-            try:
-                plugin_obj.initial_indexing(index_name=index_names[group_name])
-            except exceptions.EndpointNotFound:
-                LOG.warning(_LW("Service is not available for plugin: "
-                                "%(ext)s") % {"ext": ext.name})
-            except Exception as e:
-                LOG.error(_LE("Failed to setup index extension "
-                              "%(ext)s: %(e)s") % {'ext': ext.name, 'e': e})
-                es_utils.alias_error_cleanup(index_names)
-                raise
+        # Step #3: Re-index all resource types in this Resource Type Group.
+        #   As an optimization, if any types are explicitly requested, we
+        #   will index them from their service APIs. The rest will be
+        #   indexed from an existing ES index, if one exists.
+        #   NB: The "search" and "listener" aliases remain unchanged for this
+        #       step.
+        es_reindex = []
+        plugins_to_index = copy.copy(plugins_list)
+        if _type:
+            for resource_type, ext in plugins_list:
+                doc_type = ext.obj.get_document_type()
+                if doc_type not in _type:
+                    es_reindex.append(doc_type)
+                    plugins_to_index.remove((resource_type, ext))
+
+        # Call plugin API as needed.
+        if plugins_to_index:
+            for res, ext in plugins_to_index:
+                plugin_obj = ext.obj
+                gname = plugin_obj.resource_group_name
+                try:
+                    plugin_obj.initial_indexing(index_name=index_names[gname])
+                except exceptions.EndpointNotFound:
+                    LOG.warning(_LW("Service is not available for plugin: "
+                                    "%(ext)s") % {"ext": ext.name})
+                except Exception as e:
+                    LOG.error(_LE("Failed to setup index extension "
+                                  "%(ex)s: %(e)s") % {'ex': ext.name, 'e': e})
+                    es_utils.alias_error_cleanup(index_names)
+                    raise
+
+        # Call ElasticSearch for the rest, if needed.
+        if es_reindex:
+            for group in index_names.keys():
+                # Grab the correct tuple as a list, convert list to a single
+                # tuple, extract second member (the search alias) of tuple.
+                alias_search = \
+                    [a for a in resource_groups if a[0] == group][0][1]
+                try:
+                    es_utils.reindex(src_index=alias_search,
+                                     dst_index=index_names[group],
+                                     type_list=es_reindex)
+                except Exception as e:
+                    LOG.error(_LE("Failed to setup index extension "
+                                  "%(ex)s: %(e)s") % {'ex': ext.name, 'e': e})
+                    es_utils.alias_error_cleanup(index_names)
+                    raise
 
         # Step #4: Update the "search" alias.
         #   All re-indexing has occurred. The index/alias is the same for

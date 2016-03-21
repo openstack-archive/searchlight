@@ -64,6 +64,94 @@ def timestamp_to_isotime(timestamp):
     return oslo_utils.timeutils.isotime(parsed_time)
 
 
+def helper_reindex(client, source_index, target_index, query=None,
+                   target_client=None, chunk_size=500, scroll='5m',
+                   scan_kwargs={}, bulk_kwargs={}):
+    """We have lovingly copied the entire helpers.reindex function here:
+           lib/python2.7/site-packages/elasticsearch/helpers/__init__.py.
+       We need our own version (haha) of reindex to handle external versioning
+       within a document. The current implmenentation of helpers.reindex does
+       not provide this support. Since there is no way to tell helpers.bulk()
+       that an external version is being used, we will need to modify each
+       document in the generator. For future maintainablilty, modifications
+       to the original method will be preceeded with a comment "CHANGED:".
+       Minor tweaks made for PEP8 conformance excepted.
+    """
+
+    """
+    Reindex all documents from one index that satisfy a given query
+    to another, potentially (if `target_client` is specified) on a different
+    cluster. If you don't specify the query you will reindex all the documents.
+
+    .. note::
+
+        This helper doesn't transfer mappings, just the data.
+
+    :arg client: instance of :class:`~elasticsearch.Elasticsearch` to use (for
+        read if `target_client` is specified as well)
+    :arg source_index: index (or list of indices) to read documents from
+    :arg target_index: name of the index in the target cluster to populate
+    :arg query: body for the :meth:`~elasticsearch.Elasticsearch.search` api
+    :arg target_client: optional, is specified will be used for writing (thus
+        enabling reindex between clusters)
+    :arg chunk_size: number of docs in one chunk sent to es (default: 500)
+    :arg scroll: Specify how long a consistent view of the index should be
+        maintained for scrolled search
+    :arg scan_kwargs: additional kwargs to be passed to
+        :func:`~elasticsearch.helpers.scan`
+    :arg bulk_kwargs: additional kwargs to be passed to
+        :func:`~elasticsearch.helpers.bulk`
+    """
+    target_client = client if target_client is None else target_client
+
+    docs = helpers.scan(client, query=query, index=source_index,
+                        scroll=scroll,
+                        fields=('_source', '_parent', '_routing',
+                                '_timestamp'), **scan_kwargs)
+
+    def _change_doc_index(hits, index):
+        for h in hits:
+            h['_index'] = index
+            # CHANGED: Allow for external versions to be indexed.
+            h['_version_type'] = "external"
+            if 'fields' in h:
+                h.update(h.pop('fields'))
+            yield h
+
+    kwargs = {
+        'stats_only': True,
+    }
+    kwargs.update(bulk_kwargs)
+    return helpers.bulk(target_client, _change_doc_index(docs, target_index),
+                        chunk_size=chunk_size, **kwargs)
+
+
+def reindex(src_index, dst_index, type_list, chunk_size=None, time=None):
+    """Reindex a set of indexes internally within ElasticSearch. All of the
+       documents under the types that live in "type_list" under the index
+       "src_index" will be copied into the documents under the same types
+       in the index "dst_index". In other words, a perfect re-index!
+       Instead of using the plugin API and consuming bandwidth to perform
+       the re-index we will allow ElasticSearch to do some heavy lifting for
+       us. Under the covers we are combining scan/scroll with bulk operations
+       to do this re-indexing as efficient as possible.
+    """
+    es_engine = searchlight.elasticsearch.get_api()
+
+    # Create a Query DSL string to access all documents within the specified
+    # document types. We will filter on the "_type" field in this index. Since
+    # there are multple docuent types, we will need to use the "terms" filter.
+    # All of the document types will be added to the list for "_type". We need
+    # to enable version to allow the search to return the version field. This
+    # will be used by the reindexer.
+    body = {"version": "true",
+            "query": {"filtered": {"filter": {"terms": {"_type": type_list}}}}}
+    # Debug: Show all documents that ES will re-index.
+    # LOG.debug(es_engine.search(index=src_index, body=body, size=500))
+    helper_reindex(client=es_engine, source_index=src_index,
+                   target_index=dst_index, query=body)
+
+
 def create_new_index(group):
     """Create a new index for a specific Resource Type Group. Upon
        exit of this method, the index is still not ready to be used.
