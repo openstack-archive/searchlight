@@ -55,7 +55,10 @@ class NotificationEndpoint(object):
                 for event in event_list:
                     LOG.debug("Registering event '%s' for plugin '%s'",
                               event, plugin.name)
-                    self.notification_target_map[event.lower()] = plugin.obj
+                    # Add this plugin to the list of handlers for this event
+                    # type, creating that list if necessary
+                    self.notification_target_map.setdefault(
+                        event.lower(), []).append(plugin.obj)
             except Exception as e:
                 LOG.error(_LE("Failed to retrieve supported notification"
                               " events from search plugins "
@@ -64,8 +67,9 @@ class NotificationEndpoint(object):
 
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         event_type_l = event_type.lower()
-        if event_type_l in self.notification_target_map:
-            plugin = self.notification_target_map[event_type_l]
+        # The notification map contains a list of plugins for each event
+        # type subscribed to
+        for plugin in self.notification_target_map.get(event_type_l, []):
             LOG.debug("Processing event '%s' with plugin '%s'",
                       event_type_l, plugin.name)
             handler = plugin.get_notification_handler()
