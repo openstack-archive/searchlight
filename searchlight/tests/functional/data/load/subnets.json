@@ -118,5 +118,51 @@
     "tenant_id": "aaaaaabbbbbbccccc555552222255511",
     "updated_at": "2016-03-13T23:41:32",
     "created_at": "2016-03-13T23:45:32"
+  },
+    {
+    "allocation_pools": [
+      {
+        "end": "fd2c:ac9d:23d1:0:ffff:ffff:ffff:ffff",
+        "start": "fd2c:ac9d:23d1::2"
+      }
+    ],
+    "cidr": "fd2c:ac9d:23d1::/64",
+    "dns_nameservers": [],
+    "enable_dhcp": true,
+    "gateway_ip": "4444:ac9d:54d1::1",
+    "host_routes": [],
+    "id": "23785b90-f3d1-4124-b2e9-1e62dd7c8da1",
+    "ip_version": 6,
+    "ipv6_address_mode": "slaac",
+    "ipv6_ra_mode": "slaac",
+    "name": "shared-not-external",
+    "network_id": "cf14a7a7-4808-4c88-8c3b-56fb48f2b1d1",
+    "subnetpool_id": null,
+    "tenant_id": "9eaac046b2c44ab99246cb0850c7f853",
+    "updated_at": "2016-03-13T23:41:32",
+    "created_at": "2016-03-13T23:45:32"
+  },
+    {
+    "allocation_pools": [
+      {
+        "end": "fd2c:ac9d:23d1:0:ffff:ffff:ffff:ffff",
+        "start": "fd2c:ac9d:23d1::2"
+      }
+    ],
+    "cidr": "fd2c:ac9d:23d1::/64",
+    "dns_nameservers": [],
+    "enable_dhcp": true,
+    "gateway_ip": "4444:ac9d:54d1::1",
+    "host_routes": [],
+    "id": "23785b90-f3d1-4124-b2e9-1e62dd7c8da2",
+    "ip_version": 6,
+    "ipv6_address_mode": "slaac",
+    "ipv6_ra_mode": "slaac",
+    "name": "not-shared-external",
+    "network_id": "cf14a7a7-4808-4c88-8c3b-56fb48f2b1d2",
+    "subnetpool_id": null,
+    "tenant_id": "9eaac046b2c44ab99246cb0850c7f853",
+    "updated_at": "2016-03-13T23:41:32",
+    "created_at": "2016-03-13T23:45:32"
   }
 ]}

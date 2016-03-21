@@ -1,27 +1,110 @@
- [{"admin_state_up": true,
-   "allowed_address_pairs": [],
-   "binding:host_id": "devstack",
-   "binding:profile": {},
-   "binding:vif_details": {"ovs_hybrid_plug": true, "port_filter": true},
-   "binding:vif_type": "ovs",
-   "binding:vnic_type": "normal",
-   "device_id": "881d8582-abe1-4c8f-8c5a-2925fc421e8b",
-   "device_owner": "network:router_interface",
-   "dns_assignment": [{"fqdn": "host-fd70-b64a-666f--1.openstacklocal.",
-     "hostname": "host-fd70-b64a-666f--1",
-     "ip_address": "fd70:b64a:666f::1"}],
-   "dns_name": "",
-   "extra_dhcp_opts": [],
-   "fixed_ips": [{"ip_address": "fd70:b64a:666f::1",
-     "subnet_id": "356bbedc-2bb2-467a-b380-8bfd0ed2fbdf"}],
-   "id": "f971a26e-63de-4fe5-bd54-8d7e780b504c",
-   "mac_address": "fa:16:3e:19:c8:f5",
-   "name": "",
-   "network_id": "bc0adf22-3aef-4e7b-8b99-12670b5a76b5",
-   "port_security_enabled": true,
-   "security_groups": ["38fb9110-0365-46c2-acff-68f604ef6358"],
-   "status": "ACTIVE",
-   "tenant_id": "3ae2ba1152364ec49f284de38c326cd1",
-   "created_at": "2016-02-17T18:48:01",
-   "updated_at": "2016-02-17T18:50:23"
- }]
+{
+  "ports": [
+    {
+      "admin_state_up": true,
+      "allowed_address_pairs": [],
+      "binding:host_id": "devstack",
+      "binding:profile": {},
+      "binding:vif_details": {
+        "ovs_hybrid_plug": true,
+        "port_filter": true
+      },
+      "binding:vif_type": "ovs",
+      "binding:vnic_type": "normal",
+      "device_id": "881d8582-abe1-4c8f-8c5a-2925fc421e8b",
+      "device_owner": "network:router_interface",
+      "dns_assignment": [
+        {
+          "fqdn": "host-fd70-b64a-666f--1.openstacklocal.",
+          "hostname": "host-fd70-b64a-666f--1",
+          "ip_address": "fd70:b64a:666f::1"
+        }
+      ],
+      "dns_name": "",
+      "extra_dhcp_opts": [],
+      "fixed_ips": [
+        {
+          "ip_address": "fd70:b64a:666f::1",
+          "subnet_id": "356bbedc-2bb2-467a-b380-8bfd0ed2fbdf"
+        }
+      ],
+      "id": "f971a26e-63de-4fe5-bd54-8d7e780b504c",
+      "mac_address": "fa:16:3e:19:c8:f5",
+      "name": "",
+      "network_id": "bc0adf22-3aef-4e7b-8b99-12670b5a76b5",
+      "port_security_enabled": true,
+      "security_groups": [
+        "38fb9110-0365-46c2-acff-68f604ef6358"
+      ],
+      "status": "ACTIVE",
+      "tenant_id": "3ae2ba1152364ec49f284de38c326cd1",
+      "created_at": "2016-02-17T18:48:01",
+      "updated_at": "2016-02-17T18:50:23"
+    },
+    {
+      "allowed_address_pairs": [],
+      "extra_dhcp_opts": [],
+      "updated_at": "2016-03-22T08:38:23Z",
+      "device_owner": "network:router_interface",
+      "port_security_enabled": false,
+      "binding:profile": {},
+      "fixed_ips": [{
+        "subnet_id": "9e82dbc0-f393-4984-9356-1996e0fa9a11",
+        "ip_address": "192.1.0.2"
+      }],
+      "id": "2e7070e6-0c76-4c82-8066-7d4360d07508",
+      "security_groups": [],
+      "binding:vif_details": {
+        "ovs_hybrid_plug": true,
+        "port_filter": true
+      },
+      "binding:vif_type": "ovs",
+      "mac_address": "fa:16:3e:4f:5e:84",
+      "status": "ACTIVE",
+      "binding:host_id": "ubuntu",
+      "description": "",
+      "device_id": "dhcp724fc160-2b2e-597e-b9ed-7f65313cd73f-eb73a575-0569-42bb-a4f0-4849225b9ad2",
+      "name": "external-port",
+      "admin_state_up": true,
+      "network_id": "cf14a7a7-4808-4c88-8c3b-56fb48f2b1d2",
+      "dns_name": null,
+      "created_at": "2016-03-22T05:11:21",
+      "binding:vnic_type": "normal",
+      "tenant_id": "9eaac046b2c44ab99246cb0850c7f853"
+    },
+    {
+      "allowed_address_pairs": [],
+      "extra_dhcp_opts": [],
+      "updated_at": "2016-03-22T08:38:23Z",
+      "device_owner": "network:router_interface",
+      "port_security_enabled": false,
+      "binding:profile": {},
+      "fixed_ips": [{
+        "subnet_id": "00995c3e-9f3b-4c46-b895-3211f42e7ce3",
+        "ip_address": "10.0.0.2"
+      },
+        {
+          "subnet_id": "0407834d-a6f1-4e1d-b1c9-c9ad3616eec5",
+          "ip_address": "fdef:d29a:93ea:0:f816:3eff:fe5e:d97c"
+        }],
+      "id": "990a8bcb-2629-4423-a19c-d46ecf1a2344",
+      "security_groups": [],
+      "binding:vif_details": {
+        "ovs_hybrid_plug": true,
+        "port_filter": true
+      },
+      "binding:vif_type": "ovs",
+      "mac_address": "fa:16:3e:5e:d9:7c",
+      "status": "ACTIVE",
+      "binding:host_id": "ubuntu",
+      "description": "",
+      "device_id": "dhcp724fc160-2b2e-597e-b9ed-7f65313cd73f-5024759d-1d5a-452b-975b-3f428c57f0d0",
+      "name": "",
+      "admin_state_up": true,
+      "network_id": "5024759d-1d5a-452b-975b-3f428c57f0d0",
+      "dns_name": null,
+      "created_at": "2016-03-22T04:46:34",
+      "binding:vnic_type": "normal",
+      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d"
+    }]
+}

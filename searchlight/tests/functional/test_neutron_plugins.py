@@ -42,11 +42,15 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.networks_plugin = self.initialized_plugins['OS::Neutron::Net']
         self.subnets_plugin = self.initialized_plugins['OS::Neutron::Subnet']
         self.routers_plugin = self.initialized_plugins['OS::Neutron::Router']
+        self.port_plugin = self.initialized_plugins['OS::Neutron::Port']
 
         self.network_objects = self._load_fixture_data('load/networks.json')
 
         self.subnet_objects = self._load_fixture_data('load/subnets.json')
         self.subnet_objects = self.subnet_objects['subnets']
+
+        self.port_objects = self._load_fixture_data('load/ports.json')
+        self.port_objects = self.port_objects['ports']
 
         self.router_objects = self._load_fixture_data('load/routers.json')
         self.router_objects = self.router_objects['routers']
@@ -63,11 +67,12 @@ class TestNeutronPlugins(functional.FunctionalTest):
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       TENANT2)
         self.assertEqual(200, response.status)
-        self.assertEqual(3, json_content['hits']['total'])
+        self.assertEqual(5, json_content['hits']['total'])
 
         hits = json_content['hits']['hits']
-        expected_names = ['test-shared', 'test-external-router',
-                          'test-not-shared']
+        expected_names = ['test-external-router', 'test-not-shared',
+                          'test-shared', 'test1-no-shared-external',
+                          'test1-shared-no-external']
         actual_names = [hit['_source']['name'] for hit in hits]
 
         self.assertEqual(set(expected_names), set(actual_names))
@@ -76,7 +81,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
             {"query": {"match_all": {}}, "all_projects": True},
             TENANT2, role="admin")
         self.assertEqual(200, response.status)
-        self.assertEqual(4, json_content['hits']['total'])
+        self.assertEqual(6, json_content['hits']['total'])
 
     def test_network_rbac_shared_external(self):
         """TENANT2 networks should be visible because they're marked
@@ -94,10 +99,12 @@ class TestNeutronPlugins(functional.FunctionalTest):
                                                       TENANT1)
 
         self.assertEqual(200, response.status)
-        self.assertEqual(3, json_content['hits']['total'])
+        self.assertEqual(5, json_content['hits']['total'])
 
         hits = json_content['hits']['hits']
-        expected_names = ['test', 'test-shared', 'test-external-router']
+        expected_names = ['test', 'test-shared', 'test-external-router',
+                          'test1-no-shared-external',
+                          'test1-shared-no-external']
         actual_names = [hit['_source']['name'] for hit in hits]
 
         self.assertEqual(set(expected_names), set(actual_names))
@@ -176,6 +183,68 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.assertEqual(
             'shared-subnet',
             json_content['hits']['hits'][0]['_source']['name'])
+
+    def test_subnet_rbac_admin_role_non_tenant(self):
+        role_sep = self.networks_plugin.requires_role_separation
+
+        # Index all networks
+        all_nets = [self.networks_plugin.serialize(net)
+                    for net in self.network_objects]
+        self._index(self.networks_plugin.alias_name_listener,
+                    self.networks_plugin.get_document_type(),
+                    all_nets,
+                    TENANT1,
+                    role_separation=role_sep)
+
+        # Index all subnets
+        all_subnets = [self.subnets_plugin.serialize(subnet)
+                       for subnet in self.subnet_objects]
+        self._index(self.subnets_plugin.alias_name_listener,
+                    self.subnets_plugin.get_document_type(),
+                    all_subnets,
+                    TENANT1,
+                    parent_id_field="network_id",
+                    role_separation=True)
+
+        # There are now two subnets from two other tenant networks
+        # which are either shared or external along with all subnets
+        # from own tenant
+        response, json_content = self._search_request(
+            {"query": {"match_all": {}}, "type": "OS::Neutron::Subnet",
+             "all_projects": False}, TENANT1, role="admin")
+        self.assertEqual(4, json_content['hits']['total'])
+
+    def test_port_rbac_admin_role_non_tenant(self):
+        """Test that a user with admin role can access ports from
+        all the tenants where a network is either shared or external.
+        """
+        role_sep = self.networks_plugin.requires_role_separation
+        all_nets = [self.networks_plugin.serialize(net)
+                    for net in self.network_objects]
+        self._index(self.networks_plugin.alias_name_listener,
+                    self.networks_plugin.get_document_type(),
+                    all_nets,
+                    TENANT1,
+                    role_separation=role_sep)
+
+        serialized_ports = [
+            self.port_plugin.serialize(port)
+            for port in self.port_objects
+        ]
+        role_sep = self.port_plugin.requires_role_separation
+        self._index(
+            self.port_plugin.alias_name_listener,
+            self.port_plugin.get_document_type(),
+            serialized_ports,
+            TENANT1,
+            parent_id_field="network_id",
+            role_separation=role_sep)
+
+        response, json_content = self._search_request(
+            {"query": {"match_all": {}}, "type": "OS::Neutron::Port",
+             "all_projects": False}, TENANT1, role="admin")
+        self.assertEqual(200, response.status)
+        self.assertEqual(2, json_content['hits']['total'])
 
     def test_router_rbac(self):
         serialized_routers = [self.routers_plugin.serialize(router)

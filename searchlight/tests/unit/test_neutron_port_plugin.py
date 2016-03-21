@@ -83,7 +83,36 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual('OS::Neutron::Port',
                          self.plugin.get_document_type())
 
-    def test_rbac_filter(self):
+    def test_rbac_filter_admin_role(self):
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search', is_admin=True
+        )
+        rbac_terms = self.plugin._get_rbac_field_filters(fake_request.context)
+        expected_rbac = [
+            {
+                "or": [
+                    {
+                        'term': {'tenant_id': TENANT1}
+                    },
+                    {
+                        'has_parent': {
+                            'type': self.plugin.parent_plugin_type(),
+                            'query': {
+                                "bool": {
+                                    "should": [
+                                        {'term': {'shared': True}},
+                                        {'term': {'router:external': True}}
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+        self.assertEqual(expected_rbac, rbac_terms)
+
+    def test_rbac_filter_non_admin_role(self):
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search', is_admin=False
         )

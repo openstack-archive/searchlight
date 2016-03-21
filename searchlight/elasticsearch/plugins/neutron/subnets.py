@@ -96,20 +96,37 @@ class SubnetIndex(base.IndexBase):
         return {'tenant_id': True, 'project_id': False}
 
     def _get_rbac_field_filters(self, request_context):
-        """Subnets are visible to their owners and if they belong to networks
-        with the 'shared' property.
-        """
-        return [{
+
+        if request_context.is_admin:
+            '''lakshmiS: neutron allows users with admin role to
+            see subnet(s) of network(s) from other tenants when those
+            networks are either shared or external.'''
+            has_parent_query = {
+                "bool": {
+                    "should": [
+                        {'term': {'shared': True}},
+                        {'term': {'router:external': True}}
+                    ]
+                }
+            }
+        else:
+            """ Subnet(s) are visible to their owners or if they belong
+            to networks with the 'shared' property for users without admin
+            role ."""
+            has_parent_query = {'term': {'shared': True}}
+
+        rbac_filter = [{
             "or": [
                 {'term': {'tenant_id': request_context.owner}},
                 {
                     'has_parent': {
                         'type': self.parent_plugin_type(),
-                        'query': {'term': {'shared': True}}
+                        'query': has_parent_query
                     }
                 }
             ]
         }]
+        return rbac_filter
 
     def get_objects(self):
         neutron_client = openstack_clients.get_neutronclient()

@@ -98,9 +98,39 @@ class PortIndex(base.IndexBase):
         return {'tenant_id': True, 'project_id': False}
 
     def _get_rbac_field_filters(self, request_context):
-        return [
-            {'term': {'tenant_id': request_context.owner}}
-        ]
+        if request_context.is_admin:
+            '''lakshmiS: neutron allows users with admin role to
+            see ports of network(s) from other tenants when those
+            networks are either shared or external.'''
+            return [
+                {
+                    "or": [
+                        {
+                            'term': {'tenant_id': request_context.owner}
+                        },
+                        {
+                            'has_parent': {
+                                'type': self.parent_plugin_type(),
+                                'query': {
+                                    "bool": {
+                                        "should": [
+                                            {'term': {'shared': True}},
+                                            {'term': {'router:external': True}}
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        else:
+            ''' Users without admin role are not allowed to see the
+            port information for networks from other tenants even if
+            that network was shared or external.'''
+            return [
+                {'term': {'tenant_id': request_context.owner}}
+            ]
 
     def get_objects(self):
         neutron_client = openstack_clients.get_neutronclient()
