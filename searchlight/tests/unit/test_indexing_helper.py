@@ -387,3 +387,32 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 index=plugin.alias_name_listener,
                 doc_type=plugin.document_type,
                 actions=expected_delete_actions)
+
+    def test_bulk_index_error_handling(self):
+        """Check that 404 and 409 errors are appropriately ignored"""
+        from elasticsearch import helpers
+
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        indexing_helper = plugin_utils.IndexingHelper(plugin)
+
+        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        with mock.patch(bulk_name) as mock_bulk:
+            mock_bulk.side_effect = helpers.BulkIndexError(
+                "1 document(s) failed to index",
+                [{'delete': {"_id": "1", "error": "Some error", "status": 404,
+                             "exception": helpers.TransportError()}}]
+            )
+
+            indexing_helper.delete_documents([{'_id': '1'}])
+
+            self.assertEqual(1, mock_bulk.call_count)
+
+        with mock.patch(bulk_name) as mock_bulk:
+            mock_bulk.side_effect = helpers.BulkIndexError(
+                "1 document(s) failed to index",
+                [{'index': {"_id": "1", "error": "VersionConflict",
+                            "status": 409}}]
+            )
+            indexing_helper.save_documents([{'id': '1'}])
+            self.assertEqual(1, mock_bulk.call_count)
