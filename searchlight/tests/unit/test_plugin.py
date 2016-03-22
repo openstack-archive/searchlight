@@ -167,6 +167,7 @@ class TestPlugin(test_utils.BaseTestCase):
                 'datetype': {'type': 'date'},
                 'booltype': {'type': 'boolean'},
                 'shorttype': {'type': 'short'},
+                'longtype': {'type': 'long'},
                 'iptype': {'type': 'ip'},
                 'nested': {
                     'type': 'nested',
@@ -189,7 +190,7 @@ class TestPlugin(test_utils.BaseTestCase):
             # These fields should all have doc_values. Explicitly testing
             # for 'true' here rather than assertTrue
             for field in ('not_analyzed_string', 'inttype', 'datetype',
-                          'booltype', 'shorttype'):
+                          'booltype', 'shorttype', 'longtype'):
                 self.assertEqual(True, props[field]['doc_values'])
 
             self.assertEqual(

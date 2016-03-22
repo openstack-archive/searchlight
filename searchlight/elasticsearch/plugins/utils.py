@@ -41,7 +41,7 @@ _LE = i18n._LE
 
 VERSION_CONFLICT_MSG = 'version_conflict_engine_exception'
 
-DOC_VALUE_TYPES = ('integer', 'short', 'boolean', 'short', 'byte',
+DOC_VALUE_TYPES = ('long', 'integer', 'short', 'boolean', 'byte',
                    'double', 'float', 'date', 'binary', 'geo_point', 'ip')
 
 
