@@ -116,6 +116,10 @@ Release Notes
 0.2.0.0 (Mitaka)
 -----------------
 
+DHCP ports are *not* indexed. Neutron doesn't provide a reliable way for
+Searchlight to index these ports since they are created and modified
+asynchronously from the subnets that they're attached to.
+
 All provider:* properties of networks are exposed to administrators only.
 All binding:* properties of ports are also visible only to administrators.
 The 'distributed' and 'ha' router properties are available only to
