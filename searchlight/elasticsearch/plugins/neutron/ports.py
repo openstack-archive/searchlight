@@ -105,6 +105,12 @@ class PortIndex(base.IndexBase):
     def get_objects(self):
         neutron_client = openstack_clients.get_neutronclient()
         for port in neutron_client.list_ports()['ports']:
+            # TODO(sjmc7): Remove this once we can get proper notifications
+            # about DHCP ports.
+            #  See https://bugs.launchpad.net/searchlight/+bug/1558790
+            if port['device_owner'] == 'network:dhcp':
+                continue
+
             yield port
 
     def serialize(self, port):

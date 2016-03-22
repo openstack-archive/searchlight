@@ -13,7 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import mock
+import uuid
 
 from searchlight.listener import NotificationEndpoint
 from searchlight.tests import functional
@@ -456,3 +458,20 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         response, json_content = self._search_request(query,
                                                       EV_TENANT)
         self.assertEqual(0, json_content['hits']['total'])
+
+    def test_ignore_neutron_dhcp_port(self):
+        create_event = self.port_events['port.create.end']
+        self._send_event_to_listener(create_event, self.listener_alias)
+
+        dhcp_event = copy.deepcopy(create_event)
+        dhcp_event['payload']['port']['id'] = str(uuid.uuid4())
+        dhcp_event['payload']['port']['device_owner'] = 'network:dhcp'
+        self._send_event_to_listener(dhcp_event, self.listener_alias)
+
+        query = {"type": "OS::Neutron::Port", "query": {"match_all": {}}}
+        response, json_content = self._search_request(query,
+                                                      EV_TENANT)
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(create_event['payload']['port']['id'],
+                         json_content['hits']['hits'][0]['_source']['id'])

@@ -28,6 +28,7 @@ from searchlight import i18n
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 _LE = i18n._LE
+_LI = i18n._LI
 
 
 class NetworkHandler(base.NotificationBase):
@@ -83,6 +84,17 @@ class PortHandler(base.NotificationBase):
 
     def create_or_update(self, payload, timestamp):
         port_id = payload['port']['id']
+
+        if payload['port'].get('device_owner', None) == 'network:dhcp':
+            # TODO(sjmc7): Remove this once we can get proper notifications
+            # about DHCP ports.
+            #  See https://bugs.launchpad.net/searchlight/+bug/1558790
+            LOG.info(_LI("Skipping notification for DHCP port %s. If neutron "
+                         "is sending notifications for DHCP ports, the "
+                         "Searchlight plugin should be updated to process "
+                         "them.") % port_id)
+            return
+
         LOG.debug("Updating port information for %s", port_id)
 
         # Version doesn't really make a huge amount of sense here but

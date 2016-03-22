@@ -14,7 +14,9 @@
 # limitations under the License.
 
 import datetime
+import mock
 from oslo_utils import timeutils
+import uuid
 
 from searchlight.elasticsearch.plugins.neutron import\
     ports as port_plugin
@@ -26,6 +28,7 @@ USER1 = u'27f4d76b-be62-4e4e-aa33bb11cc55'
 ID1 = u'813dd936-663e-4e5b-877c-986021b73e2c'
 TENANT1 = u'8eaac046b2c44ab99246cb0850c7f06d'
 NETWORK1 = u'bc0adf22-3aef-4e7b-8b99-12670b5a76b5'
+UUID_PORT_ID = str(uuid.uuid4())
 _now_str = timeutils.isotime(datetime.datetime.utcnow())
 
 
@@ -39,8 +42,8 @@ def _create_port_fixture(port_id, tenant_id, network_id, **kwargs):
                                  u'port_filter': True},
         u'binding:vif_type': u'ovs',
         u'binding:vnic_type': u'normal',
-        u'device_id': u'881d8582-abe1-4c8f-8c5a-2925fc421e8b',
-        u'device_owner': u'network:router_interface',
+        u'device_id': None,
+        u'device_owner': None,
         u'dns_assignment': [{
             u'fqdn': u'host-fd70-b64a-666f--1.openstacklocal.',
             u'hostname': u'host-fd70-b64a-666f--1',
@@ -75,6 +78,9 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
 
     def _create_fixtures(self):
         self.port1 = _create_port_fixture(ID1, TENANT1, NETWORK1)
+        self.dhcp_port = _create_port_fixture(UUID_PORT_ID, TENANT1, NETWORK1,
+                                              device_owner='network:dhcp')
+        self.ports = [self.port1, self.dhcp_port]
 
     def test_default_index_name(self):
         self.assertEqual('searchlight', self.plugin.resource_group_name)
@@ -96,3 +102,9 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
     def test_admin_only_fields(self):
         admin_only_fields = self.plugin.admin_only_fields
         self.assertEqual(['binding:*'], admin_only_fields)
+
+    def test_no_dhcp_ports(self):
+        with mock.patch('neutronclient.v2_0.client.Client.list_ports',
+                        return_value={'ports': self.ports}):
+            listed_objects = list(self.plugin.get_objects())
+            self.assertEqual([self.port1], listed_objects)
