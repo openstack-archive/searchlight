@@ -18,28 +18,17 @@ import copy
 from searchlight.elasticsearch.plugins import utils
 
 
-def _add_dates(entity, updated_at=None):
-    """Nothing in neutron appears to have any dates attached to it, or at
-    least not that we're able to get at.
-    """
-    if not entity.get('updated_at'):
-        entity['updated_at'] = updated_at or utils.get_now_str()
-
-
-def serialize_network(network, updated_at=None):
+def serialize_network(network):
     serialized = copy.deepcopy(network)
-    # TODO(sjmc7): Once subnets are added, look at whether or not to
-    # leave this in dependent on what notifications are received
+    # Remove subnets because we index them separately
     serialized.pop('subnets')
-    # There are no times in network requests, so we'll slap the current
-    # time on for the sake of argument
-    serialized['updated_at'] = updated_at or utils.get_now_str()
+    serialized['project_id'] = serialized['tenant_id']
     return serialized
 
 
-def serialize_port(port, updated_at=None):
+def serialize_port(port):
     serialized = copy.deepcopy(port)
-    serialized['updated_at'] = updated_at or utils.get_now_str()
+    serialized['project_id'] = serialized['tenant_id']
     return serialized
 
 
@@ -51,6 +40,7 @@ def serialize_subnet(subnet):
 
 def serialize_router(router, updated_at=None):
     serialized = copy.deepcopy(router)
-    serialized['updated_at'] = updated_at or utils.get_now_str()
+    if 'updated_at' not in router:
+        serialized['updated_at'] = updated_at or utils.get_now_str()
     serialized['project_id'] = serialized['tenant_id']
     return serialized

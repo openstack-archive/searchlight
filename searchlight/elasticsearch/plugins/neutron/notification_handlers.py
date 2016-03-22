@@ -47,9 +47,7 @@ class NetworkHandler(base.NotificationBase):
         LOG.debug("Updating network information for %s", network_id)
 
         # Neutron doesn't give us any date/time information
-        network = serialize_network(
-            payload['network'],
-            updated_at=utils.timestamp_to_isotime(timestamp))
+        network = serialize_network(payload['network'])
         version = self.get_version(network, timestamp)
 
         self.index_helper.save_document(network, version=version)
@@ -89,8 +87,7 @@ class PortHandler(base.NotificationBase):
 
         # Version doesn't really make a huge amount of sense here but
         # is better than nothing
-        port = serialize_port(payload['port'],
-                              updated_at=utils.timestamp_to_isotime(timestamp))
+        port = serialize_port(payload['port'])
         version = self.get_version(port, timestamp)
 
         self.index_helper.save_document(port, version=version)
@@ -115,8 +112,7 @@ class PortHandler(base.NotificationBase):
         LOG.debug("Retrieving port %s from API", port_id)
         nc = openstack_clients.get_neutronclient()
         port = nc.show_port(port_id)['port']
-        serialized = serialize_port(
-            port, updated_at=utils.timestamp_to_isotime(timestamp))
+        serialized = serialize_port(port)
         version = self.get_version(serialized, timestamp)
         self.index_helper.save_document(serialized, version=version)
 

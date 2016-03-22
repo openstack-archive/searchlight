@@ -30,16 +30,31 @@ class NetworkIndex(base.IndexBase):
 
     def get_mapping(self):
         return {
-            'dynamic': 'false',
+            'dynamic': False,
             'properties': {
+                # Availability zones are not present because they're not
+                # contained in notifications
                 'admin_state_up': {'type': 'boolean'},
+                'availability_zone_hints': {'type': 'string',
+                                            'index': 'not_analyzed'},
+                'availability_zones': {'type': 'string',
+                                       'index': 'not_analyzed'},
+                'created_at': {'type': 'date'},
+                'description': {'type': 'string'},
                 'id': {'type': 'string', 'index': 'not_analyzed'},
+                'ipv4_address_scope': {'type': 'string',
+                                       'index': 'not_analyzed'},
+                'ipv6_address_scope': {'type': 'string',
+                                       'index': 'not_analyzed'},
+                'mtu': {'type': 'integer'},
                 'name': {
                     'type': 'string',
                     'fields': {
                         'raw': {'type': 'string', 'index': 'not_analyzed'}
                     }
                 },
+                'port_security_enabled': {'type': 'boolean'},
+                'project_id': {'type': 'string', 'index': 'not_analyzed'},
                 'provider:network_type': {'type': 'string'},
                 'provider:physical_network': {'type': 'string'},
                 'provider:segmentation_id': {'type': 'integer'},
@@ -58,7 +73,8 @@ class NetworkIndex(base.IndexBase):
 
     @property
     def facets_with_options(self):
-        return ('provider:network_type', 'provider:physical_network', 'status')
+        return ('provider:network_type', 'provider:physical_network', 'status',
+                'port_security_enabled', 'shared', 'availability_zones')
 
     @property
     def facets_excluded(self):
@@ -66,7 +82,7 @@ class NetworkIndex(base.IndexBase):
         fields should not be offered as facet options, or those that should
         only be available to administrators.
         """
-        return {'tenant_id': True}
+        return {'tenant_id': True, 'project_id': False}
 
     def _get_rbac_field_filters(self, request_context):
         """Return any RBAC field filters to be injected into an indices

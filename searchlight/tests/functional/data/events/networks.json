@@ -1,57 +1,29 @@
 {
-  "network.create.start": {
-    "event_type": "network.create.start",
-    "payload": {
-      "network": {
-        "name": "test-net",
-        "admin_state_up": true
-      }
-    },
-    "publisher_id": "network.devstack",
-    "ctxt": {
-      "read_only": false,
-      "domain": null,
-      "project_name": "admin",
-      "user_id": "8c0e8ada54be4c2e911be779806d6bc9",
-      "show_deleted": false,
-      "roles": ["admin"],
-      "user_identity": "8c0e8ada54be4c2e911be779806d6bc9 8eaac046b2c44ab99246cb0850c7f06d - - -",
-      "project_domain": null,
-      "tenant_name": "admin",
-      "auth_token": "de38ce2044ec4c92a9c1bd26f4d25fea",
-      "resource_uuid": null,
-      "project_id": "8eaac046b2c44ab99246cb0850c7f06d",
-      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
-      "is_admin": true,
-      "user": "8c0e8ada54be4c2e911be779806d6bc9",
-      "request_id": "req-83b77e92-de2a-4a67-8c3e-aaf61421edad",
-      "user_domain": null,
-      "timestamp": "2016-01-13 17:39:04.406418",
-      "tenant": "8eaac046b2c44ab99246cb0850c7f06d",
-      "user_name": "admin"
-    },
-    "metadata": {
-      "timestamp": "2016-01-13 17:39:04.407305",
-      "message_id": "58bfe2ae-39d5-4adc-8530-18dbcc3cb40e"
-    }
-  },
   "network.create.end": {
     "event_type": "network.create.end",
     "payload": {
       "network": {
         "status": "ACTIVE",
-        "subnets": [],
-        "name": "test-net",
-        "provider:physical_network": null,
-        "admin_state_up": true,
-        "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
-        "mtu": 0,
         "router:external": false,
+        "availability_zone_hints": [],
+        "availability_zones": [],
+        "ipv4_address_scope": null,
+        "description": "Test network",
+        "provider:physical_network": null,
+        "subnets": [],
         "port_security_enabled": true,
-        "shared": false,
+        "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+        "created_at": "2016-03-21T16:19:51",
+        "tags": [],
+        "updated_at": "2016-03-21T16:19:51",
+        "provider:segmentation_id": 1004,
         "provider:network_type": "vxlan",
-        "id": "813dd936-663e-4e5b-877c-986021b73e2c",
-        "provider:segmentation_id": 1084
+        "ipv6_address_scope": null,
+        "admin_state_up": true,
+        "shared": false,
+        "mtu": 1450,
+        "id": "7a95c19d-9abc-4651-b491-f2345994e956",
+        "name": "test-network"
       }
     },
     "publisher_id": "network.devstack",
@@ -59,58 +31,29 @@
       "read_only": false,
       "domain": null,
       "project_name": "admin",
-      "user_id": "8c0e8ada54be4c2e911be779806d6bc9",
+      "user_id": "b52c5f3792714829a69f7d8b976076be",
       "show_deleted": false,
-      "roles": ["admin"],
-      "user_identity": "8c0e8ada54be4c2e911be779806d6bc9 8eaac046b2c44ab99246cb0850c7f06d - - -",
+      "roles": [
+        "admin"
+      ],
+      "user_identity": "b52c5f3792714829a69f7d8b976076be 5fe7c4e4e492490393c674089a178e19 - - -",
       "project_domain": null,
       "tenant_name": "admin",
-      "auth_token": "de38ce2044ec4c92a9c1bd26f4d25fea",
+      "auth_token": "3e3bd479441e4644bdd3819228b4e5db",
       "resource_uuid": null,
-      "project_id": "8eaac046b2c44ab99246cb0850c7f06d",
-      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+      "project_id": "5fe7c4e4e492490393c674089a178e19",
+      "tenant_id": "5fe7c4e4e492490393c674089a178e19",
       "is_admin": true,
-      "user": "8c0e8ada54be4c2e911be779806d6bc9",
-      "request_id": "req-83b77e92-de2a-4a67-8c3e-aaf61421edad",
+      "user": "b52c5f3792714829a69f7d8b976076be",
+      "request_id": "req-aba8f776-f06c-4cb6-af49-6b692787c373",
       "user_domain": null,
-      "timestamp": "2016-01-13 17:39:04.406418",
-      "tenant": "8eaac046b2c44ab99246cb0850c7f06d",
+      "timestamp": "2016-03-21 16:19:51.672424",
+      "tenant": "5fe7c4e4e492490393c674089a178e19",
       "user_name": "admin"
     },
     "metadata": {
-      "timestamp": "2016-01-13 17:39:04.461311",
-      "message_id": "419576c7-1f52-4384-ad37-455303897345"
-    }
-  },
-  "network.delete.start": {
-    "event_type": "network.delete.start",
-    "payload": {"network_id": "52a3818f-015c-4b3b-a061-d686a0aec3de"},
-    "publisher_id": "network.devstack",
-    "ctxt": {
-      "read_only": false,
-      "domain": null,
-      "project_name": "admin",
-      "user_id": "8c0e8ada54be4c2e911be779806d6bc9",
-      "show_deleted": false,
-      "roles": ["admin"],
-      "user_identity": "8c0e8ada54be4c2e911be779806d6bc9 8eaac046b2c44ab99246cb0850c7f06d - - -",
-      "project_domain": null,
-      "tenant_name": "admin",
-      "auth_token": "e6471a8d552d438bb434e6403f1be27b",
-      "resource_uuid": null,
-      "project_id": "8eaac046b2c44ab99246cb0850c7f06d",
-      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
-      "is_admin": true,
-      "user": "8c0e8ada54be4c2e911be779806d6bc9",
-      "request_id": "req-e65f397d-4a3b-4d4d-b638-20d1f467bc6d",
-      "user_domain": null,
-      "timestamp": "2016-01-13 17:42:00.656002",
-      "tenant": "8eaac046b2c44ab99246cb0850c7f06d",
-      "user_name": "admin"
-    },
-    "metadata": {
-      "timestamp": "2016-01-13 17:42:00.656772",
-      "message_id": "1a316fdc-b4a3-4673-8afd-a2180bb03126"
+      "timestamp": "2016-03-21 16:19:51.744561",
+      "message_id": "1869ebb6-bb0e-4c81-a52f-1d9cca31fffe"
     }
   },
   "network.update.end": {
@@ -118,18 +61,26 @@
     "payload": {
       "network": {
         "status": "ACTIVE",
-        "subnets": [],
-        "name": "test-renamed-net",
-        "provider:physical_network": null,
-        "admin_state_up": true,
-        "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
-        "mtu": 0,
         "router:external": false,
-        "port_security_enabled": true,
-        "shared": false,
+        "availability_zone_hints": [],
+        "availability_zones": [],
+        "ipv4_address_scope": null,
+        "description": "Test network",
+        "provider:physical_network": null,
+        "subnets": [],
+        "updated_at": "2016-03-21T16:21:58",
+        "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+        "created_at": "2016-03-21T16:19:51",
+        "tags": [],
+        "ipv6_address_scope": null,
+        "provider:segmentation_id": 1004,
         "provider:network_type": "vxlan",
-        "id": "813dd936-663e-4e5b-877c-986021b73e2c",
-        "provider:segmentation_id": 1084
+        "port_security_enabled": true,
+        "admin_state_up": true,
+        "shared": false,
+        "mtu": 1450,
+        "id": "7a95c19d-9abc-4651-b491-f2345994e956",
+        "name": "renamed-test-network"
       }
     },
     "publisher_id": "network.devstack",
@@ -137,62 +88,64 @@
       "read_only": false,
       "domain": null,
       "project_name": "admin",
-      "user_id": "8c0e8ada54be4c2e911be779806d6bc9",
+      "user_id": "b52c5f3792714829a69f7d8b976076be",
       "show_deleted": false,
-      "roles": ["admin"],
-      "user_identity": "8c0e8ada54be4c2e911be779806d6bc9 8eaac046b2c44ab99246cb0850c7f06d - - -",
+      "roles": [
+        "admin"
+      ],
+      "user_identity": "b52c5f3792714829a69f7d8b976076be 5fe7c4e4e492490393c674089a178e19 - - -",
       "project_domain": null,
       "tenant_name": "admin",
-      "auth_token": "de38ce2044ec4c92a9c1bd26f4d25fea",
+      "auth_token": "f268042f24ea462586cc4f1e75113bc1",
       "resource_uuid": null,
-      "project_id": "8eaac046b2c44ab99246cb0850c7f06d",
-      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+      "project_id": "5fe7c4e4e492490393c674089a178e19",
+      "tenant_id": "5fe7c4e4e492490393c674089a178e19",
       "is_admin": true,
-      "user": "8c0e8ada54be4c2e911be779806d6bc9",
-      "request_id": "req-83b77e92-de2a-4a67-8c3e-aaf61421edad",
+      "user": "b52c5f3792714829a69f7d8b976076be",
+      "request_id": "req-f6561c0f-f600-41f9-b691-a5c20a1e8e1a",
       "user_domain": null,
-      "timestamp": "2016-01-13 17:40:34.406418",
-      "tenant": "8eaac046b2c44ab99246cb0850c7f06d",
+      "timestamp": "2016-03-21 16:21:58.810962",
+      "tenant": "5fe7c4e4e492490393c674089a178e19",
       "user_name": "admin"
     },
     "metadata": {
-      "timestamp": "2016-01-13 17:40:34.461311",
-      "message_id": "419576c7-1f52-4384-ad37-455303897345"
+      "timestamp": "2016-03-21 16:21:58.913512",
+      "message_id": "9a93fba3-f40e-4a9b-ab0d-2723a98d38ce"
     }
   },
   "network.delete.end": {
     "event_type": "network.delete.end",
     "payload": {
-      "network_id": "813dd936-663e-4e5b-877c-986021b73e2c"
+      "network_id": "7a95c19d-9abc-4651-b491-f2345994e956"
     },
     "publisher_id": "network.devstack",
     "ctxt": {
       "read_only": false,
       "domain": null,
       "project_name": "admin",
-      "user_id": "8c0e8ada54be4c2e911be779806d6bc9",
+      "user_id": "b52c5f3792714829a69f7d8b976076be",
       "show_deleted": false,
       "roles": [
         "admin"
       ],
-      "user_identity": "8c0e8ada54be4c2e911be779806d6bc9 8eaac046b2c44ab99246cb0850c7f06d - - -",
+      "user_identity": "b52c5f3792714829a69f7d8b976076be 5fe7c4e4e492490393c674089a178e19 - - -",
       "project_domain": null,
       "tenant_name": "admin",
-      "auth_token": "e6471a8d552d438bb434e6403f1be27b",
+      "auth_token": "b9f19e8a373240dc81d20b66c986174c",
       "resource_uuid": null,
-      "project_id": "8eaac046b2c44ab99246cb0850c7f06d",
-      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+      "project_id": "5fe7c4e4e492490393c674089a178e19",
+      "tenant_id": "5fe7c4e4e492490393c674089a178e19",
       "is_admin": true,
-      "user": "8c0e8ada54be4c2e911be779806d6bc9",
-      "request_id": "req-e65f397d-4a3b-4d4d-b638-20d1f467bc6d",
+      "user": "b52c5f3792714829a69f7d8b976076be",
+      "request_id": "req-b9619bd2-f62f-4d88-88a7-41a1ad1f6df7",
       "user_domain": null,
-      "timestamp": "2016-01-13 17:42:00.656002",
-      "tenant": "8eaac046b2c44ab99246cb0850c7f06d",
+      "timestamp": "2016-03-21 17:09:22.952733",
+      "tenant": "5fe7c4e4e492490393c674089a178e19",
       "user_name": "admin"
     },
     "metadata": {
-      "timestamp": "2016-01-13 17:42:00.736206",
-      "message_id": "20296ba5-8526-4101-8a8b-0d1f7fc78d9c"
+      "timestamp": "2016-03-21 17:09:23.286750",
+      "message_id": "159da540-d312-4c80-ba14-4a982bc82905"
     }
   }
 }
