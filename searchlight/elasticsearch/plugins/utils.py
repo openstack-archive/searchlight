@@ -480,7 +480,7 @@ class IndexingHelper(object):
                 actions=actions
             )
         except helpers.BulkIndexError as exc:
-            exc_payload = exc[1]
+            exc_payload = exc.errors
             doc_ids = ', '.join(e['delete']['_id'] for e in exc_payload)
 
             if all(e['delete']['status'] == 404 for e in exc_payload):
