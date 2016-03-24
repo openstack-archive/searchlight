@@ -1,0 +1,24 @@
+---
+prelude: >
+  Ability added to reindex data while allowing indexing
+  of notifications, and therefore returning accurate
+  search results during the indexing operation.
+features:
+  - Reindexing of data now takes place in a separate
+    Elasticsearch index. During indexing, incoming events
+    are processed into both the old and new indices.
+    Once indexing is complete, an Elasticsearch alias is
+    used to switch searches seamlessly onto the new index,
+    at which time the old one is removed.
+  - Plugin configuration refers to `resource_group_name`
+    rather than `index_name` to represent groups of
+    resources separate from the logical Elasticsearch index.
+    This setting is used to determine index and alias names.
+issues:
+  - Reindexing must now take place across all resource
+    types that share the index (it is not possible to re-index
+    a specific resource type). This is a limitation that
+    Elasticsearch 2.x would likely have forced upon us anyway.
+    A subsequent patch will allow more efficient reindexing
+    for associated resource types.
+
