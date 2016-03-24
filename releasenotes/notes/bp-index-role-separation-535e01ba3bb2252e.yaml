@@ -1,0 +1,11 @@
+---
+prelude: >
+  Added separation of administrator-only data at an index
+  level, which allows full faceting and searching of
+  sensitive data by those with access to it.
+features:
+  - Plugins with sensitive, administrator-only data are
+    indexed twice; once with that data and once without.
+    Searches are directed to the appropriate version
+    depending on the context of the user.
+
