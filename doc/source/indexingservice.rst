@@ -36,8 +36,39 @@ See each plugin below for detailed information about specific plugins:
 .. toctree::
    :maxdepth: 1
    :glob:
-
    plugins/*
+
+Indexing model
+--------------
+The Mitaka Searchlight release introduced the ability to continue executing
+search requests while reindexing operations are running. This feature is
+labeled 'Zero-downtime reindexing'. It led to the concept of 'resource groups',
+which is a name applied to all plugins sharing an Elasticsearch index.
+
+Searchlight now creates an index whose name consists of the resource group name
+appended with a timestamp. Each resource group is referred to by a pair of
+Elasticsearch aliases_. One alias is used for searching by the
+API (the *search alias*), and the other (the *listener alias*) is used to
+index incoming events.
+
+During reindexing, a new index is created, and the listener alias is pointed at
+both the old and new indices. Incoming events are therefore indexed into both
+indices. The search alias is left pointing at the old index. Once indexing is
+finished, both aliases are pointed solely at the new index and the old index
+is deleted.
+
+This mechanism requires that ALL plugins in a resource group are indexed
+together. When it's desired to index individual types, an optimization copies
+existing data directly from the old index to the new one to avoid going to each
+service API.
+
+.. note::
+  Due to some limitations discovered during the Mitaka release, indexing into
+  multiple indices (multiple plugin resource groups) is disabled. This behavior
+  will be reimplemented in the Newton release, and potentially backported to
+  the stable Mitaka release if possible.
+
+.. _aliases: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-aliases.html
 
 Bulk indexing
 -------------
@@ -50,34 +81,28 @@ This will iterate through all registered and enabled search plugins and
 request that they perform a full indexing of all data that's available to them.
 
 It is also possible to index just a single resource, or all resources
-belonging to an index. For instance, to index all glance images::
+belonging to a resource group. For instance, to index all glance images::
 
     $ searchlight-manage index sync --type OS::Glance::Image
 
-To index all resources in the 'searchlight' index::
+As described above, this will create a new index for all plugins that share a
+resource group with OS::Glance::Image. The management command will retrieve
+up-to-date information from the Glance API. Data for other plugins will be
+bulk-copied from a preexisting index into the new one using the scroll_ and
+bulk_ features of Elasticsearch.
+
+To index all resources in the 'searchlight' resource group::
 
     $ searchlight-manage index sync --index searchlight
 
 You will be prompted to confirm unless ``--force`` is provided.
 
 The ``searchlight-manage index sync`` command may be re-run at any time to
-perform a full re-index of the data. This will delete the data, any mappings,
-and recreate them from scratch, which means temporary data unavailability.
-Zero downtime full re-indexing will be implemented in a future release.
+perform a full re-index of the data. As described above, there should be no
+or very little impact on search requests during this process.
 
-For now, you may use the ``--no-delete`` option to update existing data and add
-new data. This does have the side effect of leaving behind resource data that
-may no longer exist in the source service, so should only be used as a
-supplement for services that do not produce intermediate status change
-notifications.
-
-For example, in the Liberty release, the Glance service did not provide image
-membership update notifications, even though it provided image update and
-delete notifications. In order to provide accurate membership information, a
-cron job could be set up with the following command to get the most up to date
-information for indexed images::
-
-    searchlight-manage index sync --type OS::Glance::Image --force --no-delete
+.. _scroll: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html
+.. _bulk: https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
 
 Parent/child relationships
 --------------------------
