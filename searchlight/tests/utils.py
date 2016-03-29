@@ -49,8 +49,9 @@ class BaseTestCase(testtools.TestCase):
         # NOTE(bcwaldon): parse_args has to be called to register certain
         # command-line options - specifically we need config_dir for
         # the following policy tests
-        config.parse_args(args=[])
+        config.parse_args(args=[], default_config_files=[])
         self.addCleanup(CONF.reset)
+
         mox_fixture = self.useFixture(moxstubout.MoxStubout())
         self.stubs = mox_fixture.stubs
         self.stubs.Set(exception, '_FATAL_EXCEPTION_FORMAT_ERRORS', True)
