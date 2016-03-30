@@ -312,7 +312,7 @@ class TestPlugin(test_utils.BaseTestCase):
         mock_settings.assert_called_once_with(index_name='fake')
         mock_mapping.assert_called_once_with(index_name='fake')
 
-    @mock.patch('searchlight.elasticsearch.plugins.utils.'
+    @mock.patch('searchlight.elasticsearch.plugins.helper.'
                 'IndexingHelper.save_documents')
     @mock.patch('searchlight.elasticsearch.plugins.base.'
                 'NotificationBase.get_version')

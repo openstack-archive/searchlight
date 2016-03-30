@@ -12,9 +12,8 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
-from elasticsearch import exceptions as es_exceptions
 import mock
+
 from searchlight.elasticsearch.plugins import utils as plugin_utils
 from searchlight.tests.unit import utils as unit_test_utils
 from searchlight.tests import utils as test_utils
@@ -91,14 +90,6 @@ class TestPluginUtils(test_utils.BaseTestCase):
         timestamp = '2016-02-17 18:48:01.252228'
         converted = plugin_utils.timestamp_to_isotime(timestamp)
         self.assertEqual('2016-02-17T18:48:01Z', converted)
-
-    def test_multiple_alias_exception_detection(self):
-        alias_exc = es_exceptions.RequestError(
-            400, "Something " + plugin_utils.ALIAS_EXCEPTION_STRING, {})
-        self.assertTrue(plugin_utils._is_multiple_alias_exception(alias_exc))
-
-        other_exc = Exception("Blah blah")
-        self.assertFalse(plugin_utils._is_multiple_alias_exception(other_exc))
 
     def test_get_refresh_interval(self):
         mock_engine = mock.Mock()

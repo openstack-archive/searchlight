@@ -14,9 +14,10 @@
 #    under the License.
 
 import copy
+from elasticsearch import exceptions as es_exceptions
 import mock
 
-from searchlight.elasticsearch.plugins import utils as plugin_utils
+from searchlight.elasticsearch.plugins import helper
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import fake_plugins
 from searchlight.tests import utils as test_utils
@@ -29,9 +30,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         """
         mock_engine = mock.Mock()
         plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
             count = len(plugin.get_objects())
             fake_versions = range(1, count + 1)
@@ -69,9 +70,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         """
         mock_engine = mock.Mock()
         plugin = fake_plugins.NonRoleSeparatedPlugin(es_engine=mock_engine)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
             count = len(plugin.get_objects())
             fake_versions = range(1, count + 1)
@@ -96,9 +97,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         """Test that deletion for a role-separated plugin deletes both docs"""
         mock_engine = mock.Mock()
         plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
             indexing_helper.delete_document({'_id': 'role-fake1'})
 
@@ -118,9 +119,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         """Test that deletion for a role-separated plugin deletes the doc"""
         mock_engine = mock.Mock()
         plugin = fake_plugins.NonRoleSeparatedPlugin(es_engine=mock_engine)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
             indexing_helper.delete_document({'_id': 'non-role-fake1'})
 
@@ -140,9 +141,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         parent_plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
         plugin.register_parent(parent_plugin)
 
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
 
         child_docs = copy.deepcopy(fake_plugins.CHILD_DATA)
 
@@ -183,9 +184,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         parent_plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
         plugin.register_parent(parent_plugin)
 
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
 
         child_docs = copy.deepcopy(fake_plugins.CHILD_DATA)
 
@@ -219,9 +220,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         parent_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
         plugin.register_parent(parent_plugin)
 
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
 
         child_docs = copy.deepcopy(fake_plugins.CHILD_DATA)
 
@@ -250,10 +251,10 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         parent_plugin = fake_plugins.RoleSeparatedPlugin(es_engine=mock_engine)
         plugin.register_parent(parent_plugin)
 
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        scan_name = 'searchlight.elasticsearch.plugins.utils.helpers.scan'
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        scan_name = 'searchlight.elasticsearch.plugins.helper.helpers.scan'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
 
         mock_scan_data = [
             {'_id': '1_ADMIN',
@@ -303,10 +304,10 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
         parent_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
         plugin.register_parent(parent_plugin)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        scan_name = 'searchlight.elasticsearch.plugins.utils.helpers.scan'
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        scan_name = 'searchlight.elasticsearch.plugins.helper.helpers.scan'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
 
         mock_scan_data = [
             {'_id': '1',
@@ -350,9 +351,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         """
         mock_engine = mock.Mock()
         plugin = fake_plugins.FakeSimpleRoutingPlugin(es_engine=mock_engine)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
             count = len(plugin.get_objects())
             fake_versions = range(1, count + 1)
@@ -369,9 +370,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         """Test that deletion for a routing based plugin deletes docs"""
         mock_engine = mock.Mock()
         plugin = fake_plugins.FakeSimpleRoutingPlugin(es_engine=mock_engine)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
             indexing_helper.delete_document(
                 {'_id': 'id_for_routing_plugin-fake1',
@@ -394,9 +395,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
         mock_engine = mock.Mock()
         plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
-        indexing_helper = plugin_utils.IndexingHelper(plugin)
+        indexing_helper = helper.IndexingHelper(plugin)
 
-        bulk_name = 'searchlight.elasticsearch.plugins.utils.helpers.bulk'
+        bulk_name = 'searchlight.elasticsearch.plugins.helper.helpers.bulk'
         with mock.patch(bulk_name) as mock_bulk:
             mock_bulk.side_effect = helpers.BulkIndexError(
                 "1 document(s) failed to index",
@@ -416,3 +417,11 @@ class TestIndexingHelper(test_utils.BaseTestCase):
             )
             indexing_helper.save_documents([{'id': '1'}])
             self.assertEqual(1, mock_bulk.call_count)
+
+    def test_multiple_alias_exception_detection(self):
+        alias_exc = es_exceptions.RequestError(
+            400, "Something " + helper.ALIAS_EXCEPTION_STRING, {})
+        self.assertTrue(helper._is_multiple_alias_exception(alias_exc))
+
+        other_exc = Exception("Blah blah")
+        self.assertFalse(helper._is_multiple_alias_exception(other_exc))

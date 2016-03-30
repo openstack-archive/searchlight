@@ -25,6 +25,7 @@ import six
 
 from searchlight.common import exception
 import searchlight.elasticsearch
+from searchlight.elasticsearch.plugins import helper
 from searchlight.elasticsearch.plugins import utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight import i18n
@@ -67,7 +68,7 @@ class IndexBase(plugin.Plugin):
     @property
     def index_helper(self):
         if not getattr(self, '_index_helper', None):
-            self._index_helper = utils.IndexingHelper(self)
+            self._index_helper = helper.IndexingHelper(self)
         return self._index_helper
 
     @property
@@ -443,7 +444,7 @@ class IndexBase(plugin.Plugin):
         apply_rbac_field(type_mapping)
 
         if self.mapping_use_doc_values:
-            utils.IndexingHelper.apply_doc_values(type_mapping)
+            helper.IndexingHelper.apply_doc_values(type_mapping)
 
         expected_parent_type = self.parent_plugin_type()
         mapping_parent = type_mapping.get('_parent', None)
