@@ -822,7 +822,7 @@ class ElasticsearchWrapper(object):
         }
         # Set JVM options
         exec_env = {
-            'ES_HEAP_SIZE': '20m'
+            'ES_HEAP_SIZE': '50m'
         }
         cmd = 'elasticsearch '
         cmd += ' '.join('--%s=%s' % kv for kv in six.iteritems(es_options))
