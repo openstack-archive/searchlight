@@ -1,0 +1,606 @@
+{
+    "dns.recordset.create": {
+        "payload": {
+            "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+            "tenant_id": "80264096ac454d3d904002491fafe2ec",
+            "created_at": "2016-03-31T05:48:53.000000",
+            "description": null,
+            "updated_at": null,
+            "records": [{
+                "status": "PENDING",
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "managed": false,
+                "managed_resource_id": null,
+                "managed_resource_type": null,
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:48:54.000000",
+                "managed_extra": null,
+                "updated_at": null,
+                "managed_plugin_type": null,
+                "version": 1,
+                "managed_plugin_name": null,
+                "managed_tenant_id": null,
+                "action": "CREATE",
+                "hash": "8402992213c4c985429e9f2b23a18847",
+                "managed_resource_region": null,
+                "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "data": "10.0.0.1",
+                "id": "01835dc4-b805-4c8f-b962-2a96880f40c7",
+                "serial": 1459403333,
+                "description": null
+            }, {
+                "status": "PENDING",
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "managed": false,
+                "managed_resource_id": null,
+                "managed_resource_type": null,
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:48:54.000000",
+                "managed_extra": null,
+                "updated_at": null,
+                "managed_plugin_type": null,
+                "version": 1,
+                "managed_plugin_name": null,
+                "managed_tenant_id": null,
+                "action": "CREATE",
+                "hash": "8856e000151ef9fa871650cfe1933079",
+                "managed_resource_region": null,
+                "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "data": "10.0.0.2",
+                "id": "27b5ffae-6ffb-4aac-9eda-baf4f7b1b3e5",
+                "serial": 1459403333,
+                "description": null
+            }],
+            "version": 1,
+            "ttl": null,
+            "type": "A",
+            "id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+            "name": "www.myzone.net."
+        },
+        "metadata": {
+            "timestamp": "2016-03-31 05:48:54.102791",
+            "message_id": "bb3adee1-0f02-4f11-a544-ff81737cf779"
+        },
+        "publisher_id": "central.ubunt",
+        "ctxt": {
+            "read_only": false,
+            "domain": null,
+            "show_deleted": false,
+            "roles": ["admin"],
+            "user_identity": "a924517ddf7a47e5a7f2ce63976a75db 80264096ac454d3d904002491fafe2ec - - -",
+            "project_domain": null,
+            "edit_managed_records": false,
+            "auth_token": "431b5eb823a646a1b5a300a3ec1d370f",
+            "request_id": "req-86624170-932d-41ca-ae9e-ae64527c0bbd",
+            "resource_uuid": null,
+            "is_admin": false,
+            "user": "a924517ddf7a47e5a7f2ce63976a75db",
+            "service_catalog": [{
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "orchestration",
+                "name": "heat"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "compute_legacy",
+                "name": "nova_legacy"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "volume",
+                "name": "cinder"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9393/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9393/",
+                    "publicURL": "http://127.0.0.1:9393/"
+                }],
+                "type": "search",
+                "name": "searchlight"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9292",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9292",
+                    "publicURL": "http://127.0.0.1:9292"
+                }],
+                "type": "image",
+                "name": "glance"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9696/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9696/",
+                    "publicURL": "http://127.0.0.1:9696/"
+                }],
+                "type": "network",
+                "name": "neutron"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8080",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8080/v1/AUTH_80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8080/v1/AUTH_80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "object-store",
+                "name": "swift"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "volumev2",
+                "name": "cinderv2"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:35357/v2.0",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:5000/v2.0",
+                    "publicURL": "http://127.0.0.1:5000/v2.0"
+                }],
+                "type": "identity",
+                "name": "keystone"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9001/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9001/",
+                    "publicURL": "http://127.0.0.1:9001/"
+                }],
+                "type": "dns",
+                "name": "designate"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8000/v1",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8000/v1",
+                    "publicURL": "http://127.0.0.1:8000/v1"
+                }],
+                "type": "cloudformation",
+                "name": "heat-cfn"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "compute",
+                "name": "nova"
+            }],
+            "original_tenant": null,
+            "abandon": null,
+            "tsigkey_id": null,
+            "user_domain": null,
+            "all_tenants": false,
+            "tenant": "80264096ac454d3d904002491fafe2ec"
+        },
+        "event_type": "dns.recordset.create"
+    },
+    "dns.recordset.update": {
+        "payload": {
+            "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+            "tenant_id": "80264096ac454d3d904002491fafe2ec",
+            "created_at": "2016-03-31T05:48:53.000000",
+            "description": null,
+            "updated_at": "2016-03-31T06:56:21.000000",
+            "records": [{
+                "status": "PENDING",
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "managed": false,
+                "managed_resource_id": null,
+                "managed_resource_type": null,
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:48:54.000000",
+                "managed_extra": null,
+                "updated_at": "2016-03-31T06:56:21.000000",
+                "managed_plugin_type": null,
+                "version": 2,
+                "managed_plugin_name": null,
+                "managed_tenant_id": null,
+                "action": "UPDATE",
+                "hash": "8402992213c4c985429e9f2b23a18847",
+                "managed_resource_region": null,
+                "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "data": "10.0.0.1",
+                "id": "01835dc4-b805-4c8f-b962-2a96880f40c7",
+                "serial": 1459407381,
+                "description": null
+            }, {
+                "status": "PENDING",
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "managed": false,
+                "managed_resource_id": null,
+                "managed_resource_type": null,
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T06:56:21.000000",
+                "managed_extra": null,
+                "updated_at": null,
+                "managed_plugin_type": null,
+                "version": 1,
+                "managed_plugin_name": null,
+                "managed_tenant_id": null,
+                "action": "UPDATE",
+                "hash": "4508dd74af8215441bccdcc136f567b7",
+                "managed_resource_region": null,
+                "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "data": "10.0.0.3",
+                "id": "a6f8dfc5-2f3b-4c8a-8387-6bec082948c4",
+                "serial": 1459407381,
+                "description": null
+            }],
+            "version": 2,
+            "ttl": null,
+            "type": "A",
+            "id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+            "name": "www.myzone.net."
+        },
+        "metadata": {
+            "timestamp": "2016-03-31 06:56:21.299229",
+            "message_id": "1d14f8df-1a09-4c35-a196-952659e50c9f"
+        },
+        "publisher_id": "central.ubunt",
+        "ctxt": {
+            "read_only": false,
+            "domain": null,
+            "show_deleted": false,
+            "roles": ["admin"],
+            "user_identity": "a924517ddf7a47e5a7f2ce63976a75db 80264096ac454d3d904002491fafe2ec - - -",
+            "project_domain": null,
+            "edit_managed_records": false,
+            "auth_token": "58205e877bf34c52a86d3ff547cff43f",
+            "request_id": "req-1a3ac530-645f-478c-96e9-44c087c73b85",
+            "resource_uuid": null,
+            "is_admin": false,
+            "user": "a924517ddf7a47e5a7f2ce63976a75db",
+            "service_catalog": [{
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "orchestration",
+                "name": "heat"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "compute_legacy",
+                "name": "nova_legacy"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "volume",
+                "name": "cinder"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9393/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9393/",
+                    "publicURL": "http://127.0.0.1:9393/"
+                }],
+                "type": "search",
+                "name": "searchlight"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9292",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9292",
+                    "publicURL": "http://127.0.0.1:9292"
+                }],
+                "type": "image",
+                "name": "glance"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9696/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9696/",
+                    "publicURL": "http://127.0.0.1:9696/"
+                }],
+                "type": "network",
+                "name": "neutron"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8080",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8080/v1/AUTH_80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8080/v1/AUTH_80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "object-store",
+                "name": "swift"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "volumev2",
+                "name": "cinderv2"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:35357/v2.0",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:5000/v2.0",
+                    "publicURL": "http://127.0.0.1:5000/v2.0"
+                }],
+                "type": "identity",
+                "name": "keystone"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9001/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9001/",
+                    "publicURL": "http://127.0.0.1:9001/"
+                }],
+                "type": "dns",
+                "name": "designate"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8000/v1",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8000/v1",
+                    "publicURL": "http://127.0.0.1:8000/v1"
+                }],
+                "type": "cloudformation",
+                "name": "heat-cfn"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "compute",
+                "name": "nova"
+            }],
+            "original_tenant": null,
+            "abandon": null,
+            "tsigkey_id": null,
+            "user_domain": null,
+            "all_tenants": false,
+            "tenant": "80264096ac454d3d904002491fafe2ec"
+        },
+        "event_type": "dns.recordset.update"
+    },
+    "dns.recordset.delete": {
+        "payload": {
+            "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+            "tenant_id": "80264096ac454d3d904002491fafe2ec",
+            "created_at": "2016-03-31T05:48:53.000000",
+            "description": null,
+            "updated_at": "2016-03-31T07:24:14.000000",
+            "records": [{
+                "status": "PENDING",
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "managed": false,
+                "managed_resource_id": null,
+                "managed_resource_type": null,
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:48:54.000000",
+                "managed_extra": null,
+                "updated_at": "2016-03-31T07:24:14.000000",
+                "managed_plugin_type": null,
+                "version": 3,
+                "managed_plugin_name": null,
+                "managed_tenant_id": null,
+                "action": "DELETE",
+                "hash": "8402992213c4c985429e9f2b23a18847",
+                "managed_resource_region": null,
+                "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "data": "10.0.0.1",
+                "id": "01835dc4-b805-4c8f-b962-2a96880f40c7",
+                "serial": 1459409054,
+                "description": null
+            }, {
+                "status": "PENDING",
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "managed": false,
+                "managed_resource_id": null,
+                "managed_resource_type": null,
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T06:56:21.000000",
+                "managed_extra": null,
+                "updated_at": "2016-03-31T07:24:14.000000",
+                "managed_plugin_type": null,
+                "version": 2,
+                "managed_plugin_name": null,
+                "managed_tenant_id": null,
+                "action": "DELETE",
+                "hash": "4508dd74af8215441bccdcc136f567b7",
+                "managed_resource_region": null,
+                "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "data": "10.0.0.3",
+                "id": "a6f8dfc5-2f3b-4c8a-8387-6bec082948c4",
+                "serial": 1459409054,
+                "description": null
+            }, {
+                "status": "PENDING",
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "managed": false,
+                "managed_resource_id": null,
+                "managed_resource_type": null,
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T07:02:50.000000",
+                "managed_extra": null,
+                "updated_at": "2016-03-31T07:24:14.000000",
+                "managed_plugin_type": null,
+                "version": 5,
+                "managed_plugin_name": null,
+                "managed_tenant_id": null,
+                "action": "DELETE",
+                "hash": "35278fbf7461a7cd03ca0e65243c65ea",
+                "managed_resource_region": null,
+                "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "data": "172.0.0.1",
+                "id": "26426b65-80dc-49ca-99f7-c506a96de36f",
+                "serial": 1459409054,
+                "description": null
+            }],
+            "version": 3,
+            "ttl": null,
+            "type": "A",
+            "id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+            "name": "www.myzone.net."
+        },
+        "metadata": {
+            "timestamp": "2016-03-31 07:24:14.945626",
+            "message_id": "37f15618-3a10-4fc5-9113-113616e71d89"
+        },
+        "publisher_id": "central.ubunt",
+        "ctxt": {
+            "read_only": false,
+            "domain": null,
+            "show_deleted": false,
+            "roles": ["admin"],
+            "user_identity": "a924517ddf7a47e5a7f2ce63976a75db 80264096ac454d3d904002491fafe2ec - - -",
+            "project_domain": null,
+            "edit_managed_records": false,
+            "auth_token": "b2d78c9f8b034c708522cf0e432993ae",
+            "request_id": "req-a18323b4-18c1-4d71-b50f-39026eaa750a",
+            "resource_uuid": null,
+            "is_admin": false,
+            "user": "a924517ddf7a47e5a7f2ce63976a75db",
+            "service_catalog": [{
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8004/v1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "orchestration",
+                "name": "heat"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8774/v2/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "compute_legacy",
+                "name": "nova_legacy"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8776/v1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "volume",
+                "name": "cinder"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9393/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9393/",
+                    "publicURL": "http://127.0.0.1:9393/"
+                }],
+                "type": "search",
+                "name": "searchlight"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9292",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9292",
+                    "publicURL": "http://127.0.0.1:9292"
+                }],
+                "type": "image",
+                "name": "glance"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9696/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9696/",
+                    "publicURL": "http://127.0.0.1:9696/"
+                }],
+                "type": "network",
+                "name": "neutron"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8080",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8080/v1/AUTH_80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8080/v1/AUTH_80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "object-store",
+                "name": "swift"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8776/v2/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "volumev2",
+                "name": "cinderv2"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:35357/v2.0",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:5000/v2.0",
+                    "publicURL": "http://127.0.0.1:5000/v2.0"
+                }],
+                "type": "identity",
+                "name": "keystone"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:9001/",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:9001/",
+                    "publicURL": "http://127.0.0.1:9001/"
+                }],
+                "type": "dns",
+                "name": "designate"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8000/v1",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8000/v1",
+                    "publicURL": "http://127.0.0.1:8000/v1"
+                }],
+                "type": "cloudformation",
+                "name": "heat-cfn"
+            }, {
+                "endpoints": [{
+                    "adminURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec",
+                    "region": "RegionOne",
+                    "internalURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec",
+                    "publicURL": "http://127.0.0.1:8774/v2.1/80264096ac454d3d904002491fafe2ec"
+                }],
+                "type": "compute",
+                "name": "nova"
+            }],
+            "original_tenant": null,
+            "abandon": null,
+            "tsigkey_id": null,
+            "user_domain": null,
+            "all_tenants": false,
+            "tenant": "80264096ac454d3d904002491fafe2ec"
+        },
+        "event_type": "dns.recordset.delete"
+    }
+}
