@@ -97,5 +97,4 @@ class RecordSetIndex(designate.DesignateBase):
         return 'zone_id'
 
     def serialize(self, obj):
-        obj["_parent"] = obj["zone_id"]
         return designate._serialize_recordset(obj)

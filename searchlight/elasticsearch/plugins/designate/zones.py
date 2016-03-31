@@ -17,7 +17,7 @@ from searchlight.elasticsearch.plugins.designate import notification_handlers
 
 
 class ZoneIndex(designate.DesignateBase):
-    NotificationHandlerCls = notification_handlers.DomainHandler
+    NotificationHandlerCls = notification_handlers.ZoneHandler
 
     def get_notification_handler(self):
         """Override because the zone handler needs a handle to recordset

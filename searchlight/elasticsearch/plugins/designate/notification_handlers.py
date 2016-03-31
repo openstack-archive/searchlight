@@ -25,10 +25,10 @@ LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 
 
-class DomainHandler(base.NotificationBase):
+class ZoneHandler(base.NotificationBase):
     def __init__(self, *args, **kwargs):
         self.recordset_helper = kwargs.pop('recordset_helper')
-        super(DomainHandler, self).__init__(*args, **kwargs)
+        super(ZoneHandler, self).__init__(*args, **kwargs)
         self.domain_delete_keys = ['deleted_at', 'deleted',
                                    'attributes', 'recordsets']
 
@@ -37,11 +37,17 @@ class DomainHandler(base.NotificationBase):
         return ['designate']
 
     def get_event_handlers(self):
+
+        # domain(v1) and zone(v2) are same except for the name.
+        # To keep it backward compatible, designate sends two sets of
+        # notification events (dns.zone.xxxx and dns.domain.xxxx) for
+        # every domain or zone action within v1 or v2 api.
+        # So we ignore all dns.domain.xxxx events.
         return {
-            "dns.domain.create": self.create_or_update,
-            "dns.domain.update": self.create_or_update,
-            "dns.domain.delete": self.delete,
-            "dns.domain.exists": self.create_or_update
+            "dns.zone.create": self.create_or_update,
+            "dns.zone.update": self.create_or_update,
+            "dns.zone.delete": self.delete,
+            "dns.zone.exists": self.create_or_update
         }
 
     def _serialize(self, payload):
@@ -59,22 +65,22 @@ class DomainHandler(base.NotificationBase):
         return payload
 
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
-        if (event_type == 'dns.domain.update' and
+        if (event_type == 'dns.zone.update' and
                 payload.get('status') == 'DELETED'):
             LOG.debug("Ignoring update notification for Domain with DELETED "
                       "status; event will be processed on delete event")
             return oslo_messaging.NotificationResult.HANDLED
 
-        handled = super(DomainHandler, self).process(
+        handled = super(ZoneHandler, self).process(
             ctxt, publisher_id, event_type, payload, metadata)
         try:
             # NOTE: So if this is a initial zone we need to index the SOA / NS
             # records it will have. Let's do this when receiving the create
             # event.
-            if event_type == 'dns.domain.create':
+            if event_type == 'dns.zone.create':
                 if handled != oslo_messaging.NotificationResult.HANDLED:
                     LOG.warning(_LW("Not writing initial recordsets; exception"
-                                    "occurred during domain indexing"))
+                                    "occurred during zone indexing"))
                     return None
 
                 recordsets = designate._get_recordsets(payload['id'])
@@ -136,27 +142,100 @@ class RecordSetHandler(base.NotificationBase):
 
     def get_event_handlers(self):
         return {
-            "dns.recordset.create": self.create_or_update,
-            "dns.recordset.update": self.create_or_update,
-            "dns.recordset.delete": self.delete
+            "dns.recordset.create": self.create_or_update_recordset,
+            "dns.recordset.update": self.create_or_update_recordset,
+            "dns.recordset.delete": self.delete_recordset,
+            "dns.record.create": self.create_record,
+            "dns.record.update": self.update_record,
+            "dns.record.delete": self.delete_record
         }
 
-    def create_or_update(self, payload, timestamp):
-        payload = self._serialize(payload)
-        self.index_helper.save_document(
-            payload,
-            version=self.get_version(payload, timestamp))
+    def create_or_update_recordset(self, payload, timestamp):
+
+        # TODO(lakshmiS): Remove the check for empty records when v1 record
+        # api is phased out
+        # When using v1 create record api, designate sends dns.recordset.create
+        # event with empty records so that subsequent dns.record.create
+        # event can refer to the parent recordset_id. But the order of events
+        # is not always right, so we ignore recordset when a recordset event
+        # is created due to v1 record create event(we check for empty records
+        # to associate it with v1 api. v2 recordset create event will never
+        # have empty records).
+        if payload['records']:
+            payload = self._serialize(payload)
+            self.index_helper.save_document(
+                payload,
+                version=self.get_version(payload, timestamp))
+        else:
+            LOG.debug("Ignoring recordset.create notification for empty"
+                      "records; recordset will be created on "
+                      "record.create event")
 
     def _serialize(self, obj):
         obj['project_id'] = obj.pop('tenant_id')
-        obj['zone_id'] = obj.pop('domain_id', obj.pop('zone_id'))
+        obj['zone_id'] = obj.pop('zone_id')
         obj['records'] = [{"data": i["data"]} for i in obj["records"]]
         if not obj['updated_at'] and obj['created_at']:
             obj['updated_at'] = obj['created_at']
         return obj
 
-    def delete(self, payload, timestamp):
+    def delete_recordset(self, payload, timestamp):
         version = self.get_version(payload, timestamp)
         self.index_helper.delete_document(
             {'_id': payload['id'], '_version': version,
              '_parent': payload['zone_id']})
+
+    # backward compatibility with v1 api
+    # TODO(lakshmiS): Remove when designate v1 record api is phased out
+    def create_record(self, payload, timestamp):
+        version = self.get_version(payload, timestamp)
+
+        # Sometimes dns.record.create event comes before dns.recordset.create
+        # which can result in an recordset not found error.
+        # Instead retrieve the whole recordset from api and save it, to avoid
+        # race condition
+        recordsets = designate._get_recordsets(payload['zone_id'])
+        for recordset in recordsets:
+            if recordset['id'] == payload['recordset_id']:
+                payload = designate._serialize_recordset(recordset)
+                self.index_helper.save_document(
+                    payload, version=version)
+
+    # backward compatibility with v1 api
+    # TODO(lakshmiS): Remove when designate v1 record api is phased out
+    def update_record(self, payload, timestamp):
+        version = self.get_version(payload, timestamp)
+        # designate v2 client doesn't support all_tenants param for
+        # get recordset, so retrieve all recordsets for zone
+        recordsets = designate._get_recordsets(payload['zone_id'])
+        for recordset in recordsets:
+            if recordset['id'] == payload['recordset_id']:
+                payload = designate._serialize_recordset(recordset)
+                # Since recordset doesn't have record id, there is no reliable
+                # way to update a record as 'data' field itself can change.
+                # update the recordset itself
+                self.index_helper.save_document(
+                    payload, version=version)
+
+    # backward compatibility with v1 api
+    # TODO(lakshmiS): Remove when designate v1 record api is phased out
+    def delete_record(self, payload, timestamp):
+        recordset_es = self.index_helper.get_document(
+            payload['recordset_id'], for_admin=True,
+            routing=payload['zone_id'])['_source']
+        version = self.get_version(payload, timestamp)
+
+        # designate v2 api output has only data field for record,
+        # so there is no way to delete a record by record's id within
+        # a recordset.
+        recordset_es['records'] = filter(
+            lambda record: record['data'] != payload['data'],
+            recordset_es['records'])
+
+        if recordset_es['records']:
+            self.index_helper.save_document(
+                recordset_es, version=version)
+        else:
+            self.index_helper.delete_document(
+                {'_id': payload['recordset_id'], '_version': version,
+                 '_parent': payload['zone_id']})
