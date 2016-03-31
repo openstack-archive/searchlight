@@ -308,7 +308,7 @@ def alias_error_cleanup(indexes):
             LOG.error(encodeutils.exception_to_unicode(e))
 
 
-def _is_multiple_alias_exception(self, e):
+def _is_multiple_alias_exception(e):
     """Verify that this exception is specifically the IllegalArgument
        exception when there are multiple indexes for an alias. There
        is no clean way of verifying this is the case. There are multiple
