@@ -281,7 +281,7 @@ class IndexBase(plugin.Plugin):
         return {}
 
     def check_mapping_sort_fields(self):
-        """Check that fields that are expected to define a 'raw' field so so"""
+        """Check that fields that are expected to define a 'raw' field do so"""
         fields_needing_raw = searchlight.elasticsearch.RAW_SORT_FIELDS
         mapped_properties = self.get_mapping().get('properties', {})
         for field_name, field_mapping in six.iteritems(mapped_properties):

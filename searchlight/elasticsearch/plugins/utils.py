@@ -236,19 +236,19 @@ def alias_search_update(alias_search, index_name):
         ]
     }
     try:
-        current_indices = es_engine.indices.get_alias(
-            name=alias_search, ignore=404)
+        current_indices = es_engine.indices.get_alias(name=alias_search)
         # Grab first (and only) index in the list from get_alias().
-        old_index = current_indices.keys()[0]
+        old_index = list(current_indices.keys())[0]
         if old_index == index_name:
             return None
         body['actions'].insert(0,
                                {'remove': {
                                    'index': old_index,
                                    'alias': alias_search}})
-    except Exception:
-        # Alias doesn't exist. strange. Nothing to remove, only an add.
-        pass
+
+    except es_exc.NotFoundError:
+        # Alias doesn't exist. Strange. Nothing to remove, only an add.
+        old_index = None
 
     try:
         es_engine.indices.update_aliases(body)
