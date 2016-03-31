@@ -380,6 +380,8 @@ class FunctionalTest(test_utils.BaseTestCase):
             'swift': {'accounts': 'AccountIndex',
                       'containers': 'ContainerIndex',
                       'objects': 'ObjectIndex'},
+            'designate': {'zones': 'ZoneIndex',
+                          'recordsets': 'RecordSetIndex'}
         }
 
         plugins = include_plugins or (
@@ -391,6 +393,7 @@ class FunctionalTest(test_utils.BaseTestCase):
             ('cinder', 'volumes'), ('cinder', 'snapshots'),
             ('swift', 'accounts'), ('swift', 'containers'),
             ('swift', 'objects'),
+            ('designate', 'zones'), ('designate', 'recordsets')
         )
         plugins = filter(lambda plugin: plugin not in exclude_plugins, plugins)
 
