@@ -41,15 +41,19 @@ See each plugin below for detailed information about specific plugins:
 Indexing model
 --------------
 The Mitaka Searchlight release introduced the ability to continue executing
-search requests while reindexing operations are running. This feature is
-labeled 'Zero-downtime reindexing'. It led to the concept of 'resource groups',
-which is a name applied to all plugins sharing an Elasticsearch index.
+search requests while reindexing operations are running. This feature is called
+*zero-downtime reindexing*. In order to implement zero-downtime indexing, the
+concept of a *resource group* was introduced.
 
-Searchlight now creates an index whose name consists of the resource group name
-appended with a timestamp. Each resource group is referred to by a pair of
-Elasticsearch aliases_. One alias is used for searching by the
-API (the *search alias*), and the other (the *listener alias*) is used to
-index incoming events.
+A *resource group* is a collection of plugins that share an Elasticsearch
+index.  Since each plugin represents a *resource type*, you can think of a
+resource group as a collection of resource types.
+
+For each resource group, Searchlight creates an index whose name consists of
+the resource group name appended with a timestamp. Each resource group is
+referred to by a pair of Elasticsearch aliases_. One alias is used for
+searching by the API (the *search alias*), and the other (the *listener alias*)
+is used to index incoming events.
 
 During reindexing, a new index is created, and the listener alias is pointed at
 both the old and new indices. Incoming events are therefore indexed into both
@@ -57,10 +61,11 @@ indices. The search alias is left pointing at the old index. Once indexing is
 finished, both aliases are pointed solely at the new index and the old index
 is deleted.
 
-This mechanism requires that ALL plugins in a resource group are indexed
-together. When it's desired to index individual types, an optimization copies
-existing data directly from the old index to the new one to avoid going to each
-service API.
+It is important to note that zero-downtime reindexing requires that **all**
+plugins in a resource group are indexed together. When it's desired to index an
+individual resource type, an optimization copies existing data directly from
+the old index to the new one to avoid re-harvesting the data from each service
+API.
 
 .. note::
   Due to some limitations discovered during the Mitaka release, indexing into
