@@ -21,6 +21,7 @@ from keystoneclient.auth.identity import v2
 from keystoneclient import session
 import os
 import random
+from six.moves import range
 import string
 import swiftclient
 import sys
@@ -96,7 +97,7 @@ def create(number_objects, number_containers, number_directories):
     # Touch the account to make sure all is well
     sc.post_account(storage_url, token, {})
 
-    for container_id in xrange(number_containers):
+    for container_id in range(number_containers):
         container_name = container_base_name + str(container_id)
         print("Creating container %s" % container_name)
         sc.put_container(
@@ -109,7 +110,7 @@ def create(number_objects, number_containers, number_directories):
 
         obj_start_id = container_id * objects_per_container
         obj_end_id = (container_id + 1) * objects_per_container
-        for object_id in xrange(obj_start_id, obj_end_id):
+        for object_id in range(obj_start_id, obj_end_id):
             obj_path = '%s%s%d' % (dir_name, object_base_name, object_id)
             print("Creating %s %s" % (container_name, obj_path))
             content_type, content = get_obj_content()
@@ -127,7 +128,7 @@ def create(number_objects, number_containers, number_directories):
 
             if object_id % objects_per_directory == 0:
                 dir_name = ''.join(random.choice(string.letters)
-                                   for _ in xrange(2)) + '/'
+                                   for _ in range(2)) + '/'
 
     print("Created %d objects in %d containers" %
           (object_id, number_containers))
