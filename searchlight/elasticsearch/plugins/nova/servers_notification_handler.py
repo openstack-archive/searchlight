@@ -47,6 +47,9 @@ class InstanceHandler(base.NotificationBase):
             'compute.instance.power_off.end': self.create_or_update,
             'compute.instance.delete.end': self.delete,
 
+            'compute.instance.volume.attach': self.create_or_update,
+            'compute.instance.volume.detach': self.create_or_update,
+
             # Neutron events
             'port.create.end': self.update_from_neutron,
             # TODO(sjmc7) Remind myself why i commented this out,

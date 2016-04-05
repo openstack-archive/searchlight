@@ -480,3 +480,26 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 mock_deleter.assert_called_once_with(
                     # Version should really be integer; see bug #1550494
                     {'_id': u'missing', '_version': '454284800097855282'})
+
+    def test_vol_events_supported(self):
+        not_handler = self.plugin.get_notification_handler()
+        events = not_handler.get_event_handlers()
+        self.assertTrue('compute.instance.volume.attach' in events)
+        self.assertTrue('compute.instance.volume.detach')
+
+        vol_payload = {
+            "instance_id": "a",
+            "volume_id": "b"
+        }
+
+        with mock.patch.object(not_handler, '_update_instance') as mock_update:
+            attach = events['compute.instance.volume.attach']
+            attach(vol_payload, 1234)
+
+            mock_update.assert_called_with(vol_payload, "a", 1234)
+            mock_update.reset()
+
+            detach = events['compute.instance.volume.detach']
+            detach(vol_payload, 1234)
+
+            mock_update.assert_called_with(vol_payload, "a", 1234)
