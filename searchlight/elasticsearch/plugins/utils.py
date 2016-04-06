@@ -1,4 +1,4 @@
-# Copyright 2015 Hewlett-Packard Corporation
+# Copyright (c) 2015-2016 Hewlett-Packard Enterprise Development Company, L.P.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -54,8 +54,13 @@ def timestamp_to_isotime(timestamp):
 def helper_reindex(client, source_index, target_index, query=None,
                    target_client=None, chunk_size=500, scroll='5m',
                    scan_kwargs={}, bulk_kwargs={}):
-    """We have lovingly copied the entire helpers.reindex function here:
-           lib/python2.7/site-packages/elasticsearch/helpers/__init__.py.
+    """We have lovingly copied the entire helpers.reindex() method from the
+       elasticsearch Python client. The original version lives here:
+           https://github.com/elastic/elasticsearch-py
+       In the file:
+           elasticsearch/helpers/__init__.py
+       This file is licensed under the Apache License.
+
        We need our own version (haha) of reindex to handle external versioning
        within a document. The current implmenentation of helpers.reindex does
        not provide this support. Since there is no way to tell helpers.bulk()
@@ -153,9 +158,12 @@ def create_new_index(group):
         index_name = group + '-' + datetime.datetime.utcnow().strftime(FORMAT)
         try:
             es_engine.indices.create(index=index_name)
-        except es_exc.ConflictError:
-            # This index already exists! Try again.
-            index_name = None
+        except es_exc.TransportError as e:
+            if e.error.startswith("IndexAlreadyExistsException"):
+                # This index already exists! Try again.
+                index_name = None
+            else:
+                raise
 
     return index_name
 
@@ -278,6 +286,7 @@ def alias_search_update(alias_search, index_name):
                 'alias': alias_search}}
         ]
     }
+    old_index = None
     try:
         current_indices = es_engine.indices.get_alias(name=alias_search)
         # Grab first (and only) index in the list from get_alias().
