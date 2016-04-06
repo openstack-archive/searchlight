@@ -61,6 +61,12 @@ indices. The search alias is left pointing at the old index. Once indexing is
 finished, both aliases are pointed solely at the new index and the old index
 is deleted.
 
+In order to improve the performance of reindexing, index refresh of the new
+index is disabled during reindexing, and turned on after reindexing is done.
+As a consequence, Documents synced to the new index are not searchable until
+index is refreshed, but document retrieval by IDs still works, because GET
+operation in Elasticsearch is realtime.
+
 It is important to note that zero-downtime reindexing requires that **all**
 plugins in a resource group are indexed together. When it's desired to index an
 individual resource type, an optimization copies existing data directly from

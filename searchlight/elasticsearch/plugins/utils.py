@@ -173,6 +173,62 @@ def create_new_index(group):
     return index_name
 
 
+def get_index_refresh_interval(index_name):
+    """Get the refresh_interval of a given index, if refresh_interval isn't
+       set, return default 1s.
+    """
+
+    es_engine = searchlight.elasticsearch.get_api()
+    try:
+        result = es_engine.indices.get_settings(index_name,
+                                                'index.refresh_interval')
+    except Exception as e:
+        # If we cannot get index setting, something must be wrong,
+        # no need to continue, log the error message and raise.
+        LOG.error(encodeutils.exeception_to_unicode(e))
+        raise
+
+    if result:
+        return result[index_name]['settings']['index']['refresh_interval']
+    else:
+        return '1s'
+
+
+def set_index_refresh_interval(index_name, refresh_interval):
+    """Set refresh_interval of a given index, basically it is used in the
+       reindexing phase. By setting refresh_interval to -1 we disable the
+       refresh of offline index to gain a performance boost for the bulk
+       updates. After reindexing is done, we will restore refresh_interval
+       and put the index online.
+    """
+
+    es_engine = searchlight.elasticsearch.get_api()
+
+    body = {
+        'index': {
+            'refresh_interval': refresh_interval
+        }
+    }
+
+    try:
+        es_engine.indices.put_settings(body, index_name)
+    except Exception as e:
+        LOG.error(encodeutils.exeception_to_unicode(e))
+        raise
+
+
+def refresh_index(index_name):
+    """Do a refresh on a given index"""
+
+    es_engine = searchlight.elasticsearch.get_api()
+
+    try:
+        es_engine.indices.refresh(index_name)
+    except Exception as e:
+        LOG.error(encodeutils.exception_to_unicode(e))
+        raise
+
+
 def setup_alias(index_name, alias_search, alias_listener):
     """Create all needed aliases. Each Resource Type Group will have two
        aliases. Each alias will point to the same internal index. As a

@@ -14,7 +14,7 @@
 #    under the License.
 
 from elasticsearch import exceptions as es_exceptions
-
+import mock
 from searchlight.elasticsearch.plugins import utils as plugin_utils
 from searchlight.tests.unit import utils as unit_test_utils
 from searchlight.tests import utils as test_utils
@@ -99,3 +99,41 @@ class TestPluginUtils(test_utils.BaseTestCase):
 
         other_exc = Exception("Blah blah")
         self.assertFalse(plugin_utils._is_multiple_alias_exception(other_exc))
+
+    def test_get_refresh_interval(self):
+        mock_engine = mock.Mock()
+        with mock.patch('searchlight.elasticsearch.get_api') as mock_api:
+            mock_api.return_value = mock_engine
+
+            # Test #1: no refresh_interval is set, return default interval
+            mock_engine.indices.get_settings.return_value = {}
+            interval = plugin_utils.get_index_refresh_interval('test-index')
+            mock_engine.indices.get_settings.assert_called_with(
+                'test-index',
+                'index.refresh_interval'
+            )
+            self.assertEqual('1s', interval)
+
+            # Test #2: get refresh_interval already set
+            mock_engine.reset_mock()
+            body = {
+                'text-index': {
+                    'settings': {
+                        'index': {
+                            'refresh_interval': '2s'}}}}
+            mock_engine.indices.get_settings.return_value = body
+            interval = plugin_utils.get_index_refresh_interval('text-index')
+            self.assertEqual('2s', interval)
+
+    def test_set_refresh_interval(self):
+        mock_engine = mock.Mock()
+        with mock.patch('searchlight.elasticsearch.get_api') as mock_api:
+            mock_api.return_value = mock_engine
+            plugin_utils.set_index_refresh_interval('test-index', '10s')
+            expected_body = {
+                'index': {
+                    'refresh_interval': '10s'
+                }
+            }
+            mock_engine.indices.put_settings.assert_called_with(expected_body,
+                                                                'test-index')

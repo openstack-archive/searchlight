@@ -159,13 +159,22 @@ class IndexCommands(object):
         #   added to any aliases. This inclues all settings and
         #   mappings. Only then can we add it to the aliases. We first
         #   need to create all indexes. This is done by resource group.
+        #   We Cache and turn off new indexes' refresh intervals,
+        #   this will improve the the performance of data re-syncing.
+        #   After data get re-synced, set the refresh interval back.
         #   Once all indexes are created, we need to initialize the
         #   indexes. This is done by document type.
         #   NB: The aliases remain unchanged for this step.
         index_names = {}
+        refresh_intervals = {}
         try:
             for group, search, listen in resource_groups:
-                index_names[group] = es_utils.create_new_index(group)
+                index_name = es_utils.create_new_index(group)
+                index_names[group] = index_name
+                refresh_intervals[index_name] = \
+                    es_utils.get_index_refresh_interval(index_name)
+                # Disable refresh interval by setting its value to -1
+                es_utils.set_index_refresh_interval(index_name, -1)
             for resource_type, ext in plugins_list:
                 plugin_obj = ext.obj
                 group_name = plugin_obj.resource_group_name
@@ -212,6 +221,7 @@ class IndexCommands(object):
                 gname = plugin_obj.resource_group_name
                 try:
                     plugin_obj.initial_indexing(index_name=index_names[gname])
+                    es_utils.refresh_index(index_names[gname])
                 except exceptions.EndpointNotFound:
                     LOG.warning(_LW("Service is not available for plugin: "
                                     "%(ext)s") % {"ext": ext.name})
@@ -232,6 +242,7 @@ class IndexCommands(object):
                     es_utils.reindex(src_index=alias_search,
                                      dst_index=index_names[group],
                                      type_list=es_reindex)
+                    es_utils.refresh_index(index_names[group])
                 except Exception as e:
                     LOG.error(_LE("Failed to setup index extension "
                                   "%(ex)s: %(e)s") % {'ex': ext.name, 'e': e})
@@ -241,8 +252,12 @@ class IndexCommands(object):
         # Step #4: Update the "search" alias.
         #   All re-indexing has occurred. The index/alias is the same for
         #   all resource types within this Resource Group. These actions need
-        #   to happen outside of the plugins.
+        #   to happen outside of the plugins. Also restore refresh interval
+        #   for indexes, this will make data in the indexes become searchable.
         #   NB: The "listener" alias remains unchanged for this step.
+        for index_name, interval in refresh_intervals.items():
+            es_utils.set_index_refresh_interval(index_name, interval)
+
         old_index = {}
         for group, search, listen in resource_groups:
             old_index[group] = \
