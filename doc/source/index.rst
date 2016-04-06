@@ -59,6 +59,15 @@ Overview
    indexingservice
    authentication
 
+Client and UI
+^^^^^^^^^^^^^
+
+* `Horizon UI Plugin`_
+* `OpenStack Client Plugin`_
+
+.. _`Horizon UI Plugin`: https://github.com/openstack/searchlight-ui
+.. _`OpenStack Client Plugin`: https://github.com/openstack/python-searchlightclient
+
 Search plugins
 --------------
 
