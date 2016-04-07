@@ -103,6 +103,7 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF service_credentials tenant_name $SERVICE_TENANT_NAME
     iniset $SEARCHLIGHT_CONF service_credentials password $SERVICE_PASSWORD
     iniset $SEARCHLIGHT_CONF service_credentials auth_url $KEYSTONE_AUTH_URI/v2.0
+    iniset $SEARCHLIGHT_CONF service_credentials os_region_name $REGION_NAME
 
     # Keystone Middleware
     iniset $SEARCHLIGHT_CONF paste_deploy flavor keystone
