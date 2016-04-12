@@ -141,7 +141,7 @@ class IndexCommands(object):
             group = resource_groups[0][0]
             print("\nAll resource types within Resource Group \"%(group)s\""
                   " must be re-indexed" % {'group': group})
-            print("\nResource types matching selection:\n%s\n" %
+            print("\nResource types (and aliases) matching selection:\n%s\n" %
                   '\n'.join(map(format_selection, sorted(display_plugins))))
 
             ans = six.moves.input(
@@ -159,7 +159,7 @@ class IndexCommands(object):
         #   added to any aliases. This inclues all settings and
         #   mappings. Only then can we add it to the aliases. We first
         #   need to create all indexes. This is done by resource group.
-        #   We Cache and turn off new indexes' refresh intervals,
+        #   We cache and turn off new indexes' refresh intervals,
         #   this will improve the the performance of data re-syncing.
         #   After data get re-synced, set the refresh interval back.
         #   Once all indexes are created, we need to initialize the
@@ -185,7 +185,23 @@ class IndexCommands(object):
             es_utils.alias_error_cleanup(index_names)
             raise
 
-        # Step #2: Set up the aliases for all Resource Type Group.
+        # Step #2: Modify new index to play well with multiple indices.
+        #   There is a "feature" of Elasticsearch where some types of
+        #   queries do not work across multiple indices if there are no
+        #   mappings for the specified document types. This is an issue we
+        #   run into with our RBAC functionality. We need to modify the new
+        #   index to work for these cases. We will grab all document types
+        #   from the plugins and add a mapping for them as needed to the newly
+        #   created indices.
+        doc_type_info = []
+        for res_type, ext in six.iteritems(utils.get_search_plugins()):
+            doc_type_info.append((ext.obj.get_document_type(),
+                                  ext.obj.parent_plugin_type))
+        for index in list(index_names.values()):
+            es_utils.add_extra_mappings(index_name=index,
+                                        doc_type_info=doc_type_info)
+
+        # Step #3: Set up the aliases for all Resource Type Group.
         #   These actions need to happen outside of the plugins. Now that
         #   the indexes are created and fully functional we can associate
         #   them with the aliases.
@@ -199,7 +215,7 @@ class IndexCommands(object):
                 es_utils.alias_error_cleanup(index_names)
                 raise
 
-        # Step #3: Re-index all resource types in this Resource Type Group.
+        # Step #4: Re-index all resource types in this Resource Type Group.
         #   As an optimization, if any types are explicitly requested, we
         #   will index them from their service APIs. The rest will be
         #   indexed from an existing ES index, if one exists.
@@ -249,7 +265,7 @@ class IndexCommands(object):
                     es_utils.alias_error_cleanup(index_names)
                     raise
 
-        # Step #4: Update the "search" alias.
+        # Step #5: Update the "search" alias.
         #   All re-indexing has occurred. The index/alias is the same for
         #   all resource types within this Resource Group. These actions need
         #   to happen outside of the plugins. Also restore refresh interval
@@ -263,9 +279,10 @@ class IndexCommands(object):
             old_index[group] = \
                 es_utils.alias_search_update(search, index_names[group])
 
-        # Step #5: Update the "listener" alias.
-        #   The "search" alias has been updated. The old index is deleted
-        #   in this step. The action need to happen outside of the plugins.
+        # Step #6: Update the "listener" alias.
+        #   The "search" alias has been updated. This involves both removing
+        #   the old index from the alias as well as deleting the old index.
+        #   These actions need to happen outside of the plugins.
         #   NB: The "search" alias remains unchanged for this step.
         for group, search, listen in resource_groups:
             try:

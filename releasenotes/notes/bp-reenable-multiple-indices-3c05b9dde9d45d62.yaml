@@ -1,0 +1,13 @@
+---
+prelude: >
+    The ability to distribute resource type indexing across resource groups has now
+    been fully enabled. This allows for improved indexing speed and clustering customization.
+features:
+  - Reenabled multiple indices by allowing plugins to be
+    managed under different resource groups.
+issues:
+  - Using multiple resource groups will impact sort behavior when sorting on fields
+    across resource types when all the resource types don't have the requested 'sort-by field'.
+    Follow the guidelines below to avoid errors.
+    https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields
+    https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_missing_values

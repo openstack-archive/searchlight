@@ -112,6 +112,7 @@ Plugin: OS::Swift::Account
 
     [resource_plugin:os_swift_account]
     enabled = true
+    resource_group_name = searchlight
     # Specify same value as in swift proxy-server.conf for reseller_prefix
     reseller_prefix = AUTH_
 
@@ -126,6 +127,7 @@ Plugin: OS::Swift::Container
 
     [resource_plugin:os_swift_container]
     enabled = true
+    resource_group_name = searchlight
 
 .. note::
 
@@ -138,6 +140,7 @@ Plugin: OS::Swift::Object
 
     [resource_plugin:os_swift_object]
     enabled = true
+    resource_group_name = searchlight
 
 .. note::
 

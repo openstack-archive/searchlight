@@ -45,6 +45,7 @@ Plugin: OS::Cinder::Volume
 
     [resource_plugin:os_cinder_volume]
     enabled = true
+    resource_group_name = searchlight
 
 Plugin: OS::Cinder::Snapshot
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,6 +53,7 @@ Plugin: OS::Cinder::Snapshot
 
     [resource_plugin:os_cinder_snapshot]
     enabled = true
+    resource_group_name = searchlight
 
 Cinder Configuration
 ====================

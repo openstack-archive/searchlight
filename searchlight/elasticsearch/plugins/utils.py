@@ -168,6 +168,34 @@ def create_new_index(group):
     return index_name
 
 
+def add_extra_mappings(index_name, doc_type_info):
+    """Add mappings for the specified doc_types if they already do not
+       exist in the index. This is to work around a "feature" in Elasticsearch.
+       Specifying a doc_type in a query that spans multiple indices will fail
+       if that doc_type is not present in all indices being queried. This type
+       of query is used in Searchlight for the Resource Types that have a
+       parent-child relationship (due to our RBAC model).
+       The parameter doc_type_info is a list of tuples. Each entry contains
+       a document type and whether this document type has a parent-child
+       relationship.
+    """
+    es_engine = searchlight.elasticsearch.get_api()
+
+    # Create an empty mapping that cannot be used. We need to make sure it
+    # has a "_parent" field for the "has_parent" queries. Make sure that the
+    # the "_parent" field is not used anywhere else.
+    for doc_type, has_parent in doc_type_info:
+        body = {'dynamic': 'strict',
+                'properties': {
+                }}
+        if has_parent:
+            body['_parent'] = {'type': 'never_used_parent'}
+        if not es_engine.indices.exists_type(index=index_name,
+                                             doc_type=doc_type):
+            es_engine.indices.put_mapping(index=index_name, doc_type=doc_type,
+                                          body=body)
+
+
 def get_index_refresh_interval(index_name):
     """Get the refresh_interval of a given index, if refresh_interval isn't
        set, return default 1s.

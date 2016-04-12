@@ -164,9 +164,15 @@ Global Configuration Options
 +=====================+===============+=====================================+===========================+
 | resource_group_name | searchlight   | Determines the ElasticSearch index  |                           |
 |                     |               | and alias where documents will be   | | Restart services        |
-|                     |               | stored. Index names will be         | Re-index all types        |
+|                     |               | stored. Index names will be         | | Re-index all types      |
 |                     |               | suffixed with a timestamp.          |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
+
+.. note::
+
+    Sorting on fields across resource types(plugins), with each plugin specifying a different resource group
+    name will cause errors if sort-by fields are not defined in each resource type.
+    See :ref:`using-resource-groups` for more information on how to sort across different resource groups
 
 Inheritable Common Configuration Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
