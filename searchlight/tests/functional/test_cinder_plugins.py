@@ -61,45 +61,11 @@ class TestCinderPlugins(functional.FunctionalTest):
                         self.snapshot_objects))[0]
             return utils.DictObj(**snap)
 
-        with mock.patch(volume_manager + '.get', side_effect=fake_volume_get):
-            serialized_volumes = [
-                self.volume_plugin.serialize(vol['id'])
-                for vol in self.volume_objects
-                if vol["os-vol-tenant-attr:tenant_id"] == TENANT_ID1
-            ]
+        self._index(self.snapshot_plugin,
+                    [utils.DictObj(**snap) for snap in self.snapshot_objects])
 
-        with mock.patch(snapshot_manager + '.get',
-                        side_effect=fake_snapshot_get):
-            serialized_snapshots = [
-                self.snapshot_plugin.serialize(snap['id'])
-                for snap in self.snapshot_objects
-            ]
-
-        self._index(self.volume_plugin.alias_name_listener,
-                    self.volume_plugin.get_document_type(),
-                    serialized_volumes,
-                    TENANT_ID1,
-                    role_separation=True)
-        self._index(self.snapshot_plugin.alias_name_listener,
-                    self.snapshot_plugin.get_document_type(),
-                    serialized_snapshots,
-                    TENANT_ID1,
-                    parent_id_field=self.snapshot_plugin.get_parent_id_field(),
-                    role_separation=True)
-
-        # The other tenant's volume
-        with mock.patch(volume_manager + '.get', side_effect=fake_volume_get):
-            other_volumes = [
-                self.volume_plugin.serialize(vol['id'])
-                for vol in self.volume_objects
-                if vol["os-vol-tenant-attr:tenant_id"] == TENANT_ID2
-            ]
-
-        self._index(self.volume_plugin.alias_name_listener,
-                    self.volume_plugin.get_document_type(),
-                    other_volumes,
-                    TENANT_ID2,
-                    role_separation=True)
+        self._index(self.volume_plugin,
+                    [utils.DictObj(**vol) for vol in self.volume_objects])
 
     def test_query_attachments(self):
         self._index_data()

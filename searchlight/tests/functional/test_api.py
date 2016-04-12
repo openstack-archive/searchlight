@@ -20,6 +20,7 @@ import uuid
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import functional
+from searchlight.tests import utils as test_utils
 
 TENANT1 = str(uuid.uuid4())
 TENANT2 = str(uuid.uuid4())
@@ -45,28 +46,29 @@ class TestSearchApi(functional.FunctionalTest):
         """Index a document and check elasticsearch for it to check
         things are working.
         """
+        images_plugin = self.initialized_plugins['OS::Glance::Image']
         doc_id = str(uuid.uuid4())
         doc = {
             "owner": TENANT1,
-            "is_public": True,
+            "visibility": "public",
             "id": doc_id,
             "name": "owned by tenant 1",
             "owner": TENANT1,
-            "members": [TENANT1]
+            "created_at": "2016-04-06T12:48:18Z"
         }
 
-        self._index(self.images_plugin.alias_name_search,
-                    self.images_plugin.get_document_type(),
-                    doc,
-                    TENANT1)
+        self._index(images_plugin,
+                    [doc])
 
         # Test the raw elasticsearch response
         es_doc = self._get_elasticsearch_doc(
-            self.images_plugin.alias_name_search,
-            self.images_plugin.get_document_type(),
+            images_plugin.alias_name_search,
+            images_plugin.get_document_type(),
             doc_id)
-        self.assertEqual(['admin', 'user'],
-                         es_doc['_source'].pop(ROLE_USER_FIELD))
+        self.assertEqual(set(['admin', 'user']),
+                         set(es_doc['_source'].pop(ROLE_USER_FIELD)))
+
+        doc['members'] = []
         self.assertEqual(doc, es_doc['_source'])
 
     def test_empty_results(self):
@@ -79,37 +81,47 @@ class TestSearchApi(functional.FunctionalTest):
         """Test queries against documents with nested complex objects."""
         doc1 = {
             "owner": TENANT1,
-            "is_public": True,
-            "id": str(uuid.uuid4()),
-            "name": "owned by tenant 1",
+            "visibility": "public",
+            "objects": [],
+            "tags": [],
             "namespace": "some.value1",
-            "members": [TENANT1],
-            "properties": [
-                {"property": "prop1",
-                 "title": "hello"},
-                {"property": "prop2",
-                 "title": "bye"}
-            ]
+            "created_at": "2016-04-06T12:48:18Z",
+            "properties": {"prop1": {"title": "hello"},
+                           "prop2": {"title": "bye"}}
         }
         doc2 = {
             "owner": TENANT1,
-            "is_public": True,
-            "id": str(uuid.uuid4()),
+            "visibility": "public",
             "namespace": "some.value2",
-            "name": "owned by tenant 1",
-            "members": [TENANT1],
-            "properties": [
-                {"property": "prop1",
-                 "title": "something else"},
-                {"property": "prop2",
-                 "title": "hello"}
-            ]
+            "objects": [],
+            "tags": [],
+            "created_at": "2016-04-06T12:48:18Z",
+            "properties": {"prop1": {"title": "something else"},
+                           "prop2": {"title": "hello"}}
         }
 
-        self._index(self.metadefs_plugin.alias_name_search,
-                    self.metadefs_plugin.get_document_type(),
-                    [doc1, doc2],
-                    TENANT1)
+        self._index(self.initialized_plugins['OS::Glance::Metadef'],
+                    [doc1, doc2])
+
+        # Convert the input docs into expected format
+        additional_props = {
+            'resource_types': [],
+            'display_name': None,
+            'description': None,
+            'protected': None,
+            'updated_at': None
+        }
+        doc1.update(additional_props)
+        doc2.update(additional_props)
+
+        doc1["properties"] = [{"name": "prop1", "title": "hello"},
+                              {"name": "prop2", "title": "bye"}]
+        doc2["properties"] = [{"name": "prop1", "title": "something else"},
+                              {"name": "prop2", "title": "hello"}]
+        doc1["id"] = doc1["namespace"]
+        doc1["name"] = doc1["namespace"]
+        doc2["id"] = doc2["namespace"]
+        doc2["name"] = doc2["namespace"]
 
         def get_nested(qs):
             return {
@@ -125,7 +137,7 @@ class TestSearchApi(functional.FunctionalTest):
             }
 
         # Expect this to match both documents
-        querystring = "properties.property:prop1"
+        querystring = "properties.name:prop1"
         query = get_nested(querystring)
         response, json_content = self._search_request(query,
                                                       TENANT1,
@@ -133,7 +145,7 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual([doc1, doc2], self._get_hit_source(json_content))
 
         # Expect this to match only doc1
-        querystring = "properties.property:prop1 AND properties.title:hello"
+        querystring = "properties.name:prop1 AND properties.title:hello"
         query = get_nested(querystring)
         response, json_content = self._search_request(query,
                                                       TENANT1,
@@ -142,7 +154,7 @@ class TestSearchApi(functional.FunctionalTest):
 
         # Expect this not to match any documents, because it
         # doesn't properly match any nested objects
-        querystring = "properties.property:prop1 AND properties.title:bye"
+        querystring = "properties.name:prop1 AND properties.title:bye"
         query = get_nested(querystring)
         response, json_content = self._search_request(query,
                                                       TENANT1,
@@ -150,7 +162,7 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual([], self._get_hit_source(json_content))
 
         # Expect a match with
-        querystring = "properties.property:prop3 OR properties.title:bye"
+        querystring = "properties.name:prop3 OR properties.title:bye"
         query = get_nested(querystring)
         response, json_content = self._search_request(query,
                                                       TENANT1,
@@ -163,55 +175,63 @@ class TestSearchApi(functional.FunctionalTest):
         tenant1_doc = {
             "owner": TENANT1,
             "id": id_1,
-            "visibility": "private",
+            "visibility": "public",
             "name": "owned by tenant 1",
-            "members": []
+            "created_at": "2016-04-06T12:48:18Z"
         }
 
-        self._index(self.images_plugin.alias_name_search,
-                    self.images_plugin.get_document_type(),
-                    [tenant1_doc],
-                    TENANT1)
+        self._index(self.initialized_plugins['OS::Glance::Image'],
+                    [tenant1_doc])
 
         response, json_content = self._search_request({"all_projects": True},
                                                       TENANT1)
         self.assertEqual(200, response.status)
+        tenant1_doc["members"] = []
         self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
 
     def test_facets(self):
         """Check facets for a non-nested field (status)"""
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
         server1 = {
+            u'addresses': {},
             u'flavor': {u'id': u'1'},
             u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
             u'image': {u'id': u'a'},
             u'name': u'instance1',
             u'status': u'ACTIVE',
             u'tenant_id': TENANT1,
+            u'created_at': u'2016-04-06T12:48:18Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
         server2 = {
+            u'addresses': {},
             u'flavor': {u'id': u'1'},
             u'id': u'08ca6c43-eea8-48d0-bbb2-30c50109d5d8',
             u'image': {u'id': u'a'},
             u'name': u'instance2',
             u'status': u'RESUMING',
             u'tenant_id': TENANT1,
+            u'created_at': u'2016-04-06T12:48:18Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
         server3 = {
+            u'addresses': {},
             u'flavor': {u'id': u'1'},
             u'id': u'08ca6c43-f0fa-48d0-48d0-53453522cda4',
             u'image': {u'id': u'a'},
             u'name': u'instance1',
             u'status': u'ACTIVE',
             u'tenant_id': TENANT1,
+            u'created_at': u'2016-04-06T12:48:18Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
-        self._index(servers_plugin.alias_name_search,
-                    servers_plugin.get_document_type(),
-                    [server1, server2, server3],
-                    TENANT1)
+        self._index(
+            servers_plugin,
+            [test_utils.DictObj(**server1), test_utils.DictObj(**server2),
+             test_utils.DictObj(**server3)])
 
         response, json_content = self._facet_request(
             TENANT1,
@@ -242,36 +262,42 @@ class TestSearchApi(functional.FunctionalTest):
         """
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
         server1 = {
-            u'networks': [{
-                u'ipv4_addr': u'127.0.0.1',
-                u'OS-EXT-IPS:type': u'fixed',
-                u'name': u'net4',
-            }, {
-                u'ipv4_addr': u'127.0.0.1',
-                u'OS-EXT-IPS:type': u'fixed',
-                u'name': u'net4',
-            }],
+            u'addresses': {
+                u'net4': [
+                    {u'addr': u'127.0.0.1',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'version': 4},
+                    {u'addr': u'127.0.0.1',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'version': 4}
+                ]
+            },
             u'flavor': {u'id': u'1'},
             u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
             u'image': {u'id': u'a'},
             u'name': u'instance1',
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
             u'status': u'ACTIVE',
             u'tenant_id': TENANT1,
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
 
         server2 = {
-            u'networks': [{
-                u'ipv4_addr': u'127.0.0.1',
-                u'OS-EXT-IPS:type': u'fixed',
-                u'name': u'net4',
-            }, {
-                u'ipv4_addr': u'127.0.0.1',
-                u'OS-EXT-IPS:type': u'floating',
-                u'name': u'net4',
-            }],
+            u'addresses': {
+                u'net4': [
+                    {u'addr': u'127.0.0.1',
+                     u'OS-EXT-IPS:type': u'fixed',
+                     u'version': 4},
+                    {u'addr': u'127.0.0.1',
+                     u'OS-EXT-IPS:type': u'floating',
+                     u'version': 4}
+                ]
+            },
             u'flavor': {u'id': u'1'},
             u'id': u'08ca6c43-eea8-48d0-bbb2-30c50109d5d8',
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
             u'image': {u'id': u'a'},
             u'name': u'instance2',
             u'status': u'ACTIVE',
@@ -279,10 +305,9 @@ class TestSearchApi(functional.FunctionalTest):
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
 
-        self._index(servers_plugin.alias_name_search,
-                    servers_plugin.get_document_type(),
-                    [server1, server2],
-                    TENANT1)
+        self._index(
+            servers_plugin,
+            [test_utils.DictObj(**server1), test_utils.DictObj(**server2)])
 
         response, json_content = self._facet_request(
             TENANT1,
@@ -313,22 +338,28 @@ class TestSearchApi(functional.FunctionalTest):
     def test_server_role_field_rbac(self):
         """Check that admins and users get different versions of documents"""
         doc_id = u'abc'
-        doc = {
+        s1 = {
+            u'addresses': {},
             u'OS-DCF:diskConfig': u'MANUAL',
             u'OS-EXT-AZ:availability_zone': u'nova',
             u'OS-EXT-SRV-ATTR:host': u'devstack',
             u'OS-EXT-SRV-ATTR:hypervisor_hostname': u'devstack',
             u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
             u'id': doc_id,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
             u'name': 'instance1',
             u'status': u'ACTIVE',
             u'tenant_id': TENANT1,
-            u'user_id': USER1
+            u'user_id': USER1,
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
         }
 
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
-        servers_plugin.index_helper.save_document(doc)
-        self._flush_elasticsearch(servers_plugin.alias_name_listener)
+        self._index(
+            servers_plugin,
+            [test_utils.DictObj(**s1)])
 
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
@@ -337,7 +368,10 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual(1, len(json_content['hits']['hits']))
         hit = json_content['hits']['hits'][0]
         self.assertEqual(doc_id + "_ADMIN", hit['_id'])
-        self.assertEqual(doc, hit['_source'])
+        for k in ('OS-EXT-SRV-ATTR:host',
+                  'OS-EXT-SRV-ATTR:hypervisor_hostname',
+                  'OS-EXT-SRV-ATTR:instance_name'):
+            self.assertIn(k, hit['_source'])
 
         # Now as a non admin
         response, json_content = self._search_request(MATCH_ALL,
@@ -361,18 +395,24 @@ class TestSearchApi(functional.FunctionalTest):
         admin_field, admin_value = (u'OS-EXT-SRV-ATTR:host', u'devstack')
 
         doc_id = u'abc'
-        doc = {
+        s1 = {
+            u'addresses': {},
             u'id': doc_id,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
             u'name': 'instance1',
             u'status': u'ACTIVE',
             u'tenant_id': TENANT1,
             u'user_id': USER1,
-            admin_field: admin_value
+            admin_field: admin_value,
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
         }
 
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
-        servers_plugin.index_helper.save_document(doc)
-        self._flush_elasticsearch(servers_plugin.alias_name_listener)
+        self._index(
+            servers_plugin,
+            [test_utils.DictObj(**s1)])
 
         # For each of these queries (which are really looking for the same
         # thing) we expect a result for an admin, and no result for a user
@@ -419,24 +459,30 @@ class TestSearchApi(functional.FunctionalTest):
 
     def test_resource_policy(self):
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        images_plugin = self.initialized_plugins['OS::Glance::Image']
         server_doc = {
+            u'addresses': {},
             u'id': 'abcdef',
             u'name': 'instance1',
             u'status': u'ACTIVE',
             u'tenant_id': TENANT1,
-            u'user_id': USER1
+            u'user_id': USER1,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z'
         }
-        servers_plugin.index_helper.save_document(server_doc)
 
         image_doc = {
             "owner": TENANT1,
             "id": "1234567890",
             "visibility": "public",
             "name": "image",
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self.images_plugin.index_helper.save_document(image_doc)
-        self._flush_elasticsearch(servers_plugin.alias_name_listener)
-        self._flush_elasticsearch(self.images_plugin.alias_name_listener)
+
+        self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
+        self._index(images_plugin, [image_doc])
 
         # Modify the policy file to disallow some things
         with open(self.policy_file, 'r') as policy_file:
