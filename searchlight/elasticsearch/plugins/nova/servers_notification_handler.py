@@ -50,24 +50,15 @@ class InstanceHandler(base.NotificationBase):
             'compute.instance.volume.attach': self.create_or_update,
             'compute.instance.volume.detach': self.create_or_update,
 
-            # Neutron events
-            'port.create.end': self.update_from_neutron,
-            # TODO(sjmc7) Remind myself why i commented this out,
-            # and also whether neutron events should be separate
-            # 'port.delete.end': self.update_neutron_ports,
+            # Removing neutron port events for now; waiting on nova
+            # to implement interface notifications as with volumes
+            # https://launchpad.net/bugs/1567525
+            # https://blueprints.launchpad.net/nova/+spec/interface-notifications
         }
 
     def create_or_update(self, payload, timestamp):
         instance_id = payload['instance_id']
         LOG.debug("Updating nova server information for %s", instance_id)
-        self._update_instance(payload, instance_id, timestamp)
-
-    def update_from_neutron(self, payload, timestamp):
-        instance_id = payload['port']['device_id']
-        LOG.debug("Updating server %s from neutron notification",
-                  instance_id)
-        if not instance_id:
-            return
         self._update_instance(payload, instance_id, timestamp)
 
     def _update_instance(self, payload, instance_id, timestamp):
