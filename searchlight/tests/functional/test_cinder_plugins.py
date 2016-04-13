@@ -211,6 +211,18 @@ class TestCinderNotifications(test_listener.TestSearchListenerBase):
             mock.call(VOLUME_ID1), mock.call(VOLUME_ID1)
         ])
 
+    @mock.patch(volume_manager + '.get')
+    def test_volume_retype(self, mock_volume_get):
+        mock_volume = mock.Mock(id=VOLUME_ID1, user_id=USER_ID,
+                                created_at='2016-03-07T16:51:09.000000',
+                                updated_at='2016-03-07T16:51:09.000000')
+        mock_volume_get.return_value = mock_volume
+
+        vol_retype = self.volume_events['volume.retype']
+        self._send_event_to_listener(vol_retype, self.index_alias)
+
+        mock_volume_get.assert_called_with(VOLUME_ID1)
+
     @mock.patch(snapshot_manager + '.get')
     def test_snapshot_create_delete(self, mock_snapshot_get):
         mock_snap = mock.Mock(id=SNAP_ID2,
