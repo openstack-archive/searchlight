@@ -1,0 +1,7 @@
+---
+prelude: >
+    Improved index sync performance.
+other:
+  - Improved searchlight-manage index sync performance by disabling automatic
+    refresh of newly created indices until they are fully populated and
+    activated for search queries.
