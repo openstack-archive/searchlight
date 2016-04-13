@@ -44,6 +44,7 @@ class VolumeHandler(base.NotificationBase):
             # TODO(sjmc7) These could be implemented as scripted updates
             'volume.attach.end': self.create_or_update,
             'volume.detach.end': self.create_or_update,
+            'volume.retype': self.create_or_update,
         }
 
     def create_or_update(self, payload, timestamp):
