@@ -574,9 +574,14 @@ class FunctionalTest(test_utils.BaseTestCase):
             es_response = jsonutils.loads(es_response)
         return [h["_source"] for h in es_response["hits"]["hits"]]
 
-    def _get_all_elasticsearch_docs(self):
-        es_url = "http://localhost:%s/_search" % (
-            self.api_server.elasticsearch_port)
+    def _get_all_elasticsearch_docs(self, indices=[]):
+        """Query ES and return all documents. The caller can specify a list
+           of indices to query. If the list is empty, we will query all
+            indices.
+        """
+        index = ','.join(indices)
+        es_url = "http://localhost:%s/%s/_search" % (
+            self.api_server.elasticsearch_port, index)
         response, content = httplib2.Http().request(es_url)
         self.assertEqual(200, response.status)
         return jsonutils.loads(content)
@@ -588,6 +593,17 @@ class FunctionalTest(test_utils.BaseTestCase):
         response, content = httplib2.Http().request(es_url)
         json_content = jsonutils.loads(content)
         return json_content
+
+    def _get_elasticsearch_aliases(self, indices):
+        """Return all aliases associated with a specified index(es). The
+           caller can specify a list of indcies. If the list is empty, we
+           will query all indices.
+        """
+        index = ','.join(indices)
+        es_url = "http://localhost:%s/%s/_aliases" % (
+            self.api_server.elasticsearch_port, index)
+        response, content = httplib2.Http().request(es_url)
+        return jsonutils.loads(content)
 
     def _load_fixture_data(self, name):
         base_dir = "searchlight/tests/functional/data"

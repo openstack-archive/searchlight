@@ -1,4 +1,4 @@
-# Copyright 2016 Hewlett-Packard Corporation
+# Copyright (c) 2016 Hewlett-Packard Enterprise Development Company, L.P.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
