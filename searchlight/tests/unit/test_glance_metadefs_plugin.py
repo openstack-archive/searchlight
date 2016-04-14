@@ -289,7 +289,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                 'type': 'string',
                 'description': None
             }],
-            'tags': [{'name': 'Tag1'}],
+            'tags': ['Tag1'],
         }
 
         ns = list(self._list_namespaces())[0]
@@ -390,7 +390,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                         'resource_types': [{
                             'name': 'ResourceType1',
                         }],
-                        'tags': [{'name': 'Tag1'}],
+                        'tags': ['Tag1'],
                     },
                     {
                         'created_at': now,
@@ -437,10 +437,7 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
                                 'name': 'ResourceType3'
                             }
                         ],
-                        'tags': [
-                            {'name': 'Tag2'},
-                            {'name': 'Tag3'},
-                        ],
+                        'tags': ['Tag2', 'Tag3']
                     }
                 ], index=None, versions=versions)
 
@@ -468,3 +465,15 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             }
         }
         self.assertEqual(expected_fragment, rbac_filter)
+
+    def test_filter_result(self):
+        """We modify 'tags' to make it fit with mappings from other plugins.
+        For now, we modify results to more closely fit the API.
+        """
+        ns = list(self._list_namespaces())[0]
+        with mock.patch('glanceclient.v2.metadefs.NamespaceController.get',
+                        return_value=self._get_namespace(ns['namespace'])):
+            es_result = self.plugin.serialize(ns)
+
+        self.plugin.filter_result({'_source': es_result}, None)
+        self.assertEqual([{"name": "Tag1"}], es_result["tags"])

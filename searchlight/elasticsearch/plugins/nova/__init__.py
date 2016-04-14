@@ -50,6 +50,9 @@ def serialize_nova_server(server):
         serialized.pop(u'image')
     serialized[u'flavor'].pop(u'links', None)
 
+    sec_groups = serialized.pop(u'security_groups', [])
+    serialized['security_groups'] = [s[u'name'] for s in sec_groups]
+
     _format_networks(server, serialized)
 
     utils.normalize_date_fields(serialized)

@@ -113,7 +113,7 @@ def serialize_glance_image_members(image, payload):
 
 def serialize_glance_metadef_ns(metadef_namespace):
     def _serialize_tag(tag):
-        return {'name': tag['name']}
+        return tag["name"]
 
     def _serialize_property(name, property):
         serialized_prop = copy.deepcopy(property)
@@ -165,8 +165,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
         document['name'] = document['namespace']
 
     document['tags'] = sorted([
-        _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])
-    ], key=operator.itemgetter('name'))
+        _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])])
     document['properties'] = sorted([
         _serialize_property(name, property)
         for name, property in six.iteritems(
