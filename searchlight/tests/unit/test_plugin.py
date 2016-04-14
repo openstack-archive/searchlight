@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import collections
 import mock
 import six
 import types
@@ -20,6 +21,7 @@ import types
 from oslo_config import cfg
 
 from searchlight.common import exception
+from searchlight.common import utils as searchlight_utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import fake_plugins
 import searchlight.tests.utils as test_utils
@@ -331,3 +333,52 @@ class TestPlugin(test_utils.BaseTestCase):
         mock_save.reset_mock()
         plugin.initial_indexing(index_name='fake', setup_data=False)
         mock_save.assert_not_called()
+
+    def test_mapping_field_types(self):
+        """Fields with identical names but different types cause problems
+        because lucene doesn't differentiate on doc_type. Elasticsearch 2.x
+        enforces rules during mapping that 1.x did not. This test ensures that
+        for any plugins present, mappings don't conflict.
+        """
+        # Keep track of field names and types
+        encountered = {}
+        encountered_in = collections.defaultdict(list)
+
+        # Some properties are allowed to be different.
+        # See https://www.elastic.co/guide/en/elasticsearch/reference/current/
+        #             breaking_20_mapping_changes.html
+        ignore_props = ['copy_to', 'dynamic', 'enabled', 'ignore_above',
+                        'include_in_all', 'properties']
+
+        def merge_and_assert_conflict(resource_type, properties):
+            for field_name, field_type in six.iteritems(properties):
+
+                # Ignore some properties (see above)
+                for prop in ignore_props:
+                    field_type.pop(prop, None)
+
+                existing = encountered.get(field_name, {})
+
+                if existing:
+                    previous = ",".join(encountered_in[field_name])
+                    params = {
+                        'field_name': field_name, 'field_type': field_type,
+                        'resource_type': resource_type, 'previous': previous,
+                        'existing': existing}
+                    message = (
+                        "Field definition for '%(field_name)s' in "
+                        "%(resource_type)s (%(field_type)s) does not match "
+                        "that found in %(previous)s (%(existing)s") % params
+                    self.assertEqual(existing, field_type, message)
+                else:
+                    encountered[field_name] = field_type
+
+                encountered_in[field_name].append(resource_type)
+
+        index_base = 'searchlight.elasticsearch.plugins.base.IndexBase'
+        with mock.patch(index_base + '.enabled',
+                        new_callable=mock.PropertyMock, return_value=True):
+            plugins = searchlight_utils.get_search_plugins()
+            for resource_type, plugin in six.iteritems(plugins):
+                props = plugin.obj.get_mapping()['properties']
+                merge_and_assert_conflict(resource_type, props)

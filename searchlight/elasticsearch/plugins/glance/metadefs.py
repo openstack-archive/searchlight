@@ -77,12 +77,7 @@ class MetadefIndex(base.IndexBase):
                     }
                 },
                 'properties': property_mapping,
-                'tags': {
-                    'type': 'nested',
-                    'properties': {
-                        'name': {'type': 'string'},
-                    }
-                }
+                'tags': {'type': 'string'}
             },
         }
         return mapping
@@ -112,3 +107,11 @@ class MetadefIndex(base.IndexBase):
 
     def serialize(self, metadef_obj):
         return serialize_glance_metadef_ns(metadef_obj)
+
+    def filter_result(self, hit, request_context):
+        # Revert the change we make to fit the 'tags' mapping used in other
+        # plugins (see serialize_glance_metadef_ns in __init__.py)
+        source = hit['_source']
+        tags = source.pop('tags', None)
+        if tags is not None:
+            source['tags'] = [{"name": tag} for tag in tags]
