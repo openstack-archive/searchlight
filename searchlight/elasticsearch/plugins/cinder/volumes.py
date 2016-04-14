@@ -97,7 +97,8 @@ class VolumeIndex(base.IndexBase):
                         'raw': {'type': 'string', 'index': 'not_analyzed'}
                     }
                 },
-                'size': {'type': 'integer'},
+                # Using long here to consistent with glance.images
+                'size': {'type': 'long'},
                 'snapshot_id': {'type': 'string', 'index': 'not_analyzed'},
                 'source_volid': {'type': 'string', 'index': 'not_analyzed'},
                 'status': {'type': 'string', 'index': 'not_analyzed'},
