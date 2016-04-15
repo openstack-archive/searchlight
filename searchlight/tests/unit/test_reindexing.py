@@ -203,8 +203,7 @@ class TestReindexingUtils(test_utils.BaseTestCase):
             mock_engine.indices.update_aliases.assert_called_once_with(body)
             self.assertIsNone(index)
 
-    def test_alias_listener_update(self):
-        ndx = 'sl-listener'
+    def test_delete_index(self):
         old_ndx = 'sl-old'
 
         # Set up the ES mock.
@@ -213,30 +212,12 @@ class TestReindexingUtils(test_utils.BaseTestCase):
             # Plug in the ES mock.
             mock_api.return_value = mock_engine
 
-            # Test #1: Update the existing index.
-            plugin_utils.alias_listener_update(ndx, old_ndx)
+            # Delete the existing index.
+            plugin_utils.delete_index(old_ndx)
 
-            body = {'actions': [{'remove': {'index': old_ndx, 'alias': ndx}}]}
-            mock_engine.indices.update_aliases.assert_called_once_with(
-                ignore=404, body=body)
             mock_engine.indices.delete.assert_called_once_with(ignore=404,
                                                                index=old_ndx)
             mock_api.assert_called_with()
-
-            # Test #2: Index delete failure.
-            mock_engine.reset_mock()
-            mock_engine.indices.delete.side_effect = [Exception]
-
-            plugin_utils.alias_listener_update(ndx, old_ndx)
-            mock_engine.indices.update_aliases.assert_called_once_with(
-                ignore=404, body=body)
-
-            # Test #3: Alias update failure.
-            mock_engine.reset_mock()
-            mock_engine.indices.update_aliases.side_effect = [Exception]
-
-            plugin_utils.alias_listener_update(ndx, old_ndx)
-            mock_engine.indices.delete.assert_not_called()
 
     def test_alias_error_cleanup(self):
         single = {'g': 'ndx'}

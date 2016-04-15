@@ -314,31 +314,12 @@ def alias_search_update(alias_search, index_name):
     return old_index
 
 
-def alias_listener_update(alias_listener, index_name):
-    """Delete the specified index from the listener alias. """
+def delete_index(index_name):
+    """Delete the specified index. """
 
-    if not index_name:
-        return
-
+    # Alias will be cleaned up automatically by ES when the index is deleted.
     es_engine = searchlight.elasticsearch.get_api()
-
-    body = {
-        'actions': [
-            {'remove': {
-                'index': index_name,
-                'alias': alias_listener}}
-        ]
-    }
-
-    # If the index no longer exists, ignore and continue.
-    try:
-        es_engine.indices.update_aliases(body=body, ignore=404)
-        es_engine.indices.delete(index=index_name, ignore=404)
-    except Exception as e:
-        # If the exception happens with the update, the alias may
-        # still refer to the index. We do not want to delete the
-        # index for this case. Log the error and continue.
-        LOG.error(encodeutils.exception_to_unicode(e))
+    es_engine.indices.delete(index=index_name, ignore=404)
 
 
 def alias_error_cleanup(indexes):
