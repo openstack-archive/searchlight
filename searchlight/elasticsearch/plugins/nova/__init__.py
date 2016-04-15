@@ -43,7 +43,11 @@ def serialize_nova_server(server):
 
     # Some enhancements
     serialized[u'owner'] = server.tenant_id
-    serialized[u'image'].pop(u'links', None)
+    # Image is empty when the instance is booted from volume
+    if isinstance(serialized[u'image'], dict):
+        serialized[u'image'].pop(u'links', None)
+    else:
+        serialized.pop(u'image')
     serialized[u'flavor'].pop(u'links', None)
 
     _format_networks(server, serialized)

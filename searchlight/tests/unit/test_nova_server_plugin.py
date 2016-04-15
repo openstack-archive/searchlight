@@ -257,6 +257,71 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         self.assertEqual(expected, serialized)
 
+    def test_serialize_no_image(self):
+        instance = _instance_fixture(
+            ID3, u'instance3', tenant_id=TENANT1,
+            flavor=flavor1, image='', addresses=net_ipv4,
+            **{u'OS-EXT-AZ:availability_zone': u'az1',
+               u'OS-EXT-SRV-ATTR:host': u'host1',
+               u'hostId': u'host1'})
+        expected = {
+            u'OS-DCF:diskConfig': u'MANUAL',
+            u'OS-EXT-AZ:availability_zone': u'az1',
+            u'OS-EXT-SRV-ATTR:host': u'host1',
+            u'OS-EXT-SRV-ATTR:hypervisor_hostname': u'devstack',
+            u'OS-EXT-SRV-ATTR:instance_name': u'instance-00000001',
+            u'OS-EXT-STS:power_state': 1,
+            u'OS-EXT-STS:task_state': None,
+            u'OS-EXT-STS:vm_state': u'active',
+            u'OS-SRV-USG:launched_at': created_now,
+            u'OS-SRV-USG:terminated_at': None,
+            u'accessIPv4': u'',
+            u'accessIPv6': u'',
+            u'addresses': {
+                u'public': [{
+                    u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
+                    u'OS-EXT-IPS:type': u'fixed',
+                    u'addr': u'172.25.0.3',
+                    u'version': 4
+                }, {
+                    u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
+                    u'OS-EXT-IPS:type': u'fixed',
+                    u'addr': u'2001:db8::3',
+                    u'version': 6
+                }]
+            },
+            u'config_drive': u'True',
+            u'flavor': {u'id': u'1'},
+            u'hostId': u'host1',
+            u'id': u'a380287d-1f61-4887-959c-8c5ab8f75f8f',
+            u'key_name': u'key',
+            u'metadata': {},
+            u'name': u'instance3',
+            u'os-extended-volumes:volumes_attached': [],
+            u'owner': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
+            u'security_groups': [{u'name': u'default'}],
+            u'status': u'ACTIVE',
+            u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
+            u'updated': updated_now,
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55',
+            u'networks': [{
+                u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
+                u'version': 4,
+                u'ipv4_addr': u'127.0.0.1',
+                u'OS-EXT-IPS:type': u'fixed',
+                u'name': u'net4',
+            }],
+            u'addresses': net_ipv4,
+            u'created': created_now,
+            u'created_at': created_now,
+            u'updated': updated_now,
+            u'updated_at': updated_now,
+        }
+        with mock.patch(nova_server_getter, return_value=instance):
+            serialized = self.plugin.serialize(instance.id)
+
+        self.assertEqual(expected, serialized)
+
     def test_facets_non_admin(self):
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
