@@ -1,0 +1,47 @@
+# Andreas Jaeger <jaegerandi@gmail.com>, 2016. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2016-04-15 23:22+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de\n"
+"X-Generator: Zanata 3.7.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgid "All workers have terminated. Exiting"
+msgstr "Alle Worker wurden beendet. Vorgang wird beendet"
+
+msgid "Caught keyboard interrupt. Exiting."
+msgstr "Tastatur-Interrupt abgefangen. Beenden."
+
+#, python-format
+msgid "Child %d exiting normally"
+msgstr "Untergeordnetes Element %d wird normal beendet"
+
+msgid "Initialized gzip middleware"
+msgstr "gzip Middelware initialisiert"
+
+#, python-format
+msgid "Removed dead child %s"
+msgstr "Toter Kindprozess %s entfernt"
+
+#, python-format
+msgid "Removed stale child %s"
+msgstr "Stillstehender Kindprozess %s entfernt"
+
+#, python-format
+msgid "Started child %s"
+msgstr "Untergeordnetes Element %s gestartet"
+
+#, python-format
+msgid "Starting %d workers"
+msgstr "Starten von %d Workers"
+
+msgid "Starting single process server"
+msgstr "Starten von einzelnem Prozessserver"

@@ -1,0 +1,416 @@
+# Lucas Palm <lapalm@us.ibm.com>, 2015. #zanata
+# OpenStack Infra <zanata@openstack.org>, 2015. #zanata
+# Andreas Jaeger <jaegerandi@gmail.com>, 2016. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2016-04-15 23:22+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: Portuguese (Brazil)\n"
+"Language: pt-BR\n"
+"X-Generator: Zanata 3.7.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#, python-format
+msgid "\t%s"
+msgstr "\t%s"
+
+#, python-format
+msgid "%(serv)s (pid %(pid)s) is running..."
+msgstr "%(serv)s (pid %(pid)s) está em execução..."
+
+#, python-format
+msgid "%(serv)s appears to already be running: %(pid)s"
+msgstr "%(serv)s parece já estar em execução: %(pid)s"
+
+#, python-format
+msgid "%(verb)sing %(serv)s"
+msgstr "%(verb)sing %(serv)s"
+
+#, python-format
+msgid "%(verb)sing %(serv)s with %(conf)s"
+msgstr "%(verb)sing %(serv)s com %(conf)s"
+
+#, python-format
+msgid ""
+"%s Please specify a host:port pair, where host is an IPv4 address, IPv6 "
+"address, hostname, or FQDN. If using an IPv6 address, enclose it in brackets "
+"separately from the port (i.e., \"[fe80::a:b:c]:9876\")."
+msgstr ""
+"%s Especifique um par host:porta, em que o host é um endereço IPv4, IPv6, "
+"nome do host ou FQDN. Se você estiver usando um endereço IPv6, coloque-o nos "
+"suportes separadamente da porta (ou seja, \"[fe80::a:b:c]:9876\")."
+
+#, python-format
+msgid "%s can't contain 4 byte unicode characters."
+msgstr "%s não pode conter caracteres de unicode de 4 bytes."
+
+#, python-format
+msgid "%s is already stopped"
+msgstr "%s já está parado"
+
+#, python-format
+msgid "%s is stopped"
+msgstr "%s está parado"
+
+msgid ""
+"AES key for encrypting store 'location' metadata. This includes, if used, "
+"Swift or S3 credentials. Should be set to a random string of length 16, 24 "
+"or 32 bytes"
+msgstr ""
+"A chave AES para criptografar metadados 'location' de armazenamento. Isso "
+"inclui, se usado, Credenciais Swift ou S3. Deve ser configurado para uma "
+"sequência aleatória de comprimento de 16, 24 ou 32 bytes"
+
+msgid ""
+"Address to bind the server.  Useful when selecting a particular network "
+"interface."
+msgstr ""
+"Endereço para associar o servidor. Útil quando selecionando uma interface "
+"de  rede particular."
+
+msgid ""
+"Allow unauthenticated users to access the API with read-only privileges. "
+"This only applies when using ContextMiddleware."
+msgstr ""
+"Permite usuários não autenticados acessarem a API com privilégios de somente "
+"leitura. Isto só se aplica quando utilizando ContextMiddleware."
+
+msgid "An object with the same identifier already exists."
+msgstr "Um objeto com o mesmo identificador já existe."
+
+msgid "An object with the specified identifier was not found."
+msgstr "Um objeto com o identificador especificado não foi localizado."
+
+msgid "An unknown exception occurred"
+msgstr "Ocorreu uma exceção desconhecida"
+
+#, python-format
+msgid "Attribute '%(property)s' is reserved."
+msgstr "O atributo '%(property)s' é reservado."
+
+#, python-format
+msgid "Attribute '%s' is read-only."
+msgstr "Atributo '%s' é apenas leitura."
+
+msgid "Body expected in request."
+msgstr "Corpo esperado na solicitação."
+
+msgid "CA certificate file to use to verify connecting clients."
+msgstr ""
+"Arquivo de certificado CA a ser utilizado para verifcar os clientes que se "
+"conectam."
+
+msgid "Certificate file to use when starting API server securely."
+msgstr ""
+"Arquivo de certificado a ser utilizado quando iniciar o servidor de API de "
+"forma segura."
+
+#, python-format
+msgid "Could not bind to %(host)s:%(port)s after trying for 30 seconds"
+msgstr ""
+"Não foi possível ligar a %(host)s:%(port)s depois de tentar por 30 segundos"
+
+msgid "Data supplied was not valid."
+msgstr "Os dados fornecidos não eram válidos."
+
+msgid ""
+"Default value for the number of items returned by a request if not specified "
+"explicitly in the request"
+msgstr ""
+"Valor padrão para o número de itens retornados por uma solicitação se não "
+"especificado explicitamente na solicitação"
+
+#, python-format
+msgid "Determining version of request: %(method)s %(path)s Accept: %(accept)s"
+msgstr ""
+"Determinando a versão da solicitação: %(method)s %(path)s Aceitar: %(accept)s"
+
+#, python-format
+msgid "Host \"%s\" is not valid."
+msgstr "Host \"%s\" não é válido."
+
+#, python-format
+msgid "Host and port \"%s\" is not valid."
+msgstr "Host e porta \"%s\" não são válidos."
+
+msgid "If False doesn't trace SQL requests."
+msgstr "Se Falso não rastreia as requisições SQL."
+
+msgid "If False fully disable profiling feature."
+msgstr "Se Falso desabilita completamente a funcionalidade de profilling."
+
+msgid ""
+"If False, server will return the header \"Connection: close\", If True, "
+"server will return \"Connection: Keep-Alive\" in its responses. In order to "
+"close the client socket connection explicitly after the response is sent and "
+"read successfully by the client, you simply have to set this option to False "
+"when you create a wsgi server."
+msgstr ""
+"Se False, o servidor retornará o cabeçalho \"Connection: close\", Se True, o "
+"servidor irá retornar \"Connection: Keep-Alive\" em suas respostas. Para "
+"pedir para fechar a conexão do soquete do cliente explicitamente depois que "
+"a resposta for enviada e lida com êxito pelo cliente, você simplesmente terá "
+"que configurar esta opção como False ao criar um servidor wsgi."
+
+msgid "Invalid configuration in property protection file."
+msgstr "Configuração inválida no arquivo de proteção de propriedade."
+
+#, python-format
+msgid "Invalid content type %(content_type)s"
+msgstr "Tipo de conteúdo inválido %(content_type)s"
+
+msgid "Invalid jsonpatch request"
+msgstr "Solicitação de jsonpatch inválida"
+
+msgid "Invalid service catalog json."
+msgstr "Catálogo de serviço json inválido."
+
+#, python-format
+msgid ""
+"It appears that the eventlet module has been imported prior to setting "
+"%s='yes'. It is currently necessary to disable eventlet.greendns if using "
+"ipv6 since eventlet.greendns currently breaks with ipv6 addresses. Please "
+"ensure that eventlet is not imported prior to this being set."
+msgstr ""
+"Parece que o módulo eventlet foi importado antes de configurar %s='yes'. "
+"Atualmente é necessário desativar eventlet.greendns se estiver usando ipv6, "
+"visto que o eventlet.greendns atualmente divide com endereços ipv6. Assegure-"
+"se de que eventlet não seja importado antes que este esteja sendo "
+"configurado."
+
+#, python-format
+msgid "Malformed Content-Range header: %s"
+msgstr "Cabeçalho de intervalo de conteúdo malformado: %s"
+
+msgid "Malformed JSON in request body."
+msgstr "JSON malformado no corpo da solicitação."
+
+msgid ""
+"Maximum line size of message headers to be accepted. max_header_line may "
+"need to be increased when using large tokens (typically those generated by "
+"the Keystone v3 API with big service catalogs"
+msgstr ""
+"Tamanho máximo da linha de cabeçalhos da mensagem a ser aceito. "
+"max_header_line pode precisar ser aumentada ao utilizar tokens grandes "
+"(geralmente aqueles gerados pela API Keystone v3 com catálogos de serviço "
+"grandes"
+
+msgid "Maximum permissible number of items that could be returned by a request"
+msgstr ""
+"Número máximo permitido de itens que puderam ser retornados por uma "
+"solicitação"
+
+msgid "Param values can't contain 4 byte unicode."
+msgstr "Valores de parâmetro não podem conter unicode de 4 bytes."
+
+#, python-format
+msgid "Port \"%s\" is not valid."
+msgstr "Porta \"%s\" não é válida."
+
+msgid "Private key file to use when starting API server securely."
+msgstr ""
+"Chave privada a ser utilizada quando iniciar o servidor de API de forma "
+"segura."
+
+#, python-format
+msgid "Process %d not running"
+msgstr "O processo %d não está em execução"
+
+msgid "Property names can't contain 4 byte unicode."
+msgstr "Os nomes de propriedade não podem conter unicode de 4 bytes."
+
+#, python-format
+msgid "Provided object does not match schema '%(schema)s': %(reason)s"
+msgstr "O objeto fornecido não corresponde ao esquema '%(schema)s': %(reason)s"
+
+#, python-format
+msgid "Reload of %(serv)s not supported"
+msgstr "Recarregamento de %(serv)s não suportado"
+
+#, python-format
+msgid "Reloading %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr "Recarregando %(serv)s (pid %(pid)s) com sinal (%(sig)s)"
+
+#, python-format
+msgid "Removing stale pid file %s"
+msgstr "Removendo o arquivo pid %s antigo"
+
+msgid "Role used to identify an authenticated user as administrator."
+msgstr ""
+"Papel utilizado para identificar um usuário autenticado como administrador."
+
+#, python-format
+msgid "Server %(serv)s is stopped"
+msgstr "O servidor %(serv)s foi interrompido"
+
+#, python-format
+msgid "Server worker creation failed: %(reason)s."
+msgstr "Falha na criação do trabalhador do servidor: %(reason)s."
+
+#, python-format
+msgid "Stopping %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr "Parando %(serv)s (pid %(pid)s) com sinal (%(sig)s)"
+
+#, python-format
+msgid "Suppressed respawn as %(serv)s was %(rsn)s."
+msgstr "Novo spawn suprimido já que %(serv)s era %(rsn)s."
+
+msgid "System SIGHUP signal received."
+msgstr "Sinal SIGHUP do sistema recebido."
+
+msgid "The API paste config file to use."
+msgstr "O arquivo de configuração de colagem da API a utilizar."
+
+msgid ""
+"The backlog value that will be used when creating the TCP listener socket."
+msgstr ""
+"O valor de backlog que será utilizado quando se estiver criando o socket de "
+"escuta TCP."
+
+msgid "The hostname/IP of the pydev process listening for debug connections"
+msgstr ""
+"O nome do host/IP do processo pydev que atende às conexões de depuração"
+
+msgid ""
+"The number of child process workers that will be created to service "
+"requests. The default will be equal to the number of CPUs available."
+msgstr ""
+"O número de trabalhadores de processo-filho que será criado para as "
+"solicitações de serviço. O padrão será igual ao número de CPUs disponíveis."
+
+msgid "The port on which a pydev process is listening for connections."
+msgstr "A porta na qual um processo pydev está atendendo às conexões."
+
+msgid "The port on which the server will listen."
+msgstr "A porta em que o servidor irá escutar."
+
+#, python-format
+msgid "The provided body %(body)s is invalid under given schema: %(schema)s"
+msgstr ""
+"O corpo fornecido %(body)s é inválido sob o esquema especificado: %(schema)s"
+
+#, python-format
+msgid "The provided path '%(path)s' is invalid: %(explanation)s"
+msgstr "O caminho fornecido '%(path)s' é inválido: %(explanation)s"
+
+msgid ""
+"The value for the socket option TCP_KEEPIDLE.  This is the time in seconds "
+"that the connection must be idle before TCP starts sending keepalive probes."
+msgstr ""
+"O valor para a opção de soquete TCP_KEEPIDLE. Esse é o tempo em segundos que "
+"a conexão deve ficar inativa antes que o TCP comece a enviar análises keep-"
+"alive."
+
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it.  Error: %(ioe)s"
+msgstr ""
+"Há um problema com o %(error_key_name)s %(error_filename)s.  Verifique-o. "
+"Erro: %(ioe)s"
+
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it. OpenSSL error: %(ce)s"
+msgstr ""
+"Há um problema com o %(error_key_name)s %(error_filename)s.  Verifique-o. "
+"Erro de OpenSSL: %(ce)s"
+
+#, python-format
+msgid ""
+"There is a problem with your key pair.  Please verify that cert "
+"%(cert_file)s and key %(key_file)s belong together.  OpenSSL error %(ce)s"
+msgstr ""
+"Há um problema com seu par de chaves. Verifique se o certificado "
+"%(cert_file)s e a chave %(key_file)s estão juntos.  Erro de OpenSSL %(ce)s"
+
+msgid ""
+"This config value indicates whether \"roles\" or \"policies\" are used in "
+"the property protection file."
+msgstr ""
+"Esse valor de configuração indica se \"funções\" ou \"políticas\" são usados "
+"no arquivo de proteção de propriedade."
+
+#, python-format
+msgid ""
+"Unable to create pid file %(pid)s.  Running as non-root?\n"
+"Falling back to a temp file, you can stop %(service)s service using:\n"
+"  %(file)s %(server)s stop --pid-file %(fb)s"
+msgstr ""
+"Impossível criar arquivo pid %(pid)s.  Executando como não raiz?\n"
+"Voltando para um arquivo temporário, é possível parar o serviço %(service)s "
+"usando:\n"
+"  %(file)s %(server)s stop --pid-file %(fb)s"
+
+msgid "Unable to increase file descriptor limit.  Running as non-root?"
+msgstr ""
+"Não é possível aumentar o limite do descritor de arquivo. Executando como "
+"não-raiz?"
+
+#, python-format
+msgid ""
+"Unable to load %(app_name)s from configuration file %(conf_file)s.\n"
+"Got: %(e)r"
+msgstr ""
+"Não é possível carregar %(app_name)s do arquivo de configuração "
+"%(conf_file)s.\n"
+"Obtido: %(e)r"
+
+#, python-format
+msgid "Unable to load schema: %(reason)s"
+msgstr "Não é possível carregar o esquema: %(reason)s"
+
+msgid "Unable to locate config file"
+msgstr "Impossível localizar o arquivo de configuração"
+
+#, python-format
+msgid "Waited 15 seconds for pid %(pid)s (%(file)s) to die; giving up"
+msgstr ""
+"Esperou 15 segundos para pid %(pid)s (%(file)s) ser eliminado; desistindo"
+
+msgid ""
+"When running server in SSL mode, you must specify both a cert_file and "
+"key_file option value in your configuration file"
+msgstr ""
+"Ao executar o servidor no modo SSL, você deve especificar os valores de "
+"opção cert_file e key_file em seu arquivo de configuração"
+
+msgid ""
+"When true, this option sets the owner of an image to be the tenant. "
+"Otherwise, the owner of the  image will be the authenticated user issuing "
+"the request."
+msgstr ""
+"Quando verdadeiro, esta opção seta o dono da image para ser o tenant. Caso "
+"contrário o dono da imagem será o usuário autenticado realizando a "
+"requisição."
+
+msgid "You are not authorized to complete this action."
+msgstr "Você não está autorizado a concluir esta ação."
+
+msgid "eventlet 'poll' nor 'selects' hubs are available on this platform"
+msgstr ""
+"nem o hub 'poll' nem o 'selects' do eventlet estão disponíveis nesta "
+"plataforma"
+
+msgid "limit param must be an integer"
+msgstr "o parâmetro limit deve ser um número inteiro"
+
+msgid "limit param must be positive"
+msgstr "o parâmetro limit deve ser positivo"
+
+msgid "offset param must be an integer"
+msgstr "o parâmetro offset deve ser um número inteiro"
+
+msgid "offset param must be positive"
+msgstr "o parâmetro offset deve ser positivo"
+
+#, python-format
+msgid "unable to launch %(serv)s. Got error: %(e)s"
+msgstr "Não é possível ativar %(serv)s. Obteve erro: %(e)s"

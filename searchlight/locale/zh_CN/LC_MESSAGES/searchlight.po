@@ -1,0 +1,378 @@
+# Lucas Palm <lapalm@us.ibm.com>, 2015. #zanata
+# OpenStack Infra <zanata@openstack.org>, 2015. #zanata
+# Andreas Jaeger <jaegerandi@gmail.com>, 2016. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2016-04-15 23:22+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: Chinese (China)\n"
+"Language: zh-CN\n"
+"X-Generator: Zanata 3.7.3\n"
+"Plural-Forms: nplurals=1; plural=0\n"
+
+#, python-format
+msgid "\t%s"
+msgstr "\t%s"
+
+#, python-format
+msgid "%(serv)s (pid %(pid)s) is running..."
+msgstr "%(serv)s (pid %(pid)s) 正在运行..."
+
+#, python-format
+msgid "%(serv)s appears to already be running: %(pid)s"
+msgstr "%(serv)s 似乎已在运行：%(pid)s"
+
+#, python-format
+msgid "%(verb)sing %(serv)s"
+msgstr "正在%(verb)s %(serv)s"
+
+#, python-format
+msgid "%(verb)sing %(serv)s with %(conf)s"
+msgstr "正在%(verb)s %(serv)s（借助 %(conf)s）"
+
+#, python-format
+msgid ""
+"%s Please specify a host:port pair, where host is an IPv4 address, IPv6 "
+"address, hostname, or FQDN. If using an IPv6 address, enclose it in brackets "
+"separately from the port (i.e., \"[fe80::a:b:c]:9876\")."
+msgstr ""
+"%s 请指定 host:port 对，其中 host 是 IPv4 地址、IPv6 地址、主机名或 FQDN。如"
+"果使用 IPv6 地址，请将其括在方括号中并与端口隔开（即，“[fe80::a:b:"
+"c]:9876”）。"
+
+#, python-format
+msgid "%s can't contain 4 byte unicode characters."
+msgstr "%s 不能包含 4 字节 Unicode 字符。"
+
+#, python-format
+msgid "%s is already stopped"
+msgstr "%s 已停止"
+
+#, python-format
+msgid "%s is stopped"
+msgstr "%s 已停止"
+
+msgid ""
+"AES key for encrypting store 'location' metadata. This includes, if used, "
+"Swift or S3 credentials. Should be set to a random string of length 16, 24 "
+"or 32 bytes"
+msgstr ""
+"用于加密存储“位置”元数据的 AES 密钥。如果已使用，那么这包含 Swift 或 S3 凭"
+"证。应该设置为随机字符串，长度为 16、24 或 32 个字节"
+
+msgid ""
+"Address to bind the server.  Useful when selecting a particular network "
+"interface."
+msgstr "用于绑定服务器的地址。当选择特定网络接口时，此项很有用。"
+
+msgid ""
+"Allow unauthenticated users to access the API with read-only privileges. "
+"This only applies when using ContextMiddleware."
+msgstr ""
+"当使用上下文中间件ContextMiddleware的时候将允许未授权的用户拥有API接口的只读"
+"权限"
+
+msgid "An object with the same identifier already exists."
+msgstr "具有同一标识的对象已存在。"
+
+msgid "An object with the specified identifier was not found."
+msgstr "找不到具有指定标识的对象。"
+
+msgid "An unknown exception occurred"
+msgstr "发生未知异常"
+
+#, python-format
+msgid "Attribute '%(property)s' is reserved."
+msgstr "属性“%(property)s”已保留。"
+
+#, python-format
+msgid "Attribute '%s' is read-only."
+msgstr "属性“%s”是只读的。"
+
+msgid "Body expected in request."
+msgstr "请求中需要主体。"
+
+msgid "CA certificate file to use to verify connecting clients."
+msgstr "要用于验证连接客户机的 CA 证书文件。"
+
+msgid "Certificate file to use when starting API server securely."
+msgstr "安全启动 API 服务器时要使用的证书文件。"
+
+#, python-format
+msgid "Could not bind to %(host)s:%(port)s after trying for 30 seconds"
+msgstr "在尝试时间达到 30 秒之后未能绑定至 %(host)s:%(port)s"
+
+msgid "Data supplied was not valid."
+msgstr "提供的数据无效。"
+
+msgid ""
+"Default value for the number of items returned by a request if not specified "
+"explicitly in the request"
+msgstr "请求所返回的项数的缺省值（如果未在该请求中显式指定）"
+
+#, python-format
+msgid "Determining version of request: %(method)s %(path)s Accept: %(accept)s"
+msgstr "正在确定请求的版本：%(method)s %(path)s 接受：%(accept)s"
+
+#, python-format
+msgid "Host \"%s\" is not valid."
+msgstr "主机“%s”无效。"
+
+#, python-format
+msgid "Host and port \"%s\" is not valid."
+msgstr "主机和端口“%s”无效。"
+
+msgid "If False doesn't trace SQL requests."
+msgstr "如果为 false，那么不要跟踪 SQL 请求。"
+
+msgid "If False fully disable profiling feature."
+msgstr "如果为 false，那么完全禁用概要分析功能。"
+
+msgid ""
+"If False, server will return the header \"Connection: close\", If True, "
+"server will return \"Connection: Keep-Alive\" in its responses. In order to "
+"close the client socket connection explicitly after the response is sent and "
+"read successfully by the client, you simply have to set this option to False "
+"when you create a wsgi server."
+msgstr ""
+"如果为 False，那么服务器将返回头“Connection: close”，如果为 True，那么服务器"
+"将在其响应中返回“Connection: Keep-Alive”。为了在响应已发送并且由客户机成功读"
+"取之后显式关闭客户机套接字连接，那么当创建 wsgi 服务器时，仅必须将此选项设置"
+"为 False。"
+
+msgid "Invalid configuration in property protection file."
+msgstr "属性保护文件中的配置无效。"
+
+#, python-format
+msgid "Invalid content type %(content_type)s"
+msgstr "内容类型 %(content_type)s 无效"
+
+msgid "Invalid jsonpatch request"
+msgstr "jsonpatch 请求无效"
+
+msgid "Invalid service catalog json."
+msgstr "服务目录 json 无效。"
+
+#, python-format
+msgid ""
+"It appears that the eventlet module has been imported prior to setting "
+"%s='yes'. It is currently necessary to disable eventlet.greendns if using "
+"ipv6 since eventlet.greendns currently breaks with ipv6 addresses. Please "
+"ensure that eventlet is not imported prior to this being set."
+msgstr ""
+"在设置 %s=“yes”之前，eventlet 模块似乎已导入。如果使用 ipv6，那么当前必须禁"
+"用 eventlet.greendns，因为 eventlet.greendns 当前与 ipv6 地址不兼容。在设置此"
+"项之前，请确保没有导入 eventlet。"
+
+#, python-format
+msgid "Malformed Content-Range header: %s"
+msgstr "以下 Content-Range 头的格式不正确：%s"
+
+msgid "Malformed JSON in request body."
+msgstr "请求主体中 JSON 的格式不正确。"
+
+msgid ""
+"Maximum line size of message headers to be accepted. max_header_line may "
+"need to be increased when using large tokens (typically those generated by "
+"the Keystone v3 API with big service catalogs"
+msgstr ""
+"要接受的消息头的最大行大小。将大型令牌（通常是由 Keystone V3 API 生成的那些令"
+"牌）与大型服务目录配合使用时，可能需要增大 max_header_line"
+
+msgid "Maximum permissible number of items that could be returned by a request"
+msgstr "可由请求返回的最大允许项数"
+
+msgid "Param values can't contain 4 byte unicode."
+msgstr "参数值不能包含 4 字节 Unicode。"
+
+#, python-format
+msgid "Port \"%s\" is not valid."
+msgstr "端口“%s”无效。"
+
+msgid "Private key file to use when starting API server securely."
+msgstr "安全启动 API 服务器时要使用的专用密钥文件。"
+
+#, python-format
+msgid "Process %d not running"
+msgstr "进程 %d 未在运行"
+
+msgid "Property names can't contain 4 byte unicode."
+msgstr "属性名称不能包含 4 字节 Unicode。"
+
+#, python-format
+msgid "Provided object does not match schema '%(schema)s': %(reason)s"
+msgstr "提供的对象与模式“%(schema)s”不匹配：%(reason)s"
+
+#, python-format
+msgid "Reload of %(serv)s not supported"
+msgstr "不支持重新装入 %(serv)s"
+
+#, python-format
+msgid "Reloading %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr "正在重新装入 %(serv)s（pid 为 %(pid)s），信号为 (%(sig)s)"
+
+#, python-format
+msgid "Removing stale pid file %s"
+msgstr "移除原有pid文件%s"
+
+msgid "Role used to identify an authenticated user as administrator."
+msgstr "一种角色，用来确定该已认证用户是管理员。"
+
+#, python-format
+msgid "Server %(serv)s is stopped"
+msgstr "服务器 %(serv)s 已停止"
+
+#, python-format
+msgid "Server worker creation failed: %(reason)s."
+msgstr "服务器工作程序创建失败：%(reason)s。"
+
+#, python-format
+msgid "Stopping %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr "正在通过信号 (%(sig)s) 停止 %(serv)s (pid %(pid)s)"
+
+#, python-format
+msgid "Suppressed respawn as %(serv)s was %(rsn)s."
+msgstr "已阻止重新衍生，因为 %(serv)s 为 %(rsn)s。"
+
+msgid "System SIGHUP signal received."
+msgstr "接收到系统 SIGHUP 信号。"
+
+msgid "The API paste config file to use."
+msgstr "要使用的 API 粘贴配置文件。"
+
+msgid ""
+"The backlog value that will be used when creating the TCP listener socket."
+msgstr "创建 TCP 侦听器套接字时将使用的储备值。"
+
+msgid "The hostname/IP of the pydev process listening for debug connections"
+msgstr "pydev 进程正在侦听调试连接的主机名/IP"
+
+msgid ""
+"The number of child process workers that will be created to service "
+"requests. The default will be equal to the number of CPUs available."
+msgstr "为处理服务请求而创建的子进程工作程序的数目。缺省值将等于可用 CPU 数。"
+
+msgid "The port on which a pydev process is listening for connections."
+msgstr "pydev 进程正在侦听连接的端口。"
+
+msgid "The port on which the server will listen."
+msgstr "服务器将侦听的端口。"
+
+#, python-format
+msgid "The provided body %(body)s is invalid under given schema: %(schema)s"
+msgstr "所提供的主体 %(body)s 在所给定的模式 %(schema)s 下无效"
+
+#, python-format
+msgid "The provided path '%(path)s' is invalid: %(explanation)s"
+msgstr "所提供的路径“%(path)s”无效：%(explanation)s"
+
+msgid ""
+"The value for the socket option TCP_KEEPIDLE.  This is the time in seconds "
+"that the connection must be idle before TCP starts sending keepalive probes."
+msgstr ""
+"套接字选项 TCP_KEEPIDLE 的值。这是 TCP 开始发送 keepalive 探针之前连接必须保"
+"持空闲的时间（以秒计）。"
+
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it.  Error: %(ioe)s"
+msgstr ""
+"%(error_key_name)s %(error_filename)s 存在问题。请对它进行验证。发生错误："
+"%(ioe)s"
+
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it. OpenSSL error: %(ce)s"
+msgstr ""
+"%(error_key_name)s %(error_filename)s 存在问题。请对它进行验证。发生 OpenSSL "
+"错误：%(ce)s"
+
+#, python-format
+msgid ""
+"There is a problem with your key pair.  Please verify that cert "
+"%(cert_file)s and key %(key_file)s belong together.  OpenSSL error %(ce)s"
+msgstr ""
+"密钥对存在问题。请验证证书 %(cert_file)s 和密钥 %(key_file)s 是否应该在一起。"
+"发生 OpenSSL 错误 %(ce)s"
+
+msgid ""
+"This config value indicates whether \"roles\" or \"policies\" are used in "
+"the property protection file."
+msgstr "此配置值指示在属性保护文件中是使用了“角色”还是“策略”。"
+
+#, python-format
+msgid ""
+"Unable to create pid file %(pid)s.  Running as non-root?\n"
+"Falling back to a temp file, you can stop %(service)s service using:\n"
+"  %(file)s %(server)s stop --pid-file %(fb)s"
+msgstr ""
+"无法创建 pid 文件 %(pid)s。正在以非 root 用户身份运行吗？\n"
+"正在回退至临时文件，可使用以下命令停止 %(service)s 服务：\n"
+"%(file)s %(server)s stop --pid-file %(fb)s"
+
+msgid "Unable to increase file descriptor limit.  Running as non-root?"
+msgstr "无法增大文件描述符限制。正在以非 root 用户身份运行吗？"
+
+#, python-format
+msgid ""
+"Unable to load %(app_name)s from configuration file %(conf_file)s.\n"
+"Got: %(e)r"
+msgstr ""
+"无法从配置文件 %(conf_file)s 装入 %(app_name)s。\n"
+"发生错误：%(e)r"
+
+#, python-format
+msgid "Unable to load schema: %(reason)s"
+msgstr "无法装入模式：%(reason)s"
+
+msgid "Unable to locate config file"
+msgstr "无法找到配置文件"
+
+#, python-format
+msgid "Waited 15 seconds for pid %(pid)s (%(file)s) to die; giving up"
+msgstr "用来等待 pid %(pid)s (%(file)s) 终止的时间已达到 15 秒；正在放弃"
+
+msgid ""
+"When running server in SSL mode, you must specify both a cert_file and "
+"key_file option value in your configuration file"
+msgstr ""
+"以 SSL 方式运行服务器时，必须在配置文件中同时指定 cert_file 和 key_file 选项"
+"值"
+
+msgid ""
+"When true, this option sets the owner of an image to be the tenant. "
+"Otherwise, the owner of the  image will be the authenticated user issuing "
+"the request."
+msgstr ""
+"当这个选项为true时，会把镜像的所有权赋予租户。否则的话，镜像的所有权属于正在"
+"发出请求的已认证用户。"
+
+msgid "You are not authorized to complete this action."
+msgstr "您无权完成此操作。"
+
+msgid "eventlet 'poll' nor 'selects' hubs are available on this platform"
+msgstr "在此平台上，eventlet“poll”和“selects”主数据中心都不可用"
+
+msgid "limit param must be an integer"
+msgstr "limit 参数必须为整数"
+
+msgid "limit param must be positive"
+msgstr "limit 参数必须为正数"
+
+msgid "offset param must be an integer"
+msgstr "offset 参数必须是整数"
+
+msgid "offset param must be positive"
+msgstr "offset 参数必须是正数"
+
+#, python-format
+msgid "unable to launch %(serv)s. Got error: %(e)s"
+msgstr "无法启动 %(serv)s。发生错误：%(e)s"

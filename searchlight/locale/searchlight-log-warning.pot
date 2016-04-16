@@ -1,0 +1,113 @@
+# Translations template for PROJECT.
+# Copyright (C) 2016 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2016-04-16 07:01+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.2.0\n"
+
+#: searchlight/api/middleware/context.py:55
+msgid "Unable to retrieve request id from context"
+msgstr ""
+
+#: searchlight/api/middleware/version_negotiation.py:56
+msgid "Unknown version. Returning version choices."
+msgstr ""
+
+#: searchlight/cmd/manage.py:226
+#, python-format
+msgid "Service is not available for plugin: %(ext)s"
+msgstr ""
+
+#: searchlight/common/property_utils.py:135
+#, python-format
+msgid ""
+"Property protection on operation %(operation)s for rule %(rule)s is not "
+"found. No role will be allowed to perform this operation."
+msgstr ""
+
+#: searchlight/common/utils.py:273
+msgid ""
+"The FIPS (FEDERAL INFORMATION PROCESSING STANDARDS) state that the SHA-1 "
+"is not suitable for general-purpose digital signature applications (as "
+"specified in FIPS 186-3) that require 112 bits of security. The default "
+"value is sha1 in Kilo for a smooth upgrade process, and it will be "
+"updated with sha256 in next release(L)."
+msgstr ""
+
+#: searchlight/common/wsgi.py:315
+#, python-format
+msgid "Unrecognised child %s"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/base.py:277
+#, python-format
+msgid ""
+"No aggregations found for %(resource_type)s. There may be a mapping "
+"problem."
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/helper.py:181
+#, python-format
+msgid "Version conflict %s"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/helper.py:248
+#, python-format
+msgid "Error deleting %(doc_type)s %(ids)s; already deleted"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/helper.py:256
+#, python-format
+msgid ""
+"Error deleting %(doc_type)s %(ids)s; newer versions of some documents "
+"have been indexed"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/utils.py:427
+#, python-format
+msgid ""
+"Unexpected aggregation structure for field '%(field)s' in "
+"%(resource_type)s. Is the mapping defined correctly?"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/cinder/snapshots_notification_handler.py:54
+#, python-format
+msgid "Snapshot %s not found; deleting"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/cinder/volumes_notification_handler.py:59
+#, python-format
+msgid "Volume %s not found; deleting"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/designate/notification_handlers.py:82
+msgid "Not writing initial recordsets; exceptionoccurred during zone indexing"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/glance/__init__.py:41
+#, python-format
+msgid "Could not list image members for %s; forbidden"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/glance/images_notification_handler.py:64
+#, python-format
+msgid "Image %s not found; deleting"
+msgstr ""
+
+#: searchlight/elasticsearch/plugins/nova/servers_notification_handler.py:71
+#, python-format
+msgid "Instance %s not found; deleting"
+msgstr ""
+
