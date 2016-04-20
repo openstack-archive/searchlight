@@ -16,8 +16,8 @@
 import copy
 from elasticsearch import exceptions as es_exc
 from elasticsearch import helpers
-import fnmatch
 import logging
+from oslo_utils import fnmatch
 import six
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
