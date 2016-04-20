@@ -144,7 +144,7 @@ class IndexCommands(object):
             print("\nResource types matching selection:\n%s\n" %
                   '\n'.join(map(format_selection, sorted(display_plugins))))
 
-            ans = raw_input(
+            ans = six.moves.input(
                 "Indexing will NOT delete existing data or mapping(s). It "
                 "will reindex all resources. \nUse '--force' to suppress "
                 "this message.\nOK to continue? [y/n]: ")
@@ -233,7 +233,7 @@ class IndexCommands(object):
 
         # Call ElasticSearch for the rest, if needed.
         if es_reindex:
-            for group in index_names.keys():
+            for group in six.iterkeys(index_names):
                 # Grab the correct tuple as a list, convert list to a single
                 # tuple, extract second member (the search alias) of tuple.
                 alias_search = \
