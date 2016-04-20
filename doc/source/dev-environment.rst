@@ -233,6 +233,9 @@ registered in keystone (e.g. glance).
 
 This command may be re-run at any time to perform a full re-index.
 
+.. IMPORTANT:: You must perform initial sync to create a new index in Elasticsearch,
+   even if there are no resources to sync in your environment.
+
 The V2 Elasticsearch Client
 ---------------------------
 
