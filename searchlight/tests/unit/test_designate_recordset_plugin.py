@@ -108,10 +108,11 @@ class TestZonePlugin(test_utils.BaseTestCase):
                 'type': {
                     'buckets': [{'key': 'A', 'doc_count': 2}]
                 }
-            }
+            },
+            'hits': {'total': 2}
         }
 
-        facets = self.plugin.get_facets(fake_request.context)
+        facets, _ = self.plugin.get_facets(fake_request.context)
 
         zone_id_facet = list(filter(lambda f: f['name'] == 'zone_id',
                                     facets))[0]

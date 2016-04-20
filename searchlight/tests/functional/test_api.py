@@ -199,6 +199,67 @@ class TestSearchApi(functional.FunctionalTest):
         tenant1_doc["project_id"] = tenant1_doc["owner"]
         self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
 
+    def test_facet_exclude_fields(self):
+        id_1 = str(uuid.uuid4())
+        tenant1_doc = {
+            "owner": TENANT1,
+            "id": id_1,
+            "visibility": "public",
+            "name": "owned by tenant 1",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+
+        self._index(self.initialized_plugins['OS::Glance::Image'],
+                    [tenant1_doc])
+
+        response, json_content = self._facet_request(
+            TENANT1,
+            include_fields=False,
+            doc_type="OS::Nova::Server")
+        self.assertEqual(200, response.status)
+        self.assertEqual(set(["doc_count"]),
+                         set(six.iterkeys(json_content["OS::Nova::Server"])))
+        self.assertEqual(0, json_content["OS::Nova::Server"]["doc_count"])
+
+        response, json_content = self._facet_request(
+            TENANT1,
+            include_fields=False,
+            doc_type="OS::Glance::Image")
+        self.assertEqual(1, json_content["OS::Glance::Image"]["doc_count"])
+
+    def test_facet_rbac(self):
+        tenant1_doc = {
+            "owner": TENANT1,
+            "id": str(uuid.uuid4()),
+            "visibility": "private",
+            "name": "owned by tenant 1",
+            "container_format": "not-shown",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+        tenant2_doc = {
+            "owner": TENANT2,
+            "id": str(uuid.uuid4()),
+            "visibility": "private",
+            "name": "owned by tenant 1",
+            "container_format": "shown",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=[]):
+            self._index(self.initialized_plugins['OS::Glance::Image'],
+                        [tenant1_doc, tenant2_doc])
+
+        response, json_content = self._facet_request(
+            TENANT1,
+            include_fields=True,
+            doc_type="OS::Glance::Image")
+        self.assertEqual(1, json_content["OS::Glance::Image"]["doc_count"])
+        facets = json_content["OS::Glance::Image"]["facets"]
+        visibility_facet = list(filter(lambda f: f["name"] == "visibility",
+                                       facets))[0]
+        self.assertEqual([{"key": "private", "doc_count": 1}],
+                         visibility_facet["options"])
+
     def test_facets(self):
         """Check facets for a non-nested field (status)"""
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
@@ -249,6 +310,8 @@ class TestSearchApi(functional.FunctionalTest):
             TENANT1,
             doc_type="OS::Nova::Server")
 
+        self.assertEqual(3, json_content['OS::Nova::Server']['doc_count'])
+
         expected = {
             u'name': u'status',
             u'options': [
@@ -260,7 +323,7 @@ class TestSearchApi(functional.FunctionalTest):
 
         status_facet = list(six.moves.filter(
             lambda f: f['name'] == 'status',
-            json_content['OS::Nova::Server']
+            json_content['OS::Nova::Server']['facets']
         ))[0]
         self.assertEqual(
             expected,
@@ -327,6 +390,8 @@ class TestSearchApi(functional.FunctionalTest):
             TENANT1,
             doc_type="OS::Nova::Server")
 
+        self.assertEqual(2, json_content['OS::Nova::Server']['doc_count'])
+
         self.assertEqual(['OS::Nova::Server'],
                          list(six.iterkeys(json_content)))
 
@@ -342,7 +407,7 @@ class TestSearchApi(functional.FunctionalTest):
         }
         fixed_network_facet = list(six.moves.filter(
             lambda f: f['name'] == 'networks.OS-EXT-IPS:type',
-            json_content['OS::Nova::Server']
+            json_content['OS::Nova::Server']['facets']
         ))[0]
         self.assertEqual(
             expected,

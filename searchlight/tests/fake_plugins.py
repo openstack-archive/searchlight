@@ -146,7 +146,8 @@ class NonRoleSeparatedPlugin(FakePluginBase):
             'properties': {
                 'id': {'type': 'string', 'index': 'not_analyzed'},
                 'public_field': {'type': 'string'},
-                'tenant_id': {'type': 'string'}
+                'tenant_id': {'type': 'string'},
+                'faceted': {'type': 'short'}
             }
         }
 
@@ -154,6 +155,10 @@ class NonRoleSeparatedPlugin(FakePluginBase):
         return [
             {'term': {'tenant_id': request_context.owner}}
         ]
+
+    @property
+    def facets_with_options(self):
+        return ('faceted',)
 
     def get_objects(self):
         self.number_documents = len(NON_ROLE_SEPARATED_DATA)

@@ -43,6 +43,7 @@ import fixtures
 from oslo_serialization import jsonutils
 # NOTE(jokke): simplified transition to py3, behaves like py2 xrange
 from six.moves import range
+from six.moves import urllib
 import testtools
 
 from searchlight.common import utils
@@ -507,10 +508,14 @@ class FunctionalTest(test_utils.BaseTestCase):
                              role, decode_json)
 
     def _facet_request(self, tenant, doc_type=None, role="member",
-                       decode_json=True):
+                       decode_json=True, include_fields=None):
         url = "/search/facets"
+        params = {}
         if doc_type:
-            url += '?type=%s' % doc_type
+            params['type'] = doc_type
+        if include_fields is not None:
+            params['include_fields'] = "true" if include_fields else "false"
+        url += '?' + urllib.parse.urlencode(params)
         return self._request("GET", url, tenant, role=role,
                              decode_json=decode_json)
 

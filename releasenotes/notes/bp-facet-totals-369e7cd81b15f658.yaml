@@ -1,0 +1,16 @@
+---
+prelude: >
+    Adds the ability to attain a document count per
+    resource type from the /facets endpoint. Doc count
+    is always returned for a type; field listing is optional.
+features:
+  - Includes 'doc_count' in /facets response for each
+    resource type.
+issues:
+  - This is a change that is not compatible with the API
+    response in Mitaka; changes have been made in Newton to
+    the python client and UI.
+upgrade:
+  - A version of python-searchlightclient greater than 2.1
+    must be used with this change, as well as the Newton
+    UI version.

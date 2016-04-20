@@ -254,8 +254,42 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
             sorted(actual['plugins'], key=operator.itemgetter('name')))
 
 
-class TestSearchDeserializer(test_utils.BaseTestCase):
+class TestControllerFacets(test_utils.BaseTestCase):
+    def setUp(self):
+        super(TestControllerFacets, self).setUp()
+        self.search_controller = search.SearchController()
 
+    def test_facets(self):
+        request = unit_test_utils.get_fake_request()
+        doc_types = ["OS::Glance::Image", "OS::Nova::Server"]
+        gf_path = 'searchlight.elasticsearch.plugins.base.IndexBase.get_facets'
+        with mock.patch(gf_path) as mock_facets:
+            mock_facets.return_value = [{"name": "fake", "type": "string"}], 0
+
+            default_response = self.search_controller.facets(
+                request, doc_type=doc_types)
+
+            expected = {
+                "OS::Nova::Server": {
+                    "doc_count": 0,
+                    "facets": [{"name": "fake", "type": "string"}]
+                },
+                "OS::Glance::Image": {
+                    "doc_count": 0,
+                    "facets": [{"name": "fake", "type": "string"}]
+                }
+            }
+            self.assertEqual(expected, default_response)
+
+            totals_only_response = self.search_controller.facets(
+                request, doc_type=doc_types, include_fields=False)
+
+            expected = {"OS::Nova::Server": {"doc_count": 0},
+                        "OS::Glance::Image": {"doc_count": 0}}
+            self.assertEqual(expected, totals_only_response)
+
+
+class TestSearchDeserializer(test_utils.BaseTestCase):
     def setUp(self):
         super(TestSearchDeserializer, self).setUp()
         self.deserializer = search.RequestDeserializer(
@@ -724,7 +758,8 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         output['doc_type'] = sorted(output['doc_type'])
         expected_doc_types = sorted(utils.get_search_plugins().keys())
         expected = {'index_name': None, 'doc_type': expected_doc_types,
-                    'all_projects': False, 'limit_terms': 0}
+                    'all_projects': False, 'limit_terms': 0,
+                    'include_fields': True}
         self.assertEqual(expected, output)
 
     def test_search_version(self):

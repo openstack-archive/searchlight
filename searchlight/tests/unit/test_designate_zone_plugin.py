@@ -98,10 +98,11 @@ class TestZonePlugin(test_utils.BaseTestCase):
                 'type': {
                     'buckets': [{'key': 'PRIMARY', 'doc_count': 2}]
                 }
-            }
+            },
+            'hits': {'total': 2}
         }
 
-        facets = self.plugin.get_facets(fake_request.context)
+        facets, _ = self.plugin.get_facets(fake_request.context)
 
         status_facet = list(filter(lambda f: f['name'] == 'status', facets))[0]
         expected_status = {

@@ -102,12 +102,12 @@ class SearchController(object):
             raise webob.exc.HTTPInternalServerError()
 
     def facets(self, req, index_name=None, doc_type=None,
-               all_projects=False, limit_terms=0):
+               all_projects=False, limit_terms=0, include_fields=True):
         try:
             search_repo = self.gateway.get_catalog_search_repo(req.context)
-            result = search_repo.facets(index_name, doc_type,
-                                        all_projects, limit_terms)
-            return result
+            return search_repo.facets(index_name, doc_type,
+                                      all_projects, limit_terms,
+                                      include_fields=include_fields)
         except exception.Forbidden as e:
             raise webob.exc.HTTPForbidden(explanation=e.msg)
         except exception.NotFound as e:
@@ -469,6 +469,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
     def facets(self, request):
         all_projects = request.params.get('all_projects', 'false')
+        include_fields = request.params.get('include_fields', 'true')
 
         available_types = request.params.get('type',
                                              self._get_available_types())
@@ -482,6 +483,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             'index_name': request.params.get('index', None),
             'doc_type': doc_types,
             'all_projects': all_projects.lower() == 'true',
+            'include_fields': include_fields.lower() == 'true',
             'limit_terms': int(request.params.get('limit_terms', 0))
         }
 
