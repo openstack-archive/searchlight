@@ -219,6 +219,21 @@ class TestReindexingUtils(test_utils.BaseTestCase):
                                                                index=old_ndx)
             mock_api.assert_called_with()
 
+    def test_delete_non_exist_index(self):
+        old_ndx = None
+
+        # Set up the ES mock.
+        mock_engine = mock.Mock()
+        with mock.patch('searchlight.elasticsearch.get_api') as mock_api:
+            # Plug in the ES mock.
+            mock_api.return_value = mock_engine
+
+            # Delete the existing index.
+            plugin_utils.delete_index(old_ndx)
+
+            mock_engine.indices.delete.assert_not_called()
+            mock_api.assert_not_called()
+
     def test_alias_error_cleanup(self):
         single = {'g': 'ndx'}
         multiple = {'g1': 'ndx1', 'g2': 'ndx2', 'g3': 'ndx3'}

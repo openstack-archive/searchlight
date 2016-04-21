@@ -317,6 +317,8 @@ def alias_search_update(alias_search, index_name):
 def delete_index(index_name):
     """Delete the specified index. """
 
+    if index_name is None:
+        return
     # Alias will be cleaned up automatically by ES when the index is deleted.
     es_engine = searchlight.elasticsearch.get_api()
     es_engine.indices.delete(index=index_name, ignore=404)
