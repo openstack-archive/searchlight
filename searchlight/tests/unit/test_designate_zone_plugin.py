@@ -130,5 +130,5 @@ class TestZonePlugin(test_utils.BaseTestCase):
             doc_type=self.plugin.get_document_type(),
             body=expected_agg_query,
             ignore_unavailable=True,
-            search_type='count'
+            size=0
         )

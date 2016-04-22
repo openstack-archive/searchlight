@@ -280,7 +280,7 @@ class IndexBase(plugin.Plugin):
                 doc_type=self.get_document_type(),
                 body=body,
                 ignore_unavailable=True,
-                search_type='count')
+                size=0)
 
             agg_results = results.get('aggregations', {})
             facet_terms = utils.transform_facets_results(
