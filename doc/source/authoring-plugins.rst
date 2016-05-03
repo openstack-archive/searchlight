@@ -25,21 +25,172 @@ way to receive updates in order to keep the index up to date. For Openstack
 resources, typically the service API is used for initial indexing and
 notifications are received via oslo.messaging.
 
-This documentation will use as an example the Nova Server plugin.
+This documentation will use as an example the Neutron network plugin as a
+reasonably complete and complex example.
+
+Getting some data
+-----------------
+The very first thing you should do is figure out exactly what you're trying to
+index. When I've developed plugins I've found it helpful to generate test data
+both for initial indexing and for notifications.
+
+Initial indexing
+^^^^^^^^^^^^^^^^
+In the case of neutron networks, the initial data will come from
+``neutronclient``. Some browsing of the API documentation reveals that the
+call I want is ``list_networks``::
+
+    import json
+    import os
+
+    from keystoneclient.auth.identity import v2
+    from keystoneclient import session
+    from neutronclient.v2_0 import client as nc_20
+
+    def get_session():
+        username = os.environ['OS_USERNAME']
+        password = os.environ['OS_PASSWORD']
+        auth_url = os.environ['OS_AUTH_URL']
+        tenant_name = os.environ['OS_TENANT_NAME']
+        auth = v2.Password(**locals())
+        return session.Session(auth=auth)
+
+
+    nc = nc_20.Client(session=get_session())
+    networks = nc.list_networks()
+
+    print(json.dumps(networks, indent=4, sort_keys=True))
+
+This outputs::
+
+    {
+        "networks": [
+            {
+                "admin_state_up": true,
+                "availability_zone_hints": [],
+                "availability_zones": [
+                    "nova"
+                ],
+                "created_at": "2016-04-08T16:44:17",
+                "description": "",
+                "id": "4d73d257-35d5-4f4e-bc71-f7f629f21904",
+                "ipv4_address_scope": null,
+                "ipv6_address_scope": null,
+                "is_default": true,
+                "mtu": 1450,
+                "name": "public",
+                "port_security_enabled": true,
+                "provider:network_type": "vxlan",
+                "provider:physical_network": null,
+                "provider:segmentation_id": 1053,
+                "router:external": true,
+                "shared": false,
+                "status": "ACTIVE",
+                "subnets": [
+                    "abcc5896-4844-4870-a5d8-6ae4b8edd42e",
+                    "ea47304e-bd54-4337-901a-1eb5196ea18e"
+                ],
+                "tags": [],
+                "tenant_id": "fa1537e9bda9405891d004ef9c08d0d1",
+                "updated_at": "2016-04-08T16:44:17"
+            }
+        ]
+    }
+
+Since that's the output from neutron client, that's what should go in
+``searchlight/tests/functional/data/load/networks.json``, though you might
+also want more examples to test different things.
+
+Notifications
+^^^^^^^^^^^^^
+Openstack documents some of the notifications_ sent by some services. It's
+also possible to eavesdrop on notifications sent by running services. Taking
+neutron as an example (though all services are slightly different), we can
+make it output notifications by editing ``/etc/neutron/neutron.conf`` and
+adding under the ``[DEFAULT]`` section::
+
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
+
+.. note::
+
+    ``searchlight-listener`` also listens on the ``searchlight_indexer``
+    topic, so if you have ``searchlight-listener`` running, it will receive
+    and process some or all of the notifications you're trying to look at.
+    Thus, you should either stop the ``searchlight-listener`` or add another
+    topic (comma-separated) for the specific notifications you want to see.
+    For example::
+
+        notification_topics = searchlight_indexer,my_test_topic
+
+After restarting the ``q-svc`` service notifications will be output to the
+message bus (rabbitmq by default). They can be viewed in any RMQ management
+tool; there is also a utility script in ``test-scripts/listener.py`` that
+will listen for notifications::
+
+    . ~/devstack/openrc admin admin
+    ./test-scripts/listener.py neutron
+
+.. note::
+
+    If you added a custom topic as described above, you'll need to edit
+    ``listener.py`` to use your custom topic::
+
+        # Change this line
+        topic = 'searchlight_indexer'
+        # to
+        topic = 'my_test_topic'
+
+Issuing various commands (``neutron net-create``, ``neutron net-update``,
+``neutron net-delete``) will cause ``listener.py`` to receive notifications.
+Usually the notifications with ``event_type`` ending ``.end`` are the ones of
+most interest (many fields omitted for brevity)::
+
+    {"event_type": "network.update.end",
+     "payload": {
+       "network": {
+         "status": "ACTIVE",
+         "router:external": false,
+         "subnets": ["9b6094de-18cb-46e1-8d51-e303ff844c86",
+                     "face0b47-40d3-45c0-9b62-5f05311710f5",
+                     "7b7bdf5f-8f22-44a3-bec3-1daa78df83c5"],
+         "updated_at": "2016-05-03T19:05:38",
+         "tenant_id": "34518c16d95e40a19b1a95c1916d8335",
+         "id": "abf3a939-4daf-4d05-8395-3ec735aa89fc", "name": "private"}
+      },
+      "publisher_id": "network.devstack",
+      "ctxt": {
+        "read_only": false,
+        "domain": null,
+        "project_name": "demo",
+        "user_id": "c714917a458e428fa5dc9b1b8aa0d4d6"
+      },
+      "metadata": {
+        "timestamp": "2016-05-03 19:05:38.258273",
+        "message_id": "ec9ac6a1-aa17-4ee3-aa6e-ab48c1fb81a8"
+      }
+    }
+
+The entire message can go into
+``searchlight/tests/functional/data/events/network.json``. The ``payload``
+(in addition to the API response) will inform the mapping that should be
+applied for a given plugin.
+
+.. _notifications: https://wiki.openstack.org/wiki/SystemUsageData
 
 File structure
 --------------
 Plugins live in ``searchlight/elasticsearch/plugins``. We have tended to create
-a subpackage named after the service (``nova``) and within it a module named
-after the resource type (``server.py``). Notification handlers can be in a file
+a subpackage named after the service (``neutron``) and within it a module named
+after the resource type (``networks.py``). Notification handlers can be in a file
 specific to each resource type but can also be in a single file together
 (existing ones use ``notification_handlers.py``).
 
-``server.py`` contains a class named ``ServerIndex`` that implements the base
+``networks.py`` contains a class named ``NetworkIndex`` that implements the base
 class ``IndexBase`` found in ``searchlight.elasticsearch.plugins.base``.
 
 .. note::
-   
+
     If there are plugins for multiple resources within the same Openstack
     service (for example, Glance images and meta definitions) those plugins
     can exist in the same subpackage ('glance') in different modules, each
@@ -54,31 +205,69 @@ name should be the plugin resource name (typically the name used to represent
 it in Heat_)::
 
     [entry_points]
-    searchlight.index_backend = 
-        os_nova_server = searchlight.elasticsearch.plugins.nova.servers:ServerIndex
+    searchlight.index_backend =
+        os_neutron_net = searchlight.elasticsearch.plugins.neutron.networks:NetworkIndex
+
+.. note::
+
+    After modifying entrypoints, you'll need to reinstall the searchlight
+    package to register them (you may need to activate your virtual environment;
+    see :ref:`Installation Instructions`)::
+
+        python setup.py develop
 
 .. _Stevedore: http://docs.openstack.org/developer/stevedore/
 .. _Heat: http://docs.openstack.org/developer/heat/template_guide/openstack.html
 
-Required functions
-------------------
+Writing some code
+-----------------
+At this point you're probably about ready to start filling in the code. My
+usual approach is to create the unit test file first, and copy some of the
+more boilerplate functionality from one of the other plugins.
+
+You can run an individual test file with::
+
+    tox -epy34 searchlight.tests.unit.<your test module>
+
+This has the advantage of running just your tests and executing them very
+quickly. It can be easier to start from a full set of failing unit tests
+and build up the actual code from there. Functional tests I've tended to add
+later. Again, you can run an individual functional test file:
+
+    tox -epy34 searchlight.tests.functional.<your test module>
+
+Required plugin functions
+-------------------------
+This section describes some of the functionality from ``IndexBase`` you will
+need to override.
 
 Document type
 ^^^^^^^^^^^^^
 As a convention, plugins define their document type (which will map to an
-ElasticSearch document type) as the resource name Heat uses to identify it::
+ElasticSearch document type) as the `resource name`_ Heat uses to identify it::
 
     @classmethod
     def get_document_type(self):
-        return "OS::Nova::Server"
+        return "OS::Neutron::Net"
+
+.. _`resource_name`: http://docs.openstack.org/developer/heat/template_guide/openstack.html
 
 Retrieving object for initial indexing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Plugins must implement ``get_objects`` which in many cases will go to the
-API of the service it"s indexing. It should return an iterable that will be
+API of the service it's indexing. It should return an iterable that will be
 passed to a function (also required) named ``serialize``, which in turn must
-return a dictionary suitable for Elasticsearch to index.
+return a dictionary suitable for Elasticsearch to index. In the example for
+Neutron networks, this would be a call to ``list_networks`` on an instance of
+``neutronclient``::
+
+    def get_objects(self):
+        """Generator that lists all networks owned by all tenants."""
+        # Neutronclient handles pagination itself; list_networks is a generator
+        neutron_client = openstack_clients.get_neutronclient()
+        for network in neutron_client.list_networks()['networks']:
+            yield network
 
 Mapping
 ^^^^^^^
@@ -91,7 +280,7 @@ At a minimum a plugin should define an ``id`` field and an ``updated_at`` field
 because consumers will generally rely on those being present; a ``name`` field
 is highly advisable. If the resource doesn"t contain these values your
 ``serialize`` function can map to them. In particular, if your resource does
-not have a native ``id`` value, you must override ``get_document_id_field`` to
+not have a native ``id`` value, you must override ``get_document_id_field``
 so that the indexing code can retrieve the correct value when indexing.
 
 It is worth understanding how Elasticsearch indexes various field types,
@@ -146,7 +335,7 @@ trades slightly increased disk usage for better memory efficiency. In Elasticsea
 regardless of Elasticsearch version. For more information see the Elasticsearch
 documentation_.
 
-.. _documentation: https://www.elastic.co/guide/en/elasticsearch/guide/current/doc-values.html
+.. _documentation: https://www.elastic.co/guide/en/elasticsearch/reference/2.1/doc-values.html
 
 Generally this default will be fine. However, there are several ways in which
 the default can be overriden:
@@ -158,7 +347,7 @@ the default can be overriden:
 
 * For an individual plugin in ``searchlight.conf``::
 
-    [resource_plugin:os_nova_server]
+    [resource_plugin:os_neutron_net]
     mapping_use_doc_values = false
 
 * For a plugin's entire mapping; in code, override the ``disable_doc_values``
@@ -204,12 +393,12 @@ Protected fields
 ^^^^^^^^^^^^^^^^
 ``admin_only_fields`` determines fields which only administrators should be
 able to see or search. For instance, this will mark any fields beginning with
-``OS-EXT-SRV-ATTR:`` as well as any defined in the plugin configuration::
+``provider:`` as well as any defined in the plugin configuration::
 
     @property
     def admin_only_fields(self):
-        from_conf = super(ServerIndex, self).admin_only_fields
-        return ['OS-EXT-SRV-ATTR:*'] + from_conf
+        from_conf = super(NetworkIndex, self).admin_only_fields
+        return ['provider:*'] + from_conf
 
 These fields end up getting indexed in separate admin-only documents.
 
@@ -218,7 +407,7 @@ Parent/child relationships
 In some cases there is a strong ownership implied between plugins. In these
 cases the child plugin can define ``parent_plugin_type`` and
 ``get_parent_id_field`` (which determines a field on the child that refers
-to its parent). See the Designate RecordSet plugin for an example.
+to its parent). See the Neutron ``Port`` plugin for an example.
 
 Remember that Elasticsearch is not a relational database and it doesn't do
 joins, per se, but this linkage does allow running queries referencing children

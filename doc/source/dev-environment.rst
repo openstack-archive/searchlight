@@ -84,6 +84,8 @@ minimally available:
 Additional services required to be installed will depend on the plugins
 activated in searchlight.
 
+.. _Installation Instructions:
+
 Installing Searchlight
 ======================
 
