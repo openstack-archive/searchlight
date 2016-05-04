@@ -27,6 +27,9 @@ from searchlight.tests.functional import test_api
 from searchlight.tests.functional import test_listener
 
 
+member_list = 'glanceclient.v2.image_members.Controller.list'
+
+
 class TestGlancePlugins(functional.FunctionalTest):
     def setUp(self):
         super(TestGlancePlugins, self).setUp()
@@ -44,12 +47,12 @@ class TestGlancePlugins(functional.FunctionalTest):
             "x_none_read": "nobody can read",
             "any_old_property": "restricted to admins",
             "x_foo_anybody": "anybody may read",
-            "spl_read_only_prop": "spl_role only"
+            "spl_read_only_prop": "spl_role only",
+            "visibility": "public",
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self._index(self.images_plugin.alias_name_search,
-                    self.images_plugin.get_document_type(),
-                    [doc_with_properties],
-                    test_api.TENANT1)
+        self._index(self.images_plugin,
+                    [doc_with_properties])
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
@@ -59,6 +62,8 @@ class TestGlancePlugins(functional.FunctionalTest):
         expected_result = dict((k, v)
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
+        expected_result['members'] = []
+        self.assertEqual([expected_result], self._get_hit_source(json_content))
 
         # Test with the 'spl_role' role
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -66,10 +71,12 @@ class TestGlancePlugins(functional.FunctionalTest):
                                                       role="spl_role")
         self.assertEqual(200, response.status)
         expect_removed = ["x_none_permitted", "x_foo_matcher", "x_none_read",
-                          "any_old_property"]
+                          "any_old_property", "x_owner_anything"]
         expected_result = dict((k, v)
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
+        expected_result['members'] = []
+        self.assertEqual([expected_result], self._get_hit_source(json_content))
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1,
@@ -79,6 +86,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         expected_result = dict((k, v)
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
+        expected_result['members'] = []
 
         self.assertEqual([expected_result], self._get_hit_source(json_content))
 
@@ -89,26 +97,36 @@ class TestGlancePlugins(functional.FunctionalTest):
             "id": str(uuid.uuid4()),
             "name": "abc",
             "visibility": "private",
-            "members": [test_api.TENANT1]
+            "members": [test_api.TENANT1],
+            "created_at": "2016-04-06T12:48:18Z"
         }
         metadef_doc = {
             "owner": test_api.TENANT2,
-            "id": str(uuid.uuid4()),
             "visibility": "private",
-            "name": "def",
             "namespace": "some.value1",
-            "members": [test_api.TENANT1],
-            "properties": [
-                {"property": "prop1",
-                 "title": "hello"},
-                {"property": "prop2",
-                 "title": "bye"}
-            ]
+            "objects": [],
+            "tags": [],
+            "properties": {},
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self._index(self.images_plugin.alias_name_search,
-                    self.images_plugin.get_document_type(),
-                    [image_doc, metadef_doc],
-                    test_api.TENANT1)
+
+        fake_member = {"member_id": test_api.TENANT1, "status": "accepted"}
+        with mock.patch(member_list, return_value=[fake_member]):
+            self._index(self.images_plugin, [image_doc])
+
+        self._index(self.metadefs_plugin, [metadef_doc])
+
+        # Expected output format is a bit different
+        metadef_doc.update({
+            'properties': [],
+            'protected': None,
+            'resource_types': [],
+            'name': metadef_doc['namespace'],
+            'id': metadef_doc['namespace'],
+            'description': None,
+            'display_name': None,
+            'updated_at': None
+        })
 
         # An ordinary user in TENANT3 shouldn"t have any access
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -141,19 +159,22 @@ class TestGlancePlugins(functional.FunctionalTest):
             "id": id_1,
             "visibility": "private",
             "name": "owned by tenant 1",
-            "members": []
+            "created_at": "2016-04-06T12:48:18Z"
         }
         tenant2_doc = {
             "owner": test_api.TENANT2,
             "id": str(uuid.uuid4()),
             "visibility": "private",
             "name": "owned by tenant 2",
-            "members": []
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self._index(self.images_plugin.alias_name_search,
-                    self.images_plugin.get_document_type(),
-                    [tenant1_doc, tenant2_doc],
-                    test_api.TENANT1)
+
+        with mock.patch(member_list, return_value=[]):
+            self._index(self.images_plugin,
+                        [tenant1_doc, tenant2_doc])
+
+        tenant1_doc["members"] = []
+        tenant2_doc["members"] = []
 
         # Query for everything as one tenant then the other
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -183,19 +204,30 @@ class TestGlancePlugins(functional.FunctionalTest):
             "id": str(uuid.uuid4()),
             "visibility": "private",
             "name": "accessible doc",
-            "members": [test_api.TENANT1, test_api.TENANT2]
+            "created_at": "2016-04-06T12:48:18Z"
         }
         inaccessible_doc = {
             "owner": str(uuid.uuid4()),
             "id": str(uuid.uuid4()),
             "visibility": "private",
             "name": "inaccessible_doc doc",
-            "members": [str(uuid.uuid4())]
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self._index(self.images_plugin.alias_name_search,
-                    self.images_plugin.get_document_type(),
-                    [accessible_doc, inaccessible_doc],
-                    test_api.TENANT1)
+
+        # Assign TENANT1, TENANT2 to accessible doc and a fake member to
+        # inaccessible doc
+        made_up_tenant = str(uuid.uuid4())
+        fake_members = (
+            [{"member_id": test_api.TENANT1, "status": "accepted"},
+             {"member_id": test_api.TENANT2, "status": "accepted"}],
+            [{"member_id": made_up_tenant, "status": "accepted"}]
+        )
+        with mock.patch(member_list, side_effect=fake_members):
+            self._index(self.images_plugin,
+                        [accessible_doc, inaccessible_doc])
+
+        accessible_doc["members"] = [test_api.TENANT1, test_api.TENANT2]
+        inaccessible_doc["members"] = [made_up_tenant]
 
         # Someone in TENANT1 or TENANT2 should have access to "accessible_doc"
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -220,19 +252,24 @@ class TestGlancePlugins(functional.FunctionalTest):
             "id": str(uuid.uuid4()),
             "visibility": "public",
             "name": "visible doc",
-            "members": [str(uuid.uuid4())]
+            "created_at": "2016-04-06T12:48:18Z"
         }
         invisible_doc = {
             "owner": str(uuid.uuid4()),
             "id": str(uuid.uuid4()),
             "visibility": "private",
             "name": "visible doc",
-            "members": [str(uuid.uuid4())]
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self._index(self.images_plugin.alias_name_search,
-                    self.images_plugin.get_document_type(),
-                    [visible_doc, invisible_doc],
-                    test_api.TENANT1)
+
+        # Generate a fake tenant id for invisible_doc's "members"
+        fake_member = {"member_id": str(uuid.uuid4()), "status": "accepted"}
+        with mock.patch(member_list, return_value=[fake_member]):
+            self._index(self.images_plugin,
+                        [visible_doc, invisible_doc],
+                        test_api.TENANT1)
+
+        visible_doc["members"] = []
 
         # visible doc should be visible to any user
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -246,17 +283,36 @@ class TestGlancePlugins(functional.FunctionalTest):
             "id": str(uuid.uuid4()),
             "visibility": "public",
             "name": "visible doc",
+            "namespace": "TEST_VISIBLE",
+            "properties": {},
+            "tags": [],
+            "objects": [],
+            "created_at": "2016-04-06T12:48:18Z"
         }
         invisible_doc = {
             "owner": str(uuid.uuid4()),
             "id": str(uuid.uuid4()),
             "visibility": "private",
-            "name": "visible doc"
+            "name": "visible doc",
+            "namespace": "TEST_INVISIBLE",
+            "properties": {},
+            "tags": [],
+            "objects": [],
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self._index(self.metadefs_plugin.alias_name_search,
-                    self.metadefs_plugin.get_document_type(),
-                    [visible_doc, invisible_doc],
-                    test_api.TENANT1)
+        self._index(self.metadefs_plugin,
+                    [visible_doc, invisible_doc])
+
+        visible_doc["id"] = visible_doc["namespace"]
+        visible_doc["name"] = visible_doc["namespace"]
+        visible_doc.update({
+            "resource_types": [],
+            "properties": [],
+            "description": None,
+            "display_name": None,
+            "protected": None,
+            "updated_at": None
+        })
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT2)
@@ -266,20 +322,35 @@ class TestGlancePlugins(functional.FunctionalTest):
     def test_metadef_rbac_owner(self):
         visible_doc = {
             "owner": test_api.TENANT1,
-            "id": str(uuid.uuid4()),
+            "namespace": "VISIBLE",
             "visibility": "private",
-            "name": "visible doc",
+            "properties": {},
+            "tags": [],
+            "objects": [],
+            "created_at": "2016-04-06T12:48:18Z"
         }
         invisible_doc = {
             "owner": str(uuid.uuid4()),
-            "id": str(uuid.uuid4()),
+            "namespace": "INVISIBLE",
             "visibility": "private",
-            "name": "visible doc"
+            "properties": {},
+            "tags": [],
+            "objects": [],
+            "created_at": "2016-04-06T12:48:18Z"
         }
-        self._index(self.metadefs_plugin.alias_name_search,
-                    self.metadefs_plugin.get_document_type(),
-                    [visible_doc, invisible_doc],
-                    test_api.TENANT1)
+        self._index(self.metadefs_plugin,
+                    [visible_doc, invisible_doc])
+
+        visible_doc["id"] = visible_doc["namespace"]
+        visible_doc["name"] = visible_doc["namespace"]
+        visible_doc.update({
+            "resource_types": [],
+            "properties": [],
+            "description": None,
+            "display_name": None,
+            "protected": None,
+            "updated_at": None
+        })
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
@@ -295,6 +366,7 @@ class TestGlancePlugins(functional.FunctionalTest):
 class TestGlanceListener(test_listener.TestSearchListenerBase):
     def __init__(self, *args, **kwargs):
         super(TestGlanceListener, self).__init__(*args, **kwargs)
+
         self.image_events = self._load_fixture_data('events/images.json')
         self.metadef_events = self._load_fixture_data('events/metadefs.json')
 
@@ -307,6 +379,9 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         )
         osclient_patcher.start()
         self.addCleanup(osclient_patcher.stop)
+
+        self.images_plugin = self.initialized_plugins['OS::Glance::Image']
+        self.metadefs_plugin = self.initialized_plugins['OS::Glance::Metadef']
 
         notification_plugins = {
             plugin.document_type: test_listener.StevedoreMock(plugin)
@@ -638,6 +713,9 @@ class TestGlanceLoad(functional.FunctionalTest):
         self.metadefs_count, self.metadefs_owner = \
             self._get_glance_metadefs_owner_and_count()
         self.all_doc_count = self.images_count + self.metadefs_count
+
+        self.images_plugin = self.initialized_plugins['OS::Glance::Image']
+        self.metadefs_plugin = self.initialized_plugins['OS::Glance::Metadef']
 
     def _get_glance_image_owner_and_count(self):
         with open(generate_load_data.IMAGES_FILE, "r") as file:

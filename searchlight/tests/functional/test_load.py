@@ -86,7 +86,8 @@ class TestSearchLoad(functional.FunctionalTest):
             ['admin', 'user'], sorted(es_hits[0][ROLE_USER_FIELD]))
 
     def test_gc_verify_setting(self):
-        alias_name = self.images_plugin.alias_name_listener
+        images_plugin = self.initialized_plugins['OS::Glance::Image']
+        alias_name = images_plugin.alias_name_listener
         settings = self.elastic_connection.indices.get_settings(alias_name)
         # We are alias-based, not index-based. We pass in an alias to
         # get_setings() but it returns a dict based on the indexes. We

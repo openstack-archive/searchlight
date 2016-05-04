@@ -3,29 +3,6 @@
   {
     "allocation_pools": [
       {
-        "end": "172.25.255.254",
-        "start": "172.25.0.2"
-      }
-    ],
-    "cidr": "172.25.0.0/16",
-    "dns_nameservers": [],
-    "enable_dhcp": false,
-    "gateway_ip": "172.25.0.1",
-    "host_routes": [],
-    "id": "8cbe9b71-ecf1-4355-b5ba-dee54ec88fa7",
-    "ip_version": 4,
-    "ipv6_address_mode": null,
-    "ipv6_ra_mode": null,
-    "name": "public-subnet",
-    "network_id": "8891323e-bf5b-48d7-a75e-669af0608538",
-    "subnetpool_id": null,
-    "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
-    "updated_at": "2016-03-13T23:41:32",
-    "created_at": "2016-03-13T23:45:32"
-  },
-  {
-    "allocation_pools": [
-      {
         "end": "2001:db8::1",
         "start": "2001:db8::1"
       },
@@ -44,7 +21,7 @@
     "ipv6_address_mode": null,
     "ipv6_ra_mode": null,
     "name": "ipv6-public-subnet",
-    "network_id": "8891323e-bf5b-48d7-a75e-669af0608538",
+    "network_id": "doesnt-exist",
     "subnetpool_id": null,
     "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
     "updated_at": "2016-03-13T23:41:32",

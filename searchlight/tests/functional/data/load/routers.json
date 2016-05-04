@@ -19,7 +19,7 @@
             "subnet_id": "d7774648-ba81-477a-9329-2acc9a810e50"
           }
         ],
-        "network_id": "8891323e-bf5b-48d7-a75e-669af0608538"
+        "network_id": "fake-router-network-id"
       },
       "ha": false,
       "id": "0b143748-44d2-4545-9230-864c3abbc786",
@@ -47,7 +47,7 @@
             "subnet_id": "d7774648-ba81-477a-9329-2acc9a810e50"
           }
         ],
-        "network_id": "8891323e-bf5b-48d7-a75e-669af0608538"
+        "network_id": "fake-router-network-id"
       },
       "ha": false,
       "id": "324d16fc-c381-4ea4-8f77-feda17cea1d7",

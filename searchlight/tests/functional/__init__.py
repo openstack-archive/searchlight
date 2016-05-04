@@ -22,7 +22,6 @@ and spinning down the servers.
 """
 
 import atexit
-import copy
 import datetime
 import elasticsearch
 import httplib2
@@ -48,7 +47,6 @@ import testtools
 
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import utils as es_utils
-from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import utils as test_utils
 
 
@@ -364,8 +362,6 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         self.initialized_plugins = {}
         self.configurePlugins()
-        self.images_plugin = self.initialized_plugins['OS::Glance::Image']
-        self.metadefs_plugin = self.initialized_plugins['OS::Glance::Metadef']
 
     def configurePlugins(self, include_plugins=None, exclude_plugins=()):
         """Specify 'exclude_plugins' or 'include_plugins' as a list of
@@ -456,59 +452,18 @@ class FunctionalTest(test_utils.BaseTestCase):
                 index=plugin_instance.alias_name_listener,
                 ignore=404)
 
-    def _index(self, index_name, doc_type, docs, tenant,
-               parent_id_field=None,
-               role_separation=False, refresh_index=True):
-        # TODO(sjmc7) This whole function needs to use the IndexingHelper.
-        # It duplicates a lot of the behavior poorly
-
-        def apply_role_separation(apply_to_docs):
-            if role_separation:
-                for doc in apply_to_docs:
-                    parent_id = parent_id_field and doc.get(parent_id_field)
-
-                    user_doc = copy.deepcopy(doc)
-                    user_doc[ROLE_USER_FIELD] = 'user'
-                    action = {'_id': user_doc['id'] + '_USER',
-                              '_source': user_doc, '_op_type': 'index'}
-                    if parent_id:
-                        action['_parent'] = parent_id + '_USER'
-                    yield action
-
-                    admin_doc = copy.deepcopy(doc)
-                    admin_doc[ROLE_USER_FIELD] = 'admin'
-                    action = {'_id': admin_doc['id'] + '_ADMIN',
-                              '_source': admin_doc, '_op_type': 'index'}
-                    if parent_id:
-                        action['_parent'] = parent_id + '_ADMIN'
-                    yield action
-
-            else:
-                for doc in apply_to_docs:
-                    parent_id = parent_id_field and doc.get(parent_id_field)
-                    doc = copy.deepcopy(doc)
-                    if ROLE_USER_FIELD not in doc:
-                        doc[ROLE_USER_FIELD] = ['admin', 'user']
-                    action = {'_id': doc['id'], '_source': doc,
-                              '_op_type': 'index'}
-                    if parent_id:
-                        action['_parent'] = parent_id
-                    yield action
-
-        if not isinstance(docs, list):
-            docs = [docs]
-
-        result = elasticsearch.helpers.bulk(
-            client=self.elastic_connection,
-            index=index_name,
-            doc_type=doc_type,
-            actions=apply_role_separation(docs))
+    def _index(self, plugin, docs, refresh_index=True):
+        """Index data exactly as the plugin would under searchlight-manage.
+        docs must be an iterable of whatever the plugin's 'get_objects' call
+        would return.
+        """
+        with mock.patch.object(plugin, 'get_objects', return_value=docs):
+            with mock.patch.object(plugin, 'child_plugins', return_value=[]):
+                plugin.setup_data()
 
         if refresh_index:
             # Force elasticsearch to update its search index
-            self._flush_elasticsearch(index_name)
-
-        return result
+            self._flush_elasticsearch(plugin.alias_name_listener)
 
     def _flush_elasticsearch(self, index_name=None):
         self.elastic_connection.indices.flush(index_name)
