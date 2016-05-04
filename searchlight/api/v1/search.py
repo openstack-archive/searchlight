@@ -54,7 +54,9 @@ class SearchController(object):
         :param _source_exclude:
         :return:
         """
-        limit = limit or CONF.limit_param_default
+        if limit is None:
+            limit = CONF.limit_param_default
+
         try:
             search_repo = self.gateway.get_catalog_search_repo(req.context)
             result = search_repo.search(index,
@@ -228,8 +230,8 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             msg = _("limit param must be an integer")
             raise webob.exc.HTTPBadRequest(explanation=msg)
 
-        if limit < 1:
-            msg = _("limit param must be positive")
+        if limit < 0:
+            msg = _("limit param must be a non-negative integer")
             raise webob.exc.HTTPBadRequest(explanation=msg)
 
         return limit
