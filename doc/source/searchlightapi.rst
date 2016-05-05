@@ -328,31 +328,6 @@ You will see in the search results a ``sort`` field for each result::
   },
   ...
 
-Freeform queries
-****************
-Elasticsearch has a flexible query parser that can be used for many kinds of
-search terms: the `query_string <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-queries.html>`_
-operator.
-
-Some things to bear in mind about using ``query_string`` (see the documentation
-for full options):
-
-* A query term may be prefixed with a ``field`` name (as seen below). If it
-  is not, by default the entire document will be searched for the term.
-* The default operator between terms is ``OR``
-* By default, query terms are case insensitive
-
-For instance, the following will look for images with a
-restriction on name and a range query on size::
-
-  {
-    "query": {
-      "query_string": {
-        "query": "name: (Ubuntu OR Fedora) AND size: [3000000 TO 5000000]"
-      }
-    }
-  }
-
 Wildcards
 *********
 Elasticsearch supports regular expression searches but often wildcards within
@@ -531,11 +506,181 @@ support facet terms. ``limit_terms`` restricts the number of terms (sorted
 in order of descending frequency). A value of 0 indicates no limit, and is the
 default.
 
+Freeform queries
+****************
+Elasticsearch has a flexible query parser that can be used for many kinds of
+search terms: the `query_string <https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html>`_
+operator.
+
+Some things to bear in mind about using ``query_string`` (see the documentation
+for full options):
+
+* A query term may be prefixed with a ``field`` name (as seen below). If it
+  is not, by default the entire document will be searched for the term.
+* The default operator between terms is ``OR``
+* By default, query terms are case insensitive
+
+For instance, the following will look for images with a
+restriction on name and a range query on size::
+
+  {
+    "query": {
+      "query_string": {
+        "query": "name: (Ubuntu OR Fedora) AND size: [3000000 TO 5000000]"
+      }
+    }
+  }
+
+Within the query string query, you may perform a number of interesting
+queries. Below are some examples.
+
+Phrases
+"""""""
+::
+
+  \"i love openstack\"
+
+By default, each word you type will be searched for
+individually. You may also try to search an exact phrase by
+using quotes ("my phrase") to surround a phrase. The search
+service may allow a certain amount of phrase slop - meaning that
+if you have some words out of order in the phrase it may still
+match.
+
+Wildcards
+"""""""""
+::
+
+  python3.?
+  10.0.0.*
+  172.*.4.*
+
+By default, each word you type will match full words
+only. You may also use wildcards to match parts of words. Wildcard
+searches can be run on individual terms, using ? to replace a
+single character, and * to replace zero or more character. 'demo'
+will match the full word 'demo' only. However, 'de*'
+will match anything that starts with 'de', such as 'demo_1'.
+'de*1' will match anything that starts with 'de' and ends with '1'.
+
+.. note:: Wildcard queries place a heavy burden on the search service and
+          may perform poorly.
+
+Term Operators
+""""""""""""""
+::
+
+  +apache
+  -apache
+  web +(apache OR python)
+
+Add a '+' or a '-' to indicate terms that must or must
+not appear. For example '+python -apache web' would find
+everything that has 'python' does NOT have 'apache' and should have
+'web'. This may also be used with grouping. For example,
+'web -(apache AND python)' would find anything with 'web', but does
+not have either 'apache' or 'python'.
+
+Boolean Operators
+"""""""""""""""""
+::
+
+  python AND apache
+  nginx OR apache
+  web && !apache
+
+You can separate search terms and groups with
+AND, OR and NOT (also written &&, || and !). For example,
+'python OR javascript' will find anything with either term
+(OR is used by default, so does not need to be specified).
+However, 'python AND javascript' will find things that only have
+both terms. You can do this with as many terms as you'd like (e.g.
+'django AND javascript AND !unholy'). It is important to use all
+caps or the alternate syntax (&&, ||), because 'and' will be
+treated as another search term, but 'AND' will be treated as a
+logical operator.
+
+Grouping
+""""""""
+::
+
+  python AND (2.7 OR 3.4)
+  web && (apache !python)
+
+Use parenthesis to group different aspects of your
+query to form sub-queries. For example, 'web OR (python AND
+apache)' will return anything that either has 'web' OR has both
+'python' AND 'apache'.
+
+Facets
+""""""
+::
+
+  name:cirros
+  name:cirros && protected:false
+
+
+You may decide to only look in a certain field for a
+search term by setting a specific facet. This is accomplished by
+either selecting a facet from the drop down or by typing the facet
+manually. For example, if you are looking for an image, you
+may choose to only look at the name field by adding 'name:foo'.
+You may group facets and use logical operators.
+
+Range Queries
+"""""""""""""
+::
+
+  size:[1 TO 1000]
+  size:[1 TO *]
+  size:>=1
+  size:<1000
+
+Date, numeric or string fields can use range queries.
+Use square brackets [min TO max] for inclusive ranges and curly
+brackets {min TO max} for exclusive ranges.
+
+IP Addresses
+""""""""""""
+::
+
+  172.24.4.0/16
+  [10.0.0.1 TO 10.0.0.4]
+
+IPv4 addresses may be searched based on ranges and with CIDR notation.
+
+Boosting
+""""""""
+::
+
+  web javascript^2 python^0.1
+
+You can increase or decrease the relevance of a search
+term by boosting different terms, phrases, or groups. Boost one of
+these by adding ^n to the term, phrase, or group where n is a
+number greater than 1 to increase relevance and between 0 and 1 to
+decrease relevance. For example 'web^4 python^0.1' would find
+anything with both web and python, but would increase the
+relevance for anything with 'web' in the result and decrease the
+relevance for anything with 'python' in the result.
+
+Reserved Characters
+"""""""""""""""""""
+::
+
+  python \(3.4\)
+
+
+The following characters are reserved and must be
+escaped with a leading \ (backslash)::
+
+  + - = && || > < ! ( ) { } [ ] ^ " ~ * ? : \
+
 Advanced Features
 -----------------
 
-Accessing Searchlight from the browser
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CORS - Accessing Searchlight from the browser
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Searchlight can be configured to permit access directly from the browser. For
 details on this configuration, please refer to the
