@@ -234,7 +234,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'name': u'instance1',
             u'os-extended-volumes:volumes_attached': [],
             u'owner': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
-            u'security_groups': [{u'name': u'default'}],
+            u'security_groups': [u'default'],
             u'status': u'ACTIVE',
             u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'updated': updated_now,
@@ -299,7 +299,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'name': u'instance3',
             u'os-extended-volumes:volumes_attached': [],
             u'owner': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
-            u'security_groups': [{u'name': u'default'}],
+            u'security_groups': [u'default'],
             u'status': u'ACTIVE',
             u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'updated': updated_now,
@@ -340,7 +340,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                           'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
         expected_facet_names = [
             'OS-EXT-AZ:availability_zone', 'created_at', 'flavor.id', 'id',
-            'image.id', 'name', 'owner', 'security_groups.name', 'status',
+            'image.id', 'name', 'owner', 'security_groups', 'status',
             'updated_at', 'user_id']
         expected_facet_names.extend(['networks.' + f for f in network_facets])
 
@@ -349,13 +349,12 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         # Test fields with options
         complex_facet_option_fields = (
             'image.id', 'flavor.id', 'networks.name',
-            'networks.OS-EXT-IPS:type', 'networks.version',
-            'security_groups.name')
+            'networks.OS-EXT-IPS:type', 'networks.version')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
 
         simple_facet_option_fields = (
-            'status', 'OS-EXT-AZ:availability_zone'
+            'status', 'OS-EXT-AZ:availability_zone', 'security_groups'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))
@@ -397,7 +396,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                           'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
         expected_facet_names = [
             'OS-EXT-AZ:availability_zone', 'created_at', 'flavor.id', 'id',
-            'image.id', 'name', 'owner', 'security_groups.name', 'status',
+            'image.id', 'name', 'owner', 'security_groups', 'status',
             'tenant_id', 'updated_at', 'user_id']
         expected_facet_names.extend(['networks.' + f for f in network_facets])
 
@@ -405,13 +404,12 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         complex_facet_option_fields = (
             'image.id', 'flavor.id', 'networks.name',
-            'networks.OS-EXT-IPS:type', 'networks.version',
-            'security_groups.name')
+            'networks.OS-EXT-IPS:type', 'networks.version')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
 
         simple_facet_option_fields = (
-            'status', 'OS-EXT-AZ:availability_zone'
+            'status', 'OS-EXT-AZ:availability_zone', 'security_groups'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))
@@ -543,7 +541,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                      u'updated_at': u'2016-02-01T00:00:00Z'}, fake_timestamp)
                 mock_get.assert_called_once_with(u'missing')
                 mock_deleter.assert_called_once_with(
-                    # Version should really be integer; see bug #1550494
+                    # Version should really be integer; see bug #1  550494
                     {'_id': u'missing', '_version': '454284800097855282'})
 
     def test_vol_events_supported(self):
@@ -568,3 +566,12 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             detach(vol_payload, 1234)
 
             mock_update.assert_called_with(vol_payload, "a", 1234)
+
+    def test_filter_result(self):
+        """We reformat outgoing results so that security group looks like the
+        response we get from the nova API.
+        """
+        with mock.patch(nova_server_getter, return_value=self.instance1):
+            es_result = self.plugin.serialize(self.instance1.id)
+        self.plugin.filter_result({'_source': es_result}, None)
+        self.assertEqual([{'name': 'default'}], es_result['security_groups'])
