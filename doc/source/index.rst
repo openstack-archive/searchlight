@@ -48,6 +48,7 @@ Contributing
    :maxdepth: 1
 
    feature-requests-bugs
+   authoring-plugins
 
 Overview
 --------
@@ -74,11 +75,11 @@ Search plugins
 The search service determines the type of information that is indexed and
 searchable via a plugin mechanism.
 
-See :ref:`searchlight-plugins` for plugin installation and general
-configuration information.
+.. toctree::
+   :maxdepth: 1
 
-See :ref:`searchlight-plugin-authoring` for documentation about authoring
-plugins.
+   plugins
+   authoring-plugins
 
 See each plugin below for detailed information about specific plugins:
 
