@@ -45,6 +45,7 @@ Plugin: OS::Designate::Zone
 
     [resource_plugin:os_designate_zone]
     enabled = true
+    resource_group_name = searchlight
 
 Plugin: OS::Designate::RecordSet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,6 +53,7 @@ Plugin: OS::Designate::RecordSet
 
     [resource_plugin:os_designate_recordset]
     enabled = true
+    resource_group_name = searchlight
 
 .. warning::
 

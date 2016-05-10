@@ -92,6 +92,70 @@ class TestReindexingUtils(test_utils.BaseTestCase):
             mock_api.assert_called_with()
             mock_engine.indices.create.assert_called_with(index=index_name)
 
+    def test_add_extra_mappings(self):
+        # Set up the ES mock.
+        mock_engine = mock.Mock()
+        index = 'fake'
+        b_parent = {'dynamic': 'strict',
+                    '_parent': {
+                        'type': 'never_used_parent'},
+                    'properties': {
+                    }}
+        b_orphan = {'dynamic': 'strict',
+                    'properties': {
+                    }}
+        with mock.patch('searchlight.elasticsearch.get_api') as mock_api:
+            # Plug in the ES mock.
+            mock_api.return_value = mock_engine
+
+            # Test #1: One doc_type that already exists. With parent.
+            mock_engine.indices.exists_type.return_value = True
+            docs = [('doc1', True)]
+
+            plugin_utils.add_extra_mappings(index_name=index,
+                                            doc_type_info=docs)
+            mock_engine.indices.put_mapping.assert_not_called()
+
+            # Test #2: One doc_type that already exists. Without parent.
+            mock_engine.indices.exists_type.return_value = True
+            docs = [('doc1', False)]
+
+            plugin_utils.add_extra_mappings(index_name=index,
+                                            doc_type_info=docs)
+            mock_engine.indices.put_mapping.assert_not_called()
+
+            # Test #3: One doc_type that does not exist. With parent.
+            mock_engine.indices.exists_type.return_value = False
+            docs = [('doc1', True)]
+
+            plugin_utils.add_extra_mappings(index_name=index,
+                                            doc_type_info=docs)
+            mock_engine.indices.put_mapping.assert_called_with(index=index,
+                                                               doc_type='doc1',
+                                                               body=b_parent)
+
+            # Test #4: One doc_type that does not exist. Without parent.
+            mock_engine.indices.exists_type.return_value = False
+            mock_engine.indices.put_mapping.reset_mock()
+            docs = [('doc1', False)]
+
+            plugin_utils.add_extra_mappings(index_name=index,
+                                            doc_type_info=docs)
+            mock_engine.indices.put_mapping.assert_called_with(index=index,
+                                                               doc_type='doc1',
+                                                               body=b_orphan)
+
+            # Test #5: Two doc_type's that do not exist. Mixed parents.
+            mock_engine.indices.exists_type.return_value = False
+            mock_engine.indices.put_mapping.reset_mock()
+            docs = [('doc1', True), ('doc2', False)]
+            calls = [mock.call(index=index, doc_type='doc1', body=b_parent),
+                     mock.call(index=index, doc_type='doc2', body=b_orphan)]
+
+            plugin_utils.add_extra_mappings(index_name=index,
+                                            doc_type_info=docs)
+            mock_engine.indices.put_mapping.assert_has_calls(calls)
+
     def test_setup_alias(self):
         ndx = 'sl'
         ndx_s = 'sl-s'

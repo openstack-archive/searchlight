@@ -75,9 +75,20 @@ API.
 
 .. note::
   Due to some limitations discovered during the Mitaka release, indexing into
-  multiple indices (multiple plugin resource groups) is disabled. This behavior
-  will be reimplemented in the Newton release, and potentially backported to
-  the stable Mitaka release if possible.
+  multiple indices (multiple plugin resource groups) is disabled. The newton release
+  implemented full support for specifying different resource groups for different
+  resource types.
+
+.. _using-resource-groups:
+
+Sorting across resource groups
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Using multiple resource groups will impact sort behavior when sorting on fields
+across resource types when all the resource types don't have the requested 'sort-by field'.
+Follow the guidelines below to avoid errors:
+
+  https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_ignoring_unmapped_fields
+  https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_missing_values
 
 .. _aliases: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-aliases.html
 

@@ -45,6 +45,7 @@ Plugin: OS::Neutron::Net
 
     [resource_plugin:os_neutron_net]
     enabled = true
+    resource_group_name = searchlight
 
 Plugin: OS::Neutron::Port
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,6 +53,7 @@ Plugin: OS::Neutron::Port
 
     [resource_plugin:os_neutron_port]
     enabled = true
+    resource_group_name = searchlight
 
 Plugin: OS::Neutron::Subnet
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -59,6 +61,7 @@ Plugin: OS::Neutron::Subnet
 
     [resource_plugin:os_neutron_subnet]
     enabled = true
+    resource_group_name = searchlight
 
 Plugin: OS::Neutron::Router
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -66,6 +69,7 @@ Plugin: OS::Neutron::Router
 
     [resource_plugin:os_neutron_router]
     enabled = true
+    resource_group_name = searchlight
 
 Neutron Configuration
 =====================
