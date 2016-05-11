@@ -1,0 +1,7 @@
+---
+features:
+  - Adds nova plugin for hypervisors.
+issues:
+  - There are no notifications for hypervisor from nova yet, so we recommend
+    putting it to its own resource group and scheduling a cron job to re-sync
+    with little overhead.

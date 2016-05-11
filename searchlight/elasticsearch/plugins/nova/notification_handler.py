@@ -93,3 +93,19 @@ class InstanceHandler(base.NotificationBase):
                 'Error deleting instance %(instance_id)s '
                 'from index: %(exc)s') %
                 {'instance_id': instance_id, 'exc': exc})
+
+
+class HypervisorHandler(base.NotificationBase):
+    """Handles nova hypervisor notifications.
+    """
+
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['nova']
+
+    def get_event_handlers(self):
+        # TODO(lyj): Currently there is no notification for hypervisor,
+        #            this needs to be changed once the notification for
+        #            hypervisor in nova is implemented:
+        # https://blueprints.launchpad.net/nova/+spec/hypervisor-notification
+        return {}

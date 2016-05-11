@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import copy
+import json
 import logging
 import six
 
@@ -57,6 +58,22 @@ def serialize_nova_server(server):
 
     utils.normalize_date_fields(serialized)
 
+    return serialized
+
+
+def serialize_nova_hypervisor(hypervisor, updated_at=None):
+    serialized = hypervisor.to_dict()
+    # The id for hypervisor is an integer, should be changed to
+    # string.
+    serialized['id'] = str(serialized['id'])
+    serialized['cpu_info'] = json.loads(serialized['cpu_info'])
+    if not getattr(hypervisor, 'updated_at', None):
+        serialized['updated_at'] = updated_at or utils.get_now_str()
+    # TODO(lyj): Remove this once hypervisor notifications supported.
+    for key in ['running_vms', 'vcpus_used', 'memory_mb_used', 'free_ram_mb',
+                'free_disk_gb', 'local_gb_used', 'current_workload']:
+        if key in serialized:
+            serialized.pop(key)
     return serialized
 
 
