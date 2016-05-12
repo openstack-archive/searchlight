@@ -65,6 +65,7 @@ class RecordSetIndex(designate.DesignateBase):
                         "data": {"type": "string"}
                     }
                 },
+                "zone_id": {"type": "string", "index": "not_analyzed"},
             },
             "_parent": {
                 "type": self.parent_plugin_type()

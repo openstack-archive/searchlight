@@ -113,6 +113,15 @@ class TestZonePlugin(test_utils.BaseTestCase):
 
         facets = self.plugin.get_facets(fake_request.context)
 
+        zone_id_facet = list(filter(lambda f: f['name'] == 'zone_id',
+                                    facets))[0]
+        expected_zone_id = {
+            'name': 'zone_id',
+            'type': 'string'
+        }
+
+        self.assertEqual(expected_zone_id, zone_id_facet)
+
         status_facet = list(filter(lambda f: f['name'] == 'status', facets))[0]
         expected_status = {
             'name': 'status',
