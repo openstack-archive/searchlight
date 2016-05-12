@@ -244,3 +244,18 @@ class HypervisorHandler(base.NotificationBase):
         #            hypervisor in nova is implemented:
         # https://blueprints.launchpad.net/nova/+spec/hypervisor-notification
         return {}
+
+
+class FlavorHandler(base.NotificationBase):
+    """Handles nova flavor notifications.
+    """
+
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return []
+
+    def get_event_handlers(self):
+        # TODO(): Currently there is no notification for flavor,
+        #            this needs to be changed once the notification for
+        #            flavor in nova is implemented:
+        return {}

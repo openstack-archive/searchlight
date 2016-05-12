@@ -16,16 +16,32 @@
 import copy
 import json
 import logging
+import novaclient.exceptions
 import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
+from searchlight.i18n import _LW
 
 LOG = logging.getLogger(__name__)
 
 
 # All 'links' will also be removed
 BLACKLISTED_FIELDS = set((u'progress', u'links'))
+FLAVOR_ACCESS_FIELD = 'tenant_access'
+
+
+def _get_flavor_access(flavor):
+    if flavor.is_public:
+        return None
+    try:
+        n_client = openstack_clients.get_novaclient()
+        return [access.tenant_id for access in
+                n_client.flavor_access.list(flavor=flavor)] or None
+    except novaclient.exceptions.Unauthorized:
+        LOG.warning(_LW("Could not return tenant for %s; forbidden") %
+                    flavor)
+        return None
 
 
 def serialize_nova_server(server):
@@ -75,6 +91,19 @@ def serialize_nova_hypervisor(hypervisor, updated_at=None):
                 'free_disk_gb', 'local_gb_used', 'current_workload']:
         if key in serialized:
             serialized.pop(key)
+    return serialized
+
+
+def serialize_nova_flavor(flavor, updated_at=None):
+    serialized = {k: v for k, v in six.iteritems(flavor.to_dict())
+                  if k not in ("links")}
+    serialized["extra_specs"] = flavor.get_keys()
+
+    serialized[FLAVOR_ACCESS_FIELD] = _get_flavor_access(flavor)
+
+    if not getattr(flavor, 'updated_at', None):
+        serialized['updated_at'] = updated_at or utils.get_now_str()
+
     return serialized
 
 

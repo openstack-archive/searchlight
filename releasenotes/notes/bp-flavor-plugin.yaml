@@ -1,0 +1,7 @@
+---
+features:
+  - Adds nova plugin for flavors.
+issues:
+  - There are no notifications for flavors from nova yet, so we recommend
+    putting it to its own resource group and scheduling a cron job to re-sync
+    with little overhead.

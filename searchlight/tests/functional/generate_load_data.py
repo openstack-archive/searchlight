@@ -22,6 +22,7 @@ METADEFS_FILE = "searchlight/tests/functional/data/load/metadefs.json"
 IMAGE_MEMBERS_FILE = \
     "searchlight/tests/functional/data/load/image_members.json"
 SERVERS_FILE = "searchlight/tests/functional/data/load/servers.json"
+FLAVORS_FILE = "searchlight/tests/functional/data/load/flavors.json"
 
 
 from glanceclient.v2 import client as glance
@@ -30,6 +31,15 @@ from keystoneclient import session
 import novaclient.client
 
 _session = None
+
+
+def _get_flavor_tenant(flavor):
+    if flavor.is_public:
+        return ""
+    n_client = get_novaclient()
+    flavor_access = n_client.flavor_access.list(flavor=flavor)[0]
+    tenant_id = flavor_access.tenant_id
+    return tenant_id
 
 
 def _get_session():
@@ -116,10 +126,24 @@ def get_nova_servers_with_pyclient():
         f.write(servers_json)
 
 
+def get_nova_flavors_with_pyclient():
+
+    nova_client = get_novaclient()
+    flavor = nova_client.flavors.list()[0]
+    flavor_dict = flavor.to_dict()
+    flavor_dict.pop("links")
+    flavor_dict.update({"tenant_id": _get_flavor_tenant(flavor)})
+    flavor_dict.update({"extra_spec": flavor.get_keys()})
+    flavors_json = json.dumps([flavor_dict], indent=4)
+    with open(FLAVORS_FILE, "w") as f:
+        f.write(flavors_json)
+
+
 def generate():
     get_glance_images_and_members_with_pyclient()
     get_glance_metadefs_with_pyclient()
     get_nova_servers_with_pyclient()
+    get_nova_flavors_with_pyclient()
 
 if __name__ == "__main__":
     generate()

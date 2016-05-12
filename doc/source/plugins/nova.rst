@@ -73,6 +73,19 @@ Plugin: OS::Nova::Hypervisor
     putting it to its own resource group and scheduling a cron job to re-sync
     with little overhead.
 
+Plugin: OS::Nova::Flavor
+^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_nova_flavor]
+    enabled = true
+
+.. note::
+
+    There are no notifications for flavor from nova yet, so we recommend
+    putting it in its own resource group and scheduling a cron job to re-sync
+    with little overhead.
+
 Nova Configuration
 ==================
 

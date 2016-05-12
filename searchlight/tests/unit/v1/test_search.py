@@ -294,6 +294,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Designate::Zone',
             'OS::Glance::Image',
             'OS::Glance::Metadef',
+            'OS::Nova::Flavor',
             'OS::Nova::Server',
             'OS::Nova::Hypervisor',
             'OS::Neutron::FloatingIP',

@@ -32,6 +32,8 @@ class TestNovaPlugins(functional.FunctionalTest):
         self.hyper_objects = self._load_fixture_data('load/hypervisors.json')
         self.server_plugin = self.initialized_plugins['OS::Nova::Server']
         self.server_objects = self._load_fixture_data('load/servers.json')
+        self.flavor_plugin = self.initialized_plugins['OS::Nova::Flavor']
+        self.flavor_objects = self._load_fixture_data('load/flavors.json')
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_hypervisor_rbac(self, mock_version):
@@ -162,3 +164,39 @@ class TestNovaPlugins(functional.FunctionalTest):
 
         actual_sources = [process(hit['_source']) for hit in hits]
         self.assertEqual(expected_sources, actual_sources)
+
+    def test_flavor_rbac(self):
+        self._index(self.flavor_plugin,
+                    [utils.FlavorDictObj(**flavor)
+                     for flavor in self.flavor_objects]
+                    )
+
+        query = {
+            "type": ["OS::Nova::Flavor"],
+            "query": {
+                "match_all": {}
+            }
+        }
+
+        response, json_content = self._search_request(query, TENANT1)
+        expected_sources = [{
+            u'OS-FLV-DISABLED:disabled': False,
+            u'OS-FLV-EXT-DATA:ephemeral': 0,
+            u'disk': 1,
+            u"tenant_id": u"",
+            u'extra_specs': {},
+            u'id': u'1',
+            u'name': u'm1.tiny',
+            u'os-flavor-access:is_public': True,
+            u'ram': 512,
+            u'rxtx_factor': 1.0,
+            u'swap': u'',
+            u'vcpus': 1}]
+        hits = json_content['hits']['hits']
+        for hit in hits:
+            source = hit["_source"]
+            source.pop("updated_at")
+        actual_sources = [hit["_source"] for hit in hits]
+        self.assertEqual(expected_sources, actual_sources)
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])

@@ -15,6 +15,7 @@
 
 """Common utilities used in testing"""
 
+import copy
 import errno
 import functools
 import os
@@ -566,3 +567,16 @@ class DictObj(object):
 class FakeVersion(object):
     def __init__(self, version):
         self.version = version
+
+
+class FlavorDictObj(DictObj):
+    def get_keys(self):
+        return self.extra_spec
+
+    def is_public(self):
+        return self.is_public
+
+    def to_dict(self):
+        d = copy.deepcopy(super(FlavorDictObj, self).to_dict())
+        d.pop("extra_spec", None)
+        return d

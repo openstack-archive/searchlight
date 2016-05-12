@@ -1,0 +1,16 @@
+[
+    {
+        "name": "m1.tiny",
+        "tenant_id": "",
+        "ram": 512,
+        "extra_spec": {},
+        "OS-FLV-DISABLED:disabled": false,
+        "vcpus": 1,
+        "swap": "",
+        "os-flavor-access:is_public": true,
+        "rxtx_factor": 1.0,
+        "OS-FLV-EXT-DATA:ephemeral": 0,
+        "disk": 1,
+        "id": "1"
+    }
+]
