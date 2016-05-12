@@ -85,7 +85,6 @@ function configure_searchlight {
     iniset_rpc_backend searchlight $SEARCHLIGHT_CONF DEFAULT
 
     iniset $SEARCHLIGHT_CONF DEFAULT debug $ENABLE_DEBUG_LOG_LEVEL
-    iniset $SEARCHLIGHT_CONF DEFAULT verbose True
     iniset $SEARCHLIGHT_CONF DEFAULT state_path $SEARCHLIGHT_STATE_PATH
 
     # Install the policy file for the API server
