@@ -14,14 +14,14 @@
 # limitations under the License.
 import os
 
-import cinderclient.client
-from designateclient.v2 import client as designateclient
-from glanceclient.v2 import client as glance
+from cinderclient import client as cinder_client
+from designateclient.v2 import client as designate_client
+from glanceclient import client as glance_client
 from keystoneclient import auth as ks_auth
 from keystoneclient import session as ks_session
-from keystoneclient.v2_0 import client as ks_client
-import neutronclient.v2_0.client
-import novaclient.client
+import keystoneclient.v2_0.client as ks_client
+import neutronclient.v2_0.client as neutron_client
+from novaclient import client as nova_client
 import swiftclient
 
 from oslo_config import cfg
@@ -63,8 +63,10 @@ def _get_session():
 def get_glanceclient():
     session = _get_session()
 
-    return glance.Client(
+    return glance_client.Client(
+        version='2',
         session=session,
+        interface=cfg.CONF.service_credentials.os_endpoint_type,
         region_name=cfg.CONF.service_credentials.os_region_name
     )
 
@@ -72,35 +74,41 @@ def get_glanceclient():
 def get_novaclient():
     session = _get_session()
 
-    return novaclient.client.Client(
-        version=2,
+    return nova_client.Client(
+        version='2',
         session=session,
-        region_name=cfg.CONF.service_credentials.os_region_name)
+        region_name=cfg.CONF.service_credentials.os_region_name,
+        endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
+    )
 
 
 def get_designateclient():
     session = _get_session()
 
-    return designateclient.Client(
+    return designate_client.Client(
         session=session,
         region_name=cfg.CONF.service_credentials.os_region_name,
+        endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
     )
 
 
 def get_neutronclient():
     session = _get_session()
-    return neutronclient.v2_0.client.Client(
+    return neutron_client.Client(
         session=session,
-        region_name=cfg.CONF.service_credentials.os_region_name)
+        region_name=cfg.CONF.service_credentials.os_region_name,
+        endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
+    )
 
 
 def get_cinderclient():
     session = _get_session()
 
-    return cinderclient.client.Client(
-        version=2,
+    return cinder_client.Client(
+        version='2',
         session=session,
         region_name=cfg.CONF.service_credentials.os_region_name,
+        endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
     )
 
 # Swift still needs special handling because it doesn't support
