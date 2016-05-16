@@ -147,6 +147,9 @@ to indexing::
       OS::Designate::Zone (designate)
           ---->  OS::Designate::RecordSet
 
+Child plugins will inherit their resource group name from their parent. Any
+child configuration setting for resource_group_name will be ignored.
+
 Incremental Updates
 -------------------
 

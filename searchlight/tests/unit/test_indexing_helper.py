@@ -279,7 +279,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 }
                 mock_scan.assert_called_with(
                     client=plugin.engine,
-                    index=plugin.index_name,
+                    index=plugin.alias_name_listener,
                     doc_type=plugin.document_type,
                     query=expected_scan_query
                 )
@@ -294,7 +294,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 ]
                 mock_bulk.assert_called_with(
                     client=plugin.engine,
-                    index=plugin.index_name,
+                    index=plugin.alias_name_listener,
                     doc_type=plugin.document_type,
                     actions=expected_delete_actions
                 )
@@ -328,7 +328,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 }
                 mock_scan.assert_called_with(
                     client=plugin.engine,
-                    index=plugin.index_name,
+                    index=plugin.alias_name_listener,
                     doc_type=plugin.document_type,
                     query=expected_scan_query
                 )
@@ -340,7 +340,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 ]
                 mock_bulk.assert_called_with(
                     client=plugin.engine,
-                    index=plugin.index_name,
+                    index=plugin.alias_name_listener,
                     doc_type=plugin.document_type,
                     actions=expected_delete_actions
                 )

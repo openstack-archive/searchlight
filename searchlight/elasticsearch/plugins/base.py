@@ -86,12 +86,26 @@ class IndexBase(plugin.Plugin):
     @property
     def resource_group_name(self):
         if not getattr(self, '_group_name', None):
-            if self.options.resource_group_name is not None:
-                self._group_name = self.options.resource_group_name
-            elif cfg.CONF.resource_plugin.resource_group_name is not None:
-                self._group_name = cfg.CONF.resource_plugin.resource_group_name
+            if self.parent_plugin:
+                self._group_name = self.parent_plugin.resource_group_name
+                if self.options.resource_group_name is not None and  \
+                        self.options.resource_group_name != self._group_name:
+                    LOG.warning(_LW(
+                        "Overriding resource_group for %(plugin)s because it "
+                        "differs from parent plugin %(parent)s resource_group "
+                        "%(resource_group)s") %
+                        {"plugin": self.document_type,
+                         "parent": self.parent_plugin.document_type,
+                         "resource_group": self._group_name}
+                    )
             else:
-                self._group_name = "searchlight"
+                if self.options.resource_group_name is not None:
+                    self._group_name = self.options.resource_group_name
+                elif cfg.CONF.resource_plugin.resource_group_name is not None:
+                    self._group_name = \
+                        cfg.CONF.resource_plugin.resource_group_name
+                else:
+                    self._group_name = "searchlight"
         return self._group_name
 
     @property
