@@ -141,6 +141,18 @@ underneath it.::
 Release Notes
 =============
 
+1.0.0.0 (Newton)
+----------------
+In order to reduce the impact on the nova API, changes have been made to the
+way notifications are processed. Currently searchlight has to retrieve nova
+server information from nova because the notifications alone are missing
+several pieces of information. Prior to Newton this meant up to 7 API requests
+during a server boot. During Newton this was changed. There will now be one
+initial nova request prior to the scheduler, one when the
+``instance.create.start`` notification is received, one when networking is
+established and one after the instance has booted and run any init scripts.
+Other notifications during boot will update only the server status.
+
 0.2.0.0 (Mitaka)
 ----------------
 
