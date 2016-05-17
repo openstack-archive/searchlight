@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.swift import get_swift_containers
 from searchlight.elasticsearch.plugins.swift import serialize_swift_container
@@ -40,11 +41,11 @@ class ContainerIndex(base.IndexBase):
 
     @classmethod
     def parent_plugin_type(cls):
-        return "OS::Swift::Account"
+        return resource_types.SWIFT_ACCOUNT
 
     @classmethod
     def get_document_type(cls):
-        return 'OS::Swift::Container'
+        return resource_types.SWIFT_CONTAINER
 
     def get_mapping(self):
         return {

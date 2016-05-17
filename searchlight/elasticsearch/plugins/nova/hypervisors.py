@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova \
     import notification_handler
@@ -25,7 +26,7 @@ class HypervisorIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(self):
-        return 'OS::Nova::Hypervisor'
+        return resource_types.NOVA_HYPERVISOR
 
     def get_mapping(self):
         string_not_analyzed = {'type': 'string', 'index': 'not_analyzed'}

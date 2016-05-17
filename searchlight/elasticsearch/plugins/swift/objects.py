@@ -15,6 +15,7 @@
 
 from oslo_config import cfg
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.swift import get_swift_objects
 from searchlight.elasticsearch.plugins.swift import serialize_swift_object
@@ -34,11 +35,11 @@ class ObjectIndex(base.IndexBase):
 
     @classmethod
     def parent_plugin_type(cls):
-        return "OS::Swift::Container"
+        return resource_types.SWIFT_CONTAINER
 
     @classmethod
     def get_document_type(cls):
-        return 'OS::Swift::Object'
+        return resource_types.SWIFT_OBJECT
 
     def get_mapping(self):
         return {
@@ -73,6 +74,11 @@ class ObjectIndex(base.IndexBase):
             },
             "_parent": {
                 "type": self.parent_plugin_type()
+            },
+            "_meta": {
+                "account_id": {
+                    "resource_type": resource_types.SWIFT_ACCOUNT
+                }
             }
         }
 

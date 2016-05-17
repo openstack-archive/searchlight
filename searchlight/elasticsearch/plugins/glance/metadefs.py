@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance \
     import metadefs_notification_handler
@@ -25,7 +26,7 @@ class MetadefIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(cls):
-        return 'OS::Glance::Metadef'
+        return resource_types.GLANCE_METADEF
 
     def get_document_id_field(self):
         return 'namespace'
@@ -79,6 +80,12 @@ class MetadefIndex(base.IndexBase):
                 'properties': property_mapping,
                 'tags': {'type': 'string'}
             },
+            "_meta": {
+                "owner": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                }
+            }
+
         }
         return mapping
 

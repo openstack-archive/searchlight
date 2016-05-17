@@ -15,6 +15,7 @@
 
 from oslo_log import log as logging
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_volume
 from searchlight.elasticsearch.plugins.cinder \
@@ -37,7 +38,7 @@ class VolumeIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(self):
-        return 'OS::Cinder::Volume'
+        return resource_types.CINDER_VOLUME
 
     def get_mapping(self):
         str_not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
@@ -112,6 +113,26 @@ class VolumeIndex(base.IndexBase):
                 'updated_at': {'type': 'date'},
                 'user_id': {'type': 'string', 'index': 'not_analyzed'},
             },
+            "_meta": {
+                "snapshot_id": {
+                    "resource_type": resource_types.CINDER_SNAPSHOT
+                },
+                "tenant_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "attachments.server_id": {
+                    "resource_type": resource_types.NOVA_SERVER
+                },
+                "os-vol-tenant-attr:tenant_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "user_id": {
+                    "resource_type": resource_types.KEYSTONE_USER
+                }
+            }
         }
 
     @property

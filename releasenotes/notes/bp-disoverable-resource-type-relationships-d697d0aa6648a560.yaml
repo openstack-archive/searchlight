@@ -1,0 +1,9 @@
+---
+prelude: >
+  Searchlight will provide resource type info
+  for any reference IDs in the facet results.
+features:
+  - Searchlight will provide resource type info
+    for any reference IDs in the facet results.
+    Parent reference types will also be part of the info
+    This will allow UI's and CLI's to explore the data seamlessly

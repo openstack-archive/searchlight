@@ -15,6 +15,7 @@
 
 from oslo_log import log as logging
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_snapshot
 from searchlight.elasticsearch.plugins.cinder import \
@@ -36,11 +37,11 @@ class SnapshotIndex(base.IndexBase):
     @classmethod
     def get_document_type(self):
         """Unusually, this doesn't have a heat resource type equivalent"""
-        return 'OS::Cinder::Snapshot'
+        return resource_types.CINDER_SNAPSHOT
 
     @classmethod
     def parent_plugin_type(cls):
-        return "OS::Cinder::Volume"
+        return resource_types.CINDER_VOLUME
 
     def get_parent_id_field(self):
         return 'volume_id'
@@ -74,6 +75,20 @@ class SnapshotIndex(base.IndexBase):
                 'project_id': {'type': 'string', 'index': 'not_analyzed'},
                 'volume_id': {'type': 'string', 'index': 'not_analyzed'},
             },
+            "_meta": {
+                "tenant_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "os-extended-snapshot-attributes:project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "user_id": {
+                    "resource_type": resource_types.KEYSTONE_USER
+                }
+            }
         }
 
     @property

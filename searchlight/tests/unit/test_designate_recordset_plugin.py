@@ -117,7 +117,9 @@ class TestZonePlugin(test_utils.BaseTestCase):
                                     facets))[0]
         expected_zone_id = {
             'name': 'zone_id',
-            'type': 'string'
+            'type': 'string',
+            'resource_type': self.plugin.parent_plugin_type(),
+            'parent': True
         }
 
         self.assertEqual(expected_zone_id, zone_id_facet)

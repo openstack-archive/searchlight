@@ -24,8 +24,8 @@ from searchlight.common import exception
 from searchlight.common import utils as searchlight_utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import fake_plugins
+import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
-
 
 CONF = cfg.CONF
 
@@ -413,3 +413,104 @@ class TestPlugin(test_utils.BaseTestCase):
                              child_plugin.resource_group_name)
             self.assertEqual(child_plugin.resource_group_name,
                              parent_plugin.resource_group_name)
+
+    def test_get_facets(self):
+        mock_engine = mock.Mock()
+        simple_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        simple_plugin.engine = mock_engine
+        child_plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
+        child_plugin.engine = mock_engine
+        mock_engine.search.return_value = {'aggregations': {}}
+        fake_request = unit_test_utils.get_fake_request()
+
+        meta_mapping = {
+            'properties': {
+                'reference_id_1': {'type': 'string', 'index': 'not_analyzed'},
+                'some_key': {'type': 'integer'},
+                'nested': {
+                    'type': 'nested',
+                    'properties': {
+                        "some_key": {'type': 'string'},
+                        'reference_id_2': {'type': 'string',
+                                           'index': 'not_analyzed'}
+                    }
+                }
+            },
+            "_meta": {
+                "reference_id_1": {
+                    "resource_type": "OS::Glance::Image"
+                },
+                "nested.reference_id_2": {
+                    "resource_type": "OS::Cinder::Snapshot"
+                }
+            }
+        }
+
+        # Test resource_types without parent
+        with mock.patch.object(simple_plugin, 'get_mapping',
+                               return_value=meta_mapping):
+            facets = simple_plugin.get_facets(fake_request.context)
+
+            expected = [
+                {
+                    "type": "string",
+                    "name": "reference_id_1",
+                    "resource_type": "OS::Glance::Image"
+                },
+                {
+                    "type": "string",
+                    "name": "nested.reference_id_2",
+                    "resource_type": "OS::Cinder::Snapshot"
+                },
+                {
+                    "type": "string",
+                    "name": "nested.some_key",
+                },
+                {
+                    "type": "integer",
+                    "name": "some_key",
+                }
+            ]
+            expected_list = sorted(expected, key=lambda k: k['name'])
+            actual_list = sorted(facets, key=lambda k: k['name'])
+            self.assertEqual(expected_list, actual_list)
+
+        # Test resource_types with parent
+        meta_mapping = {
+            'properties': {
+                'parent_id': {'type': 'string',
+                              'index': 'not_analyzed'}
+            },
+            "_meta": {
+                "parent_id": {
+                    "resource_type": child_plugin.parent_plugin_type()
+                }
+            }
+        }
+        with mock.patch.object(child_plugin, 'get_mapping',
+                               return_value=meta_mapping):
+            facets = child_plugin.get_facets(fake_request.context)
+            expected = [
+                {
+                    "type": "string",
+                    "name": "parent_id",
+                    "resource_type": child_plugin.parent_plugin_type(),
+                    "parent": True
+                }
+            ]
+            self.assertEqual(expected, facets)
+
+        # Test resource_types with parent and no explicit meta info
+        meta_mapping.pop('_meta')
+        with mock.patch.object(child_plugin, 'get_mapping',
+                               return_value=meta_mapping):
+            facets = child_plugin.get_facets(fake_request.context)
+            expected = [
+                {
+                    "type": "string",
+                    "name": "parent_id",
+                    "resource_type": child_plugin.parent_plugin_type(),
+                    "parent": True
+                }
+            ]
+            self.assertEqual(expected, facets)

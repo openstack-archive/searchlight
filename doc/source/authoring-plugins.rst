@@ -324,6 +324,41 @@ Some notes (expressed below as comments starting with #)::
       }
     }
 
+
+If you are mapping a field which is a reference id to other plugin type, you
+should add a _meta mapping for that field. This will enable Searchlight(SL) to
+provide more information to CLI/UI. The reference id and the plugin resource
+type can be used by CLI/UI to issue a ``GET`` request to fetch more information
+from SL. See below for an example on nova server plugin mapping::
+
+  def get_mapping(self):
+    return {
+        'dynamic': True,
+        'properties': {
+            'id': {'type': 'string', 'index': 'not_analyzed'},
+            'name': {
+                'type': 'string',
+                'fields': {
+                    'raw': {'type': 'string', 'index': 'not_analyzed'}
+                }
+            }
+            'image': {
+                'type': 'nested',
+                'properties': {
+                    'id': {'type': 'string', 'index': 'not_analyzed'}
+                }
+            }
+        },
+        "_meta": {
+            "image.id": {
+                "resource_type": resource_types.GLANCE_IMAGE
+            }
+        },
+    }
+
+.. note:: Parent plugin id field(when available) is automatically linked to the
+          parent resource type.
+
 Doc values
 **********
 For many field types Searchlight will alter the mapping to change the format in

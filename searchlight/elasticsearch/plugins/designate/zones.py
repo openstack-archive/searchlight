@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import designate
 from searchlight.elasticsearch.plugins.designate import notification_handlers
 
@@ -30,7 +31,7 @@ class ZoneIndex(designate.DesignateBase):
 
     @classmethod
     def get_document_type(cls):
-        return "OS::Designate::Zone"
+        return resource_types.DESIGNATE_ZONE
 
     def get_mapping(self):
         return {
@@ -73,6 +74,11 @@ class ZoneIndex(designate.DesignateBase):
                 "transferred_at": {"type": "string"},
                 "masters": {"type": "string"}
             },
+            "_meta": {
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                }
+            }
         }
 
     @property

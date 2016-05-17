@@ -209,23 +209,45 @@ class IndexBase(plugin.Plugin):
 
             return False
 
-        def get_facets_for(mapping, prefix=''):
+        def get_facets_for(property_mapping, meta_mapping, prefix=''):
             facets = []
-            for name, properties in six.iteritems(mapping):
+            for name, properties in six.iteritems(property_mapping):
                 if properties.get('type') == 'nested':
                     if include_facet(prefix + name):
                         facets.extend(get_facets_for(properties['properties'],
+                                                     meta_mapping,
                                                      "%s%s." % (prefix, name)))
                 else:
                     indexed = properties.get('index', None) != 'no'
                     if indexed and include_facet(name):
-                        facets.append({
-                            'name': prefix + name,
+                        facet_name = prefix + name
+                        facet = {
+                            'name': facet_name,
                             'type': properties['type']
-                        })
+                        }
+
+                        # Plugin can specify _meta mapping to link an id with a
+                        # resource type, which can be used by Client program/UI
+                        # to GET more information from the resource type.
+                        # See https://www.elastic.co/guide/en/elasticsearch/
+                        # reference/2.1/mapping-meta-field.html
+                        if facet_name in meta_mapping:
+                            facet['resource_type'] = \
+                                meta_mapping[facet_name]['resource_type']
+
+                        if (self.get_parent_id_field() and
+                                name == self.get_parent_id_field()):
+                            facet['parent'] = True
+                            if 'resource_type' not in facet:
+                                facet['resource_type'] = \
+                                    self.parent_plugin_type()
+
+                        facets.append(facet)
+
             return facets
 
-        facets = get_facets_for(self.get_mapping()['properties'])
+        facets = get_facets_for(self.get_mapping()['properties'],
+                                self.get_mapping().get('_meta', {}))
 
         # Don't retrieve facet terms for any excluded fields
         included_fields = set(f['name'] for f in facets)

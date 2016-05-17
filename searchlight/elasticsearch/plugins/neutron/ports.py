@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.neutron import notification_handlers
 from searchlight.elasticsearch.plugins.neutron import serialize_port
@@ -26,7 +27,7 @@ class PortIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(self):
-        return 'OS::Neutron::Port'
+        return resource_types.NEUTRON_PORT
 
     @classmethod
     def parent_plugin_type(cls):
@@ -80,6 +81,17 @@ class PortIndex(base.IndexBase):
                 'security_groups': string_not_analyzed,
                 'status': string_not_analyzed,
                 'updated_at': {'type': 'date'}
+            },
+            "_meta": {
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "tenant_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "fixed_ips.subnet_id": {
+                    "resource_type": resource_types.NEUTRON_SUBNET
+                }
             }
         }
 

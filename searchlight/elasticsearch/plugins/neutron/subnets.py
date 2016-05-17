@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.neutron import notification_handlers
 from searchlight.elasticsearch.plugins.neutron import serialize_subnet
@@ -24,7 +25,7 @@ class SubnetIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(self):
-        return 'OS::Neutron::Subnet'
+        return resource_types.NEUTRON_SUBNET
 
     @classmethod
     def parent_plugin_type(cls):
@@ -75,6 +76,17 @@ class SubnetIndex(base.IndexBase):
                 'subnetpool_id': {'type': 'string', 'index': 'not_analyzed'},
                 'tenant_id': {'type': 'string', 'index': 'not_analyzed'},
                 'updated_at': {'type': 'date'}
+            },
+            "_meta": {
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "tenant_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "subnetpool_id": {
+                    "resource_type": resource_types.NEUTRON_SUBNET_POOL
+                }
             }
         }
 

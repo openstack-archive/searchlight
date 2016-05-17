@@ -16,6 +16,7 @@
 
 from oslo_config import cfg
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.swift import get_swift_accounts
 from searchlight.elasticsearch.plugins.swift import serialize_swift_account
@@ -44,7 +45,7 @@ class AccountIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(cls):
-        return 'OS::Swift::Account'
+        return resource_types.SWIFT_ACCOUNT
 
     def get_mapping(self):
         return {

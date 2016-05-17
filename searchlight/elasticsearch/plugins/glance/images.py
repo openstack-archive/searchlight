@@ -15,6 +15,7 @@
 
 from searchlight.api import policy
 from searchlight.common import property_utils
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance \
     import images_notification_handler
@@ -37,7 +38,7 @@ class ImageIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(cls):
-        return 'OS::Glance::Image'
+        return resource_types.GLANCE_IMAGE
 
     def get_mapping(self):
         return {
@@ -69,6 +70,17 @@ class ImageIndex(base.IndexBase):
                 'created_at': {'type': 'date'},
                 'updated_at': {'type': 'date'}
             },
+            "_meta": {
+                "owner": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "kernel_id": {
+                    "resource_type": resource_types.GLANCE_IMAGE
+                },
+                "ramdisk_id": {
+                    "resource_type": resource_types.GLANCE_IMAGE
+                }
+            }
         }
 
     @property

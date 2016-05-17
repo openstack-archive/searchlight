@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova \
     import notification_handler
@@ -32,7 +33,7 @@ class ServerIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(self):
-        return 'OS::Nova::Server'
+        return resource_types.NOVA_SERVER
 
     def get_mapping(self):
         return {
@@ -93,6 +94,26 @@ class ServerIndex(base.IndexBase):
                 # maintains compatibility with both
                 'security_groups': {'type': 'string', 'index': 'not_analyzed'},
                 'status': {'type': 'string', 'index': 'not_analyzed'},
+            },
+            "_meta": {
+                "image.id": {
+                    "resource_type": resource_types.GLANCE_IMAGE
+                },
+                "flavor.id": {
+                    "resource_type": resource_types.NOVA_FLAVOR
+                },
+                "tenant_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "user_id": {
+                    "resource_type": resource_types.KEYSTONE_USER
+                },
+                "OS-EXT-AZ:availability_zone": {
+                    "resource_type": resource_types.NOVA_AVAILABILITY_ZONE
+                },
+                "security_groups": {
+                    "resource_type": resource_types.NOVA_SECURITY_GROUP
+                }
             },
         }
 

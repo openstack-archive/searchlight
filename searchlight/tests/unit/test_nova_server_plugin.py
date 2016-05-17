@@ -506,7 +506,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         image_facet = list(filter(lambda f: f['name'] == 'image.id',
                                   facets))[0]
         expected_status = {'name': 'status', 'options': [], 'type': 'string'}
-        expected_image = {'name': 'image.id', 'options': [], 'type': 'string'}
+        expected_image = {'name': 'image.id', 'options': [], 'type': 'string',
+                          'resource_type': 'OS::Glance::Image'}
 
         self.assertEqual(expected_status, status_facet)
         self.assertEqual(expected_image, image_facet)

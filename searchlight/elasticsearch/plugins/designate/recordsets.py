@@ -12,6 +12,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import designate
 from searchlight.elasticsearch.plugins.designate import notification_handlers
 
@@ -25,7 +26,7 @@ class RecordSetIndex(designate.DesignateBase):
 
     @classmethod
     def get_document_type(self):
-        return "OS::Designate::RecordSet"
+        return resource_types.DESIGNATE_RECORDSET
 
     def get_mapping(self):
         return {
@@ -69,6 +70,11 @@ class RecordSetIndex(designate.DesignateBase):
             },
             "_parent": {
                 "type": self.parent_plugin_type()
+            },
+            "_meta": {
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                }
             }
         }
 

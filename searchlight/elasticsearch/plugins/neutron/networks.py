@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.neutron import notification_handlers
 from searchlight.elasticsearch.plugins.neutron import serialize_network
@@ -26,7 +27,7 @@ class NetworkIndex(base.IndexBase):
 
     @classmethod
     def get_document_type(self):
-        return 'OS::Neutron::Net'
+        return resource_types.NEUTRON_NETWORK
 
     def get_mapping(self):
         return {
@@ -63,6 +64,14 @@ class NetworkIndex(base.IndexBase):
                 'status': {'type': 'string', 'index': 'not_analyzed'},
                 'tenant_id': {'type': 'string', 'index': 'not_analyzed'},
                 'updated_at': {'type': 'date'}
+            },
+            "_meta": {
+                "project_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "tenant_id": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                }
             }
         }
 
