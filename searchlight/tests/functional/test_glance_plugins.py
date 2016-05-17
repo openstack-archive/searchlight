@@ -57,8 +57,15 @@ class TestGlancePlugins(functional.FunctionalTest):
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
         self.assertEqual(200, response.status)
+        # Image_type is metadata on image and not a 'core' glance property.
+        # Property protection policy defines access similar to other metadata
+        # here.
+        # We need to remove 'image_type' since non-core properties are
+        # allowed only for admin role defined in test policy file located at
+        # searchlight/tests/etc/property-protections.conf (See last section)
         expect_removed = ["x_none_permitted", "x_foo_matcher", "x_none_read",
-                          "any_old_property", "spl_read_only_prop"]
+                          "any_old_property", "spl_read_only_prop",
+                          'image_type']
         expected_result = dict((k, v)
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
@@ -72,7 +79,8 @@ class TestGlancePlugins(functional.FunctionalTest):
                                                       role="spl_role")
         self.assertEqual(200, response.status)
         expect_removed = ["x_none_permitted", "x_foo_matcher", "x_none_read",
-                          "any_old_property", "x_owner_anything"]
+                          "any_old_property", "x_owner_anything",
+                          "image_type"]
         expected_result = dict((k, v)
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
@@ -91,6 +99,7 @@ class TestGlancePlugins(functional.FunctionalTest):
                                if k not in expect_removed)
         expected_result['members'] = []
         expected_result['project_id'] = test_api.TENANT1
+        expected_result['image_type'] = 'image'
 
         self.assertEqual([expected_result], self._get_hit_source(json_content))
 
@@ -154,6 +163,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         response, json_content = self._search_request(admin_match_all,
                                                       test_api.TENANT3,
                                                       role='admin')
+        image_doc['image_type'] = 'image'
         self.assertEqual([image_doc, metadef_doc],
                          self._get_hit_source(json_content))
 

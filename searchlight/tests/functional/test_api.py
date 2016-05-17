@@ -70,6 +70,7 @@ class TestSearchApi(functional.FunctionalTest):
                          set(es_doc['_source'].pop(ROLE_USER_FIELD)))
 
         doc['members'] = []
+        doc['image_type'] = 'image'
         self.assertEqual(doc, es_doc['_source'])
 
     def test_empty_results(self):

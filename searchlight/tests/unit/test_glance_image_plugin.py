@@ -125,6 +125,17 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             UUID1, owner=TENANT1, checksum=CHECKSUM, name='simple', size=256,
             visibility='public', status='active'
         )
+        self.snapshot_image = _image_fixture(
+            UUID1, owner=TENANT1, checksum=CHECKSUM, name='snapshot1',
+            size=256, visibility='public', status='active',
+            extra_properties={
+                'image_type': 'snapshot',
+                'base_image_ref': UUID2,
+                "user_id": UUID3,
+                "instance_uuid": UUID4,
+                "image_state": "available"
+            }
+        )
         self.tagged_image = _image_fixture(
             UUID2, owner=TENANT1, checksum=CHECKSUM, name='tagged', size=512,
             visibility='public', status='active', tags=['ping', 'pong'],
@@ -166,6 +177,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'image_type': 'image',
             'kernel_id': None,
             'members': [],
             'min_disk': None,
@@ -185,12 +197,44 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         serialized = self.plugin.serialize(self.simple_image)
         self.assertEqual(expected, serialized)
 
+    def test_image_snapshot_serialize(self):
+        expected = {
+            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+            'container_format': None,
+            'disk_format': None,
+            'id': UUID1,
+            'image_type': 'image',
+            'kernel_id': None,
+            'members': [],
+            'min_disk': None,
+            'min_ram': None,
+            'name': 'snapshot1',
+            'owner': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'project_id': '6838eb7b-6ded-434a-882c-b344c77fe8df',
+            'protected': False,
+            'size': 256,
+            'status': 'active',
+            'tags': [],
+            'virtual_size': None,
+            'visibility': 'public',
+            'created_at': DATE1,
+            'updated_at': DATE1,
+            "image_type": "snapshot",
+            "base_image_ref": UUID2,
+            "user_id": UUID3,
+            "instance_uuid": UUID4,
+            "image_state": "available",
+        }
+        serialized = self.plugin.serialize(self.snapshot_image)
+        self.assertEqual(expected, serialized)
+
     def test_image_with_tags_serialize(self):
         expected = {
             'checksum': '93264c3edf5972c9f1cb309543d38a5c',
             'container_format': None,
             'disk_format': None,
             'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc',
+            'image_type': 'image',
             'kernel_id': None,
             'members': [],
             'min_disk': None,
@@ -217,6 +261,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'disk_format': None,
             'hypervisor': 'lxc',
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'image_type': 'image',
             'kernel_id': None,
             'members': [],
             'min_disk': None,
@@ -244,6 +289,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'image_type': 'image',
             'kernel_id': None,
             'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
                         '2c014f32-55eb-467d-8fcb-4bd706012f81',
@@ -274,6 +320,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': UUID5,
+            'image_type': 'image',
             'kernel_id': 'KERNEL-ID-SEARCH-LIGHT-ROCKS',
             'ramdisk_id': 'RAMDISK-ID-GO-BRONCOS',
             'members': [],
@@ -335,7 +382,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'disk_format': None,
                             'name': 'simple',
                             'created_at': '2012-05-16T15:27:36Z',
-                            'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d'
+                            'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+                            'image_type': 'image'
                         },
                         {
                             'kernel_id': None,
@@ -356,7 +404,9 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'disk_format': None,
                             'name': 'tagged',
                             'created_at': '2012-05-16T15:27:36Z',
-                            'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc'},
+                            'id': 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc',
+                            'image_type': 'image'
+                        },
                         {
                             'kernel_id': None,
                             'tags': [], 'protected': False,
@@ -375,6 +425,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'owner': TENANT2,
                             'project_id': TENANT2,
                             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+                            'image_type': 'image',
                             'name': 'complex',
                             'created_at': '2012-05-16T15:27:36Z',
                             'disk_format': None
@@ -401,7 +452,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'disk_format': None,
                             'name': 'complex',
                             'created_at': '2012-05-16T15:27:36Z',
-                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7'
+                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+                            'image_type': 'image'
                         },
                         {
                             'kernel_id': 'KERNEL-ID-SEARCH-LIGHT-ROCKS',
@@ -422,7 +474,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'disk_format': None,
                             'name': 'kernel_ramdisk',
                             'created_at': '2012-05-16T15:27:36Z',
-                            'id': 'KERNEL-eae7-4c0f-b50d-RAMDISK'
+                            'id': 'KERNEL-eae7-4c0f-b50d-RAMDISK',
+                            'image_type': 'image'
                         }
                     ], index=None, versions=versions)
 
@@ -495,6 +548,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'image_type': 'image',
             'kernel_id': None,
             'members': [],
             'min_disk': None,
@@ -586,6 +640,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'members': [],
             'virtual_size': None,
             'id': 'c80a1a6c-bd1f-41c5-90ee-81afedb1d58d',
+            'image_type': 'image',
             'size': 256,
             'prop1': 'val1',
             'name': 'simple',
@@ -627,13 +682,14 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'min_disk': None,
             'virtual_size': None,
             'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'image_type': 'image',
             'size': 256,
             'name': 'complex',
             'checksum': '93264c3edf5972c9f1cb309543d38a5c',
             'disk_format': None,
             'protected': False,
             'created_at': DATE1,
-            'updated_at': DATE1
+            'updated_at': DATE1,
         }
         with mock.patch('glanceclient.v2.image_members.Controller.list',
                         return_value=self.members_image_members):
@@ -663,7 +719,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual(set(expected_facet_names), set(facet_names))
 
         facet_option_fields = ('disk_format', 'container_format', 'tags',
-                               'visibility', 'status', 'protected')
+                               'visibility', 'status', 'protected',
+                               'image_type', 'image_state')
         expected_agg_query = {
             'aggs': dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in facet_option_fields),

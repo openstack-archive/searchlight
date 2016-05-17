@@ -69,7 +69,14 @@ class ImageIndex(base.IndexBase):
                 'protected': {'type': 'boolean'},
                 'members': {'type': 'string', 'index': 'not_analyzed'},
                 'created_at': {'type': 'date'},
-                'updated_at': {'type': 'date'}
+                'updated_at': {'type': 'date'},
+
+                # For images based on snapshot
+                'image_type': {'type': 'string', 'index': 'not_analyzed'},
+                'base_image_ref': {'type': 'string', 'index': 'not_analyzed'},
+                'image_state': {'type': 'string', 'index': 'not_analyzed'},
+                'user_id': {'type': 'string', 'index': 'not_analyzed'},
+                'instance_uuid': {'type': 'string', 'index': 'not_analyzed'}
             },
             "_meta": {
                 "owner": {
@@ -83,14 +90,23 @@ class ImageIndex(base.IndexBase):
                 },
                 "ramdisk_id": {
                     "resource_type": resource_types.GLANCE_IMAGE
-                }
+                },
+                "base_image_ref": {
+                    "resource_type": resource_types.GLANCE_IMAGE
+                },
+                "user_id": {
+                    "resource_type": resource_types.KEYSTONE_USER
+                },
+                "instance_uuid": {
+                    "resource_type": resource_types.NOVA_SERVER
+                },
             }
         }
 
     @property
     def facets_with_options(self):
         return ('disk_format', 'container_format', 'tags', 'visibility',
-                'protected', 'status')
+                'protected', 'status', 'image_type', 'image_state')
 
     @property
     def facets_excluded(self):
