@@ -88,13 +88,10 @@ class ServerIndex(base.IndexBase):
                     'type': 'string',
                     'index': 'not_analyzed'
                 },
-
-                'security_groups': {
-                    'type': 'nested',
-                    'properties': {
-                        'name': {'type': 'string'}
-                    }
-                },
+                # Nova gives security group names, where neutron ports
+                # give ids in the same field. There's no solution that
+                # maintains compatibility with both
+                'security_groups': {'type': 'string', 'index': 'not_analyzed'},
                 'status': {'type': 'string', 'index': 'not_analyzed'},
             },
         }
@@ -109,7 +106,7 @@ class ServerIndex(base.IndexBase):
         return ('OS-EXT-AZ:availability_zone',
                 'status', 'image.id', 'flavor.id', 'networks.name',
                 'networks.OS-EXT-IPS:type', 'networks.version',
-                'security_groups.name')
+                'security_groups')
 
     @property
     def facets_excluded(self):
@@ -152,3 +149,12 @@ class ServerIndex(base.IndexBase):
 
     def serialize(self, server):
         return serialize_nova_server(server)
+
+    def filter_result(self, hit, request_context):
+        # Reverse the change we make to security groups in serialize() to
+        # maintain compatibility with the nova API response
+        source = hit['_source']
+        security_groups = source.pop('security_groups', None)
+        if security_groups is not None:
+            source['security_groups'] = [{"name": sg}
+                                         for sg in security_groups]
