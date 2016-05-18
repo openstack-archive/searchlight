@@ -407,17 +407,49 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             request)
 
     def test_highlight_fields(self):
+        """Test that if no highlight_query is given for a field the query is
+        applied, and that highlight terms make it through the deserializer.
+        """
         request = unit_test_utils.get_fake_request()
+
+        highlight_query = {'query_string': {'query': 'gimme everything'}}
+
+        # Apply highlighting to 'name' explicitly setting require_field_match
+        # and 'content' explicitly setting a highlight_query
         request.body = six.b(jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
-            'highlight': {'fields': {'name': {}}}
+            'highlight': {
+                'fields': {
+                    'name': {'require_field_match': True},
+                    'content': {
+                        'highlight_query': highlight_query
+                    }
+                }
+            }
         }))
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight-search'], output['index'])
         self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
-        self.assertEqual({'name': {}}, output['query']['highlight']['fields'])
+
+        expected_highlight = {
+            'fields': {
+                'name': {
+                    # Expects the match_all query we passed in, but preserve
+                    # require_field_match
+                    'highlight_query': {'match_all': {}},
+                    'require_field_match': True
+                },
+                'content': {
+                    # Expect the overridden highlight_query and default
+                    # require_field_match
+                    'highlight_query': highlight_query,
+                    'require_field_match': False
+                }
+            }
+        }
+        self.assertEqual(expected_highlight, output['query']['highlight'])
 
     def test_invalid_limit(self):
         request = unit_test_utils.get_fake_request()

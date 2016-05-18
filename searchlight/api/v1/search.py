@@ -356,6 +356,21 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         return [replace_sort_field(f) for f in sort_order]
 
+    def _set_highlight_queries(self, highlight, query):
+        """If no 'highlight_query' is given, use the input query to avoid
+        highlighting all the filter terms we add for RBAC.
+        """
+        highlight_fields = highlight.get('fields', {})
+        for field_name, highlight_params in six.iteritems(highlight_fields):
+            if 'highlight_query' not in highlight_params:
+                highlight_params['highlight_query'] = query
+
+            # require_field_match defaults to True in es-2, and prevents
+            # highlighting for a field-less query_string ("query": "web")
+            # because the _all field doesn't count as matching any given field
+            if 'require_field_match' not in highlight_params:
+                highlight_params['require_field_match'] = False
+
     def search(self, request):
         body = self._get_request_body(request)
         self._check_allowed(body)
@@ -442,6 +457,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             query_params['limit'] = self._validate_limit(limit)
 
         if highlight is not None:
+            self._set_highlight_queries(highlight, query)
             query_params['query']['highlight'] = highlight
 
         if sort_order is not None:
