@@ -1,0 +1,9 @@
+---
+prelude: >
+    Change the way of doing facets search, replace use of
+    search_type=count with size=0
+other:
+  - Facets search is aggregation-only, no actual documents
+    need to be returned. We do it by setting search_type
+    in search request before, but it has been deprecated in
+    Elasticsearch 2.x, use recommended size=0 instead.
