@@ -197,6 +197,14 @@ services. Each integrated service may require additional configuration
 settings. For example, typically, you will need to add the
 ``searchlight_indexer`` notification topic to each service's configuration.
 
+.. note:: In Newton, notification messaging pools will become the default
+          recommended configuration, which does not require changing any
+          service configurations beyond enabling notifications. To enable
+          the use of a messaging pool instead of separate topics, add the
+          ``notifications_pool`` option in the ``listener`` section of
+          ``searchlight.conf``. In this case, ensure that services are using
+          the same notification topic as searchlight.
+
 See :ref:`searchlight-plugins` for plugin installation and general
 configuration information.
 
