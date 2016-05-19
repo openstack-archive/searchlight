@@ -256,6 +256,16 @@ to add the ``searchlight_indexer`` notification topic to each service's
 configuration in order for Searchlight to receive incremental updates from
 that service.
 
+.. note:: In Newton, notification messaging pools will become the default
+          recommended configuration, which does not require changing any
+          service configurations beyond enabling notifications.
+
+          To enable the use of notification pools instead of a separate
+          topic, add the ``notifications_pool`` option in the ``listener``
+          section of ``searchlight.conf``. There is no need in this case
+          to add an additional topic. Messages will begin to be delivered
+          to the pool after ``searchlight-listener`` has started.
+
 Please review each plugin's documentation for more information:
 
 .. toctree::

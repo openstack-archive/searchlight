@@ -39,7 +39,7 @@ specific to each resource type but can also be in a single file together
 class ``IndexBase`` found in ``searchlight.elasticsearch.plugins.base``.
 
 .. note::
-   
+
     If there are plugins for multiple resources within the same Openstack
     service (for example, Glance images and meta definitions) those plugins
     can exist in the same subpackage ('glance') in different modules, each
@@ -54,7 +54,7 @@ name should be the plugin resource name (typically the name used to represent
 it in Heat_)::
 
     [entry_points]
-    searchlight.index_backend = 
+    searchlight.index_backend =
         os_nova_server = searchlight.elasticsearch.plugins.nova.servers:ServerIndex
 
 .. _Stevedore: http://docs.openstack.org/developer/stevedore/
