@@ -34,7 +34,9 @@ class SnapshotHandler(base.NotificationBase):
 
     @classmethod
     def _get_notification_exchanges(cls):
-        return ['cinder']
+        # Unlike most services cinder doesn't override the exchange name from
+        # the oslo.messaging default
+        return ['openstack']
 
     def get_event_handlers(self):
         return {
