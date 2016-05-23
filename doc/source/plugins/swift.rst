@@ -73,17 +73,18 @@ via middleware is provided in the following patch:
     #Replace <user>,<password>,<rabbitip> and <rabbitport> for your environment values
     transport_url = rabbit://<user>:<password>@<rabbitip>:<rabbitport>/
     notification_driver = messaging
-    notification_topics = searchlight_indexer
+    notification_topics = notifications
 
     # Add oslomiddleware to pipeline:main
     # see example below.
     [pipeline:main]
     pipeline = catch_errors gatekeeper ...<other>... oslomiddleware proxy-logging proxy-server
 
-
 .. note::
 
     Restart the swift proxy API service (s-proxy) after making changes.
+    Starting in Newton, Searchlight can share the same notification topic as
+    other services, because it uses a messaging pool.
 
 Searchlight Configuration
 =========================
@@ -160,6 +161,12 @@ Release Notes
 
 0.2.0.0 (Mitaka)
 ----------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Searchlight must use its own topic. Use the following::
+
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
 
 Large scale swift cluster support is targeted at a future release, but
 we encourage trial deployments to help us address issues as soon as possible.

@@ -60,8 +60,8 @@ Existing local.conf customization
 The search service is driven using a plugin mechanism for integrating to other
 services. Each integrated service may need to be specifically enabled
 in devstack and may require additional configuration settings to work with
-searchlight. For example, typically, you will need to add the
-``searchlight_indexer`` notification topic to each service's configuration.
+searchlight. For example, you typically will need to set the notifications
+driver in each service's configuration.
 
 Please review the plugin documentation and add configuration appropriately:
 

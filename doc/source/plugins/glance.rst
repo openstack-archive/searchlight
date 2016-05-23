@@ -81,15 +81,16 @@ glance-api.conf
 ---------------
 
 Notifications must be configured properly for searchlight to process
-incremental updates. Use the following::
+incremental updates. Enable notifications using the following::
 
-    notification_driver = messaging
-    notification_topics = notifications, searchlight_indexer
-    rpc_backend = 'rabbit'
+    [oslo_messaging_notifications]
+    driver = messaging
 
 .. note::
 
-    Restart glance API (g-api) after making changes.
+    Restart the Glance api service (g-api) after making changes.
+    See :ref:`plugin_notifications` for more information on
+    notification topics.
 
 local.conf (devstack)
 ---------------------
@@ -104,6 +105,15 @@ underneath it.::
 
 Release Notes
 =============
+
+0.2.0.0 (Mitaka)
+----------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Searchlight must use its own topic. Use the following::
+
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
 
 0.1.0.0 (Liberty)
 -----------------

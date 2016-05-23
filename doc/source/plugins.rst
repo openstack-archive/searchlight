@@ -69,6 +69,9 @@ The following shows a sampling of various configuration options in
 or default configuration values. They are intended for exemplary purposes only.
 Please read the rest of the guide for detailed information.::
 
+    [listener]
+    notifications_pool = searchlight
+
     [resource_plugin]
     resource_group_name = searchlight
 
@@ -127,10 +130,10 @@ configuration group of ``[resource_plugin]`` in ``searchlight.conf`` and
 optionally overridden in a specific plugin's configuration. For example::
 
     [resource_plugin]
-    notifications_topic = searchlight_indexer
+    resource_group_name = searchlight
 
     [resource_plugin:os_nova_server]
-    notifications_topic = searchlight_indexer_nova
+    resource_group_name = searchlight-nova-servers
 
 **Non-Inheritable** common configuration options are honored by all plugins,
 but must be specified directly in that plugin's configuration group. They
@@ -139,6 +142,28 @@ example::
 
     [resource_plugin:os_glance_image]
     enabled = false
+
+.. _plugin_notifications:
+
+Notifcations
+............
+
+There are two ways to configure services to send notifications that
+Searchlight can receive. The recommended method is to configure
+Searchlight to use the notification topic that each service is already
+configured to use and then to allow Searchlight to consume messages from
+that topic using a pool, touched on in the `messaging documentation`_.
+Searchlight uses this configuration by default.
+
+.. _`messaging documentation`: http://docs.openstack.org/developer/oslo.messaging/notification_listener.html
+
+**Topics**
+
+Searchlight defaults to using the oslo notification topic of
+``notifications``. This is the oslo default topic which most services also
+use to broadcast their notifications. You will need to change the topic in both
+``searchlight.conf`` and the various service configuration files if you want
+to modify the topic used by Searchlight. Each plugin can use a different topic.
 
 Notification topics are a special case. It is possible to override
 the notification ``topic`` as a shared setting; it is also possible to
@@ -155,6 +180,18 @@ example) neutron is using a separate notification topic::
 
 If you override one service topic, you must provide topic,exchange pairs
 for all service notifications a plugin supports.
+
+**Pools**
+
+In addition, Searchlight uses a notification pool. This allows Searchlight
+to listen on the same topic to which other services are listening while
+ensuring that Searchlight still gets its own copy of each notification. The
+default notification pool is set to ``searchlight``. This is set using the
+``notifications_pool`` setting in the ``[listener]`` configuration group.
+Example::
+
+    [listener]
+    notification_pools = searchlight
 
 See :ref:`individual-plugin-configuration` for more information and examples
 on individual plugin configuration.
@@ -188,8 +225,8 @@ Inheritable Common Configuration Options
 |                     |               | has some advantages, particularly   |                           |
 |                     |               | around memory usage.                |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
-| notifications_topic | searchlight\_ | The oslo.messaging topic on which   | | Restart listener        |
-|                     |   indexer     | services send notifications. Each   |                           |
+| notifications_topic | notifications | The oslo.messaging topic on which   | Restart listener          |
+|                     |               | services send notifications. Each   |                           |
 |                     |               | plugin defines a list of exchanges  |                           |
 |                     |               | to which it will subscribe.         |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+

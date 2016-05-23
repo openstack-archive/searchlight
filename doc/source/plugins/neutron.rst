@@ -82,14 +82,16 @@ neutron.conf
 ------------
 
 Notifications must be configured properly for searchlight to process
-incremental updates. Use the following::
+incremental updates. Enable notifications using the following::
 
-    notification_driver = messaging
-    notification_topics = searchlight_indexer
+    [oslo_messaging_notifications]
+    driver = messaging
 
 .. note::
 
     Restart the Neutron api service (q-svc) after making changes.
+    See :ref:`plugin_notifications` for more information on
+    notification topics.
 
 local.conf (devstack)
 ---------------------
@@ -118,7 +120,13 @@ Release Notes
 =============
 
 0.2.0.0 (Mitaka)
------------------
+----------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Searchlight must use its own topic. Use the following::
+
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
 
 DHCP ports are *not* indexed. Neutron doesn't provide a reliable way for
 Searchlight to index these ports since they are created and modified
