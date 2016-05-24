@@ -1,0 +1,62 @@
+---
+prelude: |
+  The initial mitaka release (0.2) did not support
+  ElasticSearch 2.x. ElasticSearch made several changes
+  to internal index data mappings that were not
+  backwards compatible with ElasticSearch 1.x. This
+  release has all the changes required for Searchlight
+  to support both ElasticSearch 1.x and 2.x.
+
+  Searchlight now supports oslo pools instead of requiring
+  a different topic for each listener. This simplifies deployment
+  configuration. Previously, services would have to be specifically
+  configured to send notifications to the Searchlight topic. With
+  this change, Searchlight can share topics with other services
+  such as Ceilometer.
+upgrade:
+  - To support ElasticSearch 1.x and 2.x, several internal data
+    mappings have been updated. If you previously deployed Searchlight,
+    you will need to reindex your resource data using
+    ``searchlight-manage index sync``. You may re-index everything
+    or limit it to ``OS::Nova::Server``, ``OS::Glance::Image``,
+    ``OS::Glance::Metadef``, ``OS::Cinder:Volume``,
+    and ``OS::Cinder::Snapshot``.
+  - |
+    To start using a pool with a shared topic instead of separate topics:
+
+    * Update the respective service configuration files for searchlight
+      enabled plugins to only publish to a single topic
+      (e.g. set ``notification_topics = notifications``). If you have
+      Ceilometer enabled, this must be the same topic which Ceilometer uses.
+      You also typically must restart each service for the change to
+      take effect. For example, in ``nova.conf``, ``glance-api.conf``,
+      ``cinder.conf``, ``neutron.conf``, and ``designate.conf``:
+
+    ::
+
+      notification_topics = notifications
+
+    * Update ``searchlight.conf``. In the ``[resource_plugin]`` section, set
+      ``notifications_topic`` to  match the shared topic that you set in the
+      service configurations. In the ``[listener]`` sections, set
+      ``notifications_pool`` to your desired pool name. The default name
+      starting in Newton is ``searchlight``. The ``notifications_pool`` does
+      not have to match anything from other services configuration files.
+      For example:
+
+    ::
+
+      [resource_plugin]
+      notifications_topic = notifications
+
+      [listener]
+      notifications_pool = searchlight
+fixes:
+  - Bug 1570213 Apply query to highlight query
+  - Bug 1532010 Ensure consistency in mapping field types
+  - Bug 1570674 Fix unicode error when booting instance from volume
+  - Bug 1570199 Fix inconsistent mapping in image plugin
+  - Bug 1568709 Remove port.create.end handler from nova
+  - Bug 1565015 Add volume.retype event
+  - Bug 1583215 Correct Cinder exchange value
+  - Bug 1583215 Enable notification messaging pools
