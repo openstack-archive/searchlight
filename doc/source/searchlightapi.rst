@@ -402,7 +402,9 @@ Faceting
 Searchlight can provide a list of field names and values present for those
 fields for each registered resource type. Exactly which fields are returned
 and whether values are listed is up to each plugin. Some fields or values may
-only be listed for administrative users.
+only be listed for administrative users. For some string fields, 'facet_field'
+may be included in the result and can be used to do an exact term
+match against facet options.
 
 To list supported facets, issue a ``GET`` to
 ``http://searchlight.example.com/v1/search/facets``::
@@ -423,7 +425,8 @@ To list supported facets, issue a ``GET`` to
       },
       {
         "name": "name",
-        "type": "string"
+        "type": "string",
+        "facet_field": "name.raw"
       },
       ...
     ],
@@ -455,7 +458,8 @@ To list supported facets, issue a ``GET`` to
       },
       {
         "name": "name",
-        "type": "string"
+        "type": "string",
+        "facet_field": "name.raw"
       },
       {
         "name": "image.id",

@@ -29,6 +29,9 @@ import searchlight.tests.utils as test_utils
 
 CONF = cfg.CONF
 
+USER1 = u'27f4d76b-be62-4e4e-aa33bb11cc55'
+TENANT1 = u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0'
+
 
 class TestPlugin(test_utils.BaseTestCase):
     def setUp(self):
@@ -514,3 +517,108 @@ class TestPlugin(test_utils.BaseTestCase):
                 }
             ]
             self.assertEqual(expected, facets)
+
+    def test_raw_subfield_facets(self):
+        mock_engine = mock.Mock()
+        simple_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        simple_plugin.engine = mock_engine
+        mock_engine.search.return_value = {
+            'aggregations': {
+                'name': {
+                    'buckets': [
+                        {
+                            'key': 'klopp',
+                            'doc_count': 1
+                        },
+                        {
+                            'key': 'bob',
+                            'doc_count': 2
+                        }]
+                }
+            }
+        }
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search/facets', is_admin=True)
+
+        raw_field_mapping = {
+            'properties': {
+                # not analyzed string field
+                'id': {'type': 'string', 'index': 'not_analyzed'},
+                # analyzed string field with a raw subfield
+                'name': {
+                    'type': 'string',
+                    'fields': {
+                        'raw': {'type': 'string', 'index': 'not_analyzed'}
+                    }
+                },
+                # non-string field with a raw subfield
+                'non_string_field': {
+                    'type': 'date',
+                    'fields': {
+                        'raw': {'type': 'string'}
+                    }
+                }
+            }
+        }
+
+        with mock.patch.object(simple_plugin, 'get_mapping',
+                               return_value=raw_field_mapping):
+            with mock.patch.object(simple_plugin.__class__,
+                                   'facets_with_options',
+                                   new_callable=mock.PropertyMock,
+                                   return_value=('name',)):
+                facets = simple_plugin.get_facets(fake_request.context,
+                                                  all_projects=True)
+                expected = [
+                    {
+                        'type': 'string',
+                        'name': 'id'
+                    },
+                    {
+                        'type': 'string',
+                        'name': 'name',
+                        'facet_field': 'name.raw',
+                        'options': [
+                            {
+                                'key': 'klopp',
+                                'doc_count': 1
+                            },
+                            {
+                                'key': 'bob',
+                                'doc_count': 2
+                            }
+                        ]
+                    },
+                    {
+                        'type': 'date',
+                        'name': 'non_string_field'
+                    }
+                ]
+
+                facets = sorted(facets, key=lambda facet: facet['name'])
+                # Test if facets query result is as expected
+                self.assertEqual(expected, facets)
+
+                expected_body = {
+                    'query': {
+                        'filtered': {
+                            'filter': {
+                                'and': [{'term': {ROLE_USER_FIELD: 'admin'}}]
+                            }
+                        }
+                    },
+                    'aggs': {
+                        'name': {
+                            'terms': {'field': 'name.raw', 'size': 0}
+                        }
+                    }
+                }
+
+                # Test if engine gets called with right search query
+                mock_engine.search.assert_called_with(
+                    index=simple_plugin.alias_name_search,
+                    doc_type=simple_plugin.get_document_type(),
+                    body=expected_body,
+                    ignore_unavailable=True,
+                    size=0)
