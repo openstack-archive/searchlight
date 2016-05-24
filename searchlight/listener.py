@@ -36,6 +36,9 @@ listener_opts = [
                min=1,
                help='Number of workers for notification service. A single '
                'notification agent is enabled by default.'),
+    cfg.StrOpt('notifications_pool',
+               help='Use an oslo.messaging pool, which can be an alternative '
+               'to multiple topics. ')
 ]
 
 CONF = cfg.CONF
@@ -122,7 +125,8 @@ class ListenerService(os_service.Service):
             transport,
             targets,
             endpoints,
-            executor='threading')
+            executor='threading',
+            pool=CONF.listener.notifications_pool)
 
         listener.start()
         self.listeners.append(listener)

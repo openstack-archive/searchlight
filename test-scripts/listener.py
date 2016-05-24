@@ -31,9 +31,9 @@ except ImportError:
 
 
 topic = 'searchlight_indexer'
-password = os.environ.get('OS_PASSWORD')
+password = os.environ.get('RABBIT_PASSWORD', os.environ.get('OS_PASSWORD'))
 host = urlparse.urlparse(os.environ.get('OS_AUTH_URL')).hostname
-username = 'stackrabbit'
+username = os.environ.get('RABBIT_USER', 'stackrabbit')
 
 
 class EP(object):

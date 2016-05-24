@@ -110,6 +110,35 @@ make it output notifications by editing ``/etc/neutron/neutron.conf`` and
 adding under the ``[DEFAULT]`` section::
 
     notification_driver = messaging
+
+There are then two ways to configure the service to send notifications that
+Searchlight can receive. The recommended method is to use notification pools,
+touched on in the `messaging documentation`_.
+
+.. _`messaging documentation`: http://docs.openstack.org/developer/oslo.messaging/notification_listener.html
+
+Notification pools
+##################
+
+A notification messaging pool allows additional listeners to receive
+messages on an existing topic. By default, Openstack services send notification
+messages to an oslo.messaging 'topic' named `notifications`. To view these
+notifications while still allowing ``searchlight-listener`` or Ceilometer's
+agent to continue to recieve them, you may use the utility script in
+``test-scripts/listener.py``::
+
+    . ~/devstack/openrc admin admin
+    # If your rabbitmq user/pass are not the same as for devstack, you
+    # can set RABBIT_PASSWORD and/or RABBIT_USER
+    ./test-scripts/listener.py neutron test-notifications
+
+Adding a separate topic
+#######################
+
+In the same config file (``/etc/neutron/neutron.conf``) the following line
+(again, under the ``[DEFAULT]`` section) will cause neutron to output
+notifications to a topic named ``searchlight_indexer``::
+
     notification_topics = searchlight_indexer
 
 .. note::
@@ -129,6 +158,8 @@ tool; there is also a utility script in ``test-scripts/listener.py`` that
 will listen for notifications::
 
     . ~/devstack/openrc admin admin
+    # If your rabbitmq user/pass are not the same as for devstack, you
+    # can set RABBIT_PASSWORD and/or RABBIT_USER
     ./test-scripts/listener.py neutron
 
 .. note::
@@ -140,6 +171,9 @@ will listen for notifications::
         topic = 'searchlight_indexer'
         # to
         topic = 'my_test_topic'
+
+Using the results
+#################
 
 Issuing various commands (``neutron net-create``, ``neutron net-update``,
 ``neutron net-delete``) will cause ``listener.py`` to receive notifications.
