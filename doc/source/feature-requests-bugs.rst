@@ -62,7 +62,7 @@ Bug Reports
 
 Current Bugs are found here:
 
- * https://blueprints.launchpad.net/searchlight
+ * https://bugs.launchpad.net/searchlight
 
 A bug may be filed here:
 
