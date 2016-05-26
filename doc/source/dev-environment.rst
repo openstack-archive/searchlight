@@ -194,19 +194,15 @@ Plugin Configuration
 
 The search service is driven using a plugin mechanism for integrating to other
 services. Each integrated service may require additional configuration
-settings. For example, typically, you will need to add the
-``searchlight_indexer`` notification topic to each service's configuration.
+settings. For example, you typically will need to enable the
+``oslo_messaging_notifications`` messaging driver and may need to add
+the ``notifications`` topic to each service's configuration.
 
-.. note:: In Newton, notification messaging pools will become the default
-          recommended configuration, which does not require changing any
-          service configurations beyond enabling notifications. To enable
-          the use of a messaging pool instead of separate topics, add the
-          ``notifications_pool`` option in the ``listener`` section of
-          ``searchlight.conf``. In this case, ensure that services are using
-          the same notification topic as searchlight.
-
-See :ref:`searchlight-plugins` for plugin installation and general
-configuration information.
+Searchlight uses notification messaging pools. This usually does not
+require changing any service configurations beyond enabling the notifications
+driver. Searchlight uses sensible defaults for most deployments, but if you
+want to customize the settings see :ref:`searchlight-plugins` for plugin
+installation and general configuration information.
 
 See each plugin below for detailed information about specific plugins:
 
@@ -389,8 +385,11 @@ Use rabbitmqctl to examine unconsumed notifications::
 
     sudo rabbitmqctl list_queues | grep info
 
-Currently notifications from other services may be consumed by other
-listeners and searchlight will not receive the notifications. This is
-being investigated. This does mean that you can not currently use listener
-based updates in an environment that has ceilometer deployed. You will need
-to periodically perform a few full re-index operation.
+There are also a number of management tools available to help with
+troubleshooting.
+
+Please see: https://www.rabbitmq.com/management.html
+
+If you have searchlight setup to share a notification topic, but do
+not have a notification pool configured, then notifications may be consumed
+by other listeners and searchlight will not receive the notifications.

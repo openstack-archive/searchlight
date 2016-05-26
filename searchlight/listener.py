@@ -37,6 +37,7 @@ listener_opts = [
                help='Number of workers for notification service. A single '
                'notification agent is enabled by default.'),
     cfg.StrOpt('notifications_pool',
+               default='searchlight-listener',
                help='Use an oslo.messaging pool, which can be an alternative '
                'to multiple topics. ')
 ]

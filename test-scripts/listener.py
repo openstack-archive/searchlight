@@ -30,7 +30,7 @@ except ImportError:
     import urllib.parse as urlparse
 
 
-topic = 'searchlight_indexer'
+topic = 'notifications'
 password = os.environ.get('RABBIT_PASSWORD', os.environ.get('OS_PASSWORD'))
 host = urlparse.urlparse(os.environ.get('OS_AUTH_URL')).hostname
 username = os.environ.get('RABBIT_USER', 'stackrabbit')

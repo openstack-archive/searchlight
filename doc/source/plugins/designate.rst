@@ -71,14 +71,17 @@ designate.conf
 --------------
 
 Notifications must be configured properly for searchlight to process
-incremental updates. Use the following::
+incremental updates. Enable notifications using the following::
 
-    notification_driver = messaging
-    notification_topics = notifications,searchlight_indexer
-    rpc_backend = 'rabbit'
+    [oslo_messaging_notifications]
+    driver = messaging
 
-Restart designate-central, designate-pool-manager, designate-zone-manager and
-you should be good to go!
+.. note::
+
+    Restart ``designate-central``, ``designate-pool-manager``, and
+    ``designate-zone-manager`` after making changes.
+    See :ref:`plugin_notifications` for more information on
+    notification topics.
 
 local.conf (devstack)
 ---------------------
@@ -113,6 +116,12 @@ Release Notes
 
 0.2.0.0 (Mitaka)
 ----------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Searchlight must use its own topic. Use the following::
+
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
 
 The Designate notification limitations mentioned in Liberty still apply.
 

@@ -69,16 +69,17 @@ nova.conf
 ---------
 
 Notifications must be configured properly for searchlight to process
-incremental updates. Use the following::
+incremental updates. Enable notifications using the following::
 
-    notification_driver = messaging
-    notification_topics = notifications, searchlight_indexer
-    rpc_backend = 'rabbit'
+    [oslo_messaging_notifications]
+    driver = messaging
     notify_on_state_change=vm_and_task_state
 
 .. note::
 
     Restart Nova API and Nova scheduler (n-api, n-sch) after making changes.
+    See :ref:`plugin_notification_topics` for more information on
+    notification topics.
 
 local.conf (devstack)
 ---------------------
@@ -102,15 +103,16 @@ neutron.conf
 ------------
 
 Notifications must be configured properly for searchlight to process
-incremental updates. Use the following::
+incremental updates. Enable notifications using the following::
 
-    notification_driver = messaging
-    notification_topics = searchlight_indexer
-    rpc_backend = 'rabbit'
+    [oslo_messaging_notifications]
+    driver = messaging
 
 .. note::
 
-    Restart the Neutron service (q-svc) after making changes.
+    Restart the Neutron api service (q-svc) after making changes.
+    See :ref:`plugin_notifications` for more information on
+    notification topics.
 
 local.conf (devstack)
 ---------------------
@@ -128,6 +130,12 @@ Release Notes
 
 0.2.0.0 (Mitaka)
 ----------------
+
+Notifications must be configured properly for searchlight to process
+incremental updates. Searchlight must use its own topic. Use the following::
+
+    notification_driver = messaging
+    notification_topics = searchlight_indexer
 
 The following fields are exposed to adminstrators only for nova instances:
  * OS-EXT-SRV-ATTR:*
