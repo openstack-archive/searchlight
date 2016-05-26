@@ -67,7 +67,6 @@ class Server(object):
                          passed from the FunctionalTestCase.
         :param port: The port to start a server up on.
         """
-        self.verbose = True
         self.debug = True
         self.no_venv = False
         self.test_dir = test_dir
@@ -243,7 +242,6 @@ class SearchServer(Server):
         self.property_protection_rule_format = 'roles'
 
         self.conf_base = """[DEFAULT]
-verbose = %(verbose)s
 debug = %(debug)s
 log_file = %(log_file)s
 api_limit_max = 1000
