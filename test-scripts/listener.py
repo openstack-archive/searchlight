@@ -20,14 +20,9 @@ import json
 import os
 from oslo_config import cfg
 import oslo_messaging
+import six.moves.urllib.parse as urlparse
 import sys
 import time
-
-
-try:
-    import urlparse as urlparse
-except ImportError:
-    import urllib.parse as urlparse
 
 
 topic = 'notifications'
