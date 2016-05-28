@@ -121,3 +121,9 @@ class InvalidJsonPatchPath(JsonPatchException):
 
 class IndexingException(SearchlightException):
     message = _("An error occurred during index creation or initial loading")
+
+
+class InvalidAPIVersionProvided(SearchlightException):
+    message = _("The provided API version is not supported, "
+                "the current available version range for %(service)s "
+                "is: from %(min_version)s to %(max_version)s.")

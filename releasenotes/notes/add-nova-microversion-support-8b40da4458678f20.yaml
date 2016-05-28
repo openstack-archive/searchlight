@@ -1,0 +1,6 @@
+---
+features:
+  - Added microversion support for Nova plugins, the default
+    API version for Nova plugins is 2.1. User can change the
+    API microversion for Nova using compute_api_version config
+    option added in section service_credentials:nova.

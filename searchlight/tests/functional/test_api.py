@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import json
+import mock
 import six
 import time
 import uuid
@@ -27,6 +28,11 @@ TENANT2 = str(uuid.uuid4())
 TENANT3 = str(uuid.uuid4())
 
 USER1 = str(uuid.uuid4())
+
+fake_version_list = [test_utils.FakeVersion('2.1'),
+                     test_utils.FakeVersion('2.1')]
+
+nova_version_getter = 'novaclient.v2.client.versions.VersionManager.list'
 
 MATCH_ALL = {"query": {"match_all": {}}, "sort": [{"name": {"order": "asc"}}]}
 EMPTY_RESPONSE = {"hits": {"hits": [], "total": 0, "max_score": 0.0},
@@ -231,10 +237,12 @@ class TestSearchApi(functional.FunctionalTest):
             u'updated_at': u'2016-04-07T15:51:35Z',
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
-        self._index(
-            servers_plugin,
-            [test_utils.DictObj(**server1), test_utils.DictObj(**server2),
-             test_utils.DictObj(**server3)])
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(
+                servers_plugin,
+                [test_utils.DictObj(**server1),
+                 test_utils.DictObj(**server2),
+                 test_utils.DictObj(**server3)])
 
         response, json_content = self._facet_request(
             TENANT1,
@@ -308,9 +316,11 @@ class TestSearchApi(functional.FunctionalTest):
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
         }
 
-        self._index(
-            servers_plugin,
-            [test_utils.DictObj(**server1), test_utils.DictObj(**server2)])
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(
+                servers_plugin,
+                [test_utils.DictObj(**server1),
+                 test_utils.DictObj(**server2)])
 
         response, json_content = self._facet_request(
             TENANT1,
@@ -360,9 +370,10 @@ class TestSearchApi(functional.FunctionalTest):
         }
 
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
-        self._index(
-            servers_plugin,
-            [test_utils.DictObj(**s1)])
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(
+                servers_plugin,
+                [test_utils.DictObj(**s1)])
 
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
@@ -413,9 +424,10 @@ class TestSearchApi(functional.FunctionalTest):
         }
 
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
-        self._index(
-            servers_plugin,
-            [test_utils.DictObj(**s1)])
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(
+                servers_plugin,
+                [test_utils.DictObj(**s1)])
 
         # For each of these queries (which are really looking for the same
         # thing) we expect a result for an admin, and no result for a user
@@ -484,7 +496,8 @@ class TestSearchApi(functional.FunctionalTest):
             "created_at": "2016-04-06T12:48:18Z"
         }
 
-        self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
         self._index(images_plugin, [image_doc])
 
         # Modify the policy file to disallow some things

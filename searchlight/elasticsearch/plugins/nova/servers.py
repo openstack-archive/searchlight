@@ -29,7 +29,7 @@ class ServerIndex(base.IndexBase):
     NotificationHandlerCls = notification_handler.InstanceHandler
 
     # Will be combined with 'admin_only_fields' from config
-    ADMIN_ONLY_FIELDS = ['OS-EXT-SRV-ATTR:*']
+    ADMIN_ONLY_FIELDS = ['OS-EXT-SRV-ATTR:*', 'host_status']
 
     @classmethod
     def get_document_type(self):
@@ -95,6 +95,17 @@ class ServerIndex(base.IndexBase):
                 # maintains compatibility with both
                 'security_groups': {'type': 'string', 'index': 'not_analyzed'},
                 'status': {'type': 'string', 'index': 'not_analyzed'},
+                # Nova adds/removes fields using microversion mechanism, check
+                # http://git.openstack.org/cgit/openstack/nova/tree/nova/api/openstack/rest_api_version_history.rst
+                # for detailed Nova microversion history.
+                # Added in microversion 2.9
+                'locked': {'type': 'string', 'index': 'not_analyzed'},
+                # Added in microversion 2.16
+                'host_status': {'type': 'string', 'index': 'not_analyzed'},
+                # Added in microversion 2.19
+                'description': {'type': 'string'},
+                # Added in microversion 2.26
+                'tags': {'type': 'string'},
             },
             "_meta": {
                 "image.id": {
@@ -117,6 +128,18 @@ class ServerIndex(base.IndexBase):
                 },
                 "security_groups": {
                     "resource_type": resource_types.NOVA_SECURITY_GROUP
+                },
+                "locked": {
+                    "min_version": "2.9"
+                },
+                "host_status": {
+                    "min_version": "2.16"
+                },
+                "description": {
+                    "min_version": "2.19"
+                },
+                "tags": {
+                    "min_version": "2.26"
                 }
             },
         }
@@ -131,7 +154,7 @@ class ServerIndex(base.IndexBase):
         return ('OS-EXT-AZ:availability_zone',
                 'status', 'image.id', 'flavor.id', 'networks.name',
                 'networks.OS-EXT-IPS:type', 'networks.version',
-                'security_groups')
+                'security_groups', 'host_status', 'locked')
 
     @property
     def facets_excluded(self):
@@ -139,7 +162,7 @@ class ServerIndex(base.IndexBase):
         fields should not be offered as facet options, or those that should
         only be available to administrators.
         """
-        return {'tenant_id': True, 'project_id': True,
+        return {'tenant_id': True, 'project_id': True, 'host_status': True,
                 'created': False, 'updated': False}
 
     def _get_rbac_field_filters(self, request_context):

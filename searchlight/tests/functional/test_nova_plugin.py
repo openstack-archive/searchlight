@@ -11,12 +11,18 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+import mock
 
 from searchlight.tests import functional
 from searchlight.tests import utils
 
 TENANT1 = u"1816a16093df465dbc609cf638422a05"
 TENANT_ID = u"1dd2c5280b4e45fc9d7d08a81228c891"
+
+fake_version_list = [utils.FakeVersion('2.1'),
+                     utils.FakeVersion('2.1')]
+
+nova_version_getter = 'novaclient.v2.client.versions.VersionManager.list'
 
 
 class TestNovaPlugins(functional.FunctionalTest):
@@ -27,7 +33,8 @@ class TestNovaPlugins(functional.FunctionalTest):
         self.server_plugin = self.initialized_plugins['OS::Nova::Server']
         self.server_objects = self._load_fixture_data('load/servers.json')
 
-    def test_hypervisor_rbac(self):
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_hypervisor_rbac(self, mock_version):
         self._index(self.hyper_plugin,
                     [utils.DictObj(**hyper) for hyper in self.hyper_objects])
         response, json_content = self._search_request(
@@ -88,7 +95,8 @@ class TestNovaPlugins(functional.FunctionalTest):
         actual_sources = [process(hit['_source']) for hit in hits]
         self.assertEqual(expected_sources, actual_sources)
 
-    def _index_data(self):
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def _index_data(self, mock_version):
 
         self._index(self.server_plugin,
                     [utils.DictObj(**server) for server in self.server_objects]

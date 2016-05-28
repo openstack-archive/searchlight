@@ -75,6 +75,9 @@ Please read the rest of the guide for detailed information.::
     [resource_plugin]
     resource_group_name = searchlight
 
+    [service_credentials:nova]
+    compute_api_version = 2.1
+
     [resource_plugin:os_nova_server]
     enabled = True
     admin_only_fields = OS-EXT-SRV*,OS-EXT-STS:vm_state

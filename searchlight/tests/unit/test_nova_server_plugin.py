@@ -90,6 +90,10 @@ net_ip4_6 = {
         }
     ]
 }
+
+fake_version_list = [test_utils.FakeVersion('2.1'),
+                     test_utils.FakeVersion('2.1')]
+
 net_ipv4 = {u'net4': [dict(net_ip4_6[u'net4'][0])]}
 
 _now = datetime.datetime.utcnow()
@@ -98,6 +102,7 @@ created_now = _five_minutes_ago.strftime('%Y-%m-%dT%H:%M:%SZ')
 updated_now = _now.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 nova_server_getter = 'novaclient.v2.client.servers.ServerManager.get'
+nova_version_getter = 'novaclient.v2.client.versions.VersionManager.list'
 
 
 def _instance_fixture(instance_id, name, tenant_id, **kwargs):
@@ -197,7 +202,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
     def test_document_type(self):
         self.assertEqual('OS::Nova::Server', self.plugin.get_document_type())
 
-    def test_serialize(self):
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_serialize(self, mock_version):
         expected = {
             u'OS-DCF:diskConfig': u'MANUAL',
             u'OS-EXT-AZ:availability_zone': u'az1',
@@ -258,7 +264,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         self.assertEqual(expected, serialized)
 
-    def test_serialize_no_image(self):
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_serialize_no_image(self, mock_version):
         instance = _instance_fixture(
             ID3, u'instance3', tenant_id=TENANT1,
             flavor=flavor1, image='', addresses=net_ipv4,
@@ -341,9 +348,10 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
                           'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
         expected_facet_names = [
-            'OS-EXT-AZ:availability_zone', 'created_at', 'flavor.id', 'id',
-            'image.id', 'name', 'owner', 'security_groups', 'status',
-            'updated_at', 'user_id']
+            'OS-EXT-AZ:availability_zone', 'created_at', 'description',
+            'flavor.id', 'id', 'image.id', 'locked', 'name',
+            'owner', 'security_groups', 'status', 'tags', 'updated_at',
+            'user_id']
         expected_facet_names.extend(['networks.' + f for f in network_facets])
 
         self.assertEqual(set(expected_facet_names), set(facet_names))
@@ -356,7 +364,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                     for name in complex_facet_option_fields)
 
         simple_facet_option_fields = (
-            'status', 'OS-EXT-AZ:availability_zone', 'security_groups'
+            'status', 'OS-EXT-AZ:availability_zone', 'security_groups',
+            'locked'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))
@@ -397,9 +406,10 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
                           'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
         expected_facet_names = [
-            'OS-EXT-AZ:availability_zone', 'created_at', 'flavor.id', 'id',
-            'image.id', 'name', 'owner', 'project_id', 'security_groups',
-            'status', 'tenant_id', 'updated_at', 'user_id']
+            'OS-EXT-AZ:availability_zone', 'created_at', 'description',
+            'flavor.id', 'host_status', 'id', 'image.id', 'locked',
+            'name', 'owner', 'project_id', 'security_groups', 'status',
+            'tags', 'tenant_id', 'updated_at', 'user_id']
         expected_facet_names.extend(['networks.' + f for f in network_facets])
 
         self.assertEqual(set(expected_facet_names), set(facet_names))
@@ -411,7 +421,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                     for name in complex_facet_option_fields)
 
         simple_facet_option_fields = (
-            'status', 'OS-EXT-AZ:availability_zone', 'security_groups'
+            'status', 'OS-EXT-AZ:availability_zone', 'security_groups',
+            'host_status', 'locked'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))
@@ -514,7 +525,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual(expected_status, status_facet)
         self.assertEqual(expected_image, image_facet)
 
-    def test_created_at_updated_at(self):
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_created_at_updated_at(self, mock_version):
         self.assertTrue('created_at' not in self.instance1.to_dict())
         self.assertTrue('updated_at' not in self.instance1.to_dict())
 
@@ -524,7 +536,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual(serialized['created_at'], created_now)
         self.assertEqual(serialized['updated_at'], updated_now)
 
-    def test_update_404_deletes(self):
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_update_404_deletes(self, mock_version):
         """Test that if a server is missing on a notification event, it
         gets deleted from the index
         """
@@ -570,7 +583,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
             mock_update.assert_called_with(vol_payload, "a", 1234)
 
-    def test_filter_result(self):
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_filter_result(self, mock_version):
         """We reformat outgoing results so that security group looks like the
         response we get from the nova API.
         """
