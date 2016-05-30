@@ -186,7 +186,6 @@ searchlight.conf
 
     [DEFAULT]
     debug = true
-    verbose = true
     log_file = log/searchlight.log
 
 Plugin Configuration
