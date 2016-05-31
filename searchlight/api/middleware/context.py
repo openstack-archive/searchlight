@@ -86,6 +86,13 @@ class ContextMiddleware(BaseContextMiddleware):
         """
         if req.headers.get('X-Identity-Status') == 'Confirmed':
             req.context = self._get_authenticated_context(req)
+            # Don't allow domain-scoped tokens any further since it's not clear
+            # what access should be allowed
+            if not req.context.tenant:
+                raise webob.exc.HTTPUnauthorized(
+                    "No project/tenant found in the provided token (may be a "
+                    "domain-scoped token?). A project-scoped token must be "
+                    "provided.")
         elif CONF.allow_anonymous_access:
             req.context = self._get_anonymous_context()
         else:
