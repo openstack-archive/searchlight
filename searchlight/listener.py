@@ -99,7 +99,7 @@ class ListenerService(os_service.Service):
                 handler = plugin.obj.get_notification_handler()
                 topic_exchanges = handler.get_notification_topics_exchanges()
                 for plugin_topic in topic_exchanges:
-                    if isinstance(plugin_topic, basestring):
+                    if isinstance(plugin_topic, six.string_types):
                         raise Exception(
                             _LE("Plugin %s should return a list of topic"
                                 "exchange pairs") % plugin.__class__.__name__)
