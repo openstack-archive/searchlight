@@ -464,19 +464,22 @@ class FunctionalTest(test_utils.BaseTestCase):
             "X-User-Id": "f9a41d13-0c13-47e9-bee2-ce4e8bfe958e",
             "X-Tenant-Id": tenant_id,
             "X-Roles": "member",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Accept": "application/json"
         }
         base_headers.update(custom_headers)
         return base_headers
 
     def _request(self, method, uri, tenant, body=None,
-                 role="member", decode_json=True):
+                 role="member", decode_json=True, extra_headers={}):
         custom_headers = {
             "X-Tenant-Id": tenant,
             "X-Roles": role,
         }
+        custom_headers.update(extra_headers)
         headers = self._headers(tenant, custom_headers)
-
+        if not tenant:
+            del headers['X-Tenant-Id']
         kwargs = {
             "headers": headers
         }

@@ -541,3 +541,12 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual(
             1, len(list(filter(lambda p: p['name'] == 'OS::Nova::Server',
                                json_content['plugins']))))
+
+    def test_domain_token_401(self):
+        tenant_id = None
+        domain_id = "default"
+        response, content = self._request(
+            "POST", "/search", tenant_id, {"query": {"match_all": {}}},
+            decode_json=False,
+            extra_headers={"X-Domain-Id": domain_id})
+        self.assertEqual(401, response.status)
