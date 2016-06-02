@@ -21,6 +21,7 @@ from keystoneclient import auth as ks_auth
 from keystoneclient import session as ks_session
 import keystoneclient.v2_0.client as ks_client
 import neutronclient.v2_0.client as neutron_client
+from novaclient import api_versions
 from novaclient import client as nova_client
 import swiftclient
 
@@ -75,7 +76,7 @@ def get_novaclient():
     session = _get_session()
 
     return nova_client.Client(
-        version='2',
+        version=api_versions.APIVersion('2.1'),
         session=session,
         region_name=cfg.CONF.service_credentials.os_region_name,
         endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
