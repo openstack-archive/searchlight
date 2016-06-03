@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import testtools
 
 from searchlight.elasticsearch.plugins import utils as es_utils
 from searchlight.tests import fake_plugins
@@ -80,6 +81,7 @@ class TestReindexing(functional.FunctionalTest):
         expected = {alias_listener: {}, alias_search: {}}
         self.assertEqual(es_alias[new_index]['aliases'], expected)
 
+    @testtools.skip("Skipping until es 2.x issues are resolved")
     def test_reindex_with_plugins(self):
         """Verify the reindexing functionality using both plugins to do the
         reindexing. We want to verify: the number of documents during reindex,
@@ -121,6 +123,7 @@ class TestReindexing(functional.FunctionalTest):
                                     alias_search=alias_search,
                                     alias_listener=alias_listener)
 
+    @testtools.skip("Skipping until es 2.x issues are resolved")
     def test_reindex_with_es(self):
         """Verify the reindexing functionality using the elasticsearch reindex
         method to do the reindexing. We want to verify: the number of documents
@@ -165,6 +168,7 @@ class TestReindexing(functional.FunctionalTest):
                                     alias_search=alias_search,
                                     alias_listener=alias_listener)
 
+    @testtools.skip("Skipping until es 2.x issues are resolved")
     def test_reindex_with_plugin_and_es(self):
         """Verify the reindexing functionality using both the plugin reindex
         and the elasticsearch reindex methods for the reindexing. We want to

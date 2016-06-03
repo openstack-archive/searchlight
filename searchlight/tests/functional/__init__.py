@@ -789,9 +789,11 @@ class ElasticsearchWrapper(object):
             'index.number_of_replicas': 0,
             'network.host': '127.0.0.1',
             'http.port': self.elasticsearch_port,
-            'discovery.zen.ping.multicast.disabled': 'false',
+            'discovery.zen.ping.multicast.enabled': 'false',
             'path.data': elasticsearch_root_dir,
-            'action.auto_create_index': False,
+            'path.conf': elasticsearch_root_dir,
+            'path.logs': elasticsearch_root_dir,
+            'action.auto_create_index': 'false',
             'script.engine.groovy.inline.update': 'on'
         }
         # Set JVM options
@@ -833,7 +835,7 @@ class ElasticsearchWrapper(object):
                 pass
             time.sleep(5)
         else:
-            raise Exception("Elasticsearch failed to start ")
+            raise Exception("Elasticsearch failed to start")
 
 
 elasticsearch_wrapper = ElasticsearchWrapper()
