@@ -58,12 +58,14 @@ class SnapshotHandler(base.NotificationBase):
 
     def delete(self, payload, timestamp):
         snapshot_id = payload['snapshot_id']
+        volume_id = payload['volume_id']
         LOG.debug("Deleting cinder snapshot information for %s", snapshot_id)
         if not snapshot_id:
             return
 
         try:
-            self.index_helper.delete_document({'_id': snapshot_id})
+            self.index_helper.delete_document({'_id': snapshot_id,
+                                               '_parent': volume_id})
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting snapshot %(snapshot_id)s '

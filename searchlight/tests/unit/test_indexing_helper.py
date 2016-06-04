@@ -440,3 +440,99 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                 "reason": "Something " + helper.ALIAS_EXCEPTION_STRING
             }})
         self.assertTrue(helper._is_multiple_alias_exception(alias_exc))
+
+    def test_strip_suffix(self):
+        _id = 'aaaa-bbbb'
+        admin_id = _id + helper.ADMIN_ID_SUFFIX
+        user_id = _id + helper.USER_ID_SUFFIX
+
+        # Test does nothing if there's nothing to do
+        self.assertEqual(
+            _id,
+            helper.strip_role_suffix(_id))
+        self.assertEqual(
+            _id,
+            helper.strip_role_suffix(_id, helper.ADMIN_ID_SUFFIX))
+
+        # Test when there is something to do
+        self.assertEqual(
+            _id,
+            helper.strip_role_suffix(admin_id, helper.ADMIN_ID_SUFFIX))
+        self.assertEqual(
+            _id,
+            helper.strip_role_suffix(user_id, helper.USER_ID_SUFFIX))
+        self.assertEqual(_id, helper.strip_role_suffix(user_id))
+        self.assertEqual(_id, helper.strip_role_suffix(user_id))
+
+        # Test mismatches
+        self.assertEqual(
+            admin_id,
+            helper.strip_role_suffix(admin_id, helper.USER_ID_SUFFIX))
+        self.assertEqual(
+            user_id,
+            helper.strip_role_suffix(user_id, helper.ADMIN_ID_SUFFIX))
+
+    def test_delete_unknown_parent(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSeparatedChildPlugin(es_engine=mock_engine)
+        doc_id = 'aaaa-bbbb'
+        parent_id = '1111-2222'
+
+        # Mock the delete function because the internals are tested elsewhere
+        # First test with parent and routing
+        with mock.patch.object(plugin.index_helper,
+                               'delete_document') as mock_del:
+            mock_engine.search.return_value = {
+                'hits': {
+                    'total': 1,
+                    'hits': [{'_id': doc_id + helper.ADMIN_ID_SUFFIX,
+                              '_routing': parent_id,
+                              '_parent': parent_id + helper.ADMIN_ID_SUFFIX}]
+                }
+            }
+            plugin.index_helper.delete_document_unknown_parent(doc_id)
+            mock_del.assert_called_with({'_id': doc_id,
+                                         '_parent': parent_id,
+                                         '_routing': parent_id})
+
+        # Now no explicit routing
+        with mock.patch.object(plugin.index_helper,
+                               'delete_document') as mock_del:
+            mock_engine.search.return_value = {
+                'hits': {
+                    'total': 1,
+                    'hits': [{'_id': doc_id + helper.ADMIN_ID_SUFFIX,
+                              '_parent': parent_id + helper.ADMIN_ID_SUFFIX}]
+                }
+            }
+            plugin.index_helper.delete_document_unknown_parent(doc_id)
+            mock_del.assert_called_with({'_id': doc_id,
+                                         '_parent': parent_id})
+
+        # Test no results found
+        with mock.patch.object(plugin.index_helper,
+                               'delete_document') as mock_del:
+            mock_engine.search.return_value = {
+                'hits': {
+                    'total': 0,
+                    'hits': []
+                }
+            }
+            plugin.index_helper.delete_document_unknown_parent(doc_id)
+            self.assertEqual(0, mock_del.call_count)
+
+        # Also test a non-separated plugin
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
+        with mock.patch.object(plugin.index_helper,
+                               'delete_document') as mock_del:
+            mock_engine.search.return_value = {
+                'hits': {
+                    'total': 1,
+                    'hits': [{'_id': doc_id,
+                              '_parent': parent_id}]
+                }
+            }
+            plugin.index_helper.delete_document_unknown_parent(doc_id)
+            mock_del.assert_called_with({'_id': doc_id,
+                                         '_parent': parent_id})

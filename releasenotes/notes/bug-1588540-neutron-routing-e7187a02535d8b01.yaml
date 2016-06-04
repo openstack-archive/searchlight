@@ -1,0 +1,8 @@
+---
+prelude: >
+  Fix routing on delete operations for neutron resources.
+fixes:
+  - Fixes a bug where routing wasn't specified for delete
+    operations on neutron child resources.
+  - Fixes some compatibility issues around metafield access
+    in es 1.x versus es 2.x.

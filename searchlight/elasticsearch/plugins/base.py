@@ -382,9 +382,11 @@ class IndexBase(plugin.Plugin):
 
     @property
     def routing_field(self):
-        """Whatever field should be treated as the routing value.
-        This is required for plugins which want to base all the CRUD
-        operations based on the _routing definition.
+        """Whatever field should be treated as the routing value. Whatever is
+        used must be available to all notifications on the child since
+        index/update/delete operations will all require it. Additionally, if
+        it is NOT the parent id, the parent plugin must be routed using the
+        same field. This field is accessed AFTER serialization.
         """
         return None
 
