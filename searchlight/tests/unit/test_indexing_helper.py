@@ -425,3 +425,18 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
         other_exc = Exception("Blah blah")
         self.assertFalse(helper._is_multiple_alias_exception(other_exc))
+
+    def test_multiple_alias_exception_elasticsearch2(self):
+        # The es-2 format is different
+        alias_exc = es_exceptions.RequestError(
+            400,
+            'illegal_argument_exception',
+            {"error": {
+                "root_cause": [{
+                    "type": "illegal_argument_exception",
+                    "reason": "Something " + helper.ALIAS_EXCEPTION_STRING
+                }],
+                "type": "illegal_argument_exception",
+                "reason": "Something " + helper.ALIAS_EXCEPTION_STRING
+            }})
+        self.assertTrue(helper._is_multiple_alias_exception(alias_exc))

@@ -501,6 +501,12 @@ def _is_multiple_alias_exception(e):
        ElasticSearch versions.
     """
     if ALIAS_EXCEPTION_STRING in getattr(e, 'error', ''):
+        # Elasticsearch 1.x
         return True
-    else:
-        return False
+
+    # ES 2 - the error info's in e.info.error.reason
+    exc_info_error = getattr(e, 'info', {}).get('error', {})
+    if ALIAS_EXCEPTION_STRING in exc_info_error.get('reason', ''):
+        return True
+
+    return False
