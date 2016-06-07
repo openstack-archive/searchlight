@@ -1,0 +1,9 @@
+---
+prelude: >
+    Correct facet options on analyzed string fields.
+fixes:
+  - Facet options don't work well with analyzed string
+    fields, because the aggregation runs on tokens.
+    These fields have non-analyzed raw subfields for
+    sorting. Include raw subfields in facet results so
+    that users can use them to do exact matches.

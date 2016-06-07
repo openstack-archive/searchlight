@@ -226,6 +226,14 @@ class IndexBase(plugin.Plugin):
                             'type': properties['type']
                         }
 
+                        # Add raw field if it's an analyzed field,
+                        # aggregation on analyzed string field doesn't
+                        # work well
+                        if (properties['type'] == 'string' and
+                                properties.get('index') != 'not_analyzed' and
+                                'raw' in properties.get('fields', {})):
+                            facet['facet_field'] = '%s.raw' % facet_name
+
                         # Plugin can specify _meta mapping to link an id with a
                         # resource type, which can be used by Client program/UI
                         # to GET more information from the resource type.
@@ -251,7 +259,16 @@ class IndexBase(plugin.Plugin):
 
         # Don't retrieve facet terms for any excluded fields
         included_fields = set(f['name'] for f in facets)
-        facet_terms_for = set(self.facets_with_options) & included_fields
+        options_fields = set(self.facets_with_options) & included_fields
+        raw_fields = dict([(f['name'], f['facet_field'])
+                           for f in facets
+                           if f.get('facet_field')])
+        # If field has a raw field, use a tuple of field name and
+        # raw field name
+        facet_terms_for = [(field, raw_fields[field])
+                           if field in raw_fields
+                           else field
+                           for field in options_fields]
         facet_terms = self._get_facet_terms(facet_terms_for,
                                             request_context,
                                             all_projects,
