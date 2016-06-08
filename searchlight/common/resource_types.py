@@ -28,6 +28,7 @@ NEUTRON_SUBNET = "OS::Neutron::Subnet"
 NEUTRON_ROUTER = "OS::Neutron::Router"
 NEUTRON_SUBNET_POOL = "OS::Neutron::SubnetPool"
 NEUTRON_FLOATINGIP = "OS::Neutron::FloatingIP"
+NEUTRON_SECURITY_GROUP = "OS::Neutron::SecurityGroup"
 
 NOVA_SERVER = "OS::Nova::Server"
 NOVA_HYPERVISOR = "OS::Nova::Hypervisor"

@@ -1,0 +1,112 @@
+{
+    "security_group.create.end": {
+        "event_type": "security_group.create.end",
+        "payload": {
+            "security_group": {
+                "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+                "name": "test-group",
+                "description": "A test security group",
+                "security_group_rules": [{
+                    "remote_group_id": null,
+                    "direction": "egress",
+                    "protocol": null,
+                    "description": "",
+                    "ethertype": "IPv4",
+                    "remote_ip_prefix": null,
+                    "port_range_max": null,
+                    "security_group_id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36",
+                    "port_range_min": null,
+                    "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+                    "id": "c36445af-953d-47e4-85d2-2a6ac8fcba14"
+                },{
+                    "remote_group_id": null,
+                    "direction": "egress",
+                    "protocol": null,
+                    "description": "",
+                    "ethertype": "IPv6",
+                    "remote_ip_prefix": null,
+                    "port_range_max": null,
+                    "security_group_id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36",
+                    "port_range_min": null,
+                    "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+                    "id": "e230cd58-38ad-497d-8601-90e7c2745dbd"
+                }],
+                "id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36"
+            }
+        },
+        "publisher_id": "network.devstack",
+        "ctxt": {
+            "project_name": "demo",
+            "user_id": "d2ac2752732444adac10fc4911fdac75",
+            "project_id": "5fe7c4e4e492490393c674089a178e19",
+            "user_name": "demo"
+        },
+        "metadata": {
+            "timestamp": "2016-03-14 00:44:57.126816",
+            "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+        }
+    },
+    "security_group_rule.create.end": {
+        "event_type": "security_group_rule.create.end",
+        "payload": {
+            "security_group_rule": {
+                "remote_group_id": null,
+                "direction": "ingress",
+                "protocol": "tcp",
+                "description": "",
+                "ethertype": "IPv4",
+                "remote_ip_prefix": "0.0.0.0/0",
+                "port_range_max": 8081,
+                "security_group_id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36",
+                "port_range_min": 8080,
+                "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+                "id": "8452586b-38b0-46c4-bf55-a6953887d8d5"
+            }
+        },
+        "publisher_id": "network.devstack",
+        "ctxt": {
+            "project_name": "demo",
+            "user_id": "d2ac2752732444adac10fc4911fdac75",
+            "project_id": "5fe7c4e4e492490393c674089a178e19",
+            "user_name": "demo"
+        },
+        "metadata": {
+            "timestamp": "2016-03-14 00:44:57.126816",
+            "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+        }
+    },
+    "security_group_rule.delete.end": {
+        "event_type": "security_group_rule.delete.end",
+        "payload": {
+            "security_group_rule_id": "8452586b-38b0-46c4-bf55-a6953887d8d5"
+        },
+        "publisher_id": "network.devstack",
+        "ctxt": {
+            "project_name": "demo",
+            "user_id": "d2ac2752732444adac10fc4911fdac75",
+            "project_id": "5fe7c4e4e492490393c674089a178e19",
+            "user_name": "demo"
+        },
+        "metadata": {
+            "timestamp": "2016-03-14 00:44:57.126816",
+            "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+        }
+    },
+    "security_group.delete.end": {
+        "event_type": "security_group.delete.end",
+        "payload": {
+            "security_group_id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36"
+        },
+        "publisher_id": "network.devstack",
+        "ctxt": {
+            "project_name": "demo",
+            "user_id": "d2ac2752732444adac10fc4911fdac75",
+            "project_id": "5fe7c4e4e492490393c674089a178e19",
+            "user_name": "demo"
+        },
+        "metadata": {
+            "timestamp": "2016-03-14 00:44:57.126816",
+            "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+        }
+    }
+}

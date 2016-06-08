@@ -20,10 +20,12 @@ from searchlight.elasticsearch.plugins.neutron import serialize_floatingip
 from searchlight.elasticsearch.plugins.neutron import serialize_network
 from searchlight.elasticsearch.plugins.neutron import serialize_port
 from searchlight.elasticsearch.plugins.neutron import serialize_router
+from searchlight.elasticsearch.plugins.neutron import serialize_security_group
 from searchlight.elasticsearch.plugins.neutron import serialize_subnet
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
 
+import searchlight.elasticsearch
 from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
@@ -235,3 +237,105 @@ class FloatingIPHandler(base.NotificationBase):
                 'Error deleting floating ip %(fip)s '
                 'from index: %(exc)s') %
                 {'fip': fip_id, 'exc': exc})
+
+
+class SecurityGroupHandler(base.NotificationBase):
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['neutron']
+
+    def get_event_handlers(self):
+        return {
+            'security_group.create.end': self.create_or_update_group,
+            'security_group.delete.end': self.delete_group,
+            'security_group_rule.create.end': self.create_or_update_rule,
+            'security_group_rule.delete.end': self.delete_rule,
+        }
+
+    def create_or_update_group(self, payload, timestamp):
+        group_name = payload['security_group']['name']
+        sec_id = payload['security_group']['id']
+        LOG.debug("Updating security group information for %(grp)s (%(sec)s)" %
+                  {'grp': group_name, 'sec': sec_id})
+
+        # Version doesn't really make sense for security groups,
+        # but we need to normalize the fields.
+        doc = serialize_security_group(payload['security_group'])
+        version = self.get_version(doc, timestamp)
+
+        self.index_helper.save_document(doc, version=version)
+
+    def delete_group(self, payload, timestamp):
+        sec_id = payload['security_group_id']
+        LOG.debug("Deleting security group information for %s", sec_id)
+        try:
+            self.index_helper.delete_document({'_id': sec_id})
+        except Exception as exc:
+            LOG.error(_LE(
+                'Error deleting security_group %(sec_id)s. Error: %(exc)s') %
+                {'sec_id': sec_id, 'exc': exc})
+
+    def create_or_update_rule(self, payload, timestamp):
+        group_id = payload['security_group_rule']['security_group_id']
+        LOG.debug("Updating security group rule information for %s", group_id)
+
+        # Read, modify, write of an existing security group.
+        doc = self.index_helper.get_document(group_id)
+
+        if not doc:
+            return
+        body = doc['_source']
+        if not body or 'security_group_rules' not in body:
+            return
+
+        body['security_group_rules'].append(payload['security_group_rule'])
+
+        # Bump version for race condition prevention.
+        version = doc['_version'] + 1
+        self.index_helper.save_document(body, version=version)
+
+    def delete_rule(self, payload, timestamp):
+        rule_id = payload['security_group_rule_id']
+        LOG.debug("Updating security group rule information for %s", rule_id)
+
+        field = 'security_group_rules'
+
+        # Read, modify, write of an existing security group.
+        doc = self.get_doc_by_nested_field(
+            "security_group_rules", "id", rule_id, version=True)
+
+        if not doc:
+            return
+        body = doc['hits']['hits'][0]['_source']
+        if not body or field not in body:
+            return
+
+        body[field] = list(filter(lambda r: r['id'] != rule_id, body[field]))
+
+        # Bump version for race condition prevention.
+        version = doc['hits']['hits'][0]['_version'] + 1
+        self.index_helper.save_document(body, version=version)
+
+    def get_doc_by_nested_field(self, path, field, value, version=False):
+        """Query ElasticSearch based on a nested field. The caller will
+           need to specify the path of the nested field as well as the
+           field itself. We will include the 'version' field if commanded
+           as such by the caller.
+        """
+        es_engine = searchlight.elasticsearch.get_api()
+
+        # Set up query for accessing a nested field.
+        nested_field = path + "." + field
+        body = {"query": {"nested": {
+                "path": path, "query": {"term": {nested_field: value}}}}}
+        if version:
+            body['version'] = True
+        try:
+            return es_engine.search(index=self.index_helper.alias_name,
+                                    doc_type=self.index_helper.document_type,
+                                    body=body, ignore_unavailable=True)
+        except Exception as exc:
+            LOG.warning(_LW(
+                'Error querying %(p)s %(f)s. Error %(exc)s') %
+                {'p': path, 'f': field, 'exc': exc})
+            return {}

@@ -52,3 +52,11 @@ def serialize_floatingip(fip, updated_at=None):
         serialized['updated_at'] = updated_at or utils.get_now_str()
     serialized['project_id'] = serialized['tenant_id']
     return serialized
+
+
+def serialize_security_group(sec_group, updated_at=None):
+    serialized = copy.deepcopy(sec_group)
+    if 'updated_at' not in sec_group:
+        serialized['updated_at'] = updated_at or utils.get_now_str()
+    serialized['project_id'] = serialized['tenant_id']
+    return serialized
