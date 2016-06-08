@@ -159,7 +159,8 @@ def create_new_index(group):
         try:
             es_engine.indices.create(index=index_name)
         except es_exc.TransportError as e:
-            if e.error.startswith("IndexAlreadyExistsException"):
+            if (e.error.startswith("IndexAlreadyExistsException") or
+                    e.error.startswith("index_already_exists_exception")):
                 # This index already exists! Try again.
                 index_name = None
             else:
