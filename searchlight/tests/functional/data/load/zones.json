@@ -1,0 +1,46 @@
+[
+  {
+    "status": "ACTIVE",
+    "masters": [],
+    "name": "example.com.",
+    "links": {
+      "self": "http://192.168.235.128:9001/v2/zones/3571bf9f-4ee3-42a5-94e0-8bceb01c9ced"
+    },
+    "transferred_at": null,
+    "created_at": "2016-05-24T14:53:51Z",
+    "pool_id": "794ccc2c-d751-44fe-b57f-8894c9f5c842",
+    "updated_at": "2016-05-24T14:53:56Z",
+    "email": "me@example.com",
+    "version": 2,
+    "ttl": 3600,
+    "action": "NONE",
+    "attributes": {},
+    "serial": 1464101631,
+    "project_id": "34518c16d95e40a19b1a95c1916d8335",
+    "type": "PRIMARY",
+    "id": "3571bf9f-4ee3-42a5-94e0-8bceb01c9ced",
+    "description": null
+  },
+  {
+    "status": "PENDING",
+    "masters": [],
+    "name": "sjm.admin-example.com.",
+    "links": {
+      "self": "http://192.168.235.128:9001/v2/zones/d30be20f-24c3-4856-981a-9db61d2a4bc7"
+    },
+    "transferred_at": null,
+    "created_at": "2016-06-09T22:13:59Z",
+    "pool_id": "794ccc2c-d751-44fe-b57f-8894c9f5c842",
+    "updated_at": null,
+    "email": "admin@example.com",
+    "version": 1,
+    "ttl": 3600,
+    "action": "CREATE",
+    "attributes": {},
+    "serial": 1465510439,
+    "project_id": "78d384ce822d420084d706a167f84c95",
+    "type": "PRIMARY",
+    "id": "d30be20f-24c3-4856-981a-9db61d2a4bc7",
+    "description": null
+  }
+]
