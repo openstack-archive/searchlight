@@ -75,6 +75,9 @@ class TestNetworkLoaderPlugin(test_utils.BaseTestCase):
         # Serialization doesn't do much right now; removes subnets
         serialized = self.plugin.serialize(self.network1)
         self.assertNotIn('subnets', serialized)
+        self.assertEqual(_now_str, serialized['updated_at'])
+        # project id should get copied from tenant_id
+        self.assertEqual(TENANT1, serialized['project_id'])
 
     def test_rbac_filter(self):
         fake_request = unit_test_utils.get_fake_request(

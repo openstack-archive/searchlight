@@ -110,6 +110,7 @@ class TestVolumePlugin(test_utils.BaseTestCase):
         self.assertNotIn('_loaded', serialized)
         self.assertNotIn('manager', serialized)
         self.assertNotIn('links', serialized)
+        self.assertEqual(TENANT1, serialized['project_id'])
 
     def test_admin_only(self):
         self.assertEqual(set(['os-vol-mig-status-attr:*', 'os-vol-host-attr:*',

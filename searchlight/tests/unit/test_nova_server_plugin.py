@@ -237,6 +237,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'security_groups': [u'default'],
             u'status': u'ACTIVE',
             u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
+            u'project_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'updated': updated_now,
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55',
             u'networks': [{
@@ -299,6 +300,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'name': u'instance3',
             u'os-extended-volumes:volumes_attached': [],
             u'owner': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
+            u'project_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'security_groups': [u'default'],
             u'status': u'ACTIVE',
             u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
@@ -396,8 +398,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                           'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
         expected_facet_names = [
             'OS-EXT-AZ:availability_zone', 'created_at', 'flavor.id', 'id',
-            'image.id', 'name', 'owner', 'security_groups', 'status',
-            'tenant_id', 'updated_at', 'user_id']
+            'image.id', 'name', 'owner', 'project_id', 'security_groups',
+            'status', 'tenant_id', 'updated_at', 'user_id']
         expected_facet_names.extend(['networks.' + f for f in network_facets])
 
         self.assertEqual(set(expected_facet_names), set(facet_names))

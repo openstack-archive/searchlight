@@ -141,6 +141,7 @@ class TestNovaPlugins(functional.FunctionalTest):
                            u'version': 4}],
             u'os-extended-volumes:volumes_attached': [],
             u'owner': u'1dd2c5280b4e45fc9d7d08a81228c891',
+            u'project_id': u'1dd2c5280b4e45fc9d7d08a81228c891',
             u'security_groups': [{u'name': u'default'}],
             u'status': u'ACTIVE',
             u'tenant_id': u'1dd2c5280b4e45fc9d7d08a81228c891',

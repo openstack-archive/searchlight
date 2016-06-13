@@ -63,6 +63,7 @@ class TestGlancePlugins(functional.FunctionalTest):
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
         expected_result['members'] = []
+        expected_result['project_id'] = test_api.TENANT1
         self.assertEqual([expected_result], self._get_hit_source(json_content))
 
         # Test with the 'spl_role' role
@@ -76,6 +77,8 @@ class TestGlancePlugins(functional.FunctionalTest):
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
         expected_result['members'] = []
+        expected_result['project_id'] = test_api.TENANT1
+
         self.assertEqual([expected_result], self._get_hit_source(json_content))
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -87,6 +90,7 @@ class TestGlancePlugins(functional.FunctionalTest):
                                for k, v in six.iteritems(doc_with_properties)
                                if k not in expect_removed)
         expected_result['members'] = []
+        expected_result['project_id'] = test_api.TENANT1
 
         self.assertEqual([expected_result], self._get_hit_source(json_content))
 
@@ -125,8 +129,10 @@ class TestGlancePlugins(functional.FunctionalTest):
             'id': metadef_doc['namespace'],
             'description': None,
             'display_name': None,
-            'updated_at': None
+            'updated_at': None,
+            'project_id': test_api.TENANT2
         })
+        image_doc['project_id'] = test_api.TENANT1
 
         # An ordinary user in TENANT3 shouldn"t have any access
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -175,6 +181,8 @@ class TestGlancePlugins(functional.FunctionalTest):
 
         tenant1_doc["members"] = []
         tenant2_doc["members"] = []
+        tenant1_doc["project_id"] = tenant1_doc["owner"]
+        tenant2_doc["project_id"] = tenant2_doc["owner"]
 
         # Query for everything as one tenant then the other
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -226,6 +234,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             self._index(self.images_plugin,
                         [accessible_doc, inaccessible_doc])
 
+        accessible_doc["project_id"] = accessible_doc["owner"]
         accessible_doc["members"] = [test_api.TENANT1, test_api.TENANT2]
         inaccessible_doc["members"] = [made_up_tenant]
 
@@ -270,6 +279,7 @@ class TestGlancePlugins(functional.FunctionalTest):
                         test_api.TENANT1)
 
         visible_doc["members"] = []
+        visible_doc["project_id"] = visible_doc["owner"]
 
         # visible doc should be visible to any user
         response, json_content = self._search_request(test_api.MATCH_ALL,
@@ -305,6 +315,7 @@ class TestGlancePlugins(functional.FunctionalTest):
 
         visible_doc["id"] = visible_doc["namespace"]
         visible_doc["name"] = visible_doc["namespace"]
+        visible_doc["project_id"] = visible_doc["owner"]
         visible_doc.update({
             "resource_types": [],
             "properties": [],
@@ -343,6 +354,7 @@ class TestGlancePlugins(functional.FunctionalTest):
 
         visible_doc["id"] = visible_doc["namespace"]
         visible_doc["name"] = visible_doc["namespace"]
+        visible_doc["project_id"] = visible_doc["owner"]
         visible_doc.update({
             "resource_types": [],
             "properties": [],

@@ -34,7 +34,7 @@ class ImageIndex(base.IndexBase):
             'checksum', 'created_at', 'container_format', 'disk_format', 'id',
             'min_disk', 'min_ram', 'name', 'size', 'virtual_size', 'status',
             'tags', 'updated_at', 'visibility', 'protected', 'owner',
-            'members']
+            'members', 'project_id']
 
     @classmethod
     def get_document_type(cls):
@@ -65,6 +65,7 @@ class ImageIndex(base.IndexBase):
                 'min_disk': {'type': 'long'},
                 'min_ram': {'type': 'long'},
                 'owner': {'type': 'string', 'index': 'not_analyzed'},
+                'project_id': {'type': 'string', 'index': 'not_analyzed'},
                 'protected': {'type': 'boolean'},
                 'members': {'type': 'string', 'index': 'not_analyzed'},
                 'created_at': {'type': 'date'},
@@ -72,6 +73,9 @@ class ImageIndex(base.IndexBase):
             },
             "_meta": {
                 "owner": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "project_id": {
                     "resource_type": resource_types.KEYSTONE_PROJECT
                 },
                 "kernel_id": {
@@ -87,6 +91,10 @@ class ImageIndex(base.IndexBase):
     def facets_with_options(self):
         return ('disk_format', 'container_format', 'tags', 'visibility',
                 'protected', 'status')
+
+    @property
+    def facets_excluded(self):
+        return {'owner': True, 'project_id': True}
 
     def _get_rbac_field_filters(self, request_context):
         return [

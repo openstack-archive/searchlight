@@ -50,6 +50,7 @@ class ZoneIndex(designate.DesignateBase):
             ],
             "properties": {
                 "id": {"type": "string", "index": "not_analyzed"},
+                "project_id": {"type": "string", "index": "not_analyzed"},
                 "created_at": {"type": "date"},
                 "updated_at": {"type": "date"},
                 "name": {
@@ -85,6 +86,11 @@ class ZoneIndex(designate.DesignateBase):
     def facets_with_options(self):
         return ('status', 'type')
 
+    @property
+    def facets_excluded(self):
+        """Facets either not available or available only to admins"""
+        return {'project_id': True}
+
     def _get_rbac_field_filters(self, request_context):
         return [
             {"term": {"project_id": request_context.owner}}
@@ -104,4 +110,6 @@ class ZoneIndex(designate.DesignateBase):
         obj.pop("links", None)
         if not obj['updated_at'] and obj['created_at']:
             obj['updated_at'] = obj['created_at']
+        if 'project_id' not in obj:
+            obj['project_id'] = obj['tenant_id']
         return obj

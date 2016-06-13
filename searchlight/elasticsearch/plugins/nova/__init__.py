@@ -38,12 +38,12 @@ def serialize_nova_server(server):
 
     LOG.debug("Serializing server %s for project %s",
               server.id, server.tenant_id)
-
     serialized = {k: v for k, v in six.iteritems(server.to_dict())
                   if k not in BLACKLISTED_FIELDS}
 
     # Some enhancements
     serialized[u'owner'] = server.tenant_id
+    serialized[u'project_id'] = server.tenant_id
     # Image is empty when the instance is booted from volume
     if isinstance(serialized[u'image'], dict):
         serialized[u'image'].pop(u'links', None)

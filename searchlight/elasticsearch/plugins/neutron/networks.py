@@ -91,7 +91,7 @@ class NetworkIndex(base.IndexBase):
         fields should not be offered as facet options, or those that should
         only be available to administrators.
         """
-        return {'tenant_id': True, 'project_id': False}
+        return {'tenant_id': True, 'project_id': True}
 
     def _get_rbac_field_filters(self, request_context):
         """Return any RBAC field filters to be injected into an indices

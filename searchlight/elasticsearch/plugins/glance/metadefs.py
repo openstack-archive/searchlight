@@ -57,6 +57,7 @@ class MetadefIndex(base.IndexBase):
                     }
                 },
                 'owner': {'type': 'string', 'index': 'not_analyzed'},
+                'project_id': {'type': 'string', 'index': 'not_analyzed'},
                 'visibility': {'type': 'string', 'index': 'not_analyzed'},
                 'resource_types': {
                     'type': 'nested',
@@ -82,6 +83,9 @@ class MetadefIndex(base.IndexBase):
             },
             "_meta": {
                 "owner": {
+                    "resource_type": resource_types.KEYSTONE_PROJECT
+                },
+                "project_id": {
                     "resource_type": resource_types.KEYSTONE_PROJECT
                 }
             }
