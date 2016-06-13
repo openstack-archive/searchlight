@@ -419,11 +419,11 @@ the default can be overriden:
     [resource_plugin:os_neutron_net]
     mapping_use_doc_values = false
 
-* For a plugin's entire mapping; in code, override the ``disable_doc_values``
-  property::
+* For a plugin's entire mapping; in code, override the ``mapping_use_doc_values``
+  property (and thus ignoring any configuration property)::
 
     @property
-    def disable_doc_values(self):
+    def mapping_use_doc_values(self):
         return False
 
 * For individual fields in a mapping, by setting ``doc_values`` to False::
