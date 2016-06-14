@@ -1,0 +1,8 @@
+---
+prelude: >
+  Support version as a search param to include _version
+  in search results.
+features:
+  - version is supported as a search parameter to return
+    an always-incrementing _version value with each search
+    result.

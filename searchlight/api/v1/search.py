@@ -385,6 +385,8 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         # all_projects will determine whether an admin sees
         # filtered results or not
         all_projects = body.pop('all_projects', False)
+        # Return _version with results?
+        version = body.pop('version', None)
 
         available_types = self._get_available_types()
         if not types:
@@ -462,6 +464,9 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         if sort_order is not None:
             query_params['query']['sort'] = self._get_sort_order(sort_order)
+
+        if version is not None:
+            query_params['version'] = version
 
         return query_params
 

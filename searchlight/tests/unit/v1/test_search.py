@@ -171,6 +171,21 @@ class TestControllerSearch(test_utils.BaseTestCase):
             self.search_controller.search(request, query={"match_all": {}})
             mock_enforce.assert_called_with(request.context, 'query', {})
 
+    def test_search_version(self):
+        request = unit_test_utils.get_fake_request()
+        with mock.patch(REPO_SEARCH, return_value={}) as mock_search:
+            query = {"match_all": {}}
+            index_name = "searchlight"
+            doc_type = "OS::Glance::Metadef"
+            offset = 0
+            limit = 10
+            self.search_controller.search(
+                request, query, index_name, doc_type, offset, limit,
+                version=True)
+            mock_search.assert_called_once_with(
+                index_name, doc_type, query, offset,
+                limit, ignore_unavailable=True, version=True)
+
 
 class TestControllerPluginsInfo(test_utils.BaseTestCase):
 
@@ -709,6 +724,15 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         expected = {'index_name': None, 'doc_type': expected_doc_types,
                     'all_projects': False, 'limit_terms': 0}
         self.assertEqual(expected, output)
+
+    def test_search_version(self):
+        request = unit_test_utils.get_fake_request(is_admin=True)
+        request.body = six.b(jsonutils.dumps({
+            'query': {'match_all': {}},
+            'version': True
+        }))
+        output = self.deserializer.search(request)
+        self.assertEqual(True, output['version'])
 
 
 class TestResponseSerializer(test_utils.BaseTestCase):

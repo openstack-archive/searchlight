@@ -553,3 +553,23 @@ class TestSearchApi(functional.FunctionalTest):
             decode_json=False,
             extra_headers={"X-Domain-Id": domain_id})
         self.assertEqual(401, response.status)
+
+    def test_search_version(self):
+        id_1 = str(uuid.uuid4())
+        tenant1_doc = {
+            "owner": TENANT1,
+            "id": id_1,
+            "visibility": "public",
+            "created_at": "2016-04-06T12:48:18Z",
+            "updated_at": "2016-04-06T12:48:18Z"
+        }
+        self._index(self.initialized_plugins['OS::Glance::Image'],
+                    [tenant1_doc])
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Glance::Image",
+                 "version": True}
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="user")
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertIn('_version', json_content['hits']['hits'][0])

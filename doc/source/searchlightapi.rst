@@ -297,6 +297,35 @@ Gives::
     "took": 1
   }
 
+Versioning
+**********
+Internally an always-incrementing value is stored with search results to
+ensure that out of order notifications don't lead to inconsistencies with
+search results. Normally this value is not exposed in search results, but
+including a search parameter ``version: true`` in requests will result in
+a field named ``_version`` (note the underscore) being present in each result::
+
+  {
+    "index": "searchlight",
+    "query": {"match_all": {}},
+    "version": true
+  }
+
+  {
+    "hits": {
+      "hits": [
+        {
+          "_id": "76580e9d-f83d-49d8-b428-1fb90c5d8e95",
+          "_index": "searchlight",
+          "_version": 462198730000000000,
+          ....
+        },
+        ....
+      ]
+    },
+    ...
+  }
+
 Sorting
 *******
 Elasticsearch allows sorting by single or multiple fields. See Elasticsearch's
