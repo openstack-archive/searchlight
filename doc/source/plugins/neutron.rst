@@ -71,12 +71,20 @@ Plugin: OS::Neutron::Router
     enabled = true
     resource_group_name = searchlight
 
+Plugin: OS::Neutron::FloatingIP
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_neutron_floatingip]
+    enabled = true
+    resource_group_name = searchlight
+
 Neutron Configuration
 =====================
 
 Neutron sends notifications on create/update/delete actions on the
 concepts that it implements. Currently Searchlight supports indexing
-for networks, subnets, ports and routers.
+for networks, subnets, ports, routers and floating IPs.
 
 neutron.conf
 ------------
@@ -112,9 +120,10 @@ RBAC Filters
 RBAC in searchlight neutron plugin is implemented as::
 
 Networks are visible within a tenant OR if they are shared OR if they are external.
-Subnets are visible within a tenant OR if their network is shared (OR for admins if their network is external)
-Ports are visible within a tenant (OR for admins if their network is shared or external)
-Routers are visible within a tenant
+Subnets are visible within a tenant OR if their network is shared (OR for admins if their network is external).
+Ports are visible within a tenant (OR for admins if their network is shared or external).
+Routers are visible within a tenant.
+Floating IPs are visible within a tenant.
 
 Release Notes
 =============
@@ -148,3 +157,8 @@ See: ADMIN_ONLY_FIELDS in:
 * searchlight/elasticsearch/plugins/neutron/networks.py
 * searchlight/elasticsearch/plugins/neutron/ports.py
 * searchlight/elasticsearch/plugins/neutron/routers.py
+
+Floating IP addresses are mapped as type 'ip' which only supports ipv4 in
+Elasticsearch prior to the 5.0 release. Neutron doesn't seem to support ipv6
+floating IPs since translating ipv4 FIPs to ipv6 internal addresses isn't
+supported and mapping ipv6->ipv6 is deemed unnecessary.

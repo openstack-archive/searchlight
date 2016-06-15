@@ -45,6 +45,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.subnets_plugin = self.initialized_plugins['OS::Neutron::Subnet']
         self.routers_plugin = self.initialized_plugins['OS::Neutron::Router']
         self.port_plugin = self.initialized_plugins['OS::Neutron::Port']
+        self.fip_plugin = self.initialized_plugins['OS::Neutron::FloatingIP']
 
         self.network_objects = self._load_fixture_data('load/networks.json')
 
@@ -56,6 +57,9 @@ class TestNeutronPlugins(functional.FunctionalTest):
 
         self.router_objects = self._load_fixture_data('load/routers.json')
         self.router_objects = self.router_objects['routers']
+
+        self.fip_objects = self._load_fixture_data('load/floatingips.json')
+        self.fip_objects = self.fip_objects['floatingips']
 
     def test_network_rbac_tenant(self):
         self._index(self.networks_plugin, self.network_objects)
@@ -235,6 +239,23 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.assertEqual(200, response.status)
         self.assertEqual(1, json_content['hits']['total'])
 
+    def test_floatingip_rbac_admin(self):
+        self._index(self.fip_plugin,
+                    self.fip_objects)
+        query = {"query": {"match_all": {}}, "type": "OS::Neutron::FloatingIP"}
+        response, json_content = self._search_request(query,
+                                                      TENANT3)
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual('f0ff4710-e6f6-42c3-b6af-1b15f91e84b0',
+                         json_content['hits']['hits'][0]['_source']['id'])
+
+        query['all_projects'] = True
+        response, json_content = self._search_request(query, TENANT3,
+                                                      role='admin')
+        self.assertEqual(200, response.status)
+        self.assertEqual(2, json_content['hits']['total'])
+
 
 class TestNeutronListeners(test_listener.TestSearchListenerBase):
     def __init__(self, *args, **kwargs):
@@ -243,6 +264,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self.port_events = self._load_fixture_data('events/ports.json')
         self.subnet_events = self._load_fixture_data('events/subnets.json')
         self.router_events = self._load_fixture_data('events/routers.json')
+        self.fip_events = self._load_fixture_data('events/floatingips.json')
 
     def setUp(self):
         super(TestNeutronListeners, self).setUp()
@@ -251,11 +273,13 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self.ports_plugin = self.initialized_plugins['OS::Neutron::Port']
         self.subnets_plugin = self.initialized_plugins['OS::Neutron::Subnet']
         self.routers_plugin = self.initialized_plugins['OS::Neutron::Router']
+        self.fip_plugin = self.initialized_plugins['OS::Neutron::FloatingIP']
 
         notification_plugins = {
             plugin.document_type: test_listener.StevedoreMock(plugin)
             for plugin in (self.networks_plugin, self.ports_plugin,
-                           self.subnets_plugin, self.routers_plugin)}
+                           self.subnets_plugin, self.routers_plugin,
+                           self.fip_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 
         self.listener_alias = self.networks_plugin.alias_name_listener
@@ -441,3 +465,36 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual(create_event['payload']['port']['id'],
                          json_content['hits']['hits'][0]['_source']['id'])
+
+    def test_floatingip_cud_events(self):
+        create_event = self.fip_events['floatingip.create.end']
+        self._send_event_to_listener(create_event, self.listener_alias)
+        result = self._verify_event_processing(create_event, owner=EV_TENANT)
+        verification_keys = ['status', 'floating_network_id', 'id',
+                             'fixed_ip_address', 'port_id']
+        self._verify_result(create_event, verification_keys, result,
+                            inner_key='floatingip')
+
+        # Now associate it with a port
+        associate_event = self.fip_events['floatingip.associate.end']
+        self._send_event_to_listener(associate_event, self.listener_alias)
+        result = self._verify_event_processing(associate_event,
+                                               owner=EV_TENANT)
+        verification_keys = ['status', 'floating_network_id', 'id',
+                             'fixed_ip_address', 'port_id']
+        self._verify_result(associate_event, verification_keys, result,
+                            inner_key='floatingip')
+
+        disassociate_event = self.fip_events['floatingip.disassociate.end']
+        self._send_event_to_listener(disassociate_event, self.listener_alias)
+        result = self._verify_event_processing(disassociate_event,
+                                               owner=EV_TENANT)
+        verification_keys = ['status', 'floating_network_id', 'id',
+                             'fixed_ip_address', 'port_id']
+        self._verify_result(disassociate_event, verification_keys, result,
+                            inner_key='floatingip')
+
+        delete_event = self.fip_events['floatingip.delete.end']
+        self._send_event_to_listener(delete_event, self.listener_alias)
+        self._verify_event_processing(delete_event, count=0,
+                                      owner=EV_TENANT)

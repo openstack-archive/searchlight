@@ -1,0 +1,106 @@
+{
+  "floatingip.create.end": {
+    "event_type": "floatingip.create.end",
+    "payload": {
+      "floatingip": {
+        "router_id": null,
+        "status": "DOWN",
+        "description": "",
+        "dns_name": "",
+        "dns_domain": "",
+        "floating_network_id": "5f7774a3-759f-4798-92f0-5ef59c88705c",
+        "fixed_ip_address": null,
+        "floating_ip_address": "172.25.0.20",
+        "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+        "port_id": null,
+        "id": "1a124625-4c71-4d20-a65b-3cf34465dab2"
+      }
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "8224415f4b424716b6566f9971ba97f5",
+      "project_id": "5fe7c4e4e492490393c674089a178e19",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-06-14 19:45:48.649772",
+      "message_id": "0e9b345b-d664-4900-aa16-6cac8dfd6bd1"
+    }
+  },
+  "floatingip.associate.end": {
+    "event_type": "floatingip.update.end",
+    "payload": {
+      "floatingip": {
+        "router_id": "ffcd49c4-0532-4d4d-ac48-4b88e10ec90e",
+        "status": "DOWN",
+        "description": "",
+        "dns_name": "",
+        "dns_domain": "",
+        "floating_network_id": "5f7774a3-759f-4798-92f0-5ef59c88705c",
+        "fixed_ip_address": "172.40.0.6",
+        "floating_ip_address": "172.25.0.20",
+        "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+        "port_id": "163da95e-740d-4fe0-a8ee-91b77bb5ae33",
+        "id": "1a124625-4c71-4d20-a65b-3cf34465dab2"
+      }
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "8224415f4b424716b6566f9971ba97f5",
+      "project_id": "5fe7c4e4e492490393c674089a178e19",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-06-14 19:47:09.158589",
+      "message_id": "aeb45eda-33b0-4d3b-8b9c-00fed64f5adb"
+    }
+  },
+  "floatingip.disassociate.end": {
+    "event_type": "floatingip.update.end",
+    "payload": {
+      "floatingip": {
+        "router_id": null,
+        "status": "ACTIVE",
+        "description": "",
+        "dns_name": "",
+        "dns_domain": "",
+        "floating_network_id": "5f7774a3-759f-4798-92f0-5ef59c88705c",
+        "fixed_ip_address": null,
+        "floating_ip_address": "172.25.0.20",
+        "tenant_id": "5fe7c4e4e492490393c674089a178e19",
+        "port_id": null,
+        "id": "1a124625-4c71-4d20-a65b-3cf34465dab2"
+      }
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "8224415f4b424716b6566f9971ba97f5",
+      "project_id": "5fe7c4e4e492490393c674089a178e19",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-06-14 20:00:49.073294",
+      "message_id": "358bfa8a-9f00-4b0b-b732-6c0d9d0d7dac"
+    }
+  },
+  "floatingip.delete.end": {
+    "event_type": "floatingip.delete.end",
+    "payload": {
+      "floatingip_id": "1a124625-4c71-4d20-a65b-3cf34465dab2"
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "8224415f4b424716b6566f9971ba97f5",
+      "project_id": "5fe7c4e4e492490393c674089a178e19",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-06-14 20:11:34.064247",
+      "message_id": "e9495361-c04d-4350-94d2-478ef7e49804"
+    }
+  }
+}
