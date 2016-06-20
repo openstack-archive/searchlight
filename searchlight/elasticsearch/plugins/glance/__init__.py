@@ -66,6 +66,11 @@ def serialize_glance_image(image):
 
     document = {k: v for k, v in image.items() if k not in fields_to_ignore}
 
+    # Only snapshot images return image_type field.
+    # Default to 'image' for non-snapshot image.
+    if 'image_type' not in document:
+        document['image_type'] = 'image'
+
     if 'project_id' not in document:
         document['project_id'] = document['owner']
 
