@@ -106,9 +106,9 @@ class PortHandler(base.NotificationBase):
 
     def delete(self, payload, timestamp):
         port_id = payload['port_id']
-        LOG.debug("Deleting port information for %s", port_id)
+        LOG.debug("Deleting port information for %s; finding routing", port_id)
         try:
-            self.index_helper.delete_document({'_id': port_id})
+            self.index_helper.delete_document_unknown_parent(port_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting port %(port_id)s '
@@ -133,8 +133,8 @@ class PortHandler(base.NotificationBase):
         port deletion notification.
         """
         port_id = payload['router_interface']['port_id']
-        delete_payload = {'port_id': port_id}
-        self.delete(delete_payload, timestamp)
+        LOG.debug("Deleting port %s from router interface", port_id)
+        self.delete({'port_id': port_id}, timestamp)
 
 
 class SubnetHandler(base.NotificationBase):
@@ -159,9 +159,10 @@ class SubnetHandler(base.NotificationBase):
 
     def delete(self, payload, timestamp):
         subnet_id = payload['subnet_id']
-        LOG.debug("Deleting subnet information for %s", subnet_id)
+        LOG.debug("Deleting subnet information for %s; finding routing",
+                  subnet_id)
         try:
-            self.index_helper.delete_document({'_id': subnet_id})
+            self.index_helper.delete_document_unknown_parent(subnet_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting subnet %(subnet_id)s '

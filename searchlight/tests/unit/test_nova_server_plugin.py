@@ -554,7 +554,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 fake_timestamp = '2015-09-01 08:57:35.282586'
                 notification_handler.create_or_update(
                     {u'instance_id': u'missing',
-                     u'updated_at': u'2016-02-01T00:00:00Z'}, fake_timestamp)
+                     u'updated_at': u'2016-02-01T00:00:00Z'},
+                    fake_timestamp)
                 mock_get.assert_called_once_with(u'missing')
                 mock_deleter.assert_called_once_with(
                     # Version should really be integer; see bug #1  550494

@@ -27,6 +27,27 @@ from searchlight import i18n
 ADMIN_ID_SUFFIX = "_ADMIN"
 USER_ID_SUFFIX = "_USER"
 
+
+def strip_role_suffix(strip_from, suffix=None):
+    if suffix:
+        if strip_from.endswith(suffix):
+            return strip_from[:-len(suffix)]
+    else:
+        if strip_from.endswith(ADMIN_ID_SUFFIX):
+            return strip_from[:-len(ADMIN_ID_SUFFIX)]
+        elif strip_from.endswith(USER_ID_SUFFIX):
+            return strip_from[:-len(USER_ID_SUFFIX)]
+    return strip_from
+
+
+def get_metafield(doc, metafield):
+    """For fields like _parent and _routing es1.x requires you request them
+    in 'fields', and they're returned as such. ES2.x always returns them but
+    at the root document level (like _id). This function copes with both.
+    """
+    return doc.get(metafield, doc.get('fields', {}).get(metafield))
+
+
 # String from Alias Failure Exception. See _is_multiple_alias_exception().
 ALIAS_EXCEPTION_STRING = "has more than one indices associated with it"
 
@@ -36,6 +57,7 @@ DOC_VALUE_TYPES = ('long', 'integer', 'short', 'boolean', 'byte',
 LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 _LE = i18n._LE
+_LI = i18n._LI
 
 
 class IndexingHelper(object):
@@ -272,7 +294,8 @@ class IndexingHelper(object):
 
         # It's easier to retrieve the actual parent id here because otherwise
         # we have to figure out role separation. _parent is (in 1.x) not
-        # return by default and has to be requested in 'fields'
+        # return by default and has to be requested in 'fields'; in 2.x it
+        # IS returned by default (but not in fields, yay)
         query = {
             'fields': ['_parent', '_routing']
         }
@@ -296,12 +319,15 @@ class IndexingHelper(object):
             doc_type=self.document_type,
             query=query)
 
-        to_delete = [
-            {'_id': doc['_id'], '_parent': doc['fields']['_parent'],
-             '_routing': doc['fields']['_routing']}
-            if '_routing' in doc['fields']
-            else {'_id': doc['_id'], '_parent': doc['fields']['_parent']}
-            for doc in documents]
+        def _get_delete_action(doc):
+            routing = get_metafield(doc, '_routing')
+            delete_action = {'_id': doc['_id'],
+                             '_parent': get_metafield(doc, '_parent')}
+            if routing:
+                delete_action['_routing'] = routing
+            return delete_action
+
+        to_delete = [_get_delete_action(d) for d in documents]
 
         # Use the parent version tag; we're instructing elasticsearch to mark
         # all the deleted child documents as 'don't apply updates received
@@ -312,6 +338,61 @@ class IndexingHelper(object):
                 action['_version'] = version
 
         self.delete_documents(to_delete, override_role_separation=True)
+
+    def delete_document_unknown_parent(self, doc_id, version=None):
+        """Deletes a document that requires routing but where the routing is
+        not known. Since this involves a query to find it, there is a potential
+        race condition in between storing and indexing the document. A search
+        is run to find the routing parent, and the document is then deleted.
+        """
+        search_doc_id = doc_id
+        if self.plugin.requires_role_separation:
+            # Just look for the admin document though it doesn't matter which.
+            # This has to match whatever we strip later with strip_role_suffix
+            search_doc_id += ADMIN_ID_SUFFIX
+
+        # Necessary to request 'fields' for e-s 1.x, not for 2.x
+        query = {'filter': {'term': {'_id': search_doc_id}},
+                 'fields': ['_parent', '_routing']}
+        search_results = self.engine.search(index=self.alias_name,
+                                            doc_type=self.document_type,
+                                            body=query)
+        total_hits = search_results['hits']['total']
+        if not total_hits:
+            ctx = {'doc_type': self.document_type, 'id': doc_id}
+            LOG.warning(_LI(
+                "No results found for %(doc_type)s id %(id)s; can't find "
+                "routing to delete") % ctx)
+            return
+
+        # There are results. Check that there's only one unique result (may be
+        # two in different indices from the same alias). ES 1.x and 2.x differ
+        # slightly; metafields are returned by default and not in 'fields' in
+        # 2.x whether you like it or not
+        distinct_results = set((r['_id'], get_metafield(r, '_parent'))
+                               for r in search_results['hits']['hits'])
+        if len(distinct_results) != 1:
+            ctx = {'count': len(distinct_results),
+                   'results': ", ".join(distinct_results),
+                   'doc_type': self.document_type,
+                   'id': doc_id}
+            LOG.error(_LE("%(count)d distinct results (%(results)s) found for "
+                          "get_document_by_query for %(doc_type)s id %(id)s") %
+                      ctx)
+
+        first_hit = search_results['hits']['hits'][0]
+        routing = get_metafield(first_hit, '_routing')
+        parent = get_metafield(first_hit, '_parent')
+        parent = strip_role_suffix(parent, ADMIN_ID_SUFFIX)
+
+        LOG.debug("Deleting %s id %s with parent %s routing %s",
+                  self.document_type, doc_id, parent, routing)
+        delete_info = {'_id': doc_id, '_parent': parent}
+        if routing:
+            delete_info['_routing'] = routing
+        if version:
+            delete_info['_version'] = version
+        self.delete_document(delete_info)
 
     def get_document(self, doc_id, for_admin=False, routing=None):
         if self.plugin.requires_role_separation:

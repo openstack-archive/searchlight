@@ -15,7 +15,6 @@
 
 import copy
 import mock
-import testtools
 import uuid
 
 from searchlight.listener import NotificationEndpoint
@@ -282,7 +281,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         delete_event = self.network_events['network.delete.end']
         self._send_event_to_listener(delete_event, self.listener_alias)
         self._verify_event_processing(delete_event, count=0,
-                                      owner=TENANT1)
+                                      owner=EV_TENANT)
 
     def test_port_create_event(self):
         create_event = self.port_events['port.create.end']
@@ -328,7 +327,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         delete_event = self.port_events['port.delete.end']
         self._send_event_to_listener(delete_event, self.listener_alias)
         self._verify_event_processing(None, count=0,
-                                      owner=TENANT1)
+                                      owner=EV_TENANT)
 
     def test_subnet_create_update_delete(self):
         create_event = self.subnet_events['subnet.create.end']
@@ -348,7 +347,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         delete_event = self.subnet_events['subnet.delete.end']
         self._send_event_to_listener(delete_event, self.listener_alias)
         self._verify_event_processing(delete_event, count=0,
-                                      owner=TENANT3)
+                                      owner=EV_TENANT)
 
     def test_router_create_update_delete(self):
         create_event = self.router_events['router.create.end']
@@ -368,9 +367,8 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         delete_event = self.router_events['router.delete.end']
         self._send_event_to_listener(delete_event, self.listener_alias)
         self._verify_event_processing(delete_event, count=0,
-                                      owner=TENANT3)
+                                      owner=EV_TENANT)
 
-    @testtools.skip("Skipping until es 2.x issues are resolved")
     def test_router_interface_create_delete(self):
         """Check that port creation and deletion is registered on interface
         creation and deletion events
