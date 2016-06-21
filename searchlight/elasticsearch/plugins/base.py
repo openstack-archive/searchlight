@@ -240,8 +240,7 @@ class IndexBase(plugin.Plugin):
                         # See https://www.elastic.co/guide/en/elasticsearch/
                         # reference/2.1/mapping-meta-field.html
                         if facet_name in meta_mapping:
-                            facet['resource_type'] = \
-                                meta_mapping[facet_name]['resource_type']
+                            facet.update(meta_mapping[facet_name])
 
                         if (self.get_parent_id_field() and
                                 name == self.get_parent_id_field()):

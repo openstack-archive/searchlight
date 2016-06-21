@@ -561,3 +561,8 @@ class DictObj(object):
 
     def to_dict(self):
         return self.__dict__
+
+
+class FakeVersion(object):
+    def __init__(self, version):
+        self.version = version

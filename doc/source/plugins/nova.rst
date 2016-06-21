@@ -39,6 +39,19 @@ general configuration information, and an example complete configuration.
 searchlight.conf
 ----------------
 
+Nova microversions
+^^^^^^^^^^^^^^^^^^
+::
+
+    [service_credentials:nova]
+    compute_api_version = 2.1
+
+.. note::
+
+    Nova adds/removes fields using microversion mechanism, check
+    http://git.openstack.org/cgit/openstack/nova/tree/nova/api/openstack/rest_api_version_history.rst
+    for detailed Nova microversion history.
+
 Plugin: OS::Nova::Server
 ^^^^^^^^^^^^^^^^^^^^^^^^
 ::
