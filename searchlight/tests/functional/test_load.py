@@ -47,7 +47,7 @@ class TestSearchLoad(functional.FunctionalTest):
         index_name = self.role_plugin.alias_name_listener
         doc_type = self.role_plugin.document_type
 
-        self.role_plugin.initial_indexing()
+        self.role_plugin.index_initial_data()
         self._flush_elasticsearch(index_name)
 
         # Should be 4 documents from the original two source ones
@@ -80,7 +80,7 @@ class TestSearchLoad(functional.FunctionalTest):
     def test_non_separated(self):
         index_name = self.non_role_plugin.alias_name_listener
 
-        self.non_role_plugin.initial_indexing()
+        self.non_role_plugin.index_initial_data()
         self._flush_elasticsearch(index_name)
 
         self.assertEqual(2, self.non_role_plugin.number_documents)

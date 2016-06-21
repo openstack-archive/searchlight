@@ -754,7 +754,7 @@ class TestGlanceLoad(functional.FunctionalTest):
     def test_searchlight_glance_images_data(self):
         """Test that all the indexed images data is served from api server"""
 
-        self.images_plugin.initial_indexing()
+        self.images_plugin.index_initial_data()
         self._flush_elasticsearch(self.images_plugin.alias_name_search)
         glance_images_query = test_api.MATCH_ALL.copy()
         glance_images_query['index'] = self.images_plugin.alias_name_search
@@ -767,7 +767,7 @@ class TestGlanceLoad(functional.FunctionalTest):
 
     def test_searchlight_glance_metadefs_data(self):
         """Test that all the indexed metadefs data is served from api server"""
-        self.metadefs_plugin.initial_indexing()
+        self.metadefs_plugin.index_initial_data()
         self._flush_elasticsearch(self.metadefs_plugin.alias_name_search)
         metadefs_query = test_api.MATCH_ALL.copy()
         metadefs_query['index'] = self.metadefs_plugin.alias_name_search
@@ -782,7 +782,7 @@ class TestGlanceLoad(functional.FunctionalTest):
         """Test that all the data is indexed in elasticsearch server"""
 
         for plugin in self.images_plugin, self.metadefs_plugin:
-            plugin.initial_indexing()
+            plugin.index_initial_data()
         self._flush_elasticsearch()
         # Test the raw elasticsearch response
         elasticsearch_docs = self._get_all_elasticsearch_docs()

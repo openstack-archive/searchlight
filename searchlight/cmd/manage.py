@@ -25,7 +25,7 @@ from keystoneclient import exceptions
 from searchlight.common import config
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import utils as es_utils
-from searchlight.i18n import _, _LE, _LW
+from searchlight.i18n import _, _LE, _LI, _LW
 
 
 CONF = cfg.CONF
@@ -118,6 +118,20 @@ class IndexCommands(object):
             print("Aborting.")
             sys.exit(1)
 
+        # As an optimization, if any types are explicitly requested, we
+        # will index them from their service APIs. The rest will be
+        # indexed from an existing ES index, if one exists.
+        es_reindex = []
+        plugins_to_index = copy.copy(plugins_list)
+        if _type:
+            for resource_type, ext in plugins_list:
+                doc_type = ext.obj.get_document_type()
+
+                if doc_type not in _type:
+                    es_reindex.append(doc_type)
+                    # Don't reindex this type
+                    plugins_to_index.remove((resource_type, ext))
+
         if not force:
             # For display purpose, we want to iterate on only parthenogenetic
             # plugins that are not the children of another plugin. If there
@@ -130,20 +144,31 @@ class IndexCommands(object):
                     display_plugins.append((res, ext))
 
             def format_selection(selection):
-                resource_type, ext = selection
-                return '  ' + ext.obj.get_index_display_name()
+                def _format_plugin(plugin, indent=0):
+                    plugin_doc_type = plugin.get_document_type()
+                    display = '\n' + '    ' * indent + '--> ' if indent else ''
+                    display += '%s (%s)' % (plugin_doc_type,
+                                            plugin.resource_group_name)
+                    if plugin_doc_type in es_reindex:
+                        display += ' *'
+                    return display + ''.join(_format_plugin(c, indent + 1)
+                                             for c in plugin.child_plugins)
 
-            # Grab the first element in the first (and only) tuple.
-            group = resource_groups[0][0]
-            print("\nAll resource types within Resource Group \"%(group)s\""
-                  " must be re-indexed" % {'group': group})
-            print("\nResource types (and aliases) matching selection:\n%s\n" %
+                return _format_plugin(selection[1].obj)
+
+            all_res_groups = set(grp[0] for grp in resource_groups)
+            print("\nResources in these groups must be re-indexed: %s." %
+                  ", ".join(all_res_groups))
+
+            if es_reindex:
+                print("Any types marked with * will be reindexed from "
+                      "existing Elasticsearch data.\n")
+            print("Resource types (and aliases) matching selection:\n\n%s\n" %
                   '\n'.join(map(format_selection, sorted(display_plugins))))
 
             ans = six.moves.input(
-                "Indexing will NOT delete existing data or mapping(s). It "
-                "will reindex all resources. \nUse '--force' to suppress "
-                "this message.\nOK to continue? [y/n]: ")
+                "\nUse '--force' to suppress this message.\n"
+                "OK to continue? [y/n]: ")
             if ans.lower() != 'y':
                 print("Aborting.")
                 sys.exit(0)
@@ -213,36 +238,28 @@ class IndexCommands(object):
                 raise
 
         # Step #4: Re-index all resource types in this Resource Type Group.
-        #   As an optimization, if any types are explicitly requested, we
-        #   will index them from their service APIs. The rest will be
-        #   indexed from an existing ES index, if one exists.
         #   NB: The "search" and "listener" aliases remain unchanged for this
         #       step.
-        es_reindex = []
-        plugins_to_index = copy.copy(plugins_list)
-        if _type:
-            for resource_type, ext in plugins_list:
-                doc_type = ext.obj.get_document_type()
-                if doc_type not in _type:
-                    es_reindex.append(doc_type)
-                    plugins_to_index.remove((resource_type, ext))
+        for res, ext in plugins_to_index:
+            # Index from the plugin's API
+            plugin_obj = ext.obj
+            gname = plugin_obj.resource_group_name
+            index_name = index_names[gname]
 
-        # Call plugin API as needed.
-        if plugins_to_index:
-            for res, ext in plugins_to_index:
-                plugin_obj = ext.obj
-                gname = plugin_obj.resource_group_name
-                try:
-                    plugin_obj.initial_indexing(index_name=index_names[gname])
-                    es_utils.refresh_index(index_names[gname])
-                except exceptions.EndpointNotFound:
-                    LOG.warning(_LW("Service is not available for plugin: "
-                                    "%(ext)s") % {"ext": ext.name})
-                except Exception as e:
-                    LOG.error(_LE("Failed to setup index extension "
-                                  "%(ex)s: %(e)s") % {'ex': ext.name, 'e': e})
-                    es_utils.alias_error_cleanup(index_names)
-                    raise
+            LOG.info(_LI("Reindexing %(type)s into %(index_name)s") %
+                     {'type': res, 'index_name': index_name})
+
+            try:
+                plugin_obj.index_initial_data(index_name=index_name)
+                es_utils.refresh_index(index_name)
+            except exceptions.EndpointNotFound:
+                LOG.warning(_LW("Service is not available for plugin: "
+                                "%(ext)s") % {"ext": ext.name})
+            except Exception as e:
+                LOG.error(_LE("Failed to setup index extension "
+                              "%(ex)s: %(e)s") % {'ex': ext.name, 'e': e})
+                es_utils.alias_error_cleanup(index_names)
+                raise
 
         # Call ElasticSearch for the rest, if needed.
         if es_reindex:
@@ -251,6 +268,10 @@ class IndexCommands(object):
                 # tuple, extract second member (the search alias) of tuple.
                 alias_search = \
                     [a for a in resource_groups if a[0] == group][0][1]
+                LOG.info(_LI("Copying existing data from %(src)s to %(dst)s "
+                             "for types %(types)s") %
+                         {'src': alias_search, 'dst': index_names[group],
+                          'types': ', '.join(es_reindex)})
                 try:
                     es_utils.reindex(src_index=alias_search,
                                      dst_index=index_names[group],

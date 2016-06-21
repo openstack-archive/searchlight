@@ -294,21 +294,16 @@ class TestPlugin(test_utils.BaseTestCase):
                 'IndexingHelper.save_documents')
     @mock.patch('searchlight.elasticsearch.plugins.base.'
                 'NotificationBase.get_version')
-    def test_initial_indexing(self, mock_vers, mock_save):
+    def test_index_initial_data(self, mock_vers, mock_save):
         mock_engine = mock.Mock()
 
         # Test #1: Index with two documents.
         mock_vers.return_value = '1234'
         plugin = fake_plugins.NonRoleSeparatedPlugin(es_engine=mock_engine)
-        plugin.initial_indexing(index_name='fake')
+        plugin.index_initial_data(index_name='fake')
         mock_save.assert_called_once_with(fake_plugins.NON_ROLE_SEPARATED_DATA,
                                           versions=['1234', '1234'],
                                           index='fake')
-
-        # Test #2: Do not index any documents.
-        mock_save.reset_mock()
-        plugin.initial_indexing(index_name='fake', setup_data=False)
-        mock_save.assert_not_called()
 
     def test_mapping_field_types(self):
         """Fields with identical names but different types cause problems

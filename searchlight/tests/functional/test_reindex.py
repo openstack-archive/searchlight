@@ -42,8 +42,8 @@ class TestReindexing(functional.FunctionalTest):
            There are 4 documents from the role plugin and 2 documents
            form the non-role plugin.
         """
-        self.role_plugin.initial_indexing()
-        self.non_role_plugin.initial_indexing()
+        self.role_plugin.index_initial_data()
+        self.non_role_plugin.index_initial_data()
         self.num_docs = 6
         self._flush_elasticsearch(index)
 
@@ -105,8 +105,8 @@ class TestReindexing(functional.FunctionalTest):
         self.assertEqual(2, len(es_alias))
 
         # Reindex using the plugins.
-        self.role_plugin.initial_indexing()
-        self.non_role_plugin.initial_indexing()
+        self.role_plugin.index_initial_data()
+        self.non_role_plugin.index_initial_data()
         self._flush_elasticsearch(alias_listener)
 
         self.verify_reindex_state(new_index)
@@ -192,7 +192,7 @@ class TestReindexing(functional.FunctionalTest):
         self.assertEqual(2, len(es_alias))
 
         # Reindex. For role, use the plugin. For non-role use ElasticSearch.
-        self.role_plugin.initial_indexing()
+        self.role_plugin.index_initial_data()
         reindex = [non_role_doc_type]
         es_utils.reindex(src_index=alias_listener, dst_index=new_index,
                          type_list=reindex)

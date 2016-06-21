@@ -341,7 +341,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         serialized = self.plugin.serialize(self.kernel_ramdisk_image)
         self.assertEqual(expected, serialized)
 
-    def test_setup_data(self):
+    def test_index_initial_data(self):
         """Tests initial data load."""
         image_member_mocks = [
             self.members_image_members
@@ -355,7 +355,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                 with mock.patch.object(
                         self.plugin.index_helper,
                         'save_documents') as mock_save:
-                    self.plugin.setup_data()
+                    self.plugin.index_initial_data()
                     versions = [NotificationBase.get_version(img)
                                 for img in self.images]
                     mock_list.assert_called_once_with()

@@ -121,7 +121,7 @@ class IndexBase(plugin.Plugin):
         """
         if self.parent_plugin_type():
             LOG.debug(_LI(
-                "Skipping index prep for %(doc_type)s; will be handled by"
+                "Skipping index prep for %(doc_type)s; will be handled by "
                 "parent (%(parent_type)s)") %
                 {"doc_type": self.document_type,
                  "parent_type": self.parent_plugin_type()})
@@ -134,22 +134,12 @@ class IndexBase(plugin.Plugin):
         # Prepare the new index for this document type.
         self.setup_index_mapping(index_name=index_name)
 
-    def initial_indexing(self, index_name=None, setup_data=True):
-        """Add data for this resource type. This method is called per plugin.
-           The assumption is that the aliases/indexes have already been setup
-           correctly before calling us. See the comments in the method
-           cmd/manage.py::sync() for more details.
-        """
-        if self.parent_plugin_type():
-            LOG.debug(_LI(
-                "Skipping initialization for %(doc_type)s; will be handled by"
-                "parent (%(parent_type)s)") %
-                {"doc_type": self.document_type,
-                 "parent_type": self.parent_plugin_type()})
-            return
-
-        if setup_data:
-            self.setup_data(index_name)
+    def setup_index_settings(self, index_name):
+        """Update index settings. """
+        index_settings = self.get_settings()
+        if index_settings:
+            self.engine.indices.put_settings(body=index_settings,
+                                             index=index_name)
 
     def setup_index_mapping(self, index_name):
         """Update index document mapping."""
@@ -160,12 +150,11 @@ class IndexBase(plugin.Plugin):
                                             doc_type=doc_type,
                                             body=mapping)
 
-    def setup_data(self, index=None):
-        """Insert all objects from database into search engine.
-           We are assuming this helper method is called by initial_indexing().
-           If you wish to call this method from somewhere else, please make
-           sure you understand the usage of the "index" parameter. See the
-           comment in plugins/utils.py::save_documents() for more details.
+    def index_initial_data(self, index_name=None):
+        """Insert all objects from a plugin (generally by API requests to its
+        service) into an index assumed to have been created with
+        prepare_index. If index_name is not set, the searchlight-listener alias
+        will be used instead.
         """
         object_list = self.get_objects()
         documents = []
@@ -176,10 +165,7 @@ class IndexBase(plugin.Plugin):
             version = self.NotificationHandlerCls.get_version(document)
             versions.append(version)
         self.index_helper.save_documents(documents, versions=versions,
-                                         index=index)
-
-        for child_plugin in self.child_plugins:
-            child_plugin.setup_data(index)
+                                         index=index_name)
 
     def get_facets(self, request_context, all_projects=False, limit_terms=0):
         """Get facets available for searching, in the form of a list of
@@ -401,15 +387,6 @@ class IndexBase(plugin.Plugin):
         if not self.parent_plugin:
             parent.child_plugins.append(self)
             self.parent_plugin = parent
-
-    def get_index_display_name(self, indent_level=0):
-        """The string used to list this plugin when indexing"""
-        display = '\n' + '    ' * indent_level + '--> ' if indent_level else ''
-
-        display += '%s (%s)' % (self.document_type, self.resource_group_name)
-        display += ''.join(c.get_index_display_name(indent_level + 1)
-                           for c in self.child_plugins)
-        return display
 
     def get_query_filters(self, request_context, ignore_rbac=False):
         """Gets an index/type filter as es json filter dsl, and include

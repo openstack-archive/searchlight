@@ -173,7 +173,7 @@ class IndexingHelper(object):
            the index parameter will not be set. Listeners are by far the most
            common usage case.
 
-           Re-Indexing [plugins/base.py::initial_indexing()]:
+           Re-Indexing [plugins/base.py::index_initial_data()]:
            When we are re-indexing we will want to use the new ES index.
            Bypassing the alias means we will not send duplicate documents
            to the old index. In this case the index will be set. Re-indexing

@@ -348,12 +348,12 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
             serialized = self.plugin.serialize(ns)
         self.assertEqual(expected, serialized)
 
-    def test_setup_data(self):
+    def test_index_initial_data(self):
         with mock.patch.object(self.plugin, 'get_objects',
                                return_value=self.namespaces) as mock_get:
             with mock.patch.object(self.plugin.index_helper,
                                    'save_documents') as mock_save:
-                self.plugin.setup_data()
+                self.plugin.index_initial_data()
                 versions = [NotificationBase.get_version(obj)
                             for obj in self.namespaces]
                 mock_get.assert_called_once_with()

@@ -432,12 +432,8 @@ class FunctionalTest(test_utils.BaseTestCase):
             instance.prepare_index(index_name=index_name)
 
         # Create the aliases
-        index = es_utils.setup_alias(index_name, 'searchlight-search',
-                                     'searchlight-listener')
-
-        # Finally, set up mappings etc in elasticsearch
-        for instance in six.itervalues(self.initialized_plugins):
-            instance.initial_indexing(index_name=index, setup_data=False)
+        es_utils.setup_alias(index_name, 'searchlight-search',
+                             'searchlight-listener')
 
     def tearDown(self):
         super(FunctionalTest, self).tearDown()
@@ -451,7 +447,7 @@ class FunctionalTest(test_utils.BaseTestCase):
         """
         with mock.patch.object(plugin, 'get_objects', return_value=docs):
             with mock.patch.object(plugin, 'child_plugins', return_value=[]):
-                plugin.setup_data()
+                plugin.index_initial_data()
 
         if refresh_index:
             # Force elasticsearch to update its search index
