@@ -240,31 +240,9 @@ class TestPlugin(test_utils.BaseTestCase):
             doc_type, mapping = six.next(plugin.get_full_mapping())
             self.assertNotIn('doc_values', mapping['properties']['id'])
 
-    def test_setup_index_settings(self):
-        mock_engine = mock.Mock()
-
-        # Test #1: Use the default settings for the plugin.
-        plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
-        plugin.setup_index_settings(index_name='fake')
-        mock_engine.indices.put_settings.assert_called_once_with(
-            index='fake',
-            body={
-                'index': {
-                    'gc_deletes': '300s'
-                }
-            })
-
-        # Test #2: The plugin has no settings.
-        mock_engine.reset_mock()
-        with mock.patch.object(plugin, 'get_settings', return_value=None):
-            plugin.setup_index_settings(index_name='fake')
-            mock_engine.indices.put_settings.assert_not_called()
-
     @mock.patch('searchlight.elasticsearch.plugins.base.'
                 'IndexBase.setup_index_mapping')
-    @mock.patch('searchlight.elasticsearch.plugins.base.'
-                'IndexBase.setup_index_settings')
-    def test_prepare_index(self, mock_settings, mock_mapping):
+    def test_prepare_index(self, mock_mapping):
         """Verify Indexbase.prepare_index(). The method will verify that all
         non-analyzed mapping fields that are raw, are truly marked as raw.
         This applies to any children plugins. There should not be any
@@ -285,12 +263,10 @@ class TestPlugin(test_utils.BaseTestCase):
                 }}}}
 
             plugin.prepare_index('fake')
-            mock_settings.assert_called_once_with(index_name='fake')
             mock_mapping.assert_called_once_with(index_name='fake')
 
         # Test #2: Plugin with no children, bad "raw" mapping field.
         mock_mapping.reset_mock()
-        mock_settings.reset_mock()
         plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
         with mock.patch.object(plugin, 'get_mapping') as mock_map:
             mock_map.return_value = {"properties": {
@@ -302,19 +278,16 @@ class TestPlugin(test_utils.BaseTestCase):
                        "sorting.")
             self.assertRaisesRegexp(Exception, message,
                                     plugin.prepare_index, index_name='fake')
-            mock_settings.assert_not_called()
             mock_mapping.assert_not_called()
 
         # Test #3: Plugin with two children. No "raw" mapping fields.
         mock_mapping.reset_mock()
-        mock_settings.reset_mock()
         parent_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
         child1_plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
         child1_plugin.register_parent(parent_plugin)
         child2_plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
         child2_plugin.register_parent(parent_plugin)
         parent_plugin.prepare_index('fake')
-        mock_settings.assert_called_once_with(index_name='fake')
         mock_mapping.assert_called_once_with(index_name='fake')
 
     @mock.patch('searchlight.elasticsearch.plugins.helper.'

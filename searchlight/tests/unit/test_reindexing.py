@@ -65,7 +65,9 @@ class TestReindexingUtils(test_utils.BaseTestCase):
                                                 target_index=dst,
                                                 query=expected_mult)
 
-    def test_create_new_index(self):
+    @mock.patch('searchlight.elasticsearch.plugins.'
+                'utils._get_index_settings_from_config', return_value={})
+    def test_create_new_index(self, mock_get_settings):
         # Regex for matching the index name. The index name is the group
         # group name appended with a time stmap. The format for the
         # timestamp is defined in elasitcsearch.plugins.utils and is

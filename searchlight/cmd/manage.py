@@ -156,7 +156,7 @@ class IndexCommands(object):
 
         # Step #1: Create new indexes for each Resource Group Type.
         #   The index needs to be fully functional before it gets
-        #   added to any aliases. This inclues all settings and
+        #   added to any aliases. This includes all settings and
         #   mappings. Only then can we add it to the aliases. We first
         #   need to create all indexes. This is done by resource group.
         #   We cache and turn off new indexes' refresh intervals,
@@ -171,6 +171,7 @@ class IndexCommands(object):
             for group, search, listen in resource_groups:
                 index_name = es_utils.create_new_index(group)
                 index_names[group] = index_name
+
                 refresh_intervals[index_name] = \
                     es_utils.get_index_refresh_interval(index_name)
                 # Disable refresh interval by setting its value to -1

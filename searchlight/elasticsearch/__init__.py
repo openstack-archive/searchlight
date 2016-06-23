@@ -37,7 +37,10 @@ search_opts = [
     cfg.StrOpt('index_gc_deletes', default='300s',
                help='Time for which deleted documents are held in order to'
                     'prevent older, out-of-order updates causing them to be'
-                    'created fresh in error.')
+                    'created fresh in error.'),
+    cfg.DictOpt('index_settings', default={},
+                help='Dynamic index settings to be applied to new indices. '
+                     'Format: opt1:val1,opt2:val2')
 ]
 
 CONF = cfg.CONF

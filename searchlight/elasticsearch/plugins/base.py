@@ -135,7 +135,6 @@ class IndexBase(plugin.Plugin):
             child_plugin.check_mapping_sort_fields()
 
         # Prepare the new index for this document type.
-        self.setup_index_settings(index_name=index_name)
         self.setup_index_mapping(index_name=index_name)
 
     def initial_indexing(self, index_name=None, setup_data=True):
@@ -154,13 +153,6 @@ class IndexBase(plugin.Plugin):
 
         if setup_data:
             self.setup_data(index_name)
-
-    def setup_index_settings(self, index_name):
-        """Update index settings. """
-        index_settings = self.get_settings()
-        if index_settings:
-            self.engine.indices.put_settings(body=index_settings,
-                                             index=index_name)
 
     def setup_index_mapping(self, index_name):
         """Update index document mapping."""
@@ -447,10 +439,9 @@ class IndexBase(plugin.Plugin):
 
     @abc.abstractmethod
     def _get_rbac_field_filters(self, request_context):
-        """Return any RBAC field filters to be injected into an indices
-        query. Document type will be added to this list.
+        """Return any RBAC field filters in a list to be injected into an
+        indices query. Document type will be added.
         """
-        return []
 
     def get_notification_handler(self):
         """Get the notification handler which implements NotificationBase."""
@@ -465,17 +456,9 @@ class IndexBase(plugin.Plugin):
         """
         pass
 
-    def get_settings(self):
-        """Get an index settings."""
-        return {
-            "index": {
-                "gc_deletes": CONF.elasticsearch.index_gc_deletes
-            }
-        }
-
+    @abc.abstractmethod
     def get_mapping(self):
         """Get an index mapping."""
-        return {}
 
     def get_full_mapping(self):
         """Gets the full mapping doc for this type, including children. This

@@ -20,6 +20,7 @@ import logging
 import oslo_utils
 import six
 
+from oslo_config import cfg
 from oslo_utils import encodeutils
 import searchlight.elasticsearch
 from searchlight import i18n
@@ -32,6 +33,8 @@ LOG = logging.getLogger(__name__)
 _LW = i18n._LW
 _LE = i18n._LE
 
+CONF = cfg.CONF
+
 VERSION_CONFLICT_MSG = 'version_conflict_engine_exception'
 
 
@@ -39,7 +42,7 @@ def get_now_str():
     """Wrapping this to make testing easier (mocking utcnow's troublesome)
     and keep it in one place in case oslo changes
     """
-    return oslo_utils.timeutils.isotime(datetime.datetime.utcnow())
+    return oslo_utils.timeutils.isotime(oslo_utils.timeutils.utcnow())
 
 
 def timestamp_to_isotime(timestamp):
@@ -152,12 +155,18 @@ def create_new_index(group):
     """
     es_engine = searchlight.elasticsearch.get_api()
 
+    kwargs = {}
+    index_settings = _get_index_settings_from_config()
+    if index_settings:
+        kwargs = {'body': {'index': index_settings}}
+
     index_name = None
     while not index_name:
         # Use utcnow() to ensure that the name is unique.
-        index_name = group + '-' + datetime.datetime.utcnow().strftime(FORMAT)
+        now = oslo_utils.timeutils.utcnow()
+        index_name = (group + '-' + now.strftime(FORMAT))
         try:
-            es_engine.indices.create(index=index_name)
+            es_engine.indices.create(index=index_name, **kwargs)
         except es_exc.TransportError as e:
             if (e.error.startswith("IndexAlreadyExistsException") or
                     e.error.startswith("index_already_exists_exception")):
@@ -167,6 +176,20 @@ def create_new_index(group):
                 raise
 
     return index_name
+
+
+def _get_index_settings_from_config():
+    index_settings = {}
+    if CONF.elasticsearch.index_gc_deletes is not None:
+        index_settings['gc_deletes'] = CONF.elasticsearch.index_gc_deletes
+
+    for setting, value in six.iteritems(CONF.elasticsearch.index_settings):
+        if setting.startswith('index.'):
+            setting = setting[len('index_'):]
+
+        index_settings[setting] = value
+
+    return index_settings
 
 
 def add_extra_mappings(index_name, doc_type_info):

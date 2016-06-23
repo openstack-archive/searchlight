@@ -13,9 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
+
+from oslo_config import cfg
+import oslo_utils
+
+from searchlight.elasticsearch.plugins import utils as es_utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import fake_plugins
 from searchlight.tests import functional
+
+
+now = oslo_utils.timeutils.utcnow()
+now_str = now.strftime(es_utils.FORMAT)
 
 
 class TestSearchLoad(functional.FunctionalTest):
@@ -85,14 +95,26 @@ class TestSearchLoad(functional.FunctionalTest):
         self.assertEqual(
             ['admin', 'user'], sorted(es_hits[0][ROLE_USER_FIELD]))
 
-    def test_gc_verify_setting(self):
-        images_plugin = self.initialized_plugins['OS::Glance::Image']
-        alias_name = images_plugin.alias_name_listener
-        settings = self.elastic_connection.indices.get_settings(alias_name)
-        # We are alias-based, not index-based. We pass in an alias to
-        # get_setings() but it returns a dict based on the indexes. We
-        # do not know the index name(s). We will verify the first index
-        # in the dict.
-        index_name = list(settings)[0]
-        self.assertEqual(
-            "300s", settings[index_name]['settings']['index']['gc_deletes'])
+    def test_index_settings(self):
+        """Test the default gc_delete interval plus some other
+        dynamic index settings
+        """
+        with mock.patch.object(cfg.CONF, 'elasticsearch') as mock_settings:
+            mock_settings.index_gc_deletes = '100s'
+            mock_settings.index_settings = {
+                'refresh_interval': '2s',
+                'index.number_of_replicas': 1
+            }
+
+            index_name = es_utils.create_new_index('test-index-settings')
+            try:
+                settings = self.elastic_connection.indices.get_settings(
+                    index_name)
+                index_settings = settings[index_name]['settings']['index']
+
+                self.assertEqual("100s", index_settings['gc_deletes'])
+                self.assertEqual("2s", index_settings['refresh_interval'])
+                self.assertEqual("1", index_settings['number_of_replicas'])
+
+            finally:
+                es_utils.delete_index(index_name)

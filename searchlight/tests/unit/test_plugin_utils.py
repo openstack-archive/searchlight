@@ -14,9 +14,16 @@
 #    under the License.
 import mock
 
+from oslo_config import cfg
+import oslo_utils
+
 from searchlight.elasticsearch.plugins import utils as plugin_utils
 from searchlight.tests.unit import utils as unit_test_utils
 from searchlight.tests import utils as test_utils
+
+CONF = cfg.CONF
+now = oslo_utils.timeutils.utcnow()
+now_str = now.strftime(plugin_utils.FORMAT)
 
 
 class TestPluginUtils(test_utils.BaseTestCase):
@@ -128,3 +135,43 @@ class TestPluginUtils(test_utils.BaseTestCase):
             }
             mock_engine.indices.put_settings.assert_called_with(expected_body,
                                                                 'test-index')
+
+    @mock.patch('searchlight.elasticsearch.get_api')
+    def test_index_settings(self, mock_api):
+        mock_engine = mock.Mock()
+        mock_api.return_value = mock_engine
+
+        with mock.patch.object(CONF, 'elasticsearch') as mock_settings:
+            mock_settings.index_gc_deletes = '100s'
+            mock_settings.index_settings = {
+                'key1': 'value1',
+                'index.key2': 'value2',
+                'index.something.key3': 'value3'
+            }
+
+            with mock.patch('oslo_utils.timeutils.utcnow', return_value=now):
+                plugin_utils.create_new_index('test')
+
+        expected = {
+            'index': {
+                'key1': 'value1',
+                'key2': 'value2',
+                'something.key3': 'value3',
+                'gc_deletes': '100s'
+            }
+        }
+        mock_engine.indices.create.assert_called_with(index='test-' + now_str,
+                                                      body=expected)
+
+    @mock.patch('searchlight.elasticsearch.get_api')
+    def test_no_index_settings(self, mock_api):
+        mock_engine = mock.Mock()
+        mock_api.return_value = mock_engine
+
+        with mock.patch('searchlight.elasticsearch.plugins.'
+                        'utils._get_index_settings_from_config',
+                        return_value={}):
+            with mock.patch('oslo_utils.timeutils.utcnow', return_value=now):
+                plugin_utils.create_new_index('test')
+
+        mock_engine.indices.create.assert_called_with(index='test-' + now_str)
