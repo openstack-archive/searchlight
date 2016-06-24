@@ -88,6 +88,9 @@ Please read the rest of the guide for detailed information.::
     [resource_plugin:os_nova_flavor]
     enabled = True
 
+    [resource_plugin:os_nova_servergroup]
+    enabled = False
+
     [resource_plugin:os_glance_image]
     enabled = True
 

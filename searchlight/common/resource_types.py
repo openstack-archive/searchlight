@@ -31,6 +31,7 @@ NEUTRON_FLOATINGIP = "OS::Neutron::FloatingIP"
 NEUTRON_SECURITY_GROUP = "OS::Neutron::SecurityGroup"
 
 NOVA_SERVER = "OS::Nova::Server"
+NOVA_SERVERGROUP = "OS::Nova::ServerGroup"
 NOVA_HYPERVISOR = "OS::Nova::Hypervisor"
 NOVA_FLAVOR = "OS::Nova::Flavor"
 NOVA_AVAILABILITY_ZONE = "OS::Nova::AvailabilityZone"

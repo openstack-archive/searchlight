@@ -9,6 +9,7 @@
     "resource:OS::Glance::Image:allow": "",
     "resource:OS::Glance::Metadef:allow": "",
     "resource:OS::Nova::Server:allow": "",
+    "resource:OS::Nova::ServerGroup:allow": "",
     "resource:OS::Nova::Hypervisor:allow": "role:admin",
     "resource:OS::Nova::Flavor:allow": "",
     "resource:OS::Cinder::Volume:allow": "",

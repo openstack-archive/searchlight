@@ -103,7 +103,13 @@ def serialize_nova_flavor(flavor, updated_at=None):
 
     if not getattr(flavor, 'updated_at', None):
         serialized['updated_at'] = updated_at or utils.get_now_str()
+    return serialized
 
+
+def serialize_nova_servergroup(servergroup, updated_at=None):
+    serialized = servergroup.to_dict()
+    if not getattr(servergroup, 'updated_at', None):
+        serialized['updated_at'] = updated_at or utils.get_now_str()
     return serialized
 
 

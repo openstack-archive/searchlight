@@ -1,0 +1,13 @@
+{
+  "server_groups": [
+    {
+      "user_id": "944ff1aa607744ab9400acbf6be7f38a",
+      "policies": ["affinity"],
+      "name": "server_group_1",
+      "members": ["8bf01fe7-1369-4059-92de-95ba11ff21dd"],
+      "project_id": "d782f6257f0b484c97e9474b74db34a1",
+      "id": "d0d017d6-0d41-4b32-b9f8-c43f039defc5",
+      "metadata": {}
+    }
+  ]
+}

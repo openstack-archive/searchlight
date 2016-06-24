@@ -326,3 +326,18 @@ class FlavorHandler(base.NotificationBase):
         #            this needs to be changed once the notification for
         #            flavor in nova is implemented:
         return {}
+
+
+class ServerGroupHandler(base.NotificationBase):
+    """Handles nova server group notifications.
+    """
+
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['nova']
+
+    def get_event_handlers(self):
+        # TODO(Kevin_Zheng): Currently there is no notification for
+        #            server groups, this needs to be changed once the
+        #            notification for server groups in nova is implemented.
+        return {}

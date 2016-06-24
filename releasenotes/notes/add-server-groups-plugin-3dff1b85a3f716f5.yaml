@@ -1,0 +1,10 @@
+---
+features:
+  - Adds nova plugin for server groups.
+issues:
+  - There are no notifications for server groups from nova yet,
+    so we recommend putting it in its own resource group and
+    scheduling a cron job to periodically re-sync. This will
+    create a very low overhead way to keep the index up to
+    date. The index latency will be dependent on how often you
+    re-sync the data.

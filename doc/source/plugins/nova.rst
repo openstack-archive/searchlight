@@ -93,6 +93,23 @@ Plugin: OS::Nova::Flavor
     keep the index up to date. The index latency will be dependent on how
     often you re-sync the data.
 
+Plugin: OS::Nova::SeverGroup
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_nova_servergroup]
+    enabled = true
+
+.. note::
+
+    The return value of os-server-groups API from nova doesn't contain
+    project and user information before nova API microversion v2.13,
+    thus the index cannot been searched by particular project.
+
+    There are no notifications for server groups from nova yet, so we
+    recommend putting it in its own resource group and scheduling a cron job
+    to re-sync with little overhead.
+
 Nova Configuration
 ==================
 

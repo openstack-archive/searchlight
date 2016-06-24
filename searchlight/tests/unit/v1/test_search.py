@@ -330,6 +330,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Glance::Metadef',
             'OS::Nova::Flavor',
             'OS::Nova::Server',
+            'OS::Nova::ServerGroup',
             'OS::Nova::Hypervisor',
             'OS::Neutron::FloatingIP',
             'OS::Neutron::Net',

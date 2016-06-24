@@ -23,6 +23,8 @@ IMAGE_MEMBERS_FILE = \
     "searchlight/tests/functional/data/load/image_members.json"
 SERVERS_FILE = "searchlight/tests/functional/data/load/servers.json"
 FLAVORS_FILE = "searchlight/tests/functional/data/load/flavors.json"
+SERVER_GROUP_FILE = \
+    "searchlight/tests/functional/data/load/server_groups.json"
 
 
 from glanceclient.v2 import client as glance
@@ -139,11 +141,24 @@ def get_nova_flavors_with_pyclient():
         f.write(flavors_json)
 
 
+def get_nova_server_groups_with_pyclient():
+
+    nova_client = get_novaclient()
+    server_groups = nova_client.server_groups.list(all_projects=True)
+    server_groups_list = []
+    for each in server_groups:
+        server_groups_list.append(each.to_dict())
+        server_groups_json = json.dumps(list(server_groups_list), indent=4)
+    with open(SERVERS_FILE, "w") as f:
+        f.write(server_groups_json)
+
+
 def generate():
     get_glance_images_and_members_with_pyclient()
     get_glance_metadefs_with_pyclient()
     get_nova_servers_with_pyclient()
     get_nova_flavors_with_pyclient()
+    get_nova_server_groups_with_pyclient()
 
 if __name__ == "__main__":
     generate()
