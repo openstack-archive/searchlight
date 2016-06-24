@@ -66,7 +66,11 @@ def serialize_nova_hypervisor(hypervisor, updated_at=None):
     # The id for hypervisor is an integer, should be changed to
     # string.
     serialized['id'] = str(serialized['id'])
-    serialized['cpu_info'] = json.loads(serialized['cpu_info'])
+    # The 'cpu_info' field of hypervisor has changed from string
+    # to JSON object in microversion 2.28, we should be able to
+    # deal with JSON object here.
+    if not isinstance(serialized['cpu_info'], dict):
+        serialized['cpu_info'] = json.loads(serialized['cpu_info'])
     if not getattr(hypervisor, 'updated_at', None):
         serialized['updated_at'] = updated_at or utils.get_now_str()
     # TODO(lyj): Remove this once hypervisor notifications supported.
