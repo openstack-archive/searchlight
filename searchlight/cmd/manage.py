@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import concurrent.futures
 import copy
+import signal
 import six
 import sys
+import time
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -31,6 +34,13 @@ from searchlight.i18n import _, _LE, _LI, _LW
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
+manage_opts = [
+    cfg.IntOpt('workers', default=6, min=1,
+               help="Maximum number of worker threads for indexing.")
+]
+
+CONF.register_opts(manage_opts, group='manage')
+
 
 # Decorators for actions
 def args(*args, **kwargs):
@@ -44,6 +54,64 @@ class IndexCommands(object):
     def __init__(self):
         utils.register_plugin_opts()
 
+    def _plugin_api(self, plugin_obj, index_names):
+        """Helper to re-index using the plugin API within a thread, allowing
+           all plugins to re-index simultaneously. We may need to cleanup.
+           See sig_handler() for more info.
+        """
+        gname = plugin_obj.resource_group_name
+        index_name = index_names[gname]
+        dtype = plugin_obj.document_type
+
+        LOG.info(_LI("API Reindex start %(type)s into %(index_name)s") %
+                 {'type': dtype, 'index_name': index_name})
+
+        try:
+            plugin_obj.index_initial_data(index_name=index_name)
+            es_utils.refresh_index(index_name)
+
+            LOG.info(_LI("API Reindex end %(type)s into %(index_name)s") %
+                     {'type': dtype, 'index_name': index_name})
+        except exceptions.EndpointNotFound:
+            # Display a warning, do not propogate.
+            doc = plugin_obj.get_document_type()
+            LOG.warning(_LW("Service is not available for plugin: "
+                            "%(doc)s") % {"doc": doc})
+        except Exception as e:
+            LOG.error(_LE("Failed to setup index extension "
+                          "%(ex)s: %(e)s") % {'ex': index_name, 'e': e})
+            raise
+
+    def _es_reindex_worker(self, es_reindex, resource_groups, index_names):
+        """Helper to re-index using the ES reindex helper, allowing all ES
+           re-indexes to occur simultaneously. We may need to cleanup. See
+           sig_handler() for more info.
+        """
+        for group in six.iterkeys(index_names):
+            # Grab the correct tuple as a list, convert list to a
+            # single tuple, extract second member (the search
+            # alias) of tuple.
+            alias_search = \
+                [a for a in resource_groups if a[0] == group][0][1]
+            LOG.info(_LI("ES Reindex start from %(src)s to %(dst)s "
+                         "for types %(types)s") %
+                     {'src': alias_search, 'dst': index_names[group],
+                      'types': ', '.join(es_reindex)})
+            dst_index = index_names[group]
+            try:
+                es_utils.reindex(src_index=alias_search,
+                                 dst_index=dst_index,
+                                 type_list=es_reindex)
+                es_utils.refresh_index(dst_index)
+                LOG.info(_LI("ES Reindex end from %(src)s to %(dst)s "
+                             "for types %(types)s") %
+                         {'src': alias_search, 'dst': index_names[group],
+                          'types': ', '.join(es_reindex)})
+            except Exception as e:
+                LOG.error(_LE("Failed to setup index extension "
+                              "%(ex)s: %(e)s") % {'ex': dst_index, 'e': e})
+                raise
+
     @args('--group', metavar='<group>', dest='group',
           help='Index only this Resource Group (or a comma separated list)')
     @args('--type', metavar='<type>', dest='_type',
@@ -51,6 +119,52 @@ class IndexCommands(object):
     @args('--force', dest='force', action='store_true',
           help="Don't prompt (answer 'y')")
     def sync(self, group=None, _type=None, force=False):
+        def wait_for_threads():
+            """Patiently wait for all running threads to complete.
+            """
+            threads_running = True
+            while threads_running:
+                # Are any threads still running?
+                threads_running = False
+                for future in futures:
+                    if not future.done():
+                        threads_running = True
+                        break
+                time.sleep(1)
+
+        # Signal handler to catch interrupts from the user (ctl-c)
+        def sig_handler(signum, frame):
+            """When rudely interrupted by the user, we will want to clean up
+               after ourselves. We have potentially three pieces of unfinished
+               business.
+                   1. We have running threads. Cancel them.
+                   2. Wait for all threads to finish.
+                   3. We created new indices in Elasticsearch. Remove them.
+            """
+            # Cancel any and all threads.
+            for future in futures:
+                future.cancel()
+
+            # Politely wait for the current threads to finish.
+            LOG.warning(_LW("Interrupt received, waiting for threads to finish"
+                            " before cleaning up"))
+            wait_for_threads()
+
+            # Rudely remove any newly created Elasticsearch indices.
+            if index_names:
+                es_utils.alias_error_cleanup(index_names)
+
+            sys.exit(0)
+
+        try:
+            max_workers = cfg.CONF.manage.workers
+        except cfg.ConfigFileValueError as e:
+            LOG.error(_LE("Invalid value for config file option "
+                          "'manage.workers'."))
+            LOG.error(_LE("The number of thread workers, must be greater "
+                          "than 0."))
+            sys.exit(3)
+
         # Verify all indices and types have registered plugins.
         # index and _type are lists because of nargs='*'
         group = group.split(',') if group else []
@@ -173,7 +287,13 @@ class IndexCommands(object):
                 print("Aborting.")
                 sys.exit(0)
 
-        # Start the re-indexing process
+        # Start the re-indexing process.
+        # Now we are starting to change Elasticsearch. Let's clean up
+        # if interrupted. Set index_names/futures here for cleaner code
+        # in the signal handler.
+        index_names = {}
+        futures = []
+        signal.signal(signal.SIGINT, sig_handler)
 
         # Step #1: Create new indexes for each Resource Group Type.
         #   The index needs to be fully functional before it gets
@@ -186,7 +306,6 @@ class IndexCommands(object):
         #   Once all indexes are created, we need to initialize the
         #   indexes. This is done by document type.
         #   NB: The aliases remain unchanged for this step.
-        index_names = {}
         refresh_intervals = {}
         try:
             for group, search, listen in resource_groups:
@@ -200,7 +319,8 @@ class IndexCommands(object):
             for resource_type, ext in plugins_list:
                 plugin_obj = ext.obj
                 group_name = plugin_obj.resource_group_name
-                plugin_obj.prepare_index(index_name=index_names[group_name])
+                plugin_obj.prepare_index(
+                    index_name=index_names[group_name])
         except Exception:
             LOG.error(_LE("Error creating index or mapping, aborting "
                           "without indexing"))
@@ -240,48 +360,34 @@ class IndexCommands(object):
         # Step #4: Re-index all resource types in this Resource Type Group.
         #   NB: The "search" and "listener" aliases remain unchanged for this
         #       step.
-        for res, ext in plugins_to_index:
-            # Index from the plugin's API
-            plugin_obj = ext.obj
-            gname = plugin_obj.resource_group_name
-            index_name = index_names[gname]
-
-            LOG.info(_LI("Reindexing %(type)s into %(index_name)s") %
-                     {'type': res, 'index_name': index_name})
-
+        #   NB: We will be spinning off this working into separate threads.
+        #       We will limit each thread to a single resource type. For
+        #       more information, please refer to the spec:
+        #           searchlight-specs/specs/newton/
+        #             index-performance-enhancement.rst
+        ThreadPoolExec = concurrent.futures.ThreadPoolExecutor
+        with ThreadPoolExec(max_workers=max_workers) as executor:
             try:
-                plugin_obj.index_initial_data(index_name=index_name)
-                es_utils.refresh_index(index_name)
-            except exceptions.EndpointNotFound:
-                LOG.warning(_LW("Service is not available for plugin: "
-                                "%(ext)s") % {"ext": ext.name})
+                futures = []
+                # Start threads for plugin API.
+                for res, ext in plugins_to_index:
+                    # Throw the plugin into the thread pool.
+                    plugin_obj = ext.obj
+                    futures.append(executor.submit(self._plugin_api,
+                                   plugin_obj, index_names))
+
+                # Start the single thread for ES re-index.
+                if es_reindex:
+                    futures.append(executor.submit(self._es_reindex_worker,
+                                   es_reindex, resource_groups, index_names))
+
+                # Sit back, relax and wait for the threads to complete.
+                wait_for_threads()
             except Exception as e:
-                LOG.error(_LE("Failed to setup index extension "
-                              "%(ex)s: %(e)s") % {'ex': ext.name, 'e': e})
+                # An exception occurred. Start cleaning up ElasticSearch and
+                # inform the user.
                 es_utils.alias_error_cleanup(index_names)
                 raise
-
-        # Call ElasticSearch for the rest, if needed.
-        if es_reindex:
-            for group in six.iterkeys(index_names):
-                # Grab the correct tuple as a list, convert list to a single
-                # tuple, extract second member (the search alias) of tuple.
-                alias_search = \
-                    [a for a in resource_groups if a[0] == group][0][1]
-                LOG.info(_LI("Copying existing data from %(src)s to %(dst)s "
-                             "for types %(types)s") %
-                         {'src': alias_search, 'dst': index_names[group],
-                          'types': ', '.join(es_reindex)})
-                try:
-                    es_utils.reindex(src_index=alias_search,
-                                     dst_index=index_names[group],
-                                     type_list=es_reindex)
-                    es_utils.refresh_index(index_names[group])
-                except Exception as e:
-                    LOG.error(_LE("Failed to setup index extension "
-                                  "%(ex)s: %(e)s") % {'ex': ext.name, 'e': e})
-                    es_utils.alias_error_cleanup(index_names)
-                    raise
 
         # Step #5: Update the "search" alias.
         #   All re-indexing has occurred. The index/alias is the same for

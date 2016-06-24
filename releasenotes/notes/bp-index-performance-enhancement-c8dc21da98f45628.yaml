@@ -1,0 +1,12 @@
+---
+prelude: >
+  Added multi-thread support for indexing.
+features:
+  - When searchlight-manage is indexing, all resource types will be indexed in
+    a separate thread. Multiple threads will be run concurrently.
+other:
+  - The maximum number of threads that will run concurrently can be controlled
+    by setting "max_workers" in the Searchlight configuration file.
+
+    [manage]
+    max_workers = 6
