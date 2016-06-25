@@ -127,7 +127,7 @@ def create(number_objects, number_containers, number_directories):
             object_id += 1
 
             if object_id % objects_per_directory == 0:
-                dir_name = ''.join(random.choice(string.letters)
+                dir_name = ''.join(random.choice(string.ascii_letters)
                                    for _ in range(2)) + '/'
 
     print("Created %d objects in %d containers" %
