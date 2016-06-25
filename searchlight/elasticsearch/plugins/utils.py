@@ -66,7 +66,7 @@ def helper_reindex(client, source_index, target_index, query=None,
        not provide this support. Since there is no way to tell helpers.bulk()
        that an external version is being used, we will need to modify each
        document in the generator. For future maintainablilty, modifications
-       to the original method will be preceeded with a comment "CHANGED:".
+       to the original method will be preceded with a comment "CHANGED:".
        Minor tweaks made for PEP8 conformance excepted.
     """
 

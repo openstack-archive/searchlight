@@ -657,7 +657,7 @@ class NotificationBase(object):
         We can address this before that happens; worst case is that you'd have
         to reindex everything, or reset the version.
 
-        The "timestamp" has similiar issues. When the "timestamp" overflowed
+        The "timestamp" has similar issues. When the "timestamp" overflowed
         the 9-digit field, time becomes indistinguishable. The 9 digits
         millisecond precision gives us around 27 hours. It should be enough to
         distinguish notifications with different timestamps.
