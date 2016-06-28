@@ -50,7 +50,15 @@ class TestSearchListenerBase(functional.FunctionalTest):
 
     def _verify_event_processing(self, event, count=1, owner=None):
         if not owner:
-            owner = event['payload']['owner']
+            payload = event['payload']
+            # Try several keys in the payload to extract an owner
+            owner = payload.get(
+                'owner',
+                payload.get('project_id',
+                            payload.get('tenant_id')))
+            if not owner:
+                raise Exception("No project/owner info found in payload")
+
         response, json_content = self._search_request(
             MATCH_ALL,
             owner, role="admin")
