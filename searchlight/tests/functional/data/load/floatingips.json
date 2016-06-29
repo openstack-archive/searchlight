@@ -1,0 +1,30 @@
+{
+  "floatingips": [
+    {
+      "router_id": "ffcd49c4-0532-4d4d-ac48-4b88e10ec90e",
+      "status": "ACTIVE",
+      "description": "",
+      "dns_name": "",
+      "dns_domain": "",
+      "floating_network_id": "5f7774a3-759f-4798-92f0-5ef59c88705c",
+      "fixed_ip_address": "172.40.0.6",
+      "floating_ip_address": "172.25.0.20",
+      "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+      "port_id": "163da95e-740d-4fe0-a8ee-91b77bb5ae33",
+      "id": "1a124625-4c71-4d20-a65b-3cf34465dab2"
+    },
+    {
+      "router_id": null,
+      "status": "DOWN",
+      "description": "",
+      "dns_name": "",
+      "dns_domain": "",
+      "floating_network_id": "5f7774a3-759f-4798-92f0-5ef59c88705c",
+      "fixed_ip_address": null,
+      "floating_ip_address": "172.25.0.21",
+      "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+      "port_id": null,
+      "id": "f0ff4710-e6f6-42c3-b6af-1b15f91e84b0"
+    }
+  ]
+}

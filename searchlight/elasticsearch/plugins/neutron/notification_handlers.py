@@ -16,6 +16,7 @@
 from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
+from searchlight.elasticsearch.plugins.neutron import serialize_floatingip
 from searchlight.elasticsearch.plugins.neutron import serialize_network
 from searchlight.elasticsearch.plugins.neutron import serialize_port
 from searchlight.elasticsearch.plugins.neutron import serialize_router
@@ -201,3 +202,36 @@ class RouterHandler(base.NotificationBase):
                 'Error deleting router %(router)s '
                 'from index: %(exc)s') %
                 {'router': router_id, 'exc': exc})
+
+
+class FloatingIPHandler(base.NotificationBase):
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['neutron']
+
+    def get_event_handlers(self):
+        return {
+            'floatingip.create.end': self.create_or_update,
+            'floatingip.update.end': self.create_or_update,
+            'floatingip.delete.end': self.delete
+        }
+
+    def create_or_update(self, payload, timestamp):
+        fip_id = payload['floatingip']['id']
+        LOG.debug("Updating floatingip information for %s", fip_id)
+        floatingip = serialize_floatingip(
+            payload['floatingip'],
+            updated_at=utils.timestamp_to_isotime(timestamp))
+        version = self.get_version(floatingip, timestamp)
+        self.index_helper.save_document(floatingip, version=version)
+
+    def delete(self, payload, timestamp):
+        fip_id = payload['floatingip_id']
+        LOG.debug("Deleting floatingip information for %s", fip_id)
+        try:
+            self.index_helper.delete_document({'_id': fip_id})
+        except Exception as exc:
+            LOG.error(_LE(
+                'Error deleting floating ip %(fip)s '
+                'from index: %(exc)s') %
+                {'fip': fip_id, 'exc': exc})

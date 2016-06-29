@@ -1,0 +1,8 @@
+---
+prelude: >
+  Added support for neutron floating IPs.
+features:
+  - Adds neutron floating IP support (OS::Neutron::FloatingIP).
+issues:
+  - Currently no notifications are sent on status changes for floating IPs
+    (see https://bugs.launchpad.net/neutron/+bug/1593793)

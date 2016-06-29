@@ -44,3 +44,11 @@ def serialize_router(router, updated_at=None):
         serialized['updated_at'] = updated_at or utils.get_now_str()
     serialized['project_id'] = serialized['tenant_id']
     return serialized
+
+
+def serialize_floatingip(fip, updated_at=None):
+    serialized = copy.deepcopy(fip)
+    if 'updated_at' not in fip:
+        serialized['updated_at'] = updated_at or utils.get_now_str()
+    serialized['project_id'] = serialized['tenant_id']
+    return serialized
