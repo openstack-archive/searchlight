@@ -102,7 +102,7 @@ sample_tags[6]="--tag python --tag apache --tag web"
 sample_metadata_idx=-1
 
 function incr_metadata_samples () {
-    ((sample_metadata_idx++))
+    sample_metadata_idx=$((sample_metadata_idx+1))
     if [ $sample_metadata_idx -eq 7 ]
     then
       sample_metadata_idx=0
