@@ -26,7 +26,7 @@ from searchlight import i18n
 _ = i18n._
 
 versions_opts = [
-    cfg.StrOpt('public_endpoint', default=None,
+    cfg.StrOpt('public_endpoint',
                help=_('Public url to use for versions endpoint. The default '
                       'is None, which will use the request\'s host_url '
                       'attribute to populate the URL base. If Searchlight is '
