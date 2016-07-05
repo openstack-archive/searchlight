@@ -21,6 +21,7 @@ from oslo_config import types
 import oslo_messaging
 from oslo_utils import encodeutils
 from oslo_utils import timeutils
+import re
 import six
 
 from searchlight.common import exception
@@ -34,9 +35,11 @@ from searchlight import plugin
 
 LOG = logging.getLogger(__name__)
 
+resource_group_reg = re.compile(r'^[a-z0-9][a-z0-9_]*$')
 indexer_opts = [
-    cfg.StrOpt('resource_group_name', default="searchlight",
-               help="The default base name for accessing Elasticsearch"),
+    cfg.Opt('resource_group_name', default="searchlight",
+            help="The default base name for accessing Elasticsearch",
+            type=types.String(regex=resource_group_reg)),
     cfg.StrOpt('notifications_topic', default="notifications",
                help="The default messaging notifications topic"),
     cfg.BoolOpt('mapping_use_doc_values', default=True,

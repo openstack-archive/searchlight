@@ -1,0 +1,8 @@
+---
+prelude: >
+    Add checks for resource group name configuration.
+other:
+  - Searchlight uses configured resource group name to create ElasticSearch
+    indices. Some characters are invalid to index names and will cause faiure
+    of index creation. Add verification to check if resource group name is
+    valid.

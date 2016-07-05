@@ -16,7 +16,8 @@ import mock
 
 from oslo_config import cfg
 import oslo_utils
-
+import re
+from searchlight.elasticsearch.plugins.base import resource_group_reg
 from searchlight.elasticsearch.plugins import utils as plugin_utils
 from searchlight.tests.unit import utils as unit_test_utils
 from searchlight.tests import utils as test_utils
@@ -175,3 +176,29 @@ class TestPluginUtils(test_utils.BaseTestCase):
                 plugin_utils.create_new_index('test')
 
         mock_engine.indices.create.assert_called_with(index='test-' + now_str)
+
+    def test_verify_index_name(self):
+        """Test resource group name configuration.
+           Group name must only contain lowercase alphanumeric characters
+           and underscores. The first character cannot be an underscore.
+        """
+
+        invalid_names = [
+            '_abc',
+            '__abc',
+            'abc*',
+            'abc!',
+            'Abc'
+        ]
+        for name in invalid_names:
+            self.assertEqual(
+                None,
+                re.match(resource_group_reg, name))
+
+        valid_names = [
+            'abc',
+            'abc_'
+            'a'
+        ]
+        for name in valid_names:
+            self.assertIsNotNone(re.match(resource_group_reg, name))
