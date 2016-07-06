@@ -145,31 +145,13 @@ class RecordSetHandler(base.NotificationBase):
             "dns.recordset.create": self.create_or_update_recordset,
             "dns.recordset.update": self.create_or_update_recordset,
             "dns.recordset.delete": self.delete_recordset,
-            "dns.record.create": self.create_record,
-            "dns.record.update": self.update_record,
-            "dns.record.delete": self.delete_record
         }
 
     def create_or_update_recordset(self, payload, timestamp):
-
-        # TODO(lakshmiS): Remove the check for empty records when v1 record
-        # api is phased out
-        # When using v1 create record api, designate sends dns.recordset.create
-        # event with empty records so that subsequent dns.record.create
-        # event can refer to the parent recordset_id. But the order of events
-        # is not always right, so we ignore recordset when a recordset event
-        # is created due to v1 record create event(we check for empty records
-        # to associate it with v1 api. v2 recordset create event will never
-        # have empty records).
-        if payload['records']:
-            payload = self._serialize(payload)
-            self.index_helper.save_document(
-                payload,
-                version=self.get_version(payload, timestamp))
-        else:
-            LOG.debug("Ignoring recordset.create notification for empty"
-                      "records; recordset will be created on "
-                      "record.create event")
+        payload = self._serialize(payload)
+        self.index_helper.save_document(
+            payload,
+            version=self.get_version(payload, timestamp))
 
     def _serialize(self, obj):
         obj['project_id'] = obj.pop('tenant_id')
@@ -184,58 +166,3 @@ class RecordSetHandler(base.NotificationBase):
         self.index_helper.delete_document(
             {'_id': payload['id'], '_version': version,
              '_parent': payload['zone_id']})
-
-    # backward compatibility with v1 api
-    # TODO(lakshmiS): Remove when designate v1 record api is phased out
-    def create_record(self, payload, timestamp):
-        version = self.get_version(payload, timestamp)
-
-        # Sometimes dns.record.create event comes before dns.recordset.create
-        # which can result in an recordset not found error.
-        # Instead retrieve the whole recordset from api and save it, to avoid
-        # race condition
-        recordsets = designate._get_recordsets(payload['zone_id'])
-        for recordset in recordsets:
-            if recordset['id'] == payload['recordset_id']:
-                payload = designate._serialize_recordset(recordset)
-                self.index_helper.save_document(
-                    payload, version=version)
-
-    # backward compatibility with v1 api
-    # TODO(lakshmiS): Remove when designate v1 record api is phased out
-    def update_record(self, payload, timestamp):
-        version = self.get_version(payload, timestamp)
-        # designate v2 client doesn't support all_tenants param for
-        # get recordset, so retrieve all recordsets for zone
-        recordsets = designate._get_recordsets(payload['zone_id'])
-        for recordset in recordsets:
-            if recordset['id'] == payload['recordset_id']:
-                payload = designate._serialize_recordset(recordset)
-                # Since recordset doesn't have record id, there is no reliable
-                # way to update a record as 'data' field itself can change.
-                # update the recordset itself
-                self.index_helper.save_document(
-                    payload, version=version)
-
-    # backward compatibility with v1 api
-    # TODO(lakshmiS): Remove when designate v1 record api is phased out
-    def delete_record(self, payload, timestamp):
-        recordset_es = self.index_helper.get_document(
-            payload['recordset_id'], for_admin=True,
-            routing=payload['zone_id'])['_source']
-        version = self.get_version(payload, timestamp)
-
-        # designate v2 api output has only data field for record,
-        # so there is no way to delete a record by record's id within
-        # a recordset.
-        recordset_es['records'] = filter(
-            lambda record: record['data'] != payload['data'],
-            recordset_es['records'])
-
-        if recordset_es['records']:
-            self.index_helper.save_document(
-                recordset_es, version=version)
-        else:
-            self.index_helper.delete_document(
-                {'_id': payload['recordset_id'], '_version': version,
-                 '_parent': payload['zone_id']})

@@ -94,13 +94,7 @@ class RecordSetIndex(designate.DesignateBase):
         ]
 
     def get_objects(self):
-        from searchlight.elasticsearch.plugins import openstack_clients
-        client = openstack_clients.get_designateclient()
-
-        zones = designate._walk_pages(
-            client.zones.list, {"all_tenants": str(True)}, limit=50)
-
-        for zone in zones:
+        for zone in designate._get_zones():
             recordsets = designate._get_recordsets(zone['id'])
             for rs in recordsets:
                 rs['project_id'] = zone['project_id']

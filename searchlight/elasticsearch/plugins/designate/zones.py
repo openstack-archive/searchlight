@@ -97,13 +97,7 @@ class ZoneIndex(designate.DesignateBase):
         ]
 
     def get_objects(self):
-        from searchlight.elasticsearch.plugins import openstack_clients
-        client = openstack_clients.get_designateclient()
-
-        iterator = designate._walk_pages(
-            client.zones.list,
-            {"all_tenants": str(True)}, limit=50)
-        for zone in iterator:
+        for zone in designate._get_zones():
             yield zone
 
     def serialize(self, obj):
