@@ -201,3 +201,50 @@ setting can be added to the Searchlight configuration file::
 
     logging_default_format_string = %(asctime)s.%(msecs)03d %(process)d %(thread)d %(threadName)s %(levelname)s %(name)s [-] %(instance)s%(message)s
 
+Elasticsearch Index Cleanup
+===========================
+
+In some cases, there may be orphaned Searchlight indices in Elasticsearch.
+An orphaned index is one that is no longer used by Searchlight, either
+directly or through an alias.
+
+To help detect which Searchlight-related indices may be orphaned in
+Elasticsearch, the ``searchlight-manage`` command will display all indices
+that are currently being used by Searchlight. This is the ``aliases``
+option to the ``index`` command::
+
+    $ searchlight-manage index aliases
+
+This command outputs a listing of all indices that are used by
+Searchlight (based on the current configuration file). The aliases
+associated with each index is also shown. A sample output will look
+like this::
+
+    $ searchlight-manage index aliases
+    List of Elasticsearch indices (and their associated aliases) used by Searchlight.
+
+    Note:
+    The indices are based on the current config file.
+    To view indices used by other Searchlight config files, use the --config-file option.
+
+    Indices are denoted with a '*'
+    Aliases are denoted with a '+'
+
+        * searchlight-2016_07_13_17_09_27
+            + searchlight-listener
+            + searchlight-search
+        * sl-swift-2016_07_13_17_09_26
+            + sl-swift-listener
+            + sl-swift-search
+
+The example shows that Searchlight is using two indices in Elasticsearch:
+``searchlight-2016_07_13_17_09_27`` and ``sl-swift-2016_07_13_17_09_26``.
+The index ``searchlight-2016_07_13_17_09_27`` has two aliases: ``searchlight-listener``
+and ``searchlight-search``. The index ``sl-swift-2016_07_13_17_09_26`` has
+two aliases: ``sl-swift-listener`` and ``sl-swift-search``.
+
+Any other indices or aliases in Elasticsearch are not used by this specific
+Searchlight configuration. NOTE: If there are other Searchlight
+instances running with a different configuration, their indices and aliases
+will not by displayed by this command. The user will need to rerun the
+``index aliases`` command using these other configuration files.

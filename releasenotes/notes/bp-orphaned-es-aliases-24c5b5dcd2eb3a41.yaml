@@ -1,0 +1,10 @@
+---
+prelude: >
+    Add support to searchlight-manage for displaying
+    with Elasticsearch indices/aliases are currently
+    being used by Searchlight.
+features:
+  - Add support to searchlight-manage for displaying
+    with Elasticsearch indices/aliases are currently
+    being used by Searchlight. The indices/aliases
+    are based on the specified configuration file.

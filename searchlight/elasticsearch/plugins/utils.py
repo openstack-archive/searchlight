@@ -392,6 +392,14 @@ def alias_error_cleanup(indexes):
             LOG.error(encodeutils.exception_to_unicode(e))
 
 
+def get_indices(alias):
+    """Return a list of indices associated with the specified alias.
+    """
+    es_engine = searchlight.elasticsearch.get_api()
+
+    return es_engine.indices.get_alias(name=alias)
+
+
 def normalize_date_fields(document,
                           created_at='created',
                           updated_at='updated'):

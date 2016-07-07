@@ -24,12 +24,12 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import encodeutils
 
+from elasticsearch import exceptions as es_exc
 from keystoneclient import exceptions
 from searchlight.common import config
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import utils as es_utils
 from searchlight.i18n import _, _LE, _LI, _LW
-
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -416,6 +416,51 @@ class IndexCommands(object):
             except Exception as e:
                 LOG.error(encodeutils.exception_to_unicode(e))
 
+    def aliases(self):
+        # Grab a list of aliases used by Searchlight.
+        aliases = []
+        for res_type, ext in six.iteritems(utils.get_search_plugins()):
+            aliases.append(ext.obj.alias_name_listener)
+            aliases.append(ext.obj.alias_name_search)
+
+        # Grab the indices associated with the aliases. The end result is
+        # a dictionary where the key is the index and the value is a list
+        # of aliases associated with that index.
+        indices = {}
+        for alias in set(aliases):
+            try:
+                response = es_utils.get_indices(alias)
+            except es_exc.NotFoundError:
+                # Ignore and continue.
+                response = {}
+            except Exception as e:
+                # Probably an ES connection issue. Alert the user.
+                LOG.error(_LE("Failed retrieving indices from Elasticsearch "
+                              "%(a)s %(e)s") % {'a': alias, 'e': e})
+                sys.exit(3)
+
+            for index in response.keys():
+                if index not in indices:
+                    indices[index] = [alias]
+                else:
+                    indices[index].append(alias)
+
+        if not indices:
+            print("\nNo Elasticsearch indices for Searchlight exist.")
+        else:
+            print("\nList of Elasticsearch indices (and their associated"
+                  " aliases) used by Searchlight.\n")
+            print("The indices are based on the config file.")
+            print("To view indices used by other Searchlight config "
+                  "files, use the --config-file option.\n")
+            print("Indices are denoted with a '*'")
+            print("Aliases are denoted with a '+'\n")
+            for index in indices:
+                print("    * " + index)
+                for alias in indices[index]:
+                    print("        + " + alias)
+        print("\n")
+
 
 def add_command_parsers(subparsers):
     """Adds any commands and subparsers for their actions. This code's
@@ -456,7 +501,7 @@ command_opt = cfg.SubCommandOpt('command',
 
 
 COMMANDS = {
-    'index': IndexCommands
+    'index': IndexCommands,
 }
 
 
