@@ -97,6 +97,22 @@ following options control indexing behavior::
     # is an explicit action
     action.auto_create_index: false
 
+Index settings
+**************
+In addition to server-wide index settings it's possible to configure
+Searchlight to apply settings to indices it creates with
+``searchlight-manage``. Index settings can be specified as follows in 
+``searchlight.conf``::
+
+    [elasticsearch]
+    index_settings = refresh_interval:2s,number_of_replicas:1
+
+The ``index.`` prefix for settings is optional; Searchlight will prepend it if
+it's not given (e.g. ``index.refresh_interval`` is also acceptable).
+
+Index settings are applied at creation time and so are not limited to the
+'dynamic' index settings. They are applied to all created indices.
+
 See also:
 
 * http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-index\_.html
