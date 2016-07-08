@@ -70,7 +70,7 @@ Please review the plugin documentation and add configuration appropriately:
 3. Customize searchlight configuration
 
 Searchlight documentation talks about settings in ``searchlight.conf``.
-To customize searchlight.conf settingss, add then under the following
+To customize searchlight.conf settings, add them under the following
 section in ``local.conf``::
 
     [[post-config|$SEARCHLIGHT_CONF]]
