@@ -41,7 +41,7 @@ def strip_role_suffix(strip_from, suffix=None):
 
 
 def get_metafield(doc, metafield):
-    """For fields like _parent and _routing es1.x requires you request them
+    """For fields like _parent and _routing es1.x requires you to request them
     in 'fields', and they're returned as such. ES2.x always returns them but
     at the root document level (like _id). This function copes with both.
     """
