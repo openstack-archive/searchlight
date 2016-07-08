@@ -198,7 +198,7 @@ class IndexingHelper(object):
             err_msg = []
             for err in e.errors:
                 if "VersionConflict" not in err['index']['error']:
-                    raise e
+                    raise
                 err_msg.append("id %(_id)s: %(error)s" % err['index'])
             LOG.warning(_LW('Version conflict %s') % ';'.join(err_msg))
             result = 0
