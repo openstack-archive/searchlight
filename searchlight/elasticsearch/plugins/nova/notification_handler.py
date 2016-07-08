@@ -15,6 +15,7 @@
 
 import novaclient.exceptions
 from oslo_log import log as logging
+import six
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
@@ -29,26 +30,47 @@ _LE = i18n._LE
 class InstanceHandler(base.NotificationBase):
     """Handles nova server notifications. These can come as a result of
     a user action (like a name change, state change etc) or as a result of
-    periodic auditing notifications nova sends
+    periodic auditing notifications nova sends. Because there are so many
+    state change notifications, and because currently we're forced to go to
+    the nova API for updates, some notifications are processed only as updates
+    to the indexed elasticsearch data. Right now those events are part of the
+    following operations: boot, poweron/off, suspend/resume, pause/unpause,
+                          delete
     """
+    partial_state_updates = True
+
+    _state_fields = {'state': 'OS-EXT-STS:vm_state',
+                     'new_task_state': 'OS-EXT-STS:task_state'}
+
+    _provisioning_states = {'networking': None,
+                            'block_device_mapping': 'networking',
+                            'spawning': 'block_device_mapping'}
 
     @classmethod
     def _get_notification_exchanges(cls):
-        return ['nova', 'neutron']
+        return ['nova']
 
     def get_event_handlers(self):
         return {
             # compute.instance.update seems to be the event set as a
             # result of a state change etc
-            'compute.instance.update': self.create_or_update,
-            'compute.instance.exists': self.create_or_update,
-            'compute.instance.create.end': self.create_or_update,
-            'compute.instance.power_on.end': self.create_or_update,
-            'compute.instance.power_off.end': self.create_or_update,
+            'compute.instance.update': self.index_from_update,
+
+            'compute.instance.create.start': self.index_from_api,
+            'compute.instance.create.end': self.index_from_api,
+
+            'compute.instance.power_on.end': self.index_from_api,
+            'compute.instance.power_off.end': self.index_from_api,
+            'compute.instance.resume.end': self.index_from_api,
+            'compute.instance.suspend.end': self.index_from_api,
+            'compute.instance.pause.end': self.index_from_api,
+            'compute.instance.unpause.end': self.index_from_api,
+
+            'compute.instance.shutdown.end': self.index_from_api,
             'compute.instance.delete.end': self.delete,
 
-            'compute.instance.volume.attach': self.create_or_update,
-            'compute.instance.volume.detach': self.create_or_update,
+            'compute.instance.volume.attach': self.index_from_api,
+            'compute.instance.volume.detach': self.index_from_api,
 
             # Removing neutron port events for now; waiting on nova
             # to implement interface notifications as with volumes
@@ -56,12 +78,127 @@ class InstanceHandler(base.NotificationBase):
             # https://blueprints.launchpad.net/nova/+spec/interface-notifications
         }
 
-    def create_or_update(self, payload, timestamp):
+    def index_from_update(self, payload, timestamp):
+        """Determine whether or not to process a full update. The updates, and
+        how they are processed, are:
+        BUILD (state=building unless noted)
+         * new_task_state == old_task_state == scheduling -> full index
+         * new_task_state == None, old_task_state == scheduling -> ignore
+         * new_task_state == old_task_state == None -> ignore
+         * new_task_state == networking -> state update
+         * new_task_state == block_device_mapping -> state update
+         * new_task_state = spawning -> state update
+         * state == active, old_task_state == spawning -> ignore
+
+        There are a set of power state transitions that all follow the same
+        kind of structure, with 2 updates and .start and .end events. For these
+        events the first update can be a state change and the second ignored.
+        They are:
+          active -> powering-off -> stopped -> powering-on -> active
+          active -> pausing -> paused -> unpausing -> active
+          active -> suspending -> suspended -> resuming -> active
+        """
+        new_state = payload.get('state', None)
+        new_task_state = payload.get('new_task_state', None)
+        old_task_state = payload.get('old_task_state', None)
+
+        # Map provisioning new_task_states to the previous one
+
+        # Default to updating from the API unless we decide otherwise
+        update_if_state_matches = None
+        ignore_update = False
+
+        if new_state == 'building':
+            if old_task_state == 'scheduling' and new_task_state is None:
+                # This update arrives after scheduling, and immediately prior
+                # to create.start (or an update to error state)
+                ignore_update = True
+            elif new_task_state is None and old_task_state is None:
+                # No new state information - this notification isn't useful
+                ignore_update = True
+            elif new_task_state in self._provisioning_states:
+                # Match against the provisioning states above (networking etc)
+                update_if_state_matches = dict(
+                    state=new_state,
+                    new_task_state=self._provisioning_states[new_task_state])
+        elif new_state == 'active' and old_task_state == 'spawning':
+            # This is received a few microseconds ahead of instance.create.end
+            # and indicates the end of the init sequence; ignore this one in
+            # favor of create.end
+            ignore_update = True
+        elif new_task_state is None and old_task_state is not None:
+            # These happen right before a corresponding .end event
+            ignore_update = True
+        elif new_task_state is not None and new_task_state == old_task_state:
+            update_if_state_matches = dict(
+                state=new_state,
+                new_task_state=None)
+
+        if ignore_update:
+            LOG.debug("Skipping update or indexing for %s; event contains no "
+                      "useful information", payload['instance_id'])
+        elif not update_if_state_matches:
+            self.index_from_api(payload, timestamp)
+        elif self.partial_state_updates:
+            self._partial_state_update(payload, update_if_state_matches)
+        else:
+            LOG.debug("Skipping partial state update for %s; functionality "
+                      "is disabled", payload['instance_id'])
+
+    def _partial_state_update(self, payload, update_if_state_matches):
+        """Issue a partial document update that will only affect
+        state and task_state fields.
+        """
+        instance_id = payload['instance_id']
+        LOG.debug("Attempting partial state update for %s matching %s",
+                  instance_id, update_if_state_matches)
+
+        state_field_values = {
+            self._state_fields[k]: payload[k]
+            for k in self._state_fields if k in payload
+        }
+
+        if state_field_values:
+            # Run a partial document update. Don't want to use groovy scripting
+            # because there's a high chance it'll be disabled; instead, will
+            # get 'n' retrieve ourselves
+            preexisting = self.index_helper.get_document(instance_id,
+                                                         for_admin=True)
+
+            def should_update(_source):
+                for key, value in six.iteritems(update_if_state_matches):
+                    key = self._state_fields[key]
+                    if key not in _source:
+                        LOG.debug("Skipping state update for %s; precondition "
+                                  "'%s' not in existing source",
+                                  instance_id, key)
+                        return False
+                    if _source[key] != value:
+                        LOG.debug(
+                            "Skipping state update for %s; precondition "
+                            "'%s' = '%s' doesn't match '%s' in source",
+                            instance_id, key, value, _source[key])
+                        return False
+                return True
+
+            if preexisting:
+                current_version = preexisting['_version']
+                if should_update(preexisting['_source']):
+                    LOG.debug("Performing state update for %s", instance_id)
+                    # All preconditions matched; update_document will attempt
+                    # to run a partial document update
+                    # TODO(sjmc7) - use the existing update_at to generate
+                    # a new timestamp? Still seems kind of made up
+                    self.index_helper.update_document(
+                        state_field_values,
+                        instance_id,
+                        update_as_script=False,
+                        expected_version=current_version)
+
+    def index_from_api(self, payload, timestamp):
+        """Index from the nova API"""
         instance_id = payload['instance_id']
         LOG.debug("Updating nova server information for %s", instance_id)
-        self._update_instance(payload, instance_id, timestamp)
-
-    def _update_instance(self, payload, instance_id, timestamp):
         try:
             serialized_payload = serialize_nova_server(instance_id)
             self.index_helper.save_document(

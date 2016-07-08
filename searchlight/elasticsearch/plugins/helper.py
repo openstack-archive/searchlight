@@ -420,7 +420,8 @@ class IndexingHelper(object):
             return self._index_alias_multiple_indexes_get(
                 doc_id=doc_id, routing=routing)
 
-    def update_document(self, document, doc_id, update_as_script):
+    def update_document(self, document, doc_id, update_as_script,
+                        expected_version=None):
         """Updates are a little simpler than inserts because the documents
         already exist. Note that scripted updates are not filtered in the same
         way as partial document updates. Script updates should be passed as
@@ -429,6 +430,8 @@ class IndexingHelper(object):
         """
         def _get_update_action(source, id_suffix=''):
             action = {'_id': doc_id + id_suffix, '_op_type': 'update'}
+            if expected_version:
+                action['_version'] = expected_version
             if update_as_script:
                 action.update(source)
             else:

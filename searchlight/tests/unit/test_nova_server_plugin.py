@@ -552,7 +552,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             with mock.patch.object(doc_deleter,
                                    'delete_document') as mock_deleter:
                 fake_timestamp = '2015-09-01 08:57:35.282586'
-                notification_handler.create_or_update(
+                notification_handler.index_from_api(
                     {u'instance_id': u'missing',
                      u'updated_at': u'2016-02-01T00:00:00Z'},
                     fake_timestamp)
@@ -563,26 +563,26 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
     def test_vol_events_supported(self):
         not_handler = self.plugin.get_notification_handler()
-        events = not_handler.get_event_handlers()
-        self.assertTrue('compute.instance.volume.attach' in events)
-        self.assertTrue('compute.instance.volume.detach')
-
         vol_payload = {
             "instance_id": "a",
             "volume_id": "b"
         }
 
-        with mock.patch.object(not_handler, '_update_instance') as mock_update:
+        with mock.patch.object(not_handler, 'index_from_api') as mock_update:
+            events = not_handler.get_event_handlers()
+            self.assertTrue('compute.instance.volume.attach' in events)
+            self.assertTrue('compute.instance.volume.detach' in events)
+
             attach = events['compute.instance.volume.attach']
             attach(vol_payload, 1234)
 
-            mock_update.assert_called_with(vol_payload, "a", 1234)
+            mock_update.assert_called_with(vol_payload, 1234)
             mock_update.reset()
 
             detach = events['compute.instance.volume.detach']
             detach(vol_payload, 1234)
 
-            mock_update.assert_called_with(vol_payload, "a", 1234)
+            mock_update.assert_called_with(vol_payload, 1234)
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_filter_result(self, mock_version):
@@ -593,3 +593,383 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             es_result = self.plugin.serialize(self.instance1.id)
         self.plugin.filter_result({'_source': es_result}, None)
         self.assertEqual([{'name': 'default'}], es_result['security_groups'])
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_boot_state_change_notifications(self, mock_version):
+        """This is an attempt to stop hammering the nova API!
+        Many state change events are received in a short space of time during
+        nova instance boots. We'll ignore some of them.
+        """
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        successful_boot_events = [
+            ("compute.instance.update",
+             dict(state_description="scheduling", old_state="building",
+                  state="building", old_task_state="scheduling",
+                  new_task_state="scheduling"),
+             "2016-05-12 20:44:40.352048"),
+            ("compute.instance.update",
+             dict(state_description="scheduling", old_state="building",
+                  state="building", old_task_state="scheduling",
+                  new_task_state=None),
+             "2016-05-12 20:44:40.867902"),
+            ("compute.instance.create.start",
+             dict(state_description="", state="building"),
+             "2016-05-12 20:44:40.885366"),
+            ("compute.instance.update",
+             dict(state_description="", old_state="building",
+                  state="building", old_task_state=None,
+                  new_task_state=None),
+             "2016-05-12 20:44:40.981856"),
+            ("compute.instance.update",
+             dict(state_description="networking", old_state="building",
+                  state="building", old_task_state="networking",
+                  new_task_state="networking"),
+             "2016-05-12 20:44:41.082192"),
+            ("compute.instance.update",
+             dict(state_description="block_device_mapping",
+                  old_state="building", state="building",
+                  old_task_state="networking",
+                  new_task_state="block_device_mapping"),
+             "2016-05-12 20:44:41.298666"),
+            ("compute.instance.update",
+             dict(state_description="spawning", old_state="building",
+                  state="building", old_task_state="block_device_mapping",
+                  new_task_state="spawning"),
+             "2016-05-12 20:44:41.355864"),
+            ("port.create.start",
+             dict(device_owner="compute:None",
+                  device_id="913a1d19-f96f-4bb2-b459-84dd25ebb923"),
+             "2016-05-12 20:44:41.673135"),
+            ("port.create.end",
+             dict(device_owner="compute:None",
+                  device_id="913a1d19-f96f-4bb2-b459-84dd25ebb923"),
+             "2016-05-12 20:44:42.700366"),
+            ("image.send", {}, "2016-05-12 20:44:42.700366"),
+            ("image.send", {}, "2016-05-12 20:44:45.444854"),
+            ("compute.instance.update",
+             dict(state_description="", old_state="building",
+                  state="active", old_task_state="spawning",
+                  new_task_state=None),
+             "2016-05-12 20:44:52.915259"),
+            ("compute.instance.create.end",
+             dict(state_description="", state="active"),
+             "2016-05-12 20:44:52.976685"),
+        ]
+
+        for event in successful_boot_events:
+            event[1]["instance_id"] = u"a380287d-1f61-4887-959c-8c5ab8f75f8f"
+
+        # Feed the events to the notification handler
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        def handle_message(message, expected_event_type):
+            self.assertEqual(expected_event_type, message[0],
+                             "Expected event type doesn't match test "
+                             "message type.")
+            # type, payload, timestamp
+            type_handler = event_handlers.get(message[0], None)
+            if type_handler:
+                type_handler(message[1], message[2])
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save, \
+            mock.patch.object(self.plugin.index_helper,
+                              'update_document') as mock_update, \
+            mock.patch(nova_server_getter,
+                       return_value=self.instance1) as nova_getter:
+
+                def assert_call_counts(get, save, update):
+                    # Helper to reduce copy pasta
+                    self.assertEqual(get, nova_getter.call_count)
+                    self.assertEqual(save, mock_save.call_count)
+                    self.assertEqual(update, mock_update.call_count)
+
+                # Expect a nova API hit from the first update
+                handle_message(successful_boot_events[0],
+                               "compute.instance.update")
+                assert_call_counts(get=1, save=1, update=0)
+
+                # Expect nothing for the next update (should be ignored)
+                handle_message(successful_boot_events[1],
+                               "compute.instance.update")
+                assert_call_counts(get=1, save=1, update=0)
+
+                # Causes a nova GET
+                handle_message(successful_boot_events[2],
+                               "compute.instance.create.start")
+                assert_call_counts(get=2, save=2, update=0)
+
+                # Update after create.start is ignored
+                handle_message(successful_boot_events[3],
+                               "compute.instance.update")
+                assert_call_counts(get=2, save=2, update=0)
+
+                # Then networking, disk mapping etc
+                mock_engine.get.return_value = {
+                    '_version': 3,
+                    '_source': {
+                        'OS-EXT-STS:vm_state': 'building',
+                        'OS-EXT-STS:task_state': None
+                    }
+                }
+                handle_message(successful_boot_events[4],
+                               "compute.instance.update")
+                assert_call_counts(get=2, save=2, update=1)
+
+                mock_engine.get.return_value = {
+                    '_version': 4,
+                    '_source': {
+                        'OS-EXT-STS:vm_state': 'building',
+                        'OS-EXT-STS:task_state': 'networking'
+                    }
+                }
+                handle_message(successful_boot_events[5],
+                               "compute.instance.update")
+                assert_call_counts(get=2, save=2, update=2)
+
+                mock_engine.get.return_value = {
+                    '_version': 5,
+                    '_source': {
+                        'OS-EXT-STS:vm_state': 'building',
+                        'OS-EXT-STS:task_state': 'block_device_mapping'
+                    }
+                }
+                handle_message(successful_boot_events[6],
+                               "compute.instance.update")
+                assert_call_counts(get=2, save=2, update=3)
+
+                # port.create events are ignored
+                handle_message(successful_boot_events[7],
+                               "port.create.start")
+                handle_message(successful_boot_events[8],
+                               "port.create.end")
+                assert_call_counts(get=2, save=2, update=3)
+
+                # image.send ignored
+                handle_message(successful_boot_events[9], "image.send")
+                handle_message(successful_boot_events[10], "image.send")
+                assert_call_counts(get=2, save=2, update=3)
+
+                # final update is also ignored because create.end follows
+                handle_message(successful_boot_events[11],
+                               "compute.instance.update")
+                assert_call_counts(get=2, save=2, update=3)
+
+                # create.end causes full save
+                handle_message(successful_boot_events[12],
+                               "compute.instance.create.end")
+                assert_call_counts(get=3, save=3, update=3)
+
+    def test_racing_state_change_notifications(self):
+        """Test that a 'state update' change doesn't get applied if it looks
+        like the instance state has already been updated by a later change.
+        """
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'update_document') as mock_update:
+            # Simulate the 'spawning' event getting processed first
+            mock_engine.get.return_value = {
+                '_version': 4,
+                '_source': {
+                    'OS-EXT-STS:vm_state': 'building',
+                    'OS-EXT-STS:task_state': 'spawning'
+                }
+            }
+            event_handlers['compute.instance.update'](
+                dict(state_description="block_device_mapping",
+                     old_state="building", state="building",
+                     old_task_state="networking",
+                     new_task_state="block_device_mapping",
+                     instance_id=u"a380287d-1f61-4887-959c-8c5ab8f75f8f"),
+                "2016-05-12 20:44:41.298666")
+
+            self.assertEqual(0, mock_update.call_count)
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_delete_state_change_notifications(self, mock_version):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        delete_events = [
+            ('compute.instance.update',
+             dict(state_description='deleting', state='active',
+                  old_task_state='deleting', new_task_state='deleting'),
+             '2016-05-23 18:44:02.889647'),
+            ('compute.instance.delete.start',
+             dict(state_description='deleting', state='active'),
+             '2016-05-23 18:44:02.943141'),
+            ('compute.instance.shutdown.start',
+             dict(state_description='deleting', state='active'),
+             '2016-05-23 18:44:02.950168'),
+            ('compute.instance.update',
+             dict(state_description='deleting', state='active',
+                  old_state='active', new_task_state='deleting',
+                  old_task_state='deleting'),
+             '2016-05-23 18:44:04.155735'),
+            ('port.delete.start', {}, '2016-05-23 18:44:04.435210'),
+            ('port.delete.end', {}, '2016-05-23 18:44:04.627044'),
+            ('compute.instance.shutdown.end',
+             dict(state_description='deleting', state='active'),
+             '2016-05-23 18:44:04.696012'),
+            ('compute.instance.update',
+             dict(state_description='', state='deleted', new_task_state=None,
+                  old_task_state='deleting'),
+             '2016-05-23 18:44:04.779076'),
+            ('compute.instance.delete.end',
+             dict(state_description='', state='deleted',
+                  updated_at='2016-05-23 18:44:04'),
+             '2016-05-23 18:44:04.916681')
+        ]
+
+        for event in delete_events:
+            event[1]["instance_id"] = u"a380287d-1f61-4887-959c-8c5ab8f75f8f"
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        def handle_message(message, expected_event_type, expect_handled=True):
+            self.assertEqual(expected_event_type, message[0],
+                             "Expected event type doesn't match test "
+                             "message type.")
+            # type, payload, timestamp
+            type_handler = event_handlers.get(message[0], None)
+            if type_handler:
+                type_handler(message[1], message[2])
+            else:
+                if expect_handled:
+                    self.fail("Expected event '%s' to be handled" %
+                              expected_event_type)
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save, \
+            mock.patch.object(self.plugin.index_helper,
+                              'delete_document') as mock_delete, \
+            mock.patch.object(self.plugin.index_helper,
+                              'get_document') as mock_es_getter, \
+            mock.patch(nova_server_getter,
+                       return_value=self.instance1) as nova_getter:
+
+                def assert_call_counts(get=0, save=0, es_gets=0):
+                    # Helper to reduce copy pasta
+                    self.assertEqual(get, nova_getter.call_count)
+                    self.assertEqual(save, mock_save.call_count)
+                    self.assertEqual(es_gets, mock_es_getter.call_count)
+
+                handle_message(delete_events[0],
+                               "compute.instance.update")
+                assert_call_counts(es_gets=1)
+
+                handle_message(delete_events[1],
+                               "compute.instance.delete.start",
+                               expect_handled=False)
+
+                handle_message(delete_events[2],
+                               "compute.instance.shutdown.start",
+                               expect_handled=False)
+                assert_call_counts(es_gets=1)
+
+                handle_message(delete_events[3],
+                               "compute.instance.update")
+                assert_call_counts(es_gets=2)
+
+                # Ignore port events
+                handle_message(delete_events[4],
+                               "port.delete.start",
+                               expect_handled=False)
+                handle_message(delete_events[5],
+                               "port.delete.end",
+                               expect_handled=False)
+
+                handle_message(delete_events[6],
+                               "compute.instance.shutdown.end")
+                assert_call_counts(get=1, save=1, es_gets=2)
+
+                # Ignore this one too
+                handle_message(delete_events[7],
+                               "compute.instance.update")
+                assert_call_counts(get=1, save=1, es_gets=2)
+
+                handle_message(delete_events[8],
+                               "compute.instance.delete.end")
+                assert_call_counts(get=1, save=1, es_gets=2)
+                self.assertEqual(1, mock_delete.call_count)
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_pause_state_change_notifications(self, mock_version):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        pause_events = [
+            ('compute.instance.update',
+             dict(state_description='pausing', state='active',
+                  old_task_state='pausing', new_task_state='pausing'),
+             '2016-06-17 19:52:13.523135'),
+            ('compute.instance.pause.start',
+             dict(state_description='pausing', state='active'),
+             '2016-06-17 19:52:13.628180'),
+            ('compute.instance.update',
+             dict(state_description='', state='paused',
+                  old_task_state='pausing', new_task_state=None),
+             '2016-06-17 19:52:13.771604'),
+            ('compute.instance.pause.end',
+             dict(state_description='', state='paused'),
+             '2016-06-17 19:52:13.808362')
+        ]
+
+        for event in pause_events:
+            event[1]["instance_id"] = u"a380287d-1f61-4887-959c-8c5ab8f75f8f"
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        def handle_message(message, expected_event_type, expect_handled=True):
+            self.assertEqual(expected_event_type, message[0],
+                             "Expected event type doesn't match test "
+                             "message type.")
+            # type, payload, timestamp
+            type_handler = event_handlers.get(message[0], None)
+            if type_handler:
+                type_handler(message[1], message[2])
+            else:
+                if expect_handled:
+                    self.fail("Expected event '%s' to be handled" %
+                              expected_event_type)
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save, \
+            mock.patch.object(self.plugin.index_helper,
+                              'get_document') as mock_es_getter, \
+            mock.patch(nova_server_getter,
+                       return_value=self.instance1) as nova_getter:
+
+                def assert_call_counts(get=0, save=0, es_gets=0):
+                    # Helper to reduce copy pasta
+                    self.assertEqual(get, nova_getter.call_count)
+                    self.assertEqual(save, mock_save.call_count)
+                    self.assertEqual(es_gets, mock_es_getter.call_count)
+
+                handle_message(pause_events[0],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(pause_events[1],
+                               "compute.instance.pause.start",
+                               expect_handled=False)
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(pause_events[2],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(pause_events[3],
+                               "compute.instance.pause.end",
+                               expect_handled=False)
+                assert_call_counts(get=1, save=1, es_gets=1)

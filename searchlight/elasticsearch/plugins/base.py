@@ -658,8 +658,9 @@ class NotificationBase(object):
                 break
         else:
             date_fields_str = ', '.join(date_fields)
-            msg = ('Failed to build elasticsearch version; none of %s'
-                   'found in payload: %s' % (date_fields_str, payload))
+            msg = ('Failed to build elasticsearch version; none of %(dfs)s '
+                   'found in payload: %(payload)s' %
+                   {'dfs': date_fields_str, 'payload': payload})
             raise exception.SearchlightException(message=msg)
 
         updated_obj = timeutils.parse_isotime(updated)
