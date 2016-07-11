@@ -21,9 +21,7 @@ from six.moves import http_client
 import webob.dec
 
 from searchlight.common import wsgi
-from searchlight import i18n
-
-_ = i18n._
+from searchlight.i18n import _
 
 versions_opts = [
     cfg.StrOpt('public_endpoint',

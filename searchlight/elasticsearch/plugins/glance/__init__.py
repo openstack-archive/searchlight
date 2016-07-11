@@ -22,11 +22,9 @@ import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
-from searchlight import i18n
+from searchlight.i18n import _LW
 
 LOG = logging.getLogger(__name__)
-_ = i18n._
-_LW = i18n._LW
 
 
 def _get_image_members(image):

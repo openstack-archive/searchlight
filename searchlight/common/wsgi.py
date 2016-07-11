@@ -48,13 +48,8 @@ from webob import multidict
 from searchlight.common import config
 from searchlight.common import exception
 from searchlight.common import utils
+from searchlight.i18n import _, _LE, _LW, _LI
 from searchlight import i18n
-
-
-_ = i18n._
-_LE = i18n._LE
-_LI = i18n._LI
-_LW = i18n._LW
 
 bind_opts = [
     cfg.StrOpt('bind_host', default='0.0.0.0',

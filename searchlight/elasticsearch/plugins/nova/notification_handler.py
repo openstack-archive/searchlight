@@ -19,12 +19,10 @@ import six
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
-from searchlight import i18n
+from searchlight.i18n import _LE, _LW
 
 
 LOG = logging.getLogger(__name__)
-_LW = i18n._LW
-_LE = i18n._LE
 
 
 class InstanceHandler(base.NotificationBase):

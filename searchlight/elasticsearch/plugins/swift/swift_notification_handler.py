@@ -23,12 +23,10 @@ from searchlight.elasticsearch.plugins.swift \
     import serialize_swift_container_notification
 from searchlight.elasticsearch.plugins.swift \
     import serialize_swift_object_notification
-from searchlight import i18n
+from searchlight.i18n import _LE
 
 
 LOG = logging.getLogger(__name__)
-_LE = i18n._LE
-_ = i18n._
 
 
 class SwiftAccountHandler(base.NotificationBase):

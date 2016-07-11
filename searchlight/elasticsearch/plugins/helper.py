@@ -21,7 +21,7 @@ from oslo_utils import fnmatch
 import six
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
-from searchlight import i18n
+from searchlight.i18n import _LE, _LW, _LI
 
 # Refer to ROLE_USER_FIELD
 ADMIN_ID_SUFFIX = "_ADMIN"
@@ -55,9 +55,6 @@ DOC_VALUE_TYPES = ('long', 'integer', 'short', 'boolean', 'byte',
                    'double', 'float', 'date', 'binary', 'geo_point', 'ip')
 
 LOG = logging.getLogger(__name__)
-_LW = i18n._LW
-_LE = i18n._LE
-_LI = i18n._LI
 
 
 class IndexingHelper(object):

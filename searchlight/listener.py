@@ -24,11 +24,9 @@ from oslo_policy import opts as oslo_policy_opts
 from oslo_service import service as os_service
 
 from searchlight.common import utils
-from searchlight import i18n
+from searchlight.i18n import _LE
 
 LOG = logging.getLogger(__name__)
-_ = i18n._
-_LE = i18n._LE
 
 listener_opts = [
     cfg.IntOpt('workers',

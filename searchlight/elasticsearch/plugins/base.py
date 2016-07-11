@@ -28,13 +28,10 @@ import searchlight.elasticsearch
 from searchlight.elasticsearch.plugins import helper
 from searchlight.elasticsearch.plugins import utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
-from searchlight import i18n
+from searchlight.i18n import _, _LW, _LI
 from searchlight import plugin
 
 LOG = logging.getLogger(__name__)
-_LW = i18n._LW
-_LI = i18n._LI
-_ = i18n._
 
 indexer_opts = [
     cfg.StrOpt('resource_group_name', default="searchlight",

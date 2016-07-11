@@ -21,10 +21,6 @@ from oslo_log import log as logging
 import oslo_messaging
 import six
 
-from searchlight import i18n
-
-_ = i18n._
-_LE = i18n._LE
 
 notifier_opts = [
     cfg.StrOpt('default_publisher_id', default="image.localhost",

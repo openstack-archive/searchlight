@@ -26,12 +26,9 @@ from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
 
 import searchlight.elasticsearch
-from searchlight import i18n
+from searchlight.i18n import _LE, _LW, _LI
 
 LOG = logging.getLogger(__name__)
-_LW = i18n._LW
-_LE = i18n._LE
-_LI = i18n._LI
 
 
 class NetworkHandler(base.NotificationBase):

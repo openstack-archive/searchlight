@@ -24,13 +24,11 @@ from oslo_log import log as logging
 
 from searchlight.api import versions
 from searchlight.common import wsgi
-from searchlight import i18n
+from searchlight.i18n import _, _LW
 
 CONF = cfg.CONF
 
 LOG = logging.getLogger(__name__)
-_ = i18n._
-_LW = i18n._LW
 
 
 class VersionNegotiationFilter(wsgi.Middleware):

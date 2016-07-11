@@ -45,9 +45,7 @@ from oslo_utils import units
 from six.moves import range
 
 from searchlight.common import config
-from searchlight import i18n
-
-_ = i18n._
+from searchlight.i18n import _
 
 CONF = cfg.CONF
 

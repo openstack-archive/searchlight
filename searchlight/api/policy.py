@@ -21,7 +21,6 @@ from oslo_log import log as logging
 from oslo_policy import policy
 
 from searchlight.common import exception
-from searchlight import i18n
 
 
 LOG = logging.getLogger(__name__)
@@ -31,10 +30,6 @@ DEFAULT_RULES = policy.Rules.from_dict({
     'context_is_admin': 'role:admin',
     'default': '@',
 })
-
-_ = i18n._
-_LI = i18n._LI
-_LW = i18n._LW
 
 
 class Enforcer(policy.Enforcer):

@@ -18,12 +18,10 @@ from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_volume
-from searchlight import i18n
+from searchlight.i18n import _LW, _LE
 
 
 LOG = logging.getLogger(__name__)
-_LW = i18n._LW
-_LE = i18n._LE
 
 
 class VolumeHandler(base.NotificationBase):

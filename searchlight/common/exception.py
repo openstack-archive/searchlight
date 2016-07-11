@@ -18,9 +18,7 @@
 
 import six
 
-from searchlight import i18n
-
-_ = i18n._
+from searchlight.i18n import _
 
 _FATAL_EXCEPTION_FORMAT_ERRORS = False
 

@@ -19,6 +19,7 @@ import sys
 import oslo_utils.strutils as strutils
 
 from searchlight import i18n
+from searchlight.i18n import _
 
 try:
     import dns  # NOQA
@@ -38,12 +39,12 @@ def fix_greendns_ipv6():
         nogreendns = 'EVENTLET_NO_GREENDNS'
         flag = os.environ.get(nogreendns, '')
         if 'eventlet' in sys.modules and not strutils.bool_from_string(flag):
-            msg = i18n._("It appears that the eventlet module has been "
-                         "imported prior to setting %s='yes'. It is currently "
-                         "necessary to disable eventlet.greendns "
-                         "if using ipv6 since eventlet.greendns currently "
-                         "breaks with ipv6 addresses. Please ensure that "
-                         "eventlet is not imported prior to this being set.")
+            msg = _("It appears that the eventlet module has been "
+                    "imported prior to setting %s='yes'. It is currently "
+                    "necessary to disable eventlet.greendns "
+                    "if using ipv6 since eventlet.greendns currently "
+                    "breaks with ipv6 addresses. Please ensure that "
+                    "eventlet is not imported prior to this being set.")
             raise ImportError(msg % (nogreendns))
 
         os.environ[nogreendns] = 'yes'

@@ -21,12 +21,9 @@ from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_image_members
 from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_notification
-from searchlight import i18n
-
+from searchlight.i18n import _LE, _LW
 
 LOG = logging.getLogger(__name__)
-_LW = i18n._LW
-_LE = i18n._LE
 
 
 class ImageHandler(base.NotificationBase):

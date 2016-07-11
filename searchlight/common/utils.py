@@ -42,15 +42,11 @@ import six
 from webob import exc
 
 from searchlight.common import exception
-from searchlight import i18n
+from searchlight.i18n import _, _LE, _LW
 from searchlight import plugin
 
-CONF = cfg.CONF
-
 LOG = logging.getLogger(__name__)
-_ = i18n._
-_LE = i18n._LE
-_LW = i18n._LW
+CONF = cfg.CONF
 
 FEATURE_BLACKLIST = ['content-length', 'content-type', 'x-image-meta-size']
 SEARCHLIGHT_TEST_SOCKET_FD_STR = 'SEARCHLIGHT_TEST_SOCKET_FD'
@@ -97,7 +93,7 @@ class PrettyTable(object):
     def make_header(self):
         label_parts = []
         break_parts = []
-        for width, label, _ in self.columns:
+        for width, label, just in self.columns:
             # NOTE(sirp): headers are always left justified
             label_part = self._clip_and_justify(label, width, 'l')
             label_parts.append(label_part)
@@ -112,7 +108,7 @@ class PrettyTable(object):
     def make_row(self, *args):
         row = args
         row_parts = []
-        for data, (width, _, just) in zip(row, self.columns):
+        for data, (width, label, just) in zip(row, self.columns):
             row_part = self._clip_and_justify(data, width, just)
             row_parts.append(row_part)
 

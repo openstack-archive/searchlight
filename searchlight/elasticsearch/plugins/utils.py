@@ -23,17 +23,14 @@ import six
 from oslo_config import cfg
 from oslo_utils import encodeutils
 import searchlight.elasticsearch
-from searchlight import i18n
+from searchlight.i18n import _LE, _LW
 
 
 # Format for datetime when creating a unique index.
 FORMAT = "%Y_%m_%d_%H_%M_%S"
 
-LOG = logging.getLogger(__name__)
-_LW = i18n._LW
-_LE = i18n._LE
-
 CONF = cfg.CONF
+LOG = logging.getLogger(__name__)
 
 VERSION_CONFLICT_MSG = 'version_conflict_engine_exception'
 

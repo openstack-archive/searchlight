@@ -25,15 +25,11 @@ from keystoneclient import exceptions
 from searchlight.common import config
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import utils as es_utils
-from searchlight import i18n
+from searchlight.i18n import _, _LE, _LW
 
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
-_ = i18n._
-_LE = i18n._LE
-_LI = i18n._LI
-_LW = i18n._LW
 
 
 # Decorators for actions

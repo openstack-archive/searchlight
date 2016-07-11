@@ -18,11 +18,8 @@ import six
 from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
-from searchlight import i18n
-
 
 LOG = logging.getLogger(__name__)
-_LW = i18n._LW
 
 
 class MetadefHandler(base.NotificationBase):

@@ -21,10 +21,7 @@ import webob.exc
 from searchlight.api import policy
 from searchlight.common import wsgi
 import searchlight.context
-from searchlight import i18n
-
-_ = i18n._
-_LW = i18n._LW
+from searchlight.i18n import _, _LW
 
 context_opts = [
     cfg.BoolOpt('owner_is_tenant', default=True,

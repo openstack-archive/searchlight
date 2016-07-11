@@ -28,12 +28,9 @@ from searchlight.common import utils
 from searchlight.common import wsgi
 import searchlight.elasticsearch
 import searchlight.gateway
-from searchlight import i18n
+from searchlight.i18n import _, _LE
 
 LOG = logging.getLogger(__name__)
-_ = i18n._
-_LE = i18n._LE
-
 CONF = cfg.CONF
 
 

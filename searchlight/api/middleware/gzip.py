@@ -22,10 +22,9 @@ import re
 from oslo_log import log as logging
 
 from searchlight.common import wsgi
-from searchlight import i18n
+from searchlight.i18n import _LI
 
 LOG = logging.getLogger(__name__)
-_LI = i18n._LI
 
 
 class GzipMiddleware(wsgi.Middleware):

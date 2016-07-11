@@ -31,10 +31,8 @@ from oslo_middleware import cors
 from oslo_policy import policy
 from paste import deploy
 
-from searchlight import i18n
+from searchlight.i18n import _
 from searchlight.version import version_info as version
-
-_ = i18n._
 
 
 paste_deploy_opts = [

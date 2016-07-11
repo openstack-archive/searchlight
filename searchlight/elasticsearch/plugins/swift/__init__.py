@@ -20,11 +20,9 @@ import six
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins import openstack_clients
-from searchlight import i18n
+from searchlight.i18n import _LE
 
 LOG = logging.getLogger(__name__)
-_LE = i18n._LE
-_ = i18n._
 
 AUTH_PREFIX = ""
 ID_SEP = "/"

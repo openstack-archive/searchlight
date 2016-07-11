@@ -17,11 +17,8 @@ import logging
 import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
-from searchlight import i18n
 
 LOG = logging.getLogger(__name__)
-_ = i18n._
-_LW = i18n._LW
 
 
 BLACKLISTED_FIELDS = set((u'links', u'manager', '_loaded', '_info'))
