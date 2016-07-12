@@ -74,7 +74,7 @@ class TestFloatingIPLoaderPlugin(test_utils.BaseTestCase):
 
     def test_parent_type(self):
         # Explicitly not setting a parent since there'll only ever be one
-        self.assertEqual(None, self.plugin.parent_plugin_type())
+        self.assertIsNone(self.plugin.parent_plugin_type())
 
     def test_rbac_filter(self):
         fake_request = unit_test_utils.get_fake_request(
