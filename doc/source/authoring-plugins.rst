@@ -124,7 +124,7 @@ A notification messaging pool allows additional listeners to receive
 messages on an existing topic. By default, Openstack services send notification
 messages to an oslo.messaging 'topic' named `notifications`. To view these
 notifications while still allowing ``searchlight-listener`` or Ceilometer's
-agent to continue to recieve them, you may use the utility script in
+agent to continue to receive them, you may use the utility script in
 ``test-scripts/listener.py``::
 
     . ~/devstack/openrc admin admin
