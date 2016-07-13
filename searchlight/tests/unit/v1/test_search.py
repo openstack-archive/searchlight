@@ -301,6 +301,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'OS::Neutron::Port',
             'OS::Neutron::Subnet',
             'OS::Neutron::Router',
+            'OS::Neutron::SecurityGroup',
             'OS::Cinder::Volume',
             'OS::Cinder::Snapshot'
         ]

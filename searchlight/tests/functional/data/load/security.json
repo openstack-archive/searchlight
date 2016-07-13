@@ -1,0 +1,64 @@
+{
+    "securitygroups": [
+    {
+        "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+        "name": "test-group",
+        "description": "A test security group",
+        "security_group_rules": [{
+            "remote_group_id": null,
+            "protocol": null,
+            "description": "",
+            "direction": "egress",
+            "ethertype": "IPv4",
+            "remote_ip_prefix": null,
+            "port_range_max": null,
+            "port_range_min": null,
+            "security_group_id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36",
+            "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+            "id": "c36445af-953d-47e4-85d2-2a6ac8fcba14"
+        },{
+            "remote_group_id": null,
+            "direction": "egress",
+            "protocol": null,
+            "description": "",
+            "ethertype": "IPv6",
+            "remote_ip_prefix": null,
+            "port_range_max": null,
+            "security_group_id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36",
+            "port_range_min": null,
+            "tenant_id": "8eaac046b2c44ab99246cb0850c7f06d",
+            "id": "e230cd58-38ad-497d-8601-90e7c2745dbd"
+        }],
+        "id": "223c7074-e593-43f2-a0e6-f6d87ee8fb36"
+    },{
+        "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+        "name": "test-group",
+        "description": "A test security group",
+        "security_group_rules": [{
+            "remote_group_id": null,
+            "protocol": null,
+            "description": "",
+            "direction": "egress",
+            "ethertype": "IPv4",
+            "remote_ip_prefix": null,
+            "port_range_max": null,
+            "port_range_min": null,
+            "security_group_id": "57512cb7-aa80-9129-b8cc-ddc93612760a",
+            "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+            "id": "8009365441aac-9899-1232-eec782bbab09"
+        },{
+            "remote_group_id": null,
+            "direction": "egress",
+            "protocol": null,
+            "description": "",
+            "ethertype": "IPv6",
+            "remote_ip_prefix": null,
+            "port_range_max": null,
+            "security_group_id": "57512cb7-aa80-9129-b8cc-ddc93612760a",
+            "port_range_min": null,
+            "tenant_id": "75c31cdaa3604b76b7e279de50aec9f0",
+            "id": "ffb98238-ff4d-568d-0011-ab477dac0091"
+        }],
+        "id": "57512cb7-aa80-9129-b8cc-ddc93612760a"
+    }]
+}

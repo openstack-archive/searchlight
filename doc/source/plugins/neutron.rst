@@ -79,12 +79,20 @@ Plugin: OS::Neutron::FloatingIP
     enabled = true
     resource_group_name = searchlight
 
+Plugin: OS::Neutron::SecurityGroup
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    [resource_plugin:os_neutron_security_group]
+    enabled = true
+    resource_group_name = searchlight
+
 Neutron Configuration
 =====================
 
 Neutron sends notifications on create/update/delete actions on the
 concepts that it implements. Currently Searchlight supports indexing
-for networks, subnets, ports, routers and floating IPs.
+for networks, subnets, ports, routers, floating IPs and security groups.
 
 neutron.conf
 ------------
@@ -124,6 +132,7 @@ Subnets are visible within a tenant OR if their network is shared (OR for admins
 Ports are visible within a tenant (OR for admins if their network is shared or external).
 Routers are visible within a tenant.
 Floating IPs are visible within a tenant.
+Security groups are visible within a tenant.
 
 Release Notes
 =============

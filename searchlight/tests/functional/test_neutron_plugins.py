@@ -22,7 +22,6 @@ from searchlight.tests import functional
 from searchlight.tests.functional import test_api
 from searchlight.tests.functional import test_listener
 
-
 # These is in the load file
 TENANT1 = "8eaac046b2c44ab99246cb0850c7f06d"
 TENANT2 = "aaaaaabbbbbbccccc555552222255511"
@@ -45,6 +44,8 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.routers_plugin = self.initialized_plugins['OS::Neutron::Router']
         self.port_plugin = self.initialized_plugins['OS::Neutron::Port']
         self.fip_plugin = self.initialized_plugins['OS::Neutron::FloatingIP']
+        self.secgroup_plugin = (
+            self.initialized_plugins['OS::Neutron::SecurityGroup'])
 
         self.network_objects = self._load_fixture_data('load/networks.json')
 
@@ -59,6 +60,9 @@ class TestNeutronPlugins(functional.FunctionalTest):
 
         self.fip_objects = self._load_fixture_data('load/floatingips.json')
         self.fip_objects = self.fip_objects['floatingips']
+
+        self.secgroup_objects = self._load_fixture_data('load/security.json')
+        self.secgroup_objects = self.secgroup_objects['securitygroups']
 
     def test_network_rbac_tenant(self):
         self._index(self.networks_plugin, self.network_objects)
@@ -255,6 +259,23 @@ class TestNeutronPlugins(functional.FunctionalTest):
         self.assertEqual(200, response.status)
         self.assertEqual(2, json_content['hits']['total'])
 
+    def test_secgroup_rbac(self):
+        self._index(self.secgroup_plugin,
+                    self.secgroup_objects)
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Neutron::SecurityGroup"}
+        response, json_content = self._search_request(query, TENANT1)
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual('223c7074-e593-43f2-a0e6-f6d87ee8fb36',
+                         json_content['hits']['hits'][0]['_source']['id'])
+
+        response, json_content = self._search_request(query, TENANT3)
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual('57512cb7-aa80-9129-b8cc-ddc93612760a',
+                         json_content['hits']['hits'][0]['_source']['id'])
+
 
 class TestNeutronListeners(test_listener.TestSearchListenerBase):
     def __init__(self, *args, **kwargs):
@@ -264,6 +285,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self.subnet_events = self._load_fixture_data('events/subnets.json')
         self.router_events = self._load_fixture_data('events/routers.json')
         self.fip_events = self._load_fixture_data('events/floatingips.json')
+        self.secgroup_events = self._load_fixture_data('events/security.json')
 
     def setUp(self):
         super(TestNeutronListeners, self).setUp()
@@ -273,12 +295,14 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self.subnets_plugin = self.initialized_plugins['OS::Neutron::Subnet']
         self.routers_plugin = self.initialized_plugins['OS::Neutron::Router']
         self.fip_plugin = self.initialized_plugins['OS::Neutron::FloatingIP']
+        self.secgroup_plugin = (
+            self.initialized_plugins['OS::Neutron::SecurityGroup'])
 
         notification_plugins = {
             plugin.document_type: test_listener.StevedoreMock(plugin)
             for plugin in (self.networks_plugin, self.ports_plugin,
                            self.subnets_plugin, self.routers_plugin,
-                           self.fip_plugin)}
+                           self.fip_plugin, self.secgroup_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 
         self.listener_alias = self.networks_plugin.alias_name_listener
@@ -496,3 +520,84 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self._send_event_to_listener(delete_event, self.listener_alias)
         self._verify_event_processing(delete_event, count=0,
                                       owner=EV_TENANT)
+
+    def test_secgroup_create_delete(self):
+        # Test #1: Create a security group.
+        create_event = self.secgroup_events['security_group.create.end']
+        self._send_event_to_listener(create_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Neutron::SecurityGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(create_event['payload']['security_group']['id'],
+                         json_content['hits']['hits'][0]['_source']['id'])
+        # Verify the security group has two security group rules.
+        groups = (
+            json_content['hits']['hits'][0]['_source']['security_group_rules'])
+        self.assertEqual(2, len(groups))
+
+        # Test #2: Create a new security group rule for security group.
+        create_event = self.secgroup_events['security_group_rule.create.end']
+        self._send_event_to_listener(create_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Neutron::SecurityGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        # Verify the new rule was added to the security group.
+        groups = (
+            json_content['hits']['hits'][0]['_source']['security_group_rules'])
+        self.assertEqual(3, len(groups))
+
+        # Test #3: Query security groups rules, using nested queries (Passing).
+        rule_id = "c36445af-953d-47e4-85d2-2a6ac8fcba14"
+        group_id = "223c7074-e593-43f2-a0e6-f6d87ee8fb36"
+        query = {"query": {"nested": {
+                 "path": "security_group_rules",
+                 "query": {"term": {"security_group_rules.id": rule_id}}}}}
+        response, json_content = self._search_request(query, EV_TENANT)
+        self.assertEqual(200, response.status)
+
+        group = json_content['hits']['hits']
+        self.assertEqual(1, len(group))
+        self.assertEqual(group_id, group[0]['_source']['id'])
+
+        # Test #4: Query security groups rules, using nested queries (Failing).
+        rule_id = "c36445af-953d-47e4-85d2-2a6ac8fcba15"  # Wrong last digit.
+        query = {"query": {"nested": {
+                 "path": "security_group_rules",
+                 "query": {"term": {"security_group_rules.id": rule_id}}}}}
+        response, json_content = self._search_request(query, EV_TENANT)
+        self.assertEqual(200, response.status)
+
+        group = json_content['hits']['hits']
+        self.assertEqual(0, len(group))
+
+        # Test #5: Delete the new security group rule from security group.
+        create_event = self.secgroup_events['security_group_rule.delete.end']
+        self._send_event_to_listener(create_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Neutron::SecurityGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        # Verify the new rule was deleted from the security group.
+        groups = (
+            json_content['hits']['hits'][0]['_source']['security_group_rules'])
+        self.assertEqual(2, len(groups))
+
+        # Test #6. Delete the security group.
+        create_event = self.secgroup_events['security_group.delete.end']
+        self._send_event_to_listener(create_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Neutron::SecurityGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        self.assertEqual(0, json_content['hits']['total'])

@@ -17,5 +17,6 @@
     "resource:OS::Neutron::Net:allow": "",
     "resource:OS::Neutron::Port:allow": "",
     "resource:OS::Neutron::Subnet:allow": "",
-    "resource:OS::Neutron::Router:allow": ""
+    "resource:OS::Neutron::Router:allow": "",
+    "resource:OS::Neutron::SecurityGroup:allow": ""
 }

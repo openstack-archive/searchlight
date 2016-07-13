@@ -104,6 +104,9 @@ Please read the rest of the guide for detailed information.::
     [resource_plugin:os_neutron_port]
     enabled = True
 
+    [resource_plugin:os_neutron_security_group]
+    enabled = True
+
     [resource_plugin:os_designate_zone]
     enabled = False
 
