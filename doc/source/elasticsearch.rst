@@ -101,7 +101,7 @@ Index settings
 **************
 In addition to server-wide index settings it's possible to configure
 Searchlight to apply settings to indices it creates with
-``searchlight-manage``. Index settings can be specified as follows in 
+``searchlight-manage``. Index settings can be specified as follows in
 ``searchlight.conf``::
 
     [elasticsearch]
@@ -111,7 +111,9 @@ The ``index.`` prefix for settings is optional; Searchlight will prepend it if
 it's not given (e.g. ``index.refresh_interval`` is also acceptable).
 
 Index settings are applied at creation time and so are not limited to the
-'dynamic' index settings. They are applied to all created indices.
+'dynamic' index settings. They are applied to all indices at the time they
+are created. If you wish to update settings for an existing index, you
+should use the Elasticsearch API to do so or reindex.
 
 See also:
 
