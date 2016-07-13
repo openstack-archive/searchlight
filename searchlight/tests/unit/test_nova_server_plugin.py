@@ -973,3 +973,316 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                                "compute.instance.pause.end",
                                expect_handled=False)
                 assert_call_counts(get=1, save=1, es_gets=1)
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_reboot_state_change_notifications(self, mock_version):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        reboot_events = [
+            ('compute.instance.update',
+             dict(state_description='rebooting', state='active',
+                  old_task_state='rebooting', new_task_state='rebooting'),
+             '2016-07-17 19:52:13.523135'),
+            ('compute.instance.reboot.start',
+             dict(state_description='rebooting', state='active'),
+             '2016-07-17 19:52:13.628180'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='rebooting', new_task_state='reboot_pending'),
+             '2016-07-17 19:52:13.771604'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='reboot_pending',
+                  new_task_state='reboot_started'),
+             '2016-07-17 19:52:13.781605'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='reboot_started', new_task_state=None),
+             '2016-07-17 19:52:13.791605'),
+            ('compute.instance.reboot.end',
+             dict(state_description='', state='active'),
+             '2016-07-17 19:52:13.808362')
+        ]
+
+        for event in reboot_events:
+            event[1]["instance_id"] = u"a380287d-1f61-4887-959c-8c5ab8f75f8f"
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        def handle_message(message, expected_event_type, expect_handled=True):
+            self.assertEqual(expected_event_type, message[0],
+                             "Expected event type doesn't match test "
+                             "message type.")
+            # type, payload, timestamp
+            type_handler = event_handlers.get(message[0], None)
+            if type_handler:
+                type_handler(message[1], message[2])
+            else:
+                if expect_handled:
+                    self.fail("Expected event '%s' to be handled" %
+                              expected_event_type)
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save, \
+            mock.patch.object(self.plugin.index_helper,
+                              'get_document') as mock_es_getter, \
+            mock.patch(nova_server_getter,
+                       return_value=self.instance1) as nova_getter:
+
+                def assert_call_counts(get=0, save=0, es_gets=0):
+                    # Helper to reduce copy pasta
+                    self.assertEqual(get, nova_getter.call_count)
+                    self.assertEqual(save, mock_save.call_count)
+                    self.assertEqual(es_gets, mock_es_getter.call_count)
+
+                handle_message(reboot_events[0],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(reboot_events[1],
+                               "compute.instance.reboot.start",
+                               expect_handled=False)
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(reboot_events[2],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=2)
+
+                handle_message(reboot_events[3],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=3)
+
+                handle_message(reboot_events[4],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=3)
+
+                handle_message(reboot_events[5],
+                               "compute.instance.reboot.end",
+                               expect_handled=False)
+                assert_call_counts(get=1, save=1, es_gets=3)
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_shelve_state_change_notifications(self, mock_version):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        shelve_events = [
+            ('compute.instance.update',
+             dict(state_description='shelving', state='active',
+                  old_task_state='shelving', new_task_state='shelving'),
+             '2016-07-17 19:52:13.523135'),
+            ('compute.instance.shelve.start',
+             dict(state_description='shelving', state='active'),
+             '2016-07-17 19:52:13.628180'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='shelving',
+                  new_task_state='shelving_image_pending_upload'),
+             '2016-07-17 19:52:13.771604'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='shelving_image_pending_upload',
+                  new_task_state='shelving_image_uploading'),
+             '2016-07-17 19:52:13.781605'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='shelving_image_uploading',
+                  new_task_state='shelving_image_pending_upload'),
+             '2016-07-17 19:52:13.791605'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='shelving_image_pending_upload',
+                  new_task_state='shelving_image_uploading'),
+             '2016-07-17 19:52:13.801605'),
+            ('compute.instance.update',
+             dict(state_description='', state='shelved',
+                  old_task_state='shelving_image_uploading',
+                  new_task_state='shelving_offloading'),
+             '2016-07-17 19:52:13.811605'),
+            ('compute.instance.update',
+             dict(state_description='', state='shelved',
+                  old_task_state='shelving_offloading',
+                  new_task_state='shelving_offloading'),
+             '2016-07-17 19:52:13.821605'),
+            ('compute.instance.update',
+             dict(state_description='', state='shelved_offloaded',
+                  old_task_state='shelving_offloading',
+                  new_task_state=None),
+             '2016-07-17 19:52:13.831605'),
+            ('compute.instance.shelve.end',
+             dict(state_description='', state='active'),
+             '2016-07-17 19:52:13.858362')
+        ]
+
+        for event in shelve_events:
+            event[1]["instance_id"] = u"a380287d-1f61-4887-959c-8c5ab8f75f8f"
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        def handle_message(message, expected_event_type, expect_handled=True):
+            self.assertEqual(expected_event_type, message[0],
+                             "Expected event type doesn't match test "
+                             "message type.")
+            # type, payload, timestamp
+            type_handler = event_handlers.get(message[0], None)
+            if type_handler:
+                type_handler(message[1], message[2])
+            else:
+                if expect_handled:
+                    self.fail("Expected event '%s' to be handled" %
+                              expected_event_type)
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save, \
+            mock.patch.object(self.plugin.index_helper,
+                              'get_document') as mock_es_getter, \
+            mock.patch(nova_server_getter,
+                       return_value=self.instance1) as nova_getter:
+
+                def assert_call_counts(get=0, save=0, es_gets=0):
+                    # Helper to reduce copy pasta
+                    self.assertEqual(get, nova_getter.call_count)
+                    self.assertEqual(save, mock_save.call_count)
+                    self.assertEqual(es_gets, mock_es_getter.call_count)
+
+                handle_message(shelve_events[0],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(shelve_events[1],
+                               "compute.instance.shelve.start",
+                               expect_handled=False)
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(shelve_events[2],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=2)
+
+                handle_message(shelve_events[3],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=3)
+
+                handle_message(shelve_events[4],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=4)
+
+                handle_message(shelve_events[5],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=5)
+
+                handle_message(shelve_events[6],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=6)
+
+                handle_message(shelve_events[7],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=6)
+
+                handle_message(shelve_events[8],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=6)
+
+                handle_message(shelve_events[9],
+                               "compute.instance.shelve.end",
+                               expect_handled=False)
+                assert_call_counts(get=1, save=1, es_gets=6)
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_unshelve_state_change_notifications(self, mock_version):
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        unshelve_events = [
+            ('compute.instance.update',
+             dict(state_description='unshelving', state='shelved_offloaded',
+                  old_task_state='unshelving', new_task_state='unshelving'),
+             '2016-07-17 19:52:13.523135'),
+            ('compute.instance.unshelve.start',
+             dict(state_description='unshelving', state='shelved_offloaded'),
+             '2016-07-17 19:52:13.628180'),
+            ('compute.instance.update',
+             dict(state_description='', state='shelved_offloaded',
+                  old_task_state='unshelving', new_task_state='unshelving'),
+             '2016-07-17 19:52:13.771604'),
+            ('compute.instance.update',
+             dict(state_description='', state='shelved_offloaded',
+                  old_task_state='unshelving',
+                  new_task_state='spawning'),
+             '2016-07-17 19:52:13.781605'),
+            ('compute.instance.update',
+             dict(state_description='', state='shelved_offloaded',
+                  old_task_state='spawning', new_task_state='spawning'),
+             '2016-07-17 19:52:13.791605'),
+            ('compute.instance.update',
+             dict(state_description='', state='active',
+                  old_task_state='spawning', new_task_state=None),
+             '2016-07-17 19:52:13.801605'),
+            ('compute.instance.unshelve.end',
+             dict(state_description='', state='active'),
+             '2016-07-17 19:52:13.818362')
+        ]
+
+        for event in unshelve_events:
+            event[1]["instance_id"] = u"a380287d-1f61-4887-959c-8c5ab8f75f8f"
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        def handle_message(message, expected_event_type, expect_handled=True):
+            self.assertEqual(expected_event_type, message[0],
+                             "Expected event type doesn't match test "
+                             "message type.")
+            # type, payload, timestamp
+            type_handler = event_handlers.get(message[0], None)
+            if type_handler:
+                type_handler(message[1], message[2])
+            else:
+                if expect_handled:
+                    self.fail("Expected event '%s' to be handled" %
+                              expected_event_type)
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save, \
+            mock.patch.object(self.plugin.index_helper,
+                              'get_document') as mock_es_getter, \
+            mock.patch(nova_server_getter,
+                       return_value=self.instance1) as nova_getter:
+
+                def assert_call_counts(get=0, save=0, es_gets=0):
+                    # Helper to reduce copy pasta
+                    self.assertEqual(get, nova_getter.call_count)
+                    self.assertEqual(save, mock_save.call_count)
+                    self.assertEqual(es_gets, mock_es_getter.call_count)
+
+                handle_message(unshelve_events[0],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(unshelve_events[1],
+                               "compute.instance.unshelve.start",
+                               expect_handled=False)
+                assert_call_counts(get=0, save=0, es_gets=1)
+
+                handle_message(unshelve_events[2],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=2)
+
+                handle_message(unshelve_events[3],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=3)
+
+                handle_message(unshelve_events[4],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=3)
+
+                handle_message(unshelve_events[5],
+                               "compute.instance.update")
+                assert_call_counts(get=0, save=0, es_gets=3)
+
+                handle_message(unshelve_events[6],
+                               "compute.instance.unshelve.end",
+                               expect_handled=False)
+                assert_call_counts(get=1, save=1, es_gets=3)
