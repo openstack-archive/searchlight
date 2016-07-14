@@ -47,6 +47,12 @@ class ImageHandler(base.NotificationBase):
             "image.member.delete": self.sync_members
         }
 
+    def get_log_fields(self, event_type, payload):
+        return (
+            ('id', payload.get('id')),
+            ('owner', payload.get('owner'))
+        )
+
     def serialize_notification(self, notification):
         return serialize_glance_notification(notification)
 

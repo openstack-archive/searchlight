@@ -45,6 +45,9 @@ class SwiftAccountHandler(base.NotificationBase):
             "account.delete": self.delete
         }
 
+    def get_log_fields(self, event_type, payload):
+        return ('account', payload.get('account')),
+
     def create_or_update(self, payload, timestamp):
         payload = serialize_swift_account_notification(payload)
         try:
@@ -85,6 +88,12 @@ class SwiftContainerHandler(base.NotificationBase):
             "container.metadata": self.create_or_update,
             "container.delete": self.delete
         }
+
+    def get_log_fields(self, event_type, payload):
+        return (
+            ('account', payload.get('account')),
+            ('container', payload.get('container'))
+        )
 
     def create_or_update(self, payload, timestamp):
         payload = serialize_swift_container_notification(payload)
@@ -139,6 +148,13 @@ class SwiftObjectHandler(base.NotificationBase):
             "object.metadata": self.create_or_update,
             "object.delete": self.delete
         }
+
+    def get_log_fields(self, event_type, payload):
+        return (
+            ('account', payload.get('account')),
+            ('container', payload.get('container')),
+            ('object', payload.get('object'))
+        )
 
     def create_or_update(self, payload, timestamp):
         payload = serialize_swift_object_notification(payload)

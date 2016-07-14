@@ -149,6 +149,12 @@ class RecordSetHandler(base.NotificationBase):
             "dns.record.delete": self.delete_record
         }
 
+    def get_log_fields(self, event_type, payload):
+        return (
+            ('id', payload.get('id')),
+            ('zone_id', payload.get('zone_id'))
+        )
+
     def create_or_update_recordset(self, payload, timestamp):
 
         # TODO(lakshmiS): Remove the check for empty records when v1 record
