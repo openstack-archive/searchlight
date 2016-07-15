@@ -21,6 +21,7 @@ from searchlight.listener import NotificationEndpoint
 from searchlight.tests import functional
 from searchlight.tests.functional import test_api
 from searchlight.tests.functional import test_listener
+from searchlight.tests import utils
 
 # These is in the load file
 TENANT1 = "8eaac046b2c44ab99246cb0850c7f06d"
@@ -299,7 +300,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
             self.initialized_plugins['OS::Neutron::SecurityGroup'])
 
         notification_plugins = {
-            plugin.document_type: test_listener.StevedoreMock(plugin)
+            plugin.document_type: utils.StevedoreMock(plugin)
             for plugin in (self.networks_plugin, self.ports_plugin,
                            self.subnets_plugin, self.routers_plugin,
                            self.fip_plugin, self.secgroup_plugin)}

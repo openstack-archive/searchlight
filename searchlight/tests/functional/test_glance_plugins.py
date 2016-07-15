@@ -25,6 +25,7 @@ from searchlight.tests.functional import generate_load_data
 from searchlight.tests.functional import mock_glance_pyclient
 from searchlight.tests.functional import test_api
 from searchlight.tests.functional import test_listener
+from searchlight.tests import utils
 
 
 member_list = 'glanceclient.v2.image_members.Controller.list'
@@ -406,7 +407,7 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         self.metadefs_plugin = self.initialized_plugins['OS::Glance::Metadef']
 
         notification_plugins = {
-            plugin.document_type: test_listener.StevedoreMock(plugin)
+            plugin.document_type: utils.StevedoreMock(plugin)
             for plugin in (self.images_plugin, self.metadefs_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 

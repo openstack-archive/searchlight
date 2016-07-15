@@ -452,3 +452,23 @@ def get_search_plugins():
             loaded_plugin.obj.register_parent(parent_plugin.obj)
 
     return plugins
+
+
+def expand_type_matches(types, document_types):
+    """Returns a list that will be at least the length of `types`. If an item
+    ends with a wildcard character and matches at least one plugin document
+    type it'll be replaced with the matches in the return list.
+     """
+    expanded_types = []
+    for _type in types:
+        if _type.endswith('*'):
+            matches = [doc_type for doc_type in document_types
+                       if doc_type.startswith(_type[:-1])]
+            if matches:
+                expanded_types.extend(matches)
+                continue
+
+        # If we got here, either wasn't a wildcard or didn't match anything
+        expanded_types.append(_type)
+
+    return expanded_types

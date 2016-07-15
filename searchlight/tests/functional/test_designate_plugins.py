@@ -18,6 +18,7 @@ import mock
 from searchlight.listener import NotificationEndpoint
 from searchlight.tests import functional
 from searchlight.tests.functional import test_listener
+from searchlight.tests import utils
 
 
 PROJECT1 = "34518c16d95e40a19b1a95c1916d8335"
@@ -85,7 +86,7 @@ class TestDesignateListener(test_listener.TestSearchListenerBase):
         self.addCleanup(osclient_patcher.stop)'''
 
         notification_plugins = {
-            plugin.document_type: test_listener.StevedoreMock(plugin)
+            plugin.document_type: utils.StevedoreMock(plugin)
             for plugin in (self.zones_plugin, self.recordsets_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 

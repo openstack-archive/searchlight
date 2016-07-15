@@ -13,15 +13,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
 import mock
 
 from oslo_config import cfg
 import oslo_utils
 
+from searchlight.cmd import manage
 from searchlight.elasticsearch.plugins import utils as es_utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import fake_plugins
 from searchlight.tests import functional
+from searchlight.tests import utils as test_utils
 
 
 now = oslo_utils.timeutils.utcnow()
@@ -118,3 +121,130 @@ class TestSearchLoad(functional.FunctionalTest):
 
             finally:
                 es_utils.delete_index(index_name)
+
+    @mock.patch('oslo_utils.timeutils.utcnow')
+    @mock.patch('searchlight.common.utils.get_search_plugins')
+    def test_manage(self, mock_get_plugins, mock_utcnow):
+        """Test that manage index sync works from end to end. Uses fake plugins
+        because it avoids having to fake service data and is less dependent
+        on functional tests for each service plugin.
+        """
+        mock_utcnow.return_value = datetime.datetime(year=2016, month=1, day=1)
+        expected_index_name = 'searchlight-2016_01_01_00_00_00'
+
+        simple_plugin = fake_plugins.FakeSimplePlugin(self.elastic_connection)
+        child_plugin = fake_plugins.FakeChildPlugin(self.elastic_connection)
+        non_role_plugin = fake_plugins.NonRoleSeparatedPlugin(
+            self.elastic_connection)
+        child_plugin.register_parent(simple_plugin)
+
+        mock_get_plugins.return_value = {
+            plugin.get_document_type(): test_utils.StevedoreMock(plugin)
+            for plugin in (simple_plugin, child_plugin, non_role_plugin)
+        }
+        index_command = manage.IndexCommands()
+        # The fake plugins all have hardcoded data for get_objects that will
+        # be indexed. Use force=True to avoid the 'are you sure?' prompt
+        try:
+            index_command.sync(force=True)
+
+            es_results = self._get_all_elasticsearch_docs()
+            es_hits = self._get_hit_source(es_results)
+        finally:
+            es_utils.delete_index(expected_index_name)
+
+        self.assertEqual(expected_index_name,
+                         es_results['hits']['hits'][0]['_index'])
+
+        expected = ['simple1', 'child1', 'non-role-fake1', 'non-role-fake2']
+        self.assertEqual(len(expected), len(es_hits))
+        self.assertEqual(
+            set(expected),
+            set(hit['_id'] for hit in es_results['hits']['hits']))
+
+    @mock.patch('oslo_utils.timeutils.utcnow')
+    @mock.patch('searchlight.common.utils.get_search_plugins')
+    def test_manage_type(self, mock_get_plugins, mock_utcnow):
+        mock_utcnow.return_value = datetime.datetime(year=2016, month=2, day=2)
+        expected_index_name = 'searchlight-2016_02_02_00_00_00'
+
+        simple_plugin = fake_plugins.FakeSimplePlugin(self.elastic_connection)
+        non_role_plugin = fake_plugins.NonRoleSeparatedPlugin(
+            self.elastic_connection)
+
+        mock_get_plugins.return_value = {
+            plugin.get_document_type(): test_utils.StevedoreMock(plugin)
+            for plugin in (simple_plugin, non_role_plugin)
+        }
+        index_command = manage.IndexCommands()
+
+        # Expect this to match simple plugin and child plugin, but not
+        # non_role_plugin. Patch the index->index function call since it won't
+        # find any data, and we want to check it's called correctly
+        with mock.patch.object(index_command,
+                               '_es_reindex_worker') as patch_es_reindex:
+            try:
+                index_command.sync(_type='fake-simple', force=True)
+
+                es_results = self._get_all_elasticsearch_docs()
+                es_hits = self._get_hit_source(es_results)
+            finally:
+                es_utils.delete_index(expected_index_name)
+
+            patch_es_reindex.assert_called_with(
+                [non_role_plugin.get_document_type()],
+                [('searchlight', 'searchlight-search',
+                 'searchlight-listener')],
+                {'searchlight': expected_index_name}
+            )
+
+        expected = ['simple1']
+        self.assertEqual(len(expected), len(es_hits))
+        self.assertEqual(
+            set(expected),
+            set(hit['_id'] for hit in es_results['hits']['hits']))
+
+    @mock.patch('oslo_utils.timeutils.utcnow')
+    @mock.patch('searchlight.common.utils.get_search_plugins')
+    def test_manage_type_glob(self, mock_get_plugins, mock_utcnow):
+        mock_utcnow.return_value = datetime.datetime(year=2016, month=3, day=3)
+        expected_index_name = 'searchlight-2016_03_03_00_00_00'
+
+        simple_plugin = fake_plugins.FakeSimplePlugin(self.elastic_connection)
+        child_plugin = fake_plugins.FakeChildPlugin(self.elastic_connection)
+        non_role_plugin = fake_plugins.NonRoleSeparatedPlugin(
+            self.elastic_connection)
+        child_plugin.register_parent(simple_plugin)
+
+        mock_get_plugins.return_value = {
+            plugin.get_document_type(): test_utils.StevedoreMock(plugin)
+            for plugin in (simple_plugin, child_plugin, non_role_plugin)
+        }
+        index_command = manage.IndexCommands()
+
+        # Expect this to match simple plugin and child plugin, but not
+        # non_role_plugin. Patch the index->index function call since it won't
+        # find any data, and we want to check it's called correctly
+        with mock.patch.object(index_command,
+                               '_es_reindex_worker') as patch_es_reindex:
+            try:
+                # Use two wildcard matches
+                index_command.sync(_type='fake-sim*,fake-chi*', force=True)
+
+                es_results = self._get_all_elasticsearch_docs()
+                es_hits = self._get_hit_source(es_results)
+            finally:
+                es_utils.delete_index(expected_index_name)
+
+            patch_es_reindex.assert_called_with(
+                [non_role_plugin.get_document_type()],
+                [('searchlight', 'searchlight-search',
+                 'searchlight-listener')],
+                {'searchlight': expected_index_name}
+            )
+
+        expected = ['simple1', 'child1']
+        self.assertEqual(len(expected), len(es_hits))
+        self.assertEqual(
+            set(expected),
+            set(hit['_id'] for hit in es_results['hits']['hits']))

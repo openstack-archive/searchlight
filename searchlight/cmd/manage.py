@@ -165,10 +165,17 @@ class IndexCommands(object):
                           "than 0."))
             sys.exit(3)
 
+        # Grab the list of plugins registered as entry points through stevedore
+        search_plugins = utils.get_search_plugins()
+
         # Verify all indices and types have registered plugins.
         # index and _type are lists because of nargs='*'
         group = group.split(',') if group else []
         _type = _type.split(',') if _type else []
+
+        _type = utils.expand_type_matches(
+            _type, six.viewkeys(search_plugins))
+        LOG.debug("After expansion, 'type' argument: %s", ", ".join(_type))
 
         group_set = set(group)
         type_set = set(_type)
@@ -198,7 +205,7 @@ class IndexCommands(object):
 
         # First Pass: Document Types.
         if _type:
-            for res_type, ext in six.iteritems(utils.get_search_plugins()):
+            for res_type, ext in six.iteritems(search_plugins):
                 plugin_obj = ext.obj
                 type_set.discard(plugin_obj.get_document_type())
                 if plugin_obj.get_document_type() in _type:
@@ -211,7 +218,7 @@ class IndexCommands(object):
         resource_groups = []
         plugin_objs = {}
         plugins_list = []
-        for res_type, ext in six.iteritems(utils.get_search_plugins()):
+        for res_type, ext in six.iteritems(search_plugins):
             plugin_obj = ext.obj
             group_set.discard(plugin_obj.resource_group_name)
             if (not group) or (plugin_obj.resource_group_name in group):
@@ -336,7 +343,7 @@ class IndexCommands(object):
         #   from the plugins and add a mapping for them as needed to the newly
         #   created indices.
         doc_type_info = []
-        for res_type, ext in six.iteritems(utils.get_search_plugins()):
+        for res_type, ext in six.iteritems(search_plugins):
             doc_type_info.append((ext.obj.get_document_type(),
                                   ext.obj.parent_plugin_type))
         for index in list(index_names.values()):

@@ -113,6 +113,14 @@ up-to-date information from the Glance API. Data for other plugins will be
 bulk-copied from a preexisting index into the new one using the scroll_ and
 bulk_ features of Elasticsearch.
 
+You can use the wildcard character * at the *end* of the ``type`` argument.
+For instance, the following will match all cinder plugins::
+
+    $ searchlight-manage index sync --type OS::Cinder::*
+
+Wildcard characters are only allowed at the end of the argument; they will not
+be matched anywhere else.
+
 To index all resources in the 'searchlight' resource group::
 
     $ searchlight-manage index sync --index searchlight

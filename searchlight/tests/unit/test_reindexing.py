@@ -16,6 +16,7 @@
 import mock
 
 from elasticsearch import exceptions as es_exc
+from searchlight.common import utils as common_utils
 from searchlight.elasticsearch.plugins import utils as plugin_utils
 from searchlight.tests import utils as test_utils
 
@@ -333,3 +334,32 @@ class TestReindexingUtils(test_utils.BaseTestCase):
                      mock.call(ignore=404, index='ndx2'),
                      mock.call(ignore=404, index='ndx3')]
             mock_engine.indices.delete.assert_has_calls(calls, any_order=True)
+
+    def test_type_expansion(self):
+        doc_types = ['simple-plugin', 'simple-child', 'something-else']
+
+        # Don't do any expansion
+        self.assertEqual(doc_types,
+                         common_utils.expand_type_matches(doc_types,
+                                                          doc_types))
+
+        self.assertEqual([], common_utils.expand_type_matches([], doc_types))
+
+        # Expansion time!
+        self.assertEqual(
+            ['simple-plugin', 'simple-child'],
+            common_utils.expand_type_matches(['simple-*'], doc_types))
+
+        self.assertEqual(
+            ['something-else'],
+            common_utils.expand_type_matches(['something-*'], doc_types))
+
+        # Doesn't match. Sad!
+        self.assertEqual(
+            ['does-not-match-*'],
+            common_utils.expand_type_matches(['does-not-match-*'], doc_types))
+
+        self.assertEqual(
+            doc_types,
+            common_utils.expand_type_matches(['simple-*', 'something-*'],
+                                             doc_types))
