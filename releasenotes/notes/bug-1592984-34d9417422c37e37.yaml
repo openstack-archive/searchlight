@@ -1,0 +1,9 @@
+---
+prelude: >
+    Remove support for Designate v1 api because it
+    has already been deprecated. Simplify list zones
+    and recordsets code by using v2 api's built-in
+    pagination.
+issues:
+  - Deployment should use Designate v2 api. if v1 api
+    is in use, designate plugin won't function correctly.

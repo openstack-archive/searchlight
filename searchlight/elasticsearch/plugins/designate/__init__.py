@@ -12,31 +12,25 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from designateclient.v2.utils import get_all
 from searchlight.elasticsearch.plugins import base
 
 
-def _walk_pages(list_func, *args, **kwargs):
-    while True:
-        items = list_func(*args, **kwargs)
-        if not items:
-            break
-        kwargs["marker"] = items[-1]["id"]
-
-        for item in items:
-            yield item
-
-
-def _get_recordsets(zone_id, per_page=50):
+def _get_zones():
     from searchlight.elasticsearch.plugins import openstack_clients
     client = openstack_clients.get_designateclient()
 
-    recordsets = _walk_pages(
-        client.recordsets.list, zone_id,
-        {"all_tenants": str(True)}, limit=per_page)
+    return get_all(client.zones.list,
+                   criterion={'all_tenants': str(True)})
 
-    # Yield back all recordsets
-    for rs in recordsets:
-        yield rs
+
+def _get_recordsets(zone_id):
+    from searchlight.elasticsearch.plugins import openstack_clients
+    client = openstack_clients.get_designateclient()
+
+    return get_all(client.recordsets.list,
+                   criterion={'all_tenants': str(True)},
+                   args=[zone_id])
 
 
 def _serialize_recordset(rs):
