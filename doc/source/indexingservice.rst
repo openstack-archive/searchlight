@@ -171,3 +171,33 @@ Note, this will typically require that you have configured notifications
 properly for the service which owns the resource. For example, the glance
 service owns images and metadata definitions. Please check the plugin
 documentation for each service's specific configuration requirements.
+
+Multi-Thread Support
+--------------------
+The Newton Searchlight release introduced multiple thread support for
+indexing. Previously when the ``searchlight-manage index sync``
+command was executed, all indexing occurred in a single thread. To boost
+the performance of the indexing functionality, each resource type
+will now index in its own thread. Multiple indexing threads will run
+concurrently.
+
+By default, the maximum number of simultaneous threads is 3. This limit
+can be modified in the Searchlight configuration file. The setting is
+called ``workers`` and lives under ``[manage]``. For example, to
+increase the maximum number of threads to 6, the following can be added
+to the Searchlight configuration file::
+
+    [manage]
+    workers=6
+
+The use of threads can also affect the parsing of the log files. The
+default formating of the log messages include only the process ID,
+but no thread-specific information. This can be changed by modifying
+the formating string settings in the Searchlight configuration file.
+To add the thread ID for a message, add ``%(thread)d``. To add the thread
+name, add ``%(threadName)s``. For example, to add the thread ID and the
+thread name after the process ID to the logging message, the following
+setting can be added to the Searchlight configuration file::
+
+    logging_default_format_string = %(asctime)s.%(msecs)03d %(process)d %(thread)d %(threadName)s %(levelname)s %(name)s [-] %(instance)s%(message)s
+
