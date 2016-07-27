@@ -43,6 +43,14 @@ class NetworkHandler(base.NotificationBase):
             'network.delete.end': self.delete
         }
 
+    def get_log_fields(self, event_type, payload):
+        # Delete and create/update notifications are different structures
+        if 'network' in payload:
+            return ('id', payload['network'].get('id')),
+        elif 'network_id' in payload:
+            return ('id', payload['network_id']),
+        return ()
+
     def create_or_update(self, payload, timestamp):
         network_id = payload['network']['id']
         LOG.debug("Updating network information for %s", network_id)
@@ -81,6 +89,22 @@ class PortHandler(base.NotificationBase):
             'router.interface.create': self.create_or_update_from_interface,
             'router.interface.delete': self.delete_from_interface
         }
+
+    def get_log_fields(self, event_type, payload):
+        # Delete and create/update notifications are different structures, and
+        # network_id will not be present for delete notifications
+        if event_type.startswith('router.interface'):
+            port_id = payload.get('router_interface', {}).get('port_id')
+            network_id = payload.get('router_interface', {}).get('network_id')
+        else:
+            port_id = payload.get('port_id',
+                                  payload.get('port', {}).get('id'))
+            network_id = payload.get('port', {}).get('network_id')
+
+        return (
+            ('id', port_id),
+            ('network_id', network_id)
+        )
 
     def create_or_update(self, payload, timestamp):
         port_id = payload['port']['id']
@@ -149,6 +173,18 @@ class SubnetHandler(base.NotificationBase):
             'subnet.delete.end': self.delete
         }
 
+    def get_log_fields(self, event_type, payload):
+        # Delete and create/update notifications are different structures, and
+        # network_id will not be present for delete notifications
+        subnet_id = payload.get('subnet_id',
+                                payload.get('subnet', {}).get('id'))
+        network_id = payload.get('subnet', {}).get('network_id')
+
+        return (
+            ('id', subnet_id),
+            ('network_id', network_id)
+        )
+
     def create_or_update(self, payload, timestamp):
         subnet_id = payload['subnet']['id']
         LOG.debug("Updating subnet information for %s", subnet_id)
@@ -181,6 +217,12 @@ class RouterHandler(base.NotificationBase):
             'router.update.end': self.create_or_update,
             'router.delete.end': self.delete
         }
+
+    def get_log_fields(self, event_type, payload):
+        # Delete and create/update notifications are different structures
+        router_id = payload.get('router_id',
+                                payload.get('router', {}).get('id'))
+        return ('id', router_id),
 
     def create_or_update(self, payload, timestamp):
         router_id = payload['router']['id']
@@ -215,6 +257,16 @@ class FloatingIPHandler(base.NotificationBase):
             'floatingip.delete.end': self.delete
         }
 
+    def get_log_fields(self, event_type, payload):
+        # Delete and create/update notifications are different structures
+        fip_id = payload.get('floatingip_id',
+                             payload.get('floatingip', {}).get('id'))
+        network_id = payload.get('floatingip', {}).get('floating_network_id')
+        return (
+            ('id', fip_id),
+            ('network_id', network_id)
+        )
+
     def create_or_update(self, payload, timestamp):
         fip_id = payload['floatingip']['id']
         LOG.debug("Updating floatingip information for %s", fip_id)
@@ -248,6 +300,18 @@ class SecurityGroupHandler(base.NotificationBase):
             'security_group_rule.create.end': self.create_or_update_rule,
             'security_group_rule.delete.end': self.delete_rule,
         }
+
+    def get_log_fields(self, event_type, payload):
+        if event_type == 'security_group_rule.create.end':
+            sgr_payload = payload['security_group_rule']
+            return (('id', sgr_payload['security_group_id']),
+                    ('security_group_rule_id', sgr_payload['id']))
+        elif event_type == 'security_group_rule.delete.end':
+            return ('id', payload['security_group_rule_id']),
+
+        group_id = payload.get('security_group_id',
+                               payload.get('security_group', {}).get('id'))
+        return ('id', group_id),
 
     def create_or_update_group(self, payload, timestamp):
         group_name = payload['security_group']['name']

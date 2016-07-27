@@ -146,6 +146,12 @@ class RecordSetHandler(base.NotificationBase):
             "dns.recordset.delete": self.delete_recordset,
         }
 
+    def get_log_fields(self, event_type, payload):
+        return (
+            ('id', payload.get('id')),
+            ('zone_id', payload.get('zone_id'))
+        )
+
     def create_or_update_recordset(self, payload, timestamp):
         payload = self._serialize(payload)
         self.index_helper.save_document(

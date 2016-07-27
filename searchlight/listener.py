@@ -24,7 +24,7 @@ from oslo_policy import opts as oslo_policy_opts
 from oslo_service import service as os_service
 
 from searchlight.common import utils
-from searchlight.i18n import _LE
+from searchlight.i18n import _LE, _LI
 
 LOG = logging.getLogger(__name__)
 
@@ -67,14 +67,34 @@ class NotificationEndpoint(object):
                               "%(ext)s: %(e)s") %
                           {'ext': plugin.name, 'e': e})
 
+    def _log_notification(self, handler, ctxt, doc_type, event_type,
+                          payload, metadata):
+        project = ctxt.get('project_id', ctxt.get('tenant_id',
+                                                  ctxt.get('tenant', '-')))
+        if not project:
+            # Try to get it from the payload, but not very hard
+            project = payload.get('tenant_id', payload.get('project_id'))
+
+        log_context = {'event_type': event_type,
+                       'doc_type': doc_type,
+                       'timestamp': metadata['timestamp'],
+                       'project': project}
+        payload_fields = handler.get_log_fields(event_type, payload)
+        additional = " ".join("%s:%s" % (k, v or '-')
+                              for k, v in payload_fields)
+        log_context['additional'] = additional or ''
+        LOG.info(_LI("%(doc_type)s %(event_type)s \"%(timestamp)s\" "
+                     "project_id:%(project)s %(additional)s"), log_context)
+
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
+
         event_type_l = event_type.lower()
         # The notification map contains a list of plugins for each event
         # type subscribed to
         for plugin in self.notification_target_map.get(event_type_l, []):
-            LOG.debug("Processing event '%s' with plugin '%s'",
-                      event_type_l, plugin.name)
             handler = plugin.get_notification_handler()
+            self._log_notification(handler, ctxt, plugin.document_type,
+                                   event_type_l, payload, metadata)
             handler.process(
                 ctxt,
                 publisher_id,

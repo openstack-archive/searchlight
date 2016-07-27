@@ -43,6 +43,12 @@ class SnapshotHandler(base.NotificationBase):
             'snapshot.delete.end': self.delete,
         }
 
+    def get_log_fields(self, event_type, payload):
+        return (
+            ('id', payload.get('snapshot_id')),
+            ('volume_id', payload.get('volume_id'))
+        )
+
     def create_or_update(self, payload, timestamp):
         snapshot_id = payload['snapshot_id']
         LOG.debug("Updating cinder snapshot information for %s", snapshot_id)

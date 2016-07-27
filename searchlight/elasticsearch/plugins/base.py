@@ -535,6 +535,15 @@ class NotificationBase(object):
         """Get the list of event types this plugin responds to."""
         return list(six.iterkeys(self.get_event_handlers()))
 
+    def get_log_fields(self, event_type, payload):
+        """Return an iterable of key value pairs in payload that will be
+        present in notification log messages. Document type, event type, timing
+        and tenant information will be prepended.
+        """
+        if 'id' in payload:
+            return ('id', payload['id']),
+        return ()
+
     @abc.abstractmethod
     def get_event_handlers(self):
         """Returns a mapping of event name to function"""

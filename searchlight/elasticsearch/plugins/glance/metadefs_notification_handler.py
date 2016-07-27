@@ -56,6 +56,9 @@ class MetadefHandler(base.NotificationBase):
             "metadef_namespace.delete_tags": self.delete_tags
         }
 
+    def get_log_fields(self, event_type, payload):
+        return ('namespace', payload.get('namespace')),
+
     def run_update(self, id, payload, script=False):
         self.index_helper.update_document(payload, id, update_as_script=script)
 

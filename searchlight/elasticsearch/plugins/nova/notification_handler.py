@@ -48,6 +48,9 @@ class InstanceHandler(base.NotificationBase):
     def _get_notification_exchanges(cls):
         return ['nova']
 
+    def get_log_fields(self, event_type, payload):
+        return ('id', payload.get('instance_id')),
+
     def get_event_handlers(self):
         return {
             # compute.instance.update seems to be the event set as a

@@ -47,6 +47,9 @@ class VolumeHandler(base.NotificationBase):
             'volume.retype': self.create_or_update,
         }
 
+    def get_log_fields(self, event_type, payload):
+        return ('id', payload.get('volume_id')),
+
     def create_or_update(self, payload, timestamp):
         volume_id = payload['volume_id']
         LOG.debug("Updating cinder volume information for %s", volume_id)
