@@ -73,7 +73,7 @@ class IndexCommands(object):
             LOG.info(_LI("API Reindex end %(type)s into %(index_name)s") %
                      {'type': dtype, 'index_name': index_name})
         except exceptions.EndpointNotFound:
-            # Display a warning, do not propogate.
+            # Display a warning, do not propagate.
             doc = plugin_obj.get_document_type()
             LOG.warning(_LW("Service is not available for plugin: "
                             "%(doc)s") % {"doc": doc})
