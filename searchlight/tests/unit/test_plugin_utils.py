@@ -34,7 +34,7 @@ class TestPluginUtils(test_utils.BaseTestCase):
         expected = dict((
             unit_test_utils.simple_facet_field_agg('simple', size=10),
             unit_test_utils.complex_facet_field_agg('nested.single', size=10),
-            unit_test_utils.complex_facet_field_agg('nested.list', size=10),
+            unit_test_utils.complex_facet_field_agg('nested.list', size=10)
         ))
         self.assertEqual(expected, aggregation_query)
 

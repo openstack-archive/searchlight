@@ -167,10 +167,12 @@ class IndexBase(plugin.Plugin):
         self.index_helper.save_documents(documents, versions=versions,
                                          index=index_name)
 
-    def get_facets(self, request_context, all_projects=False, limit_terms=0):
+    def get_facets(self, request_context, all_projects=False, limit_terms=0,
+                   include_fields=True):
         """Get facets available for searching, in the form of a list of
         dicts with keys "name", "type" and optionally "options" if a field
-        should have discreet allowed values
+        should have discreet allowed values. If include_fields is false,
+        only the total doc count will be requested.
         """
         exclude_facets = self.facets_excluded
         is_admin = request_context.is_admin
@@ -185,18 +187,19 @@ class IndexBase(plugin.Plugin):
             return False
 
         def get_facets_for(property_mapping, meta_mapping, prefix=''):
-            facets = []
+            mapping_facets = []
             for name, properties in six.iteritems(property_mapping):
                 if properties.get('type') == 'nested':
                     if include_facet(prefix + name):
-                        facets.extend(get_facets_for(properties['properties'],
-                                                     meta_mapping,
-                                                     "%s%s." % (prefix, name)))
+                        mapping_facets.extend(
+                            get_facets_for(properties['properties'],
+                                           meta_mapping,
+                                           "%s%s." % (prefix, name)))
                 else:
                     indexed = properties.get('index', None) != 'no'
                     if indexed and include_facet(name):
                         facet_name = prefix + name
-                        facet = {
+                        mapping_facet = {
                             'name': facet_name,
                             'type': properties['type']
                         }
@@ -207,7 +210,7 @@ class IndexBase(plugin.Plugin):
                         if (properties['type'] == 'string' and
                                 properties.get('index') != 'not_analyzed' and
                                 'raw' in properties.get('fields', {})):
-                            facet['facet_field'] = '%s.raw' % facet_name
+                            mapping_facet['facet_field'] = facet_name + '.raw'
 
                         # Plugin can specify _meta mapping to link an id with a
                         # resource type, which can be used by Client program/UI
@@ -215,21 +218,23 @@ class IndexBase(plugin.Plugin):
                         # See https://www.elastic.co/guide/en/elasticsearch/
                         # reference/2.1/mapping-meta-field.html
                         if facet_name in meta_mapping:
-                            facet.update(meta_mapping[facet_name])
+                            mapping_facet.update(meta_mapping[facet_name])
 
                         if (self.get_parent_id_field() and
                                 name == self.get_parent_id_field()):
-                            facet['parent'] = True
-                            if 'resource_type' not in facet:
-                                facet['resource_type'] = \
+                            mapping_facet['parent'] = True
+                            if 'resource_type' not in mapping_facet:
+                                mapping_facet['resource_type'] = \
                                     self.parent_plugin_type()
 
-                        facets.append(facet)
+                        mapping_facets.append(mapping_facet)
 
-            return facets
+            return mapping_facets
 
-        facets = get_facets_for(self.get_mapping()['properties'],
-                                self.get_mapping().get('_meta', {}))
+        facets = []
+        if include_fields:
+            facets = get_facets_for(self.get_mapping()['properties'],
+                                    self.get_mapping().get('_meta', {}))
 
         # Don't retrieve facet terms for any excluded fields
         included_fields = set(f['name'] for f in facets)
@@ -243,15 +248,17 @@ class IndexBase(plugin.Plugin):
                            if field in raw_fields
                            else field
                            for field in options_fields]
-        facet_terms = self._get_facet_terms(facet_terms_for,
-                                            request_context,
-                                            all_projects,
-                                            limit_terms)
-        for facet in facets:
-            if facet['name'] in facet_terms:
-                facet['options'] = facet_terms[facet['name']]
 
-        return facets
+        facet_terms, doc_count = self._get_facet_terms(
+            facet_terms_for, request_context, all_projects,
+            limit_terms=limit_terms)
+
+        if include_fields:
+            for facet in facets:
+                if facet['name'] in facet_terms:
+                    facet['options'] = facet_terms[facet['name']]
+
+        return facets, doc_count
 
     @property
     def facets_excluded(self):
@@ -267,46 +274,50 @@ class IndexBase(plugin.Plugin):
 
     def _get_facet_terms(self, fields, request_context,
                          all_projects, limit_terms):
+        # fields can be empty if there are no facet terms desired,
+        # but we will run a size=0 search to get the doc count
         term_aggregations = utils.get_facets_query(fields, limit_terms)
 
+        body = {}
+        # We may just be running a size-0 search to get a document count
         if term_aggregations:
-            body = {
-                'aggs': term_aggregations,
-            }
+            # .. but no! We do want aggregations
+            body['aggs'] = term_aggregations
 
-            role_filter = request_context.user_role_filter
-            plugin_filters = [{
-                "term": {ROLE_USER_FIELD: role_filter}
-            }]
-            if not (request_context.is_admin and all_projects):
-                plugin_filters.extend(
-                    self._get_rbac_field_filters(request_context))
+        role_filter = request_context.user_role_filter
+        plugin_filters = [{
+            "term": {ROLE_USER_FIELD: role_filter}
+        }]
+        if not (request_context.is_admin and all_projects):
+            plugin_filters.extend(
+                self._get_rbac_field_filters(request_context))
 
-            body['query'] = {
-                "filtered": {
-                    "filter": {
-                        "and": plugin_filters
-                    }}}
+        body['query'] = {
+            "filtered": {
+                "filter": {
+                    "and": plugin_filters
+                }}}
 
-            results = self.engine.search(
-                index=self.alias_name_search,
-                doc_type=self.get_document_type(),
-                body=body,
-                ignore_unavailable=True,
-                size=0)
+        results = self.engine.search(
+            index=self.alias_name_search,
+            doc_type=self.get_document_type(),
+            body=body,
+            ignore_unavailable=True,
+            size=0)
 
-            agg_results = results.get('aggregations', {})
-            facet_terms = utils.transform_facets_results(
-                agg_results,
-                self.get_document_type())
+        agg_results = results.get('aggregations', {})
+        doc_count = results['hits']['total']
 
-            if not agg_results:
-                LOG.warning(_LW(
-                    "No aggregations found for %(resource_type)s. There may "
-                    "be a mapping problem.") %
-                    {'resource_type': self.get_document_type()})
-            return facet_terms
-        return {}
+        facet_terms = utils.transform_facets_results(
+            agg_results,
+            self.get_document_type())
+
+        if term_aggregations and not agg_results:
+            LOG.warning(_LW(
+                "No aggregations found for %(resource_type)s. There may "
+                "be a mapping problem.") %
+                {'resource_type': self.get_document_type()})
+        return facet_terms, doc_count
 
     def check_mapping_sort_fields(self):
         """Check that fields that are expected to define a 'raw' field do so"""

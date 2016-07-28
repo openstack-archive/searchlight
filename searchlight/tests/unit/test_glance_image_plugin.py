@@ -701,13 +701,14 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         """Check that expected fields are faceted"""
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
-        mock_engine.search.return_value = {'aggregations': {}}
+        mock_engine.search.return_value = {'aggregations': {},
+                                           'hits': {'total': 0}}
 
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=False
         )
 
-        facets = self.plugin.get_facets(fake_request.context)
+        facets, _ = self.plugin.get_facets(fake_request.context)
         facet_names = [f['name'] for f in facets]
 
         # Glance has no nested fields but owner and project id are excluded for

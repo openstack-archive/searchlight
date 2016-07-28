@@ -391,7 +391,8 @@ class TestPlugin(test_utils.BaseTestCase):
         simple_plugin.engine = mock_engine
         child_plugin = fake_plugins.FakeChildPlugin(es_engine=mock_engine)
         child_plugin.engine = mock_engine
-        mock_engine.search.return_value = {'aggregations': {}}
+        mock_engine.search.return_value = {'aggregations': {},
+                                           'hits': {'total': 1}}
         fake_request = unit_test_utils.get_fake_request()
 
         meta_mapping = {
@@ -420,7 +421,7 @@ class TestPlugin(test_utils.BaseTestCase):
         # Test resource_types without parent
         with mock.patch.object(simple_plugin, 'get_mapping',
                                return_value=meta_mapping):
-            facets = simple_plugin.get_facets(fake_request.context)
+            facets, doc_count = simple_plugin.get_facets(fake_request.context)
 
             expected = [
                 {
@@ -460,7 +461,7 @@ class TestPlugin(test_utils.BaseTestCase):
         }
         with mock.patch.object(child_plugin, 'get_mapping',
                                return_value=meta_mapping):
-            facets = child_plugin.get_facets(fake_request.context)
+            facets, doc_count = child_plugin.get_facets(fake_request.context)
             expected = [
                 {
                     "type": "string",
@@ -475,7 +476,7 @@ class TestPlugin(test_utils.BaseTestCase):
         meta_mapping.pop('_meta')
         with mock.patch.object(child_plugin, 'get_mapping',
                                return_value=meta_mapping):
-            facets = child_plugin.get_facets(fake_request.context)
+            facets, doc_count = child_plugin.get_facets(fake_request.context)
             expected = [
                 {
                     "type": "string",
@@ -503,7 +504,8 @@ class TestPlugin(test_utils.BaseTestCase):
                             'doc_count': 2
                         }]
                 }
-            }
+            },
+            'hits': {'total': 2}
         }
 
         fake_request = unit_test_utils.get_fake_request(
@@ -536,8 +538,8 @@ class TestPlugin(test_utils.BaseTestCase):
                                    'facets_with_options',
                                    new_callable=mock.PropertyMock,
                                    return_value=('name',)):
-                facets = simple_plugin.get_facets(fake_request.context,
-                                                  all_projects=True)
+                facets, doc_count = simple_plugin.get_facets(
+                    fake_request.context, all_projects=True)
                 expected = [
                     {
                         'type': 'string',
@@ -590,3 +592,41 @@ class TestPlugin(test_utils.BaseTestCase):
                     body=expected_body,
                     ignore_unavailable=True,
                     size=0)
+
+    def test_facet_counts(self):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.NonRoleSeparatedPlugin(es_engine=mock_engine)
+        fake_request = unit_test_utils.get_fake_request(
+            'a', 'b', '/v1/search/facets', is_admin=True
+        )
+
+        mock_engine.search.return_value = {
+            "hits": {"total": 1}
+        }
+        facets, doc_count = plugin.get_facets(fake_request.context,
+                                              include_fields=False)
+        self.assertEqual([], facets)
+        self.assertEqual(1, doc_count)
+        call_args = mock_engine.search.call_args_list
+        self.assertEqual(1, len(call_args))
+        self.assertNotIn('aggs', call_args[0][1]['body'])
+
+        mock_engine.search.reset_mock()
+        mock_engine.search.return_value = {
+            "aggregations": {
+                "faceted": {"buckets": [{"key": 100, "doc_count": 1}]}
+            },
+            "hits": {"total": 1}
+        }
+        facets, doc_count = plugin.get_facets(fake_request.context,
+                                              include_fields=True)
+
+        self.assertEqual(
+            [{"name": "faceted",
+              "type": "short",
+              "options": [{"key": 100, "doc_count": 1}]}],
+            list(filter(lambda f: f["name"] == "faceted", facets)))
+        self.assertEqual(1, doc_count)
+        call_args = mock_engine.search.call_args_list
+        self.assertEqual(1, len(call_args))
+        self.assertIn('aggs', call_args[0][1]['body'])

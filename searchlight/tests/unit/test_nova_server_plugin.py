@@ -336,13 +336,14 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         self.plugin.engine = mock_engine
         # Don't care about the actual aggregation result; the base functions
         # are tested separately.
-        mock_engine.search.return_value = {'aggregations': {}}
+        mock_engine.search.return_value = {'aggregations': {},
+                                           'hits': {'total': 0}}
 
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=False
         )
 
-        facets = self.plugin.get_facets(fake_request.context)
+        facets, _ = self.plugin.get_facets(fake_request.context)
         facet_names = [f['name'] for f in facets]
 
         network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
@@ -394,13 +395,14 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
     def test_facets_admin(self):
         mock_engine = mock.Mock()
         self.plugin.engine = mock_engine
-        mock_engine.search.return_value = {'aggregations': {}}
+        mock_engine.search.return_value = {'aggregations': {},
+                                           'hits': {'total': 0}}
 
         fake_request = unit_test_utils.get_fake_request(
             USER1, TENANT1, '/v1/search/facets', is_admin=True
         )
 
-        facets = self.plugin.get_facets(fake_request.context)
+        facets, _ = self.plugin.get_facets(fake_request.context)
         facet_names = [f['name'] for f in facets]
 
         network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
@@ -455,7 +457,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         # Don't really care about the return values
         mock_engine.search.return_value = {
-            'aggregations': {}
+            'aggregations': {},
+            'hits': {'total': 0}
         }
 
         fake_request = unit_test_utils.get_fake_request(
@@ -509,10 +512,11 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             'aggregations': {
                 'status': {'buckets': []},
                 'image.id': {'doc_count': 0}
-            }
+            },
+            'hits': {'total': 0}
         }
 
-        facets = self.plugin.get_facets(fake_request.context)
+        facets, _ = self.plugin.get_facets(fake_request.context)
 
         status_facet = list(filter(lambda f: f['name'] == 'status',
                                    facets))[0]
