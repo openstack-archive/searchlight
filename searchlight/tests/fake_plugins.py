@@ -64,7 +64,8 @@ ROUTING_DATA = [
 
 SIMPLE_DATA = [
     {
-        "id": "simple1"
+        "id": "simple1",
+        "updated_at": "2015-08-06T12:48:14.000000"
     }
 ]
 
@@ -72,7 +73,8 @@ SIMPLE_DATA = [
 CHILD_DATA = [
     {
         "id": "child1",
-        "parent_id": "simple1"
+        "parent_id": "simple1",
+        "updated_at": "2015-08-06T12:48:14.000000"
     }
 ]
 

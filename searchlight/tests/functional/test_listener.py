@@ -25,13 +25,6 @@ OWNER1 = str(uuid.uuid4())
 NETWORK_TENANT_ID = '8eaac046b2c44ab99246cb0850c7f06d'
 
 
-class StevedoreMock(object):
-    """Act like a stevedore-loaded plugin for the sake of the listener code"""
-    def __init__(self, plugin):
-        self.obj = plugin
-        self.name = plugin.document_type
-
-
 class TestSearchListenerBase(functional.FunctionalTest):
 
     def __init__(self, *args, **kwargs):

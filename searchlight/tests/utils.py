@@ -580,3 +580,10 @@ class FlavorDictObj(DictObj):
         d = copy.deepcopy(super(FlavorDictObj, self).to_dict())
         d.pop("extra_spec", None)
         return d
+
+
+class StevedoreMock(object):
+    """Act like a stevedore-loaded plugin"""
+    def __init__(self, plugin):
+        self.obj = plugin
+        self.name = plugin.document_type

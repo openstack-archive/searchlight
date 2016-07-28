@@ -1,0 +1,7 @@
+---
+prelude: >
+  Allow wildcard character as an argument to
+  searchlight-manage index sync --type
+features:
+  - The --type argument to searchlight-manage index sync
+    accepts a wildcard as the final character.

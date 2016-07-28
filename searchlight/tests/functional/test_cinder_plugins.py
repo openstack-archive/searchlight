@@ -134,7 +134,7 @@ class TestCinderNotifications(test_listener.TestSearchListenerBase):
         self.snapshot_events = self._load_fixture_data('events/snapshots.json')
 
         notification_plugins = {
-            plugin.document_type: test_listener.StevedoreMock(plugin)
+            plugin.document_type: utils.StevedoreMock(plugin)
             for plugin in (self.volume_plugin, self.snapshot_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
 
