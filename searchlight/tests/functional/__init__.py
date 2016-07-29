@@ -466,6 +466,10 @@ class FunctionalTest(test_utils.BaseTestCase):
         """
         with mock.patch.object(plugin, 'get_objects', return_value=docs):
             with mock.patch.object(plugin, 'child_plugins', return_value=[]):
+                if hasattr(plugin, 'get_rbac_objects'):
+                    rbac_mock = mock.patch.object(plugin, 'get_rbac_objects',
+                                                  return_value={})
+                    rbac_mock.start()
                 plugin.index_initial_data()
 
         if refresh_index:
