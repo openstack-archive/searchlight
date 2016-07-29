@@ -13,8 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
 from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
+from searchlight.elasticsearch.plugins.neutron import add_rbac
 from searchlight.elasticsearch.plugins.neutron import notification_handlers
 from searchlight.elasticsearch.plugins.neutron import serialize_network
 from searchlight.elasticsearch.plugins import openstack_clients
@@ -24,6 +26,9 @@ class NetworkIndex(base.IndexBase):
     NotificationHandlerCls = notification_handlers.NetworkHandler
 
     ADMIN_ONLY_FIELDS = ['provider:*']
+
+    def __init__(self):
+        super(NetworkIndex, self).__init__()
 
     @classmethod
     def get_document_type(self):
@@ -63,6 +68,14 @@ class NetworkIndex(base.IndexBase):
                 'shared': {'type': 'boolean'},
                 'status': {'type': 'string', 'index': 'not_analyzed'},
                 'tenant_id': {'type': 'string', 'index': 'not_analyzed'},
+                'members': {'type': 'string', 'index': 'not_analyzed'},
+                'rbac_policy': {
+                    'type': 'nested',
+                    'properties': {
+                        'rbac_id': {'type': 'string', 'index': 'not_analyzed'},
+                        'tenant': {'type': 'string', 'index': 'not_analyzed'}
+                    }
+                },
                 'updated_at': {'type': 'date'}
             },
             "_meta": {
@@ -110,18 +123,48 @@ class NetworkIndex(base.IndexBase):
             'bool': {
                 'should': [
                     {'term': {'tenant_id': request_context.owner}},
+                    {'terms': {'members': [request_context.owner, '*']}},
                     {'term': {'router:external': True}},
                     {'term': {'shared': True}}
                 ]
             }
         }]
 
+    def get_rbac_policies(self):
+        policies = defaultdict(list)
+        policy_list = self.get_rbac_objects()
+        for policy in policy_list:
+            policies[policy['object_id']].append(policy)
+        return policies
+
     def get_objects(self):
         """Generator that lists all networks owned by all tenants."""
         # Neutronclient handles pagination itself; list_networks is a generator
+        policies = self.get_rbac_policies()
         neutron_client = openstack_clients.get_neutronclient()
         for network in neutron_client.list_networks()['networks']:
+            network['members'] = []
+            network['rbac_policy'] = []
+            for policy in policies[network['id']]:
+                add_rbac(network, policy['target_tenant'], policy['id'])
             yield network
 
     def serialize(self, network):
         return serialize_network(network)
+
+    def filter_result(self, hit, request_context):
+        # The mapping contains internal fields related to RBAC policy.
+        # Remove them.
+        source = hit['_source']
+        source.pop('rbac_policy', None)
+        source.pop('members', None)
+
+    def get_rbac_objects(self):
+        """Generator that lists all RBAC policies for all tenants."""
+        valid_actions = notification_handlers.RBAC_VALID_ACTIONS
+        neutron_client = openstack_clients.get_neutronclient()
+        policies = neutron_client.list_rbac_policies()['rbac_policies']
+        for policy in [p for p in policies if
+                       p['object_type'] == 'network' and
+                       p['action'] in valid_actions]:
+            yield policy
