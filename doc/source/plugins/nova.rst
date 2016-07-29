@@ -61,7 +61,10 @@ Plugin: OS::Nova::Server
     resource_group_name = searchlight
 
 Plugin: OS::Nova::Hypervisor
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This plugin represents each of the Nova compute nodes.
+
 ::
 
     [resource_plugin:os_nova_hypervisor]
@@ -69,9 +72,11 @@ Plugin: OS::Nova::Hypervisor
 
 .. note::
 
-    There are no notifications for hypervisor from nova yet, so we recommend
-    putting it to its own resource group and scheduling a cron job to re-sync
-    with little overhead.
+    There are no notifications from the compute nodes ("hypervisors") from
+    nova yet, so we recommend putting it in its own resource group and
+    scheduling a cron job to periodically re-sync. This will create a very
+    low overhead way to keep the index up to date. The index latency will be
+    dependent on how often you re-sync the data.
 
 Plugin: OS::Nova::Flavor
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -82,9 +87,11 @@ Plugin: OS::Nova::Flavor
 
 .. note::
 
-    There are no notifications for flavor from nova yet, so we recommend
-    putting it in its own resource group and scheduling a cron job to re-sync
-    with little overhead.
+    There are no notifications for flavors from nova yet, so we recommend
+    putting it in its own resource group and scheduling a cron job to
+    periodically re-sync. This will create a very low overhead way to
+    keep the index up to date. The index latency will be dependent on how
+    often you re-sync the data.
 
 Nova Configuration
 ==================
