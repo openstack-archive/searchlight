@@ -43,6 +43,25 @@ class InstanceHandler(base.NotificationBase):
     _provisioning_states = {'networking': None,
                             'block_device_mapping': 'networking',
                             'spawning': 'block_device_mapping'}
+    _reboot_states = {
+        # Hard reboot
+        'reboot_pending_hard': 'rebooting_hard',
+        'reboot_started_hard': 'reboot_pending_hard',
+        # Soft reboot
+        'reboot_pending': 'rebooting',
+        'reboot_started': 'reboot_pending',
+    }
+    _shelve_states = {
+        'shelving_image_pending_upload': 'shelving',
+        'shelving_image_uploading': 'shelving_image_pending_upload',
+        # shelving_image_uploading -> shelving_image_pending_upload and
+        # shelving_image_pending_upload -> shelving_image_uploading will
+        # be ignored.
+        'shelving_offloading': 'shelving_image_uploading',
+    }
+    _unshelve_states = {
+        'spawning': 'unshelving'
+    }
 
     @classmethod
     def _get_notification_exchanges(cls):
@@ -68,7 +87,12 @@ class InstanceHandler(base.NotificationBase):
             'compute.instance.unpause.end': self.index_from_api,
 
             'compute.instance.shutdown.end': self.index_from_api,
+            'compute.instance.reboot.end': self.index_from_api,
             'compute.instance.delete.end': self.delete,
+
+            'compute.instance.shelve.end': self.index_from_api,
+            'compute.instance.shelve_offload.end': self.index_from_api,
+            'compute.instance.unshelve.end': self.index_from_api,
 
             'compute.instance.volume.attach': self.index_from_api,
             'compute.instance.volume.detach': self.index_from_api,
@@ -127,13 +151,43 @@ class InstanceHandler(base.NotificationBase):
             # and indicates the end of the init sequence; ignore this one in
             # favor of create.end
             ignore_update = True
+        elif (new_state == 'active' and
+                new_task_state is None and old_task_state is None):
+            ignore_update = True
         elif new_task_state is None and old_task_state is not None:
             # These happen right before a corresponding .end event
             ignore_update = True
         elif new_task_state is not None and new_task_state == old_task_state:
+            # Ignore spawning -> spawning for shelved_offloaded instance and
+            # shelving_offloading -> shelving_offloading for shelved instance.
+            if (new_task_state == 'shelving_offloading' or
+                    (new_state == 'shelved_offloaded' and
+                     new_task_state == 'spawning')):
+                ignore_update = True
+            else:
+                update_if_state_matches = dict(
+                    state=new_state,
+                    new_task_state=None)
+        elif new_task_state in self._reboot_states:
             update_if_state_matches = dict(
                 state=new_state,
-                new_task_state=None)
+                new_task_state=self._reboot_states[new_task_state])
+        elif new_task_state in self._shelve_states:
+            if (new_state == 'active' or
+                    (new_state == 'shelved' and
+                     new_task_state == 'shelving_offloading')):
+                update_if_state_matches = dict(
+                    state='active',
+                    new_task_state=self._shelve_states[new_task_state])
+        elif new_state == 'shelved_offloaded':
+            if new_task_state is not None:
+                update_if_state_matches = dict(
+                    state=new_state,
+                    new_task_state=self._unshelve_states[new_task_state])
+            else:
+                update_if_state_matches = dict(
+                    state='shelved',
+                    new_task_state='shelving_offloading')
 
         if ignore_update:
             LOG.debug("Skipping update or indexing for %s; event contains no "
