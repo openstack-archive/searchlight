@@ -91,6 +91,14 @@ class AccountIndex(base.IndexBase):
     def allow_admin_ignore_rbac(self):
         return False
 
+    @property
+    def resource_allowed_policy_target(self):
+        return None
+
+    @property
+    def service_type(self):
+        return None
+
     def _get_rbac_field_filters(self, request_context):
         id = self.options.reseller_prefix + request_context.owner
         return [

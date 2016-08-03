@@ -93,6 +93,14 @@ class MetadefIndex(base.IndexBase):
         }
         return mapping
 
+    @property
+    def resource_allowed_policy_target(self):
+        return 'get_metadef_namespaces'
+
+    @property
+    def service_type(self):
+        return 'image'
+
     def _get_rbac_field_filters(self, request_context):
         return [
             {

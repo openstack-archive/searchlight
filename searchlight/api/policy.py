@@ -21,6 +21,7 @@ from oslo_log import log as logging
 from oslo_policy import policy
 
 from searchlight.common import exception
+from searchlight import service_policies
 
 
 LOG = logging.getLogger(__name__)
@@ -55,11 +56,7 @@ class Enforcer(policy.Enforcer):
            :raises: `searchlight.common.exception.Forbidden`
            :returns: A non-False value if access is allowed.
         """
-        credentials = {
-            'roles': context.roles,
-            'user': context.user,
-            'tenant': context.tenant,
-        }
+        credentials = context.to_dict()
         return super(Enforcer, self).enforce(action, target, credentials,
                                              do_raise=True,
                                              exc=exception.Forbidden,
@@ -73,11 +70,7 @@ class Enforcer(policy.Enforcer):
            :param target: Dictionary representing the object of the action.
            :returns: A non-False value if access is allowed.
         """
-        credentials = {
-            'roles': context.roles,
-            'user': context.user,
-            'tenant': context.tenant,
-        }
+        credentials = context.to_dict()
         return super(Enforcer, self).enforce(action, target, credentials)
 
     def check_is_admin(self, context):
@@ -98,13 +91,69 @@ class CatalogSearchRepoProxy(object):
         self.search_repo = search_repo
 
     def search(self, *args, **kwargs):
-        self.policy.enforce(self.context, 'query', {})
+        self.policy.enforce(self.context, 'search:query',
+                            self.context.policy_target)
         return self.search_repo.search(*args, **kwargs)
 
     def plugins_info(self, *args, **kwargs):
-        self.policy.enforce(self.context, 'plugins_info', {})
+        self.policy.enforce(self.context, 'search:plugins_info',
+                            self.context.policy_target)
         return self.search_repo.plugins_info(*args, **kwargs)
 
     def facets(self, *args, **kwargs):
-        self.policy.enforce(self.context, 'facets', {})
+        self.policy.enforce(self.context, 'search:facets',
+                            self.context.policy_target)
         return self.search_repo.facets(*args, **kwargs)
+
+
+def plugin_allowed(policy_enforcer, context, plugin):
+    """Returns True or False indicating whether a plugin should be available
+    for API operations to a given user.
+    """
+    resource_type = plugin.get_document_type()
+    policy_action = 'resource:%s' % resource_type
+    service_type = plugin.service_type
+    target = context.policy_target
+    if not policy_enforcer.check(context, policy_action, target):
+        LOG.debug("Policy for '%s' forbids '%s'",
+                  policy_action, resource_type)
+        return False
+
+    # Now try any related policy action
+    service_policy_action = plugin.resource_allowed_policy_target
+
+    service_enforcer = service_policies.get_enforcer_for_service(service_type)
+
+    if service_enforcer and service_policy_action:
+        if not resource_allowed(service_enforcer, context,
+                                service_policy_action):
+            LOG.debug("Policy for '(%s) %s' forbids '%s'",
+                      service_type, service_policy_action, resource_type)
+            return False
+
+    # (sjmc7) Current decision is not to enforce policy files for services,
+    # though that might be an option that could be added. If a service
+    # enforcer is configured improperly the server won't start.
+
+    # At this point all tests that exist have passed, so allow the plugin
+    return True
+
+
+def resource_allowed(enforcer, context, resource_allowed_action, target={}):
+    """Check whether 'resource_allowed_action' is allowed by 'enforcer' for
+    the given context.
+    """
+    credentials = context.to_policy_values()
+    if 'tenant_id' not in credentials:
+        credentials['tenant_id'] = credentials.get('project_id', None)
+    if 'is_admin' not in credentials:
+        credentials['is_admin'] = context.is_admin
+
+    if not target:
+        # This allows 'admin_or_owner' type rules to work
+        target = {
+            'project_id': context.tenant,
+            'user_id': context.user,
+            'tenant_id': context.tenant
+        }
+    return enforcer.enforce(resource_allowed_action, target, credentials)

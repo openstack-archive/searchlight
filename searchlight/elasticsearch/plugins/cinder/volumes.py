@@ -166,6 +166,14 @@ class VolumeIndex(base.IndexBase):
                 'source_volid': True,
                 'migration_status': True}
 
+    @property
+    def resource_allowed_policy_target(self):
+        return 'volume:get_all'
+
+    @property
+    def service_type(self):
+        return 'volume'
+
     def _get_rbac_field_filters(self, request_context):
         """Return any RBAC field filters to be injected into an indices
         query. Document type will be added to this list.

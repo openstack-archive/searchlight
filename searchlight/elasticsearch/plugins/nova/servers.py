@@ -165,6 +165,14 @@ class ServerIndex(base.IndexBase):
         return {'tenant_id': True, 'project_id': True, 'host_status': True,
                 'created': False, 'updated': False}
 
+    @property
+    def resource_allowed_policy_target(self):
+        return 'os_compute_api:servers:index'
+
+    @property
+    def service_type(self):
+        return 'compute'
+
     def _get_rbac_field_filters(self, request_context):
         """Return any RBAC field filters to be injected into an indices
         query. Document type will be added to this list.

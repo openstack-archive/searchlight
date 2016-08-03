@@ -93,6 +93,15 @@ class NetworkIndex(base.IndexBase):
         """
         return {'tenant_id': True, 'project_id': True}
 
+    @property
+    def resource_allowed_policy_target(self):
+        # Neutron only supports policy for individual networks
+        return None
+
+    @property
+    def service_type(self):
+        return 'network'
+
     def _get_rbac_field_filters(self, request_context):
         """Return any RBAC field filters to be injected into an indices
         query. Document type will be added to this list.

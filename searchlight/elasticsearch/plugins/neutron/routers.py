@@ -117,6 +117,15 @@ class RouterIndex(base.IndexBase):
         return {'tenant_id': True, 'distributed': True, 'ha': True,
                 'project_id': True}
 
+    @property
+    def resource_allowed_policy_target(self):
+        # Neutron only supports policy for individual routers
+        return None
+
+    @property
+    def service_type(self):
+        return 'network'
+
     def _get_rbac_field_filters(self, request_context):
         return [
             {'term': {'tenant_id': request_context.owner}}

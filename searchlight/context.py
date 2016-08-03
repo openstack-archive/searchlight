@@ -47,6 +47,10 @@ class RequestContext(context.RequestContext):
         d.update({
             'roles': self.roles,
             'service_catalog': self.service_catalog,
+            'is_admin': self.is_admin,
+            'user_id': self.user,
+            'project_id': self.tenant,
+            'tenant_id': self.tenant
         })
         return d
 
@@ -63,3 +67,14 @@ class RequestContext(context.RequestContext):
     def can_see_deleted(self):
         """Admins can see deleted by default"""
         return self.show_deleted or self.is_admin
+
+    @property
+    def policy_target(self):
+        """For use when there's no actual target defined for policy; this
+        allows 'admin_or_owner' type rules to use the context as a target.
+        """
+        return {
+            'project_id': self.tenant,
+            'tenant_id': self.tenant,
+            'user_id': self.user
+        }

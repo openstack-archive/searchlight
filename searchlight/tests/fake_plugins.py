@@ -100,6 +100,14 @@ class FakePluginBase(base.IndexBase):
     def _get_rbac_field_filters(self, request_context):
         return []
 
+    @property
+    def resource_allowed_policy_target(self):
+        return None
+
+    @property
+    def service_type(self):
+        return None
+
 
 class RoleSeparatedPlugin(FakePluginBase):
     def __init__(self, es_engine):

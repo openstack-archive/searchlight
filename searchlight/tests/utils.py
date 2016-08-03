@@ -38,6 +38,7 @@ from searchlight.common import property_utils
 from searchlight.common import utils
 from searchlight.common import wsgi
 from searchlight import context
+from searchlight import service_policies
 
 CONF = cfg.CONF
 
@@ -62,6 +63,11 @@ class BaseTestCase(testtools.TestCase):
         self.set_policy()
 
         utils.register_plugin_opts()
+
+    def tearDown(self):
+        # Clear out any service enforcers that were initialized
+        service_policies._reset_enforcers()
+        super(BaseTestCase, self).tearDown()
 
     def set_policy(self):
         conf_file = "policy.json"

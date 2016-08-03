@@ -107,6 +107,15 @@ class SubnetIndex(base.IndexBase):
         """
         return {'tenant_id': True, 'project_id': True}
 
+    @property
+    def resource_allowed_policy_target(self):
+        # Neutron only supports policy for individual resources
+        return None
+
+    @property
+    def service_type(self):
+        return 'network'
+
     def _get_rbac_field_filters(self, request_context):
 
         if request_context.is_admin:

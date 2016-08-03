@@ -33,25 +33,31 @@ class TestSearchPolicy(test_utils.BaseTestCase):
         self.enforcer = policy.Enforcer()
         self.enforcer.load_rules()
 
-    def test_default_rules(self):
-        # Establish some sane defaults for use by these tests
-        self.assertTrue(self.enforcer.use_conf)
+    def test_admin_or_owner(self):
+        """Since this a commonly used rule, check that it works"""
+        self.enforcer.add_rules(policy.policy.Rules.from_dict({
+            'admin_or_owner': 'role:admin or project_id:%(project_id)s',
+            'test_rule': 'rule:admin_or_owner'
+        }))
 
         request = unit_test_utils.get_fake_request(is_admin=False)
-        self.assertTrue(self.enforcer.enforce(request.context, 'default', {}))
-        self.assertTrue(self.enforcer.enforce(request.context, 'query', {}))
-        self.assertTrue(self.enforcer.enforce(request.context, 'facets', {}))
-        self.assertTrue(self.enforcer.enforce(request.context,
-                                              'plugins_info', {}))
+        self.assertTrue(self.enforcer.check(request.context, 'test_rule',
+                                            request.context.policy_target))
 
-        self.assertNotIn('resource:OS::Glance::Image:allow',
-                         self.enforcer.rules)
-        self.assertNotIn('resource:OS::Glance::Image:query',
-                         self.enforcer.rules)
-        self.assertNotIn('resource:OS::Nova::Server:allow',
-                         self.enforcer.rules)
-        self.assertNotIn('resource:OS::Nova::Server:query',
-                         self.enforcer.rules)
+        request = unit_test_utils.get_fake_request(is_admin=False)
+        self.assertFalse(self.enforcer.check(request.context, 'test_rule',
+                                             {}))
+
+        request = unit_test_utils.get_fake_request(is_admin=True)
+        self.assertTrue(self.enforcer.check(request.context, 'test_rule',
+                                            {}))
+
+    def test_context_policy_target(self):
+        request = unit_test_utils.get_fake_request()
+        expected = {'user_id': unit_test_utils.SOMEUSER,
+                    'project_id': unit_test_utils.SOMETENANT,
+                    'tenant_id': unit_test_utils.SOMETENANT}
+        self.assertEqual(expected, request.context.policy_target)
 
     def test_search_policy(self):
         request = unit_test_utils.get_fake_request()
@@ -60,7 +66,9 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             repo = policy.CatalogSearchRepoProxy(search_repo, request.context,
                                                  self.enforcer)
             repo.search()
-            mock_enforce.assert_called_with(request.context, 'query', {})
+            mock_enforce.assert_called_with(request.context,
+                                            'search:query',
+                                            request.context.policy_target)
 
     def test_plugin_policy(self):
         request = unit_test_utils.get_fake_request()
@@ -70,7 +78,8 @@ class TestSearchPolicy(test_utils.BaseTestCase):
                                                  self.enforcer)
             repo.plugins_info()
             mock_enforce.assert_called_with(request.context,
-                                            'plugins_info', {})
+                                            'search:plugins_info',
+                                            request.context.policy_target)
 
     def test_facet_policy(self):
         request = unit_test_utils.get_fake_request()
@@ -79,7 +88,9 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             repo = policy.CatalogSearchRepoProxy(search_repo, request.context,
                                                  self.enforcer)
             repo.facets()
-            mock_enforce.assert_called_with(request.context, 'facets', {})
+            mock_enforce.assert_called_with(request.context,
+                                            'search:facets',
+                                            request.context.policy_target)
 
     @mock.patch('searchlight.api.v1.search.' +
                 'RequestDeserializer._get_request_body')
@@ -89,16 +100,12 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             utils.get_search_plugins(),
             policy_enforcer=self.enforcer)
 
-        with mock.patch.object(self.enforcer, 'enforce') as mock_enforce:
+        with mock.patch.object(self.enforcer, 'check') as mock_enforce:
             mock_request_body.return_value = {'type': 'OS::Nova::Server'}
             search_deserializer.search(request)
-            self.assertEqual(2, mock_enforce.call_count)
-            mock_enforce.assert_has_calls([
-                mock.call(request.context,
-                          'resource:OS::Nova::Server:allow', {}),
-                mock.call(request.context,
-                          'resource:OS::Nova::Server:query', {})
-            ])
+            mock_enforce.assert_called_with(request.context,
+                                            'resource:OS::Nova::Server',
+                                            request.context.policy_target)
 
     def test_plugins_info_resource_policy(self):
         request = unit_test_utils.get_fake_request()
@@ -106,14 +113,18 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             utils.get_search_plugins(),
             policy_enforcer=self.enforcer)
 
-        with mock.patch.object(self.enforcer, 'enforce') as mock_enforce:
+        with mock.patch.object(self.enforcer, 'check') as mock_enforce:
             search_deserializer.plugins_info(request)
-            mock_enforce.assert_has_calls([
-                mock.call(request.context,
-                          'resource:OS::Nova::Server:allow', {}),
-                mock.call(request.context,
-                          'resource:OS::Nova::Server:plugins_info', {})
-            ])
+            self.assertIn(mock.call(request.context,
+                                    'resource:OS::Nova::Server',
+                                    request.context.policy_target),
+                          mock_enforce.mock_calls)
+            self.assertIn(mock.call(request.context,
+                                    'resource:OS::Glance::Image',
+                                    request.context.policy_target),
+                          mock_enforce.mock_calls)
+            self.assertEqual(len(utils.get_search_plugins()),
+                             len(mock_enforce.call_args_list))
 
     def test_facets_resource_policy(self):
         request = unit_test_utils.get_fake_request()
@@ -121,14 +132,18 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             utils.get_search_plugins(),
             policy_enforcer=self.enforcer)
 
-        with mock.patch.object(self.enforcer, 'enforce') as mock_enforce:
+        with mock.patch.object(self.enforcer, 'check') as mock_enforce:
             search_deserializer.facets(request)
-            mock_enforce.assert_has_calls([
-                mock.call(request.context,
-                          'resource:OS::Nova::Server:allow', {}),
-                mock.call(request.context,
-                          'resource:OS::Nova::Server:facets', {})
-            ])
+            self.assertIn(mock.call(request.context,
+                                    'resource:OS::Nova::Server',
+                                    request.context.policy_target),
+                          mock_enforce.mock_calls)
+            self.assertIn(mock.call(request.context,
+                                    'resource:OS::Glance::Image',
+                                    request.context.policy_target),
+                          mock_enforce.mock_calls)
+            self.assertEqual(len(utils.get_search_plugins()),
+                             len(mock_enforce.call_args_list))
 
     def test_resource_policy_allowed(self):
         request = unit_test_utils.get_fake_request(is_admin=False)
@@ -139,18 +154,18 @@ class TestSearchPolicy(test_utils.BaseTestCase):
 
         self.assertEqual(
             types,
-            search_deserializer._filter_types_by_policy(request.context,
-                                                        types, "query"))
+            search_deserializer._filter_types_by_policy(request.context, types)
+        )
 
         self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Glance::Image:allow': '',
-            'resource:OS::Nova::Server:allow': ''
+            'resource:OS::Glance::Image': '',
+            'resource:OS::Nova::Server': ''
         }))
 
         self.assertEqual(
             types,
-            search_deserializer._filter_types_by_policy(request.context,
-                                                        types, "query"))
+            search_deserializer._filter_types_by_policy(request.context, types)
+        )
 
     def test_resource_policy_disallow_non_admin(self):
         request = unit_test_utils.get_fake_request(is_admin=False)
@@ -161,19 +176,19 @@ class TestSearchPolicy(test_utils.BaseTestCase):
                  'OS::Glance::Metadef']
 
         self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Glance::Image:allow': 'role:admin'
+            'resource:OS::Glance::Image': 'role:admin'
         }))
         filtered_types = search_deserializer._filter_types_by_policy(
-            request.context, types, "query")
+            request.context, types)
         self.assertEqual(set(['OS::Nova::Server', 'OS::Glance::Metadef']),
                          set(filtered_types))
 
         self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Nova::Server:query': 'role:admin'
+            'resource:OS::Nova::Server': 'role:admin'
         }))
 
         filtered_types = search_deserializer._filter_types_by_policy(
-            request.context, types, "query")
+            request.context, types)
         self.assertEqual(['OS::Glance::Metadef'], filtered_types)
 
     def test_resource_policy_allows_admin(self):
@@ -184,13 +199,12 @@ class TestSearchPolicy(test_utils.BaseTestCase):
         types = ['OS::Glance::Image', 'OS::Nova::Server']
 
         self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Glance::Image:allow': 'role:admin',
-            'resource:OS::Nova::Server:query': 'role:admin'
+            'resource:OS::Glance::Image': 'role:admin',
+            'resource:OS::Nova::Server': 'role:admin'
         }))
 
-        request = unit_test_utils.get_fake_request(is_admin=True)
         filtered_types = search_deserializer._filter_types_by_policy(
-            request.context, types, "query")
+            request.context, types)
         self.assertEqual(types, filtered_types)
 
     def test_resource_policy_disallow(self):
@@ -202,64 +216,20 @@ class TestSearchPolicy(test_utils.BaseTestCase):
 
         # And try disabling access for everyone
         self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Glance::Image:allow': '!'
+            'resource:OS::Glance::Image': '!'
         }))
 
         self.assertEqual(
             ['OS::Nova::Server'],
-            search_deserializer._filter_types_by_policy(request.context,
-                                                        types, "query"))
+            search_deserializer._filter_types_by_policy(request.context, types)
+        )
 
         # Same for admin
         request = unit_test_utils.get_fake_request(is_admin=False)
         self.assertEqual(
             ['OS::Nova::Server'],
-            search_deserializer._filter_types_by_policy(request.context,
-                                                        types, "query"))
-
-    def test_policy_precedence(self):
-        request = unit_test_utils.get_fake_request(is_admin=False)
-        search_deserializer = search.RequestDeserializer(
-            utils.get_search_plugins(),
-            policy_enforcer=self.enforcer)
-        types = ['OS::Nova::Server', 'OS::Glance::Image']
-        self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Nova::Server:allow': '',
-            'resource:OS::Nova::Server:query': '!'
-        }))
-
-        # Query should be disallowed by the specific policy
-        filtered_types = search_deserializer._filter_types_by_policy(
-            request.context, types, "query")
-        self.assertEqual(['OS::Glance::Image'], filtered_types)
-
-        # Facet should be allowed since there is no specific exclusion
-        filtered_types = search_deserializer._filter_types_by_policy(
-            request.context, types, "facets")
-        self.assertEqual(set(['OS::Nova::Server', 'OS::Glance::Image']),
-                         set(filtered_types))
-
-    def test_faulty_policy_precedence(self):
-        """Unfortunately the ordering that might make most sense isn't
-        possible. Rules can only become more restrictive
-         """
-        request = unit_test_utils.get_fake_request(is_admin=False)
-        search_deserializer = search.RequestDeserializer(
-            utils.get_search_plugins(),
-            policy_enforcer=self.enforcer)
-        types = ['OS::Glance::Image', 'OS::Nova::Server']
-        self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Glance::Image:allow': '!',
-            'resource:OS::Glance::Image:query': ''
-        }))
-
-        filtered_types = search_deserializer._filter_types_by_policy(
-            request.context, types, "facets")
-        self.assertEqual(['OS::Nova::Server'], filtered_types)
-
-        filtered_types = search_deserializer._filter_types_by_policy(
-            request.context, types, "query")
-        self.assertEqual(['OS::Nova::Server'], filtered_types)
+            search_deserializer._filter_types_by_policy(request.context, types)
+        )
 
     def test_policy_all_disallowed(self):
         request = unit_test_utils.get_fake_request(is_admin=False)
@@ -269,8 +239,8 @@ class TestSearchPolicy(test_utils.BaseTestCase):
 
         types = ['OS::Glance::Image']
         self.enforcer.add_rules(policy.policy.Rules.from_dict({
-            'resource:OS::Glance::Image:allow': '!',
-            'resource:OS::Nova::Server:allow': '!',
+            'resource:OS::Glance::Image': '!',
+            'resource:OS::Nova::Server': '!',
         }))
 
         expected_message = (
@@ -280,7 +250,7 @@ class TestSearchPolicy(test_utils.BaseTestCase):
         self.assertRaisesRegexp(
             webob.exc.HTTPForbidden, expected_message,
             search_deserializer._filter_types_by_policy,
-            request.context, types, "query")
+            request.context, types)
 
         types = ['OS::Glance::Image', 'OS::Nova::Server']
         expected_message = (
@@ -290,4 +260,47 @@ class TestSearchPolicy(test_utils.BaseTestCase):
         self.assertRaisesRegexp(
             webob.exc.HTTPForbidden, expected_message,
             search_deserializer._filter_types_by_policy,
-            request.context, types, "query")
+            request.context, types)
+
+    def test_search_service_policies(self):
+        request = unit_test_utils.get_fake_request(is_admin=False)
+        search_deserializer = search.RequestDeserializer(
+            utils.get_search_plugins(),
+            policy_enforcer=self.enforcer)
+
+        types = ['OS::Glance::Image', 'OS::Nova::Server']
+        glance_enforce = mock.Mock()
+        nova_enforce = mock.Mock()
+        glance_enforce.enforce.return_value = False
+        nova_enforce.enforce.return_value = True
+        service_enforcers = {
+            'image': glance_enforce,
+            'compute': nova_enforce
+        }
+
+        expect_creds = {
+            'tenant_id': request.context.tenant,
+            'project_id': request.context.tenant,
+            'user_id': request.context.user,
+            'roles': ['member'],
+            'is_admin_project': True,
+            'is_admin': False,
+            'user_domain_id': None,
+            'project_domain_id': None
+        }
+
+        fake_target = {
+            'user_id': request.context.user,
+            'project_id': request.context.tenant,
+            'tenant_id': request.context.tenant
+        }
+
+        with mock.patch('searchlight.service_policies._get_enforcers',
+                        return_value=service_enforcers):
+            filtered_types = search_deserializer._filter_types_by_policy(
+                request.context, types)
+            self.assertEqual(['OS::Nova::Server'], filtered_types)
+            glance_enforce.enforce.assert_called_with(
+                'get_images', fake_target, expect_creds)
+            nova_enforce.enforce.assert_called_with(
+                'os_compute_api:servers:index', fake_target, expect_creds)

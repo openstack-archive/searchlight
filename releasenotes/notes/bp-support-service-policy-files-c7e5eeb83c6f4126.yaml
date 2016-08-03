@@ -1,0 +1,13 @@
+---
+prelude: >
+    Adds support for service policy files. Simplifies existing
+    API policy support.
+features:
+  - API configuration can include service policy files such
+    that access to various resources can match whether their
+    service API allows access for a user.
+upgrade:
+  - The existing searchlight policy.json has been simplified.
+    The only supported options for resource policy are to enable
+    or disable it for all request types (i.e. the 'allow', 'query'
+    'facet' suffixes are no longer in effect).

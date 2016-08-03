@@ -24,7 +24,7 @@ SOMETENANT = '6838eb7b-6ded-dead-beef-b344c77fe8df'
 
 
 def get_fake_request(user=SOMEUSER, tenant=SOMETENANT, path='/v1/search',
-                     method='GET', is_admin=False, roles=['member']):
+                     method='GET', is_admin=False, roles=['member'], **kwargs):
     req = wsgi.Request.blank(path)
     req.method = method
 
@@ -32,14 +32,15 @@ def get_fake_request(user=SOMEUSER, tenant=SOMETENANT, path='/v1/search',
         roles = roles[:]
         roles.append('admin')
 
-    kwargs = {
+    context_args = {
         'user': user,
         'tenant': tenant,
         'roles': roles,
         'is_admin': is_admin,
     }
+    context_args.update(**kwargs)
 
-    req.context = searchlight.context.RequestContext(**kwargs)
+    req.context = searchlight.context.RequestContext(**context_args)
     return req
 
 

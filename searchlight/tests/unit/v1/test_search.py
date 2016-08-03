@@ -169,7 +169,9 @@ class TestControllerSearch(test_utils.BaseTestCase):
                                'enforce') as mock_enforce:
 
             self.search_controller.search(request, query={"match_all": {}})
-            mock_enforce.assert_called_with(request.context, 'query', {})
+            mock_enforce.assert_called_with(request.context,
+                                            'search:query',
+                                            request.context.policy_target)
 
     def test_search_version(self):
         request = unit_test_utils.get_fake_request()

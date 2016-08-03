@@ -53,6 +53,8 @@ class NotificationEndpoint(object):
         for plugin_type, plugin in six.iteritems(self.plugins):
             try:
                 handler = plugin.obj.get_notification_handler()
+                if not handler:
+                    continue
                 event_list = handler.get_notification_supported_events()
                 for event in event_list:
                     LOG.debug("Registering event '%s' for plugin '%s'",

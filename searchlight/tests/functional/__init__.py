@@ -242,6 +242,9 @@ class SearchServer(Server):
         self.policy_default_rule = 'default'
         self.property_protection_rule_format = 'roles'
 
+        self.service_policy_files = ''
+        self.service_policy_path = ''
+
         self.conf_base = """[DEFAULT]
 debug = %(debug)s
 log_file = %(log_file)s
@@ -257,6 +260,10 @@ flavor = %(deployment_flavor)s
 
 [elasticsearch]
 hosts = 127.0.0.1:%(elasticsearch_port)s
+
+[service_policies]
+service_policy_files = %(service_policy_files)s
+service_policy_path = %(service_policy_path)s
 
 [api]
 # Hardcoding a single worker; the cleanup code can't deal with more
@@ -324,22 +331,24 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         self.tracecmd = tracecmd_osmap.get(platform.system())
 
-        conf_dir = os.path.join(self.test_dir, 'etc')
-        utils.safe_mkdirs(conf_dir)
-        self.copy_data_file('policy.json', conf_dir)
-        self.copy_data_file('property-protections.conf', conf_dir)
-        self.copy_data_file('property-protections-policies.conf', conf_dir)
-        self.property_file_roles = os.path.join(conf_dir,
+        self.conf_dir = os.path.join(self.test_dir, 'etc')
+        utils.safe_mkdirs(self.conf_dir)
+        self.copy_data_file('policy.json', self.conf_dir)
+        self.copy_data_file('property-protections.conf', self.conf_dir)
+        self.copy_data_file('property-protections-policies.conf',
+                            self.conf_dir)
+        self.property_file_roles = os.path.join(self.conf_dir,
                                                 'property-protections.conf')
         property_policies = 'property-protections-policies.conf'
-        self.property_file_policies = os.path.join(conf_dir,
+        self.property_file_policies = os.path.join(self.conf_dir,
                                                    property_policies)
-        self.policy_file = os.path.join(conf_dir, 'policy.json')
+        self.policy_file = os.path.join(self.conf_dir, 'policy.json')
 
         self.api_server = SearchServer(self.test_dir,
                                        self.api_port,
                                        self.policy_file,
                                        sock=search_sock)
+        self._additional_server_config()
 
         self.pid_files = [self.api_server.pid_file]
         self.files_to_destroy = []
@@ -362,6 +371,12 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         self.initialized_plugins = {}
         self.configurePlugins()
+
+    def _additional_server_config(self):
+        """Any additional configuration for the API server. This is run prior
+        to writing the server config file and starting the server.
+        """
+        pass
 
     def configurePlugins(self, include_plugins=None, exclude_plugins=()):
         """Specify 'exclude_plugins' or 'include_plugins' as a list of

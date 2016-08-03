@@ -31,6 +31,7 @@ from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.i18n import _, _LW, _LI
 from searchlight import plugin
 
+
 LOG = logging.getLogger(__name__)
 
 indexer_opts = [
@@ -112,6 +113,19 @@ class IndexBase(plugin.Plugin):
     @property
     def alias_name_search(self):
         return "%s-search" % self.resource_group_name
+
+    @abc.abstractproperty
+    def resource_allowed_policy_target(self):
+        """Should return the policy target that this plugin's related service
+        uses to determine who has API access to list resources. Can return None
+        if this service doesn't support policy.
+        """
+        return None
+
+    @abc.abstractproperty
+    def service_type(self):
+        """Should match the keystone catalog service type for a resource"""
+        return None
 
     def prepare_index(self, index_name):
         """Prepare a new index for usage with this listener. We need to be

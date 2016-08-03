@@ -66,6 +66,14 @@ class FlavorIndex(base.IndexBase):
     def facets_with_options(self):
         return ('OS-FLV-DISABLED:disabled', 'os-flavor-access:is_public')
 
+    @property
+    def resource_allowed_policy_target(self):
+        return 'os_compute_api:flavors'
+
+    @property
+    def service_type(self):
+        return 'compute'
+
     def serialize(self, flavor):
         return serialize_nova_flavor(flavor)
 

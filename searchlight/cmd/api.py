@@ -50,6 +50,7 @@ from searchlight.common import exception
 from searchlight.common import utils
 from searchlight.common import wsgi
 from searchlight import notifier
+from searchlight import service_policies
 
 CONF = cfg.CONF
 CONF.import_group("profiler", "searchlight.common.wsgi")
@@ -74,6 +75,9 @@ def main():
         wsgi.set_eventlet_hub()
         logging.setup(CONF, 'searchlight')
         utils.register_plugin_opts()
+
+        # Fail fast if service policy files aren't found
+        service_policies.check_policy_files()
 
         if CONF.profiler.enabled:
             _notifier = osprofiler.notifier.create("Messaging",

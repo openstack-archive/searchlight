@@ -284,7 +284,7 @@ ElasticSearch document type) as the `resource name`_ Heat uses to identify it::
     def get_document_type(self):
         return "OS::Neutron::Net"
 
-.. _`resource_name`: http://docs.openstack.org/developer/heat/template_guide/openstack.html
+.. _`resource name`: http://docs.openstack.org/developer/heat/template_guide/openstack.html
 
 Retrieving object for initial indexing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -449,6 +449,36 @@ type. Administrative users can specify ``all_projects`` in searches to bypass
 these filters. This default behavior can be overridden for a plugin by setting
 the ``allow_admin_ignore_rbac`` property to ``False`` on the plugin (currently
 only in code). ``all_projects`` will be ignore for that plugin.
+
+Policy
+^^^^^^
+Related to access control is policy. Most services control API access with
+policy files that define rules enforced with `oslo.policy`_. Searchlight has
+its own policy file that configures access to its own API and resources, but
+it also supports reading other services' policy files. In the future this will
+be expanded to define RBAC rules, but at present external policy files are
+only used to determine whether a resource should be available to a user.
+
+To support this in your plugin, you must define two properties. The first
+is ``service_type`` which must correspond to the service 'type' as seen
+in the keystone catalog (e.g. nova's service 'type' is 'compute'). The
+second property is ``resource_allowed_policy_target`` which identifies the
+rule name in the service's policy files. If either of these properties are
+'None' no rule will be enforced.
+
+For example::
+
+    @property
+    def resource_allowed_policy_target(self):
+        return 'os_compute_api:servers:index'
+
+    @property
+    def service_type(self):
+        return 'compute'
+
+See :ref:`service-policy-controls` for configuration information.
+
+.. _oslo.policy: http://docs.openstack.org/developer/oslo.policy/
 
 Faceting
 ^^^^^^^^

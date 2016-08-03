@@ -112,6 +112,14 @@ class ImageIndex(base.IndexBase):
     def facets_excluded(self):
         return {'owner': True, 'project_id': True}
 
+    @property
+    def resource_allowed_policy_target(self):
+        return 'get_images'
+
+    @property
+    def service_type(self):
+        return 'image'
+
     def _get_rbac_field_filters(self, request_context):
         return [
             {

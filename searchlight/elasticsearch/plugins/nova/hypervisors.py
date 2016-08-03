@@ -85,6 +85,14 @@ class HypervisorIndex(base.IndexBase):
         return ('status', 'state', 'hypervisor_version', 'hypervisor_type',
                 'vcpus', 'memory_mb', 'local_gb')
 
+    @property
+    def resource_allowed_policy_target(self):
+        return 'os_compute_api:os-hypervisors'
+
+    @property
+    def service_type(self):
+        return 'compute'
+
     def _get_rbac_field_filters(self, request_context):
         # Hypervisors don't belong to a tenant; there won't be any RBAC
         # filter for hypervisors.

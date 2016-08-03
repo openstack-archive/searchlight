@@ -30,6 +30,7 @@ import searchlight.elasticsearch
 import searchlight.gateway
 from searchlight.i18n import _, _LE
 
+
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
@@ -165,24 +166,14 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         return list(set(p.obj.get_document_type()
                         for p in self.plugins.values()))
 
-    def _filter_types_by_policy(self, context, types, operation):
-        def type_allowed(_type):
-            policy_actions = ('resource:%s:allow' % (_type,),
-                              'resource:%s:%s' % (_type, operation))
+    def _filter_types_by_policy(self, context, types):
+        def _allowed(_type):
+            return policy.plugin_allowed(
+                self.policy_enforcer, context, self.plugins[_type].obj)
 
-            for action in policy_actions:
-                try:
-                    self.policy_enforcer.enforce(context, action, {})
-                except exception.Forbidden:
-                    LOG.debug("Policy for '%s' forbids '%s' on '%s'",
-                              action, operation, _type)
-                    return False
-            return True
-
-        allowed_types = list(filter(type_allowed, types))
+        allowed_types = list(filter(_allowed, types))
         if not allowed_types:
-            disallowed = set(types) - set(allowed_types)
-            disallowed_str = ", ".join(sorted(disallowed))
+            disallowed_str = ", ".join(sorted(types))
             msg = _("There are no resource types accessible to you to serve "
                     "your request. You do not have access to the "
                     "following resource types: %s") % disallowed_str
@@ -399,7 +390,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                     raise webob.exc.HTTPBadRequest(explanation=msg)
 
         # Filter the list by policy before determining which indices to use
-        types = self._filter_types_by_policy(request.context, types, "query")
+        types = self._filter_types_by_policy(request.context, types)
 
         available_indices = self._get_available_indices(types)
         if not indices:
@@ -477,8 +468,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             available_types = [available_types]
 
         doc_types = self._filter_types_by_policy(request.context,
-                                                 available_types,
-                                                 'facets')
+                                                 available_types)
         return {
             'index_name': request.params.get('index', None),
             'doc_type': doc_types,
@@ -489,8 +479,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
     def plugins_info(self, request):
         doc_types = self._filter_types_by_policy(request.context,
-                                                 self._get_available_types(),
-                                                 'plugins_info')
+                                                 self._get_available_types())
         return {
             'doc_type': doc_types
         }

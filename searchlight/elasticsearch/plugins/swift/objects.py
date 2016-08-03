@@ -90,6 +90,14 @@ class ObjectIndex(base.IndexBase):
     def is_plugin_enabled_by_default(cls):
         return False
 
+    @property
+    def resource_allowed_policy_target(self):
+        return None
+
+    @property
+    def service_type(self):
+        return None
+
     def _get_rbac_field_filters(self, request_context):
 
         tenant_member = request_context.tenant + ":*"

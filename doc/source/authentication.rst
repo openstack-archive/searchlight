@@ -146,23 +146,13 @@ access described below.
 Access to resources
 -------------------
 
-Perhaps more interesting is restricting access to specific resource types.
-For every operation (``query``, ``facets``, ``plugins_info``) it is possible
-to set a rule for any resource types. In addition, the `allow` operation acts
-as a default for a resource type. To allow access to Server resources only to
-administrators, and disallow faceting for that resource type entirely::
+It is possible to disable access to individual plugins. For instance, the
+following restricts access to Nova servers to admins, and disables access
+entirely to Glance images::
 
-    "resource:OS::Nova::Server:allow": "role:admin",
-    "resource:OS::Nova::Server:facets": "!",
+    "resource:OS::Nova::Server": "role:admin",
+    "resource:OS::Glance::Image": "!",
 
-To restrict queries on Glance images to administrators::
-
-    "resource:OS::Glance::Image:query": "role:admin",
-
-To disable plugin information listing for Glance plugins::
-
-    "resource:OS::Glance::Image:plugins_info": "!",
-    "resource:OS::Glance::Metadef:plugins_info": "!",
 
 .. note::
 
@@ -173,9 +163,43 @@ When resources are restricted in this way resources will be excluded
 from the search (which may result in empty search results). No Forbidden
 response will be returned.
 
-.. note::
+.. _service-policy-controls:
 
-    It is *not* possible to apply a more restrictive rule with `allow`
-    and less restrictive rules with specific operations because of the
-    way the policy engine works. Rules can only become more restrictive.
+Service policy controls
+-----------------------
 
+If configured, Searchlight can consult service policy files (e.g. that used
+to configure the nova API). Each resource is configured with a policy target
+it will check if possible. Policy file paths can either be absolute or relative
+to `service_policy_path` (which itself can be relative to the current working
+directory or left blank). The actual filepath used will be determined by
+oslo.config using the same `logic`_ as for other config files (for logging,
+searchlight's policy file etc). With the following configuration
+stanza::
+
+    [service_policies]
+    service_policy_files=compute:nova-policy.json
+    service_policy_path=/etc/searchlight/
+
+And with the following contents in nova-policy.json (which might be a symlink
+to an existing nova policy file, a copy or a separate file)::
+
+    {
+        "is_admin": "role: admin",
+        "os_compute_api:servers:index": "rule:is_admin"
+    }
+
+Only requests with the admin role assigned will be allowed to search or facet
+Nova servers.
+
+Policy files are configured per *service*, not per resource type. If files
+are in different directories absolute paths should be used, and
+``service_policy_path`` left unset.
+
+.. note:: 
+
+   Policy rules are always *more* restrictive. If a rule in Searchlight's
+   ``policy.json`` would allow access but a service policy file would disallow
+   it (or vice versa), the more restrictive rule will be used.
+
+.. _logic: http://docs.openstack.org/developer/oslo.config/configopts.html#oslo_config.cfg.ConfigOpts.find_file

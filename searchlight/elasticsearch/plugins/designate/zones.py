@@ -91,6 +91,14 @@ class ZoneIndex(designate.DesignateBase):
         """Facets either not available or available only to admins"""
         return {'project_id': True}
 
+    @property
+    def resource_allowed_policy_target(self):
+        return 'get_zones'
+
+    @property
+    def service_type(self):
+        return 'dns'
+
     def _get_rbac_field_filters(self, request_context):
         return [
             {"term": {"project_id": request_context.owner}}

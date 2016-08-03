@@ -47,6 +47,14 @@ class SnapshotIndex(base.IndexBase):
         return 'volume_id'
 
     @property
+    def resource_allowed_policy_target(self):
+        return 'volume:get_all_snapshots'
+
+    @property
+    def service_type(self):
+        return 'volume'
+
+    @property
     def requires_role_separation(self):
         # TODO(sjmc7) Remove once this is abstracted
         return self.parent_plugin.requires_role_separation
