@@ -38,6 +38,8 @@ See each plugin below for detailed information about specific plugins:
    :glob:
    plugins/*
 
+.. _Indexing-Model:
+
 Indexing model
 --------------
 The Mitaka Searchlight release introduced the ability to continue executing
@@ -91,6 +93,8 @@ Follow the guidelines below to avoid errors:
   https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-sort.html#_missing_values
 
 .. _aliases: https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-aliases.html
+
+.. _ES-Bulk-Indexing:
 
 Bulk indexing
 -------------
@@ -229,6 +233,9 @@ option. Specifying both options on the command line will result in an error.
     The resource group cannot be changed when using this option.
     If you do change the resource group, the underlying index will
     be changed and will result in an empty index.
+=======
+
+.. _ES-Index-Cleanup:
 
 Elasticsearch Index Cleanup
 ===========================

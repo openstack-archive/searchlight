@@ -28,7 +28,7 @@ protection of data.
 Searchlight, as with all OpenStack projects, is written with the following design
 guidelines in mind:
 
-* **Component based architecture**: Quickly add new behaviors
+* **Microservice based architecture**: Quickly add new behaviors
 * **Highly available**: Scale to very serious workloads
 * **Fault tolerant**: Isolated processes avoid cascading failures
 * **Recoverable**: Failures should be easy to diagnose, debug, and rectify
@@ -56,6 +56,7 @@ Overview
 .. toctree::
    :maxdepth: 1
 
+   architecture
    searchlightapi
    indexingservice
    authentication
