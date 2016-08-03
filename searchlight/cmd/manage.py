@@ -260,6 +260,7 @@ class IndexCommands(object):
             # get_index_display_name(). Therefore any child plugins in the
             # display list, will be listed twice.
             display_plugins = []
+            plugins_without_notifications = []
             for res, ext in plugins_list:
                 if not ext.obj.parent_plugin:
                     display_plugins.append((res, ext))
@@ -267,11 +268,17 @@ class IndexCommands(object):
             def format_selection(selection):
                 def _format_plugin(plugin, indent=0):
                     plugin_doc_type = plugin.get_document_type()
+                    handler = plugin.get_notification_handler()
+                    event_list = handler.get_notification_supported_events()
+
                     display = '\n' + '    ' * indent + '--> ' if indent else ''
                     display += '%s (%s)' % (plugin_doc_type,
                                             plugin.resource_group_name)
                     if plugin_doc_type in es_reindex:
                         display += ' *'
+                    if not event_list:
+                        display += ' !!'
+                        plugins_without_notifications.append(plugin)
                     return display + ''.join(_format_plugin(c, indent + 1)
                                              for c in plugin.child_plugins)
 
@@ -281,11 +288,18 @@ class IndexCommands(object):
             print("\nResources in these groups must be re-indexed: %s." %
                   ", ".join(all_res_groups))
 
+            print("Resource types (and aliases) matching selection:\n\n%s\n" %
+                  '\n'.join(map(format_selection, sorted(display_plugins))))
+
             if es_reindex:
                 print("Any types marked with * will be reindexed from "
                       "existing Elasticsearch data.\n")
-            print("Resource types (and aliases) matching selection:\n\n%s\n" %
-                  '\n'.join(map(format_selection, sorted(display_plugins))))
+
+            if plugins_without_notifications:
+                print("Any types marked with !! do not support incremental "
+                      "updates via the listener.")
+                print("These types must be fully re-indexed periodically or "
+                      "should be disabled.\n")
 
             ans = six.moves.input(
                 "\nUse '--force' to suppress this message.\n"
