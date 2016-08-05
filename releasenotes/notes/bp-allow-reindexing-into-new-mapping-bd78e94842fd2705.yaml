@@ -1,0 +1,11 @@
+---
+prelude: >
+    Add new functionality to searchlight-manage
+    to force a re-indexing from Elasticsearch only.
+    This option allows new mappings to be applied to
+    the Elasticsearch indices without the overhead of
+    retrieving data from the plugin APIs.
+features:
+  - Add a new option to the searchlight-manage index
+    command to force a re-indexing from Elasticsearch
+    only.  The plugin APIs will not be used with option.
