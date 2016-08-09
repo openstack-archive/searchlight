@@ -68,7 +68,9 @@ class InstanceHandler(base.NotificationBase):
         return ['nova']
 
     def get_log_fields(self, event_type, payload):
-        return ('id', payload.get('instance_id')),
+        return (('id', payload.get('instance_id')),
+                ('state', payload.get('state')),
+                ('state_description', payload.get('state_description')))
 
     def get_event_handlers(self):
         return {
@@ -157,6 +159,14 @@ class InstanceHandler(base.NotificationBase):
         elif new_task_state is None and old_task_state is not None:
             # These happen right before a corresponding .end event
             ignore_update = True
+        elif new_state == 'deleted' and old_task_state == 'deleting':
+            # This is always succeeded by a delete.end
+            ignore_update = True
+        elif new_state == 'active' and new_task_state == 'deleting':
+            update_if_state_matches = dict(
+                state='active',
+                new_task_state=''
+            )
         elif new_task_state is not None and new_task_state == old_task_state:
             # Ignore spawning -> spawning for shelved_offloaded instance and
             # shelving_offloading -> shelving_offloading for shelved instance.
