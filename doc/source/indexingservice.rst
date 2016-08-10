@@ -209,6 +209,27 @@ setting can be added to the Searchlight configuration file::
 
     logging_default_format_string = %(asctime)s.%(msecs)03d %(process)d %(thread)d %(threadName)s %(levelname)s %(name)s [-] %(instance)s%(message)s
 
+Force Elasticsearch indexing
+----------------------------
+The Newton Searchlight release introduced the ability to reindex
+from Elasticsearch only, bypassing the plugin APIs altogether.
+This option is useful if there has been a change to the mapping
+definitions or the index settings. This functionality is enabled
+with the option ``--apply-mapping-changes`` for the ``index`` command.
+
+A sample usage would be::
+
+    $ searchlight-manage index aliases --apply-mapping-changes
+
+The ``--type`` option is not compatible with the ``--apply-mapping-changes``
+option. Specifying both options on the command line will result in an error.
+
+.. warning::
+
+    The resource group cannot be changed when using this option.
+    If you do change the resource group, the underlying index will
+    be changed and will result in an empty index.
+
 Elasticsearch Index Cleanup
 ===========================
 

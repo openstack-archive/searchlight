@@ -118,7 +118,9 @@ class IndexCommands(object):
           help='Index only this type (or a comma separated list)')
     @args('--force', dest='force', action='store_true',
           help="Don't prompt (answer 'y')")
-    def sync(self, group=None, _type=None, force=False):
+    @args('--apply-mapping-changes', dest='force_es', action='store_true',
+          help="Use existing indexed data but apply mappings and settings")
+    def sync(self, group=None, _type=None, force=False, force_es=False):
         def wait_for_threads():
             """Patiently wait for all running threads to complete.
             """
@@ -155,6 +157,13 @@ class IndexCommands(object):
                 es_utils.alias_error_cleanup(index_names)
 
             sys.exit(0)
+
+        if force_es and _type:
+            # The user cannot specify both of these options simultaneously.
+            print("\nInvalid set of options.")
+            print("Cannot specify both '--type' and '--apply-mapping-changes "
+                  "simultaneously.\n")
+            sys.exit(1)
 
         try:
             max_workers = cfg.CONF.manage.workers
@@ -242,12 +251,18 @@ class IndexCommands(object):
         # As an optimization, if any types are explicitly requested, we
         # will index them from their service APIs. The rest will be
         # indexed from an existing ES index, if one exists.
+        #
+        # Also, if force_es is set the user wishes to use ES exclusively
+        # as the source for all data. This implies everything in the
+        # es_reindex list and nothing in the plugins_to_index list.
         es_reindex = []
         plugins_to_index = copy.copy(plugins_list)
-        if _type:
+        if _type or force_es:
             for resource_type, ext in plugins_list:
                 doc_type = ext.obj.get_document_type()
 
+                # If force_es is set, then "_type" is None. Always do this.
+                # If force_es is None, then "_type" is set. Adjust as needed.
                 if doc_type not in _type:
                     es_reindex.append(doc_type)
                     # Don't reindex this type
