@@ -248,3 +248,54 @@ class TestSearchLoad(functional.FunctionalTest):
         self.assertEqual(
             set(expected),
             set(hit['_id'] for hit in es_results['hits']['hits']))
+
+    @mock.patch.object(cfg.CONF, 'service_credentials')
+    @mock.patch.object(cfg.CONF, 'resource_plugin')
+    def test_without_region(self, resource_plugin_conf, service_cred_conf):
+        # Test that region isn't indexed unless explicitly enabled
+        resource_plugin_conf.include_region_name = False
+        service_cred_conf.os_region_name = 'test-region'
+        index_name = self.role_plugin.alias_name_listener
+        simple_plugin = fake_plugins.FakeSimplePlugin(self.elastic_connection)
+
+        simple_plugin.index_initial_data()
+        self._flush_elasticsearch(index_name)
+
+        es_results = self._get_all_elasticsearch_docs()
+        self.assertNotIn('region_name',
+                         es_results['hits']['hits'][0]['_source'])
+
+    @mock.patch.object(cfg.CONF, 'service_credentials')
+    @mock.patch.object(cfg.CONF, 'resource_plugin')
+    def test_with_region(self, resource_plugin_conf, service_cred_conf):
+        # Now test with a region
+        resource_plugin_conf.include_region_name = True
+        service_cred_conf.os_region_name = 'test-region'
+
+        index_name = self.role_plugin.alias_name_listener
+
+        simple_plugin = fake_plugins.FakeSimplePlugin(self.elastic_connection)
+        non_role = fake_plugins.NonRoleSeparatedPlugin(self.elastic_connection)
+
+        # Override region name for non-role
+        non_role.options.override_region_name = ['region1', 'region2']
+
+        non_role.index_initial_data()
+        simple_plugin.index_initial_data()
+        self._flush_elasticsearch(index_name)
+
+        es_results = self._get_all_elasticsearch_docs()
+
+        simple_res = list(filter(
+            lambda r: r['_type'] == simple_plugin.get_document_type(),
+            es_results['hits']['hits']))
+        non_role_res = list(filter(
+            lambda r: r['_type'] == non_role.get_document_type(),
+            es_results['hits']['hits']))
+
+        self.assertEqual(
+            ['test-region'],
+            simple_res[0]['_source']['region_name'])
+
+        self.assertEqual(['region1', 'region2'],
+                         non_role_res[0]['_source']['region_name'])

@@ -41,7 +41,12 @@ indexer_opts = [
     cfg.BoolOpt('mapping_use_doc_values', default=True,
                 help='Use doc_values for mapped fields where applicable.'
                      'Allows lower memory usage at the cost of some disk '
-                     'space. Recommended, especially in large deployments.')
+                     'space. Recommended, especially in large deployments.'),
+    cfg.BoolOpt('include_region_name', default=False,
+                help='Whether or not to include region_name as a mapping '
+                     'field and in documents. The value will be determined '
+                     'from service_credentials and override_region_name for '
+                     'each plugin.')
 ]
 
 CONF = cfg.CONF
@@ -376,6 +381,26 @@ class IndexBase(plugin.Plugin):
         return None
 
     @property
+    def include_region_name(self):
+        return cfg.CONF.resource_plugin.include_region_name
+
+    @property
+    def region_name(self):
+        """Returns a region name if enabled by config and configured in
+        service_credentials. Adding it as per-plugin rather than global
+        in case at some point per-plugin credentials are supported.
+        """
+        # Check the override in each plugin's options first, then use
+        # whatever's in service_credentials
+        region_name = self.options.override_region_name
+        if region_name:
+            return region_name
+        region_name = getattr(CONF.service_credentials,
+                              'os_region_name', None)
+        if region_name:
+            return [region_name]
+
+    @property
     def enabled(self):
         return self.options.enabled
 
@@ -456,14 +481,20 @@ class IndexBase(plugin.Plugin):
 
         type_mapping = self.get_mapping()
 
-        def apply_rbac_field(mapping):
-            mapping['properties'][ROLE_USER_FIELD] = {
+        # Add common mapping fields
+        # ROLE_USER_FIELD is required for RBAC by all plugins
+        type_mapping['properties'][ROLE_USER_FIELD] = {
+            'type': 'string',
+            'index': 'not_analyzed',
+            'include_in_all': False
+        }
+
+        # Add region name
+        if self.include_region_name:
+            type_mapping['properties']['region_name'] = {
                 'type': 'string',
                 'index': 'not_analyzed',
-                'include_in_all': False
             }
-
-        apply_rbac_field(type_mapping)
 
         if self.mapping_use_doc_values:
             helper.IndexingHelper.apply_doc_values(type_mapping)
@@ -520,7 +551,13 @@ class IndexBase(plugin.Plugin):
             cfg.StrOpt("resource_group_name"),
             cfg.BoolOpt("enabled", default=cls.is_plugin_enabled_by_default()),
             cfg.StrOpt("admin_only_fields"),
-            cfg.BoolOpt('mapping_use_doc_values')
+            cfg.BoolOpt('mapping_use_doc_values'),
+            cfg.ListOpt('override_region_name',
+                        default=None,
+                        help="Override the region name configured in "
+                             "'service_credentials'. This is useful when a "
+                             "service is deployed as a cloud-wide service "
+                             "rather than per region (e.g. Region1,Region2).")
         ]
         if cls.NotificationHandlerCls:
             opts.extend(cls.NotificationHandlerCls.get_plugin_opts())

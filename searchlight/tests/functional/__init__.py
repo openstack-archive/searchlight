@@ -547,6 +547,14 @@ class FunctionalTest(test_utils.BaseTestCase):
         json_content = jsonutils.loads(content)
         return json_content
 
+    def _delete_elasticsearch_doc(self, index_name, doc_type, doc_id):
+        es_url = "http://localhost:%s/%s/%s/%s" % (
+            self.api_server.elasticsearch_port, index_name, doc_type, doc_id)
+
+        response, content = httplib2.Http().request(es_url, "DELETE")
+        json_content = jsonutils.loads(content)
+        return json_content
+
     def _get_elasticsearch_aliases(self, indices):
         """Return all aliases associated with a specified index(es). The
            caller can specify a list of indcies. If the list is empty, we

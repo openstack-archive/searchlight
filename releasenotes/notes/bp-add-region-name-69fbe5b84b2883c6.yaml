@@ -1,0 +1,8 @@
+---
+prelude: >
+  Adds ability to include region_name in mapping for
+  multi-region deployments.
+features:
+  - Adds configuration option to include region_name in
+    documents to assist with multi-region tribe node
+    Elasticsearch setups.

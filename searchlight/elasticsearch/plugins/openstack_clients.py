@@ -33,7 +33,8 @@ from oslo_config import cfg
 client_opts = [
     cfg.StrOpt('os-region-name',
                default=os.environ.get('OS_REGION_NAME'),
-               help='Region name to use for OpenStack service endpoints.'),
+               help='Region name to use for OpenStack service endpoints.'
+                    'If set, will be included in plugin mappings.'),
     cfg.StrOpt('os-endpoint-type',
                default=os.environ.get('OS_ENDPOINT_TYPE', 'publicURL'),
                help='Type of endpoint in Identity service catalog to '

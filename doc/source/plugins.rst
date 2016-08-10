@@ -74,6 +74,7 @@ Please read the rest of the guide for detailed information.::
 
     [resource_plugin]
     resource_group_name = searchlight
+    # include_region_name = True
 
     [service_credentials:nova]
     compute_api_version = 2.1
@@ -90,6 +91,7 @@ Please read the rest of the guide for detailed information.::
 
     [resource_plugin:os_glance_image]
     enabled = True
+    # override_region_name = Region1,Region2
 
     [resource_plugin:os_glance_metadef]
     enabled = True
@@ -154,8 +156,8 @@ example::
 
 .. _plugin_notifications:
 
-Notifcations
-............
+Notifications
+.............
 
 There are two ways to configure services to send notifications that
 Searchlight can receive. The recommended method is to configure
@@ -216,6 +218,11 @@ Global Configuration Options
 |                     |               | stored. Index names will be         | | Re-index all types      |
 |                     |               | suffixed with a timestamp.          |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
+| include_region_name |               | Defined for all plugins. Controls   | | Restart services        |
+|                     |               | whether or not to include           | | Reindex all             |
+|                     |               | region_name as a mapping field and  |                           |
+|                     |               | in each document. Defaults to off.  |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
 
 .. note::
 
@@ -273,6 +280,13 @@ Non-Inheritable Common Configuration Options
 |  topics_exchanges   |               | note above). Use when services      |                           |
 |                     |               | output notifications on dissimilar  |                           |
 |                     |               | topics.                             |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+| override_region_name| <none>        | Specifies a region_name to be used  | | Restart services        |
+|                     |               | instead of one configured in        |                           |
+|                     |               | service_credentials.os_region_name. |                           |
+|                     |               | Useful for multi-region deployments |                           |
+|                     |               | where a service is shared between   |                           |
+|                     |               | regions. E.g. RegionOne,RegionTwo   |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 
 .. _individual-plugin-configuration:

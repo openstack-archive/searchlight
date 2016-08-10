@@ -496,6 +496,10 @@ class IndexingHelper(object):
             # with the input, so make a copy
             document = copy.deepcopy(document)
             version = versions[index] if versions else None
+
+            if self.plugin.include_region_name:
+                document['region_name'] = self.plugin.region_name
+
             if self.plugin.requires_role_separation:
                 LOG.debug("Applying role separation to %s id %s" %
                           (self.plugin.name,
