@@ -41,6 +41,10 @@ SEARCHLIGHT_SERVICE_HOST=${SEARCHLIGHT_SERVICE_HOST:-$SERVICE_HOST}
 SEARCHLIGHT_SERVICE_PORT=${SEARCHLIGHT_SERVICE_PORT:-9393}
 SEARCHLIGHT_SERVICE_PORT_INT=${SEARCHLIGHT_SERVICE_PORT_INT:-19393}
 
+ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-2.3.4}
+ELASTICSEARCH_BASEURL=${ELASTICSEARCH_BASEURL:-https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution}
+ELASTICSEARCH_BASEURL_DEB=${ELASTICSEARCH_BASEURL}/deb/elasticsearch
+ELASTICSEARCH_BASEURL_RPM=${ELASTICSEARCH_BASEURL}/rpm/elasticsearch
 
 # Tell Tempest this project is present
 TEMPEST_SERVICES+=,searchlight
@@ -66,7 +70,7 @@ function setup_colorized_logging_searchlight {
 # cleanup_searchlight - Remove residual data files, anything left over from previous
 # runs that a clean run would need to clean up
 function cleanup_searchlight {
-    ${TOP_DIR}/pkg/elasticsearch.sh stop
+    _stop_elasticsearch
     sudo rm -rf $SEARCHLIGHT_STATE_PATH $SEARCHLIGHT_AUTH_CACHE_DIR
 }
 
@@ -166,7 +170,7 @@ function init_searchlight {
     sudo chown $STACK_USER $SEARCHLIGHT_AUTH_CACHE_DIR
     rm -f $SEARCHLIGHT_AUTH_CACHE_DIR/*
 
-    ${TOP_DIR}/pkg/elasticsearch.sh start
+    _start_elasticsearch
 
     $SEARCHLIGHT_BIN_DIR/searchlight-manage --config-file $SEARCHLIGHT_CONF index sync --force
 }
@@ -175,9 +179,9 @@ function init_searchlight {
 function install_searchlight {
     git_clone $SEARCHLIGHT_REPO $SEARCHLIGHT_DIR $SEARCHLIGHT_BRANCH
     setup_develop $SEARCHLIGHT_DIR
-
-    ${TOP_DIR}/pkg/elasticsearch.sh download
-    ${TOP_DIR}/pkg/elasticsearch.sh install
+  
+    _download_elasticsearch
+    _install_elasticsearch
 }
 
 # install_searchlightclient - Collect source and prepare
@@ -207,6 +211,117 @@ function stop_searchlight {
     stop_process searchlight-api
     stop_process searchlight-listener
 }
+
+
+###############
+# ELASTICSEARCH
+# Moving this here because the devstack team has determined that only
+# services supporting devstack core projects should live in devstack
+
+function _wget_elasticsearch {
+    local baseurl=${1}
+    local file=${2}
+    if [ ! -f ${FILES}/${file} ]; then
+        wget ${baseurl}/${file} -O ${FILES}/${file}
+    fi
+
+    if [ ! -f ${FILES}/${file}.sha1 ]; then
+        # Starting with 2.0.0, sha1 files dropped the .txt extension and changed
+        # the format slightly; need the leading spaces to comply with sha1sum
+        ( wget ${baseurl}/${file}.sha1 -O ${FILES}/${file}.sha1 &&
+          echo "  ${file}" >> ${FILES}/${file}.sha1 )
+    fi
+
+    pushd ${FILES};  sha1sum ${file} > ${file}.sha1.gen;  popd
+
+    if ! diff ${FILES}/${file}.sha1.gen ${FILES}/${file}.sha1; then
+        echo "Invalid elasticsearch download. Could not install."
+        return 1
+    else
+        echo "SHA1 for ${file} matches downloaded ${FILES}/${file}.sha1"
+    fi
+    return 0
+}
+
+function _download_elasticsearch {
+    echo "Downloading elasticsearch"
+    if is_ubuntu; then
+        _wget_elasticsearch $ELASTICSEARCH_BASEURL_DEB/${ELASTICSEARCH_VERSION} elasticsearch-${ELASTICSEARCH_VERSION}.deb
+    elif is_fedora; then
+        _wget_elasticsearch $ELASTICSEARCH_BASEURL_RPM/${ELASTICSEARCH_VERSION} elasticsearch-${ELASTICSEARCH_VERSION}.rpm
+    fi
+}
+
+function _check_elasticsearch_ready {
+    # poll elasticsearch to see if it's started
+    if ! wait_for_service 30 http://localhost:9200; then
+        die $LINENO "Maximum timeout reached. Could not connect to ElasticSearch"
+    fi
+}
+
+function _start_elasticsearch {
+    echo "Starting elasticsearch"
+    if is_ubuntu; then
+        sudo /etc/init.d/elasticsearch start
+        _check_elasticsearch_ready
+    elif is_fedora; then
+        sudo /bin/systemctl start elasticsearch.service
+        _check_elasticsearch_ready
+    else
+        echo "Unsupported architecture...can not start elasticsearch."
+    fi
+}
+
+function _stop_elasticsearch {
+    echo "Stopping elasticsearch"
+    if is_ubuntu; then
+        sudo /etc/init.d/elasticsearch stop
+    elif is_fedora; then
+        sudo /bin/systemctl stop elasticsearch.service
+    else
+        echo "Unsupported architecture...can not stop elasticsearch."
+    fi
+}
+
+function _install_elasticsearch {
+    echo "Installing elasticsearch"
+    pip_install_gr elasticsearch
+    if is_package_installed elasticsearch; then
+        echo "Note: elasticsearch was already installed."
+        return
+    fi
+    if is_ubuntu; then
+        is_package_installed openjdk-7-jre-headless || install_package openjdk-7-jre-headless
+
+        sudo dpkg -i ${FILES}/elasticsearch-${ELASTICSEARCH_VERSION}.deb
+        sudo update-rc.d elasticsearch defaults 95 10
+    elif is_fedora; then
+        is_package_installed java-1.8.0-openjdk-headless || install_package java-1.8.0-openjdk-headless
+        yum_install ${FILES}/elasticsearch-${ELASTICSEARCH_VERSION}.noarch.rpm
+        sudo /bin/systemctl daemon-reload
+        sudo /bin/systemctl enable elasticsearch.service
+    else
+        echo "Unsupported install of elasticsearch on this architecture."
+    fi
+}
+
+function _uninstall_elasticsearch {
+    echo "Uninstalling elasticsearch"
+    if is_package_installed elasticsearch; then
+        if is_ubuntu; then
+            sudo apt-get purge elasticsearch
+        elif is_fedora; then
+            sudo yum remove elasticsearch
+        else
+            echo "Unsupported install of elasticsearch on this architecture."
+        fi
+    fi
+}
+
+#
+# END OF ELASTICSEARCH
+######################
+
 
 # check for service enabled
 if is_service_enabled searchlight; then
