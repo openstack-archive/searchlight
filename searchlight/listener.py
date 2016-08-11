@@ -83,7 +83,12 @@ class NotificationEndpoint(object):
         additional = " ".join("%s:%s" % (k, v or '-')
                               for k, v in payload_fields)
         log_context['additional'] = additional or ''
-        LOG.info(_LI("%(doc_type)s %(event_type)s \"%(timestamp)s\" "
+        LOG.info(_LI("Starting %(doc_type)s %(event_type)s \"%(timestamp)s\" "
+                     "project_id:%(project)s %(additional)s"), log_context)
+        return log_context
+
+    def _log_finished(self, log_context):
+        LOG.info(_LI("Finished %(doc_type)s %(event_type)s \"%(timestamp)s\" "
                      "project_id:%(project)s %(additional)s"), log_context)
 
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
@@ -93,14 +98,16 @@ class NotificationEndpoint(object):
         # type subscribed to
         for plugin in self.notification_target_map.get(event_type_l, []):
             handler = plugin.get_notification_handler()
-            self._log_notification(handler, ctxt, plugin.document_type,
-                                   event_type_l, payload, metadata)
+            log_context = self._log_notification(
+                handler, ctxt, plugin.document_type,
+                event_type_l, payload, metadata)
             handler.process(
                 ctxt,
                 publisher_id,
                 event_type,
                 payload,
                 metadata)
+            self._log_finished(log_context)
 
 
 class ListenerService(os_service.Service):

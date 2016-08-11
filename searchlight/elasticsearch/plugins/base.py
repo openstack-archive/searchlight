@@ -580,9 +580,6 @@ class NotificationBase(object):
 
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
         """Process the incoming notification message."""
-        LOG.debug("Received %s event for %s",
-                  event_type,
-                  self.index_helper.document_type)
         try:
             self.get_event_handlers()[event_type](payload,
                                                   metadata['timestamp'])
