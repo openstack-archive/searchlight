@@ -17,6 +17,7 @@ import datetime
 import mock
 import uuid
 
+from elasticsearch import helpers
 from searchlight.elasticsearch.plugins.neutron import\
     security_groups as securitygroups_plugin
 import searchlight.tests.unit.utils as unit_test_utils
@@ -48,6 +49,26 @@ def _secgroup_fixture(secgroup_id, tenant_id, name, **kwargs):
         "tenant_id": tenant_id,
         "name": name,
         "description": ""
+    }
+    fixture.update(**kwargs)
+    return fixture
+
+
+def _secgrouprule_fixture(secgroup_id, tenant_id, **kwargs):
+    fixture = {
+        "security_group_rule": {
+            "remote_group_id": "855560aa-ff43-ee09-993e-6609342abccd",
+            "direction": "ingress",
+            "protocol": "ipv4",
+            "description": "",
+            "ethertype": "",
+            "remote_ip_prefix": "",
+            "port_range_max": "",
+            "port_range_min": "",
+            "security_group_id": secgroup_id,
+            "tenant_id": tenant_id,
+            "id": secgroup_id,
+        }
     }
     fixture.update(**kwargs)
     return fixture
@@ -88,6 +109,95 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
                  'security_group_rule.delete.end']),
             set(handler.get_event_handlers().keys())
         )
+
+    def test_rule_update_exception(self):
+        # Set up the return documents.
+        payload = _secgrouprule_fixture(ID1, TENANT1)
+        doc = {'_source': {'security_group_rules': []}, '_version': 1}
+
+        handler = self.plugin.get_notification_handler()
+        with mock.patch.object(self.plugin.index_helper,
+                               'get_document') as mock_get:
+            with mock.patch.object(self.plugin.index_helper,
+                                   'save_document') as mock_save:
+                mock_get.return_value = doc
+                exc_obj = helpers.BulkIndexError(
+                    "Version conflict", [{'index': {
+                        "_id": "1", "error": "Some error", "status": 409}}]
+                )
+
+                # 1 retry (exception).
+                mock_save.side_effect = [exc_obj, {}]
+                handler.create_or_update_rule(payload, None)
+                # 1 retry +  1 success = 2 calls.
+                self.assertEqual(2, mock_get.call_count)
+                self.assertEqual(2, mock_save.call_count)
+
+                # 24 retries (exceptions) that exceed the retry limit.
+                # Not all retries will be used.
+                mock_get.reset_mock()
+                mock_save.reset_mock()
+                mock_save.side_effect = [exc_obj, exc_obj, exc_obj, exc_obj,
+                                         exc_obj, exc_obj, exc_obj, exc_obj,
+                                         exc_obj, exc_obj, exc_obj, exc_obj,
+                                         exc_obj, exc_obj, exc_obj, exc_obj,
+                                         exc_obj, exc_obj, exc_obj, exc_obj,
+                                         exc_obj, exc_obj, exc_obj, exc_obj,
+                                         {}]
+                handler.create_or_update_rule(payload, None)
+                # Verified we bailed out after 20 retires.
+                self.assertEqual(20, mock_get.call_count)
+                self.assertEqual(20, mock_save.call_count)
+
+    def test_rule_delete_exception(self):
+        # Set up the return documents.
+        payload = {'security_group_rule_id': ID1}
+        doc_get = {'_source': {'security_group_rules': []}, '_version': 1}
+        doc_nest = {'hits': {'hits': [{
+                    '_id': 123456789,
+                    '_source': {'security_group_rules': []},
+                    '_version': 1}]}}
+
+        handler = self.plugin.get_notification_handler()
+        with mock.patch.object(handler, 'get_doc_by_nested_field') as mo_nest:
+            with mock.patch.object(self.plugin.index_helper,
+                                   'get_document') as mock_get:
+                with mock.patch.object(self.plugin.index_helper,
+                                       'save_document') as mock_save:
+                    mo_nest.return_value = doc_nest
+                    mock_get.return_value = doc_get
+                    exc_obj = helpers.BulkIndexError(
+                        "Version conflict", [{'index': {
+                            "_id": "1", "error": "Some error", "status": 409}}]
+                    )
+
+                    # 1 retry (exception).
+                    mock_save.side_effect = [exc_obj, {}]
+                    handler.delete_rule(payload, None)
+                    # 1 retry +  1 success = 2 calls.
+                    self.assertEqual(1, mo_nest.call_count)
+                    self.assertEqual(1, mock_get.call_count)
+                    self.assertEqual(2, mock_save.call_count)
+
+                    # 24 retries (exceptions) that exceed the retry limit.
+                    # Not all retries will be used.
+                    mo_nest.reset_mock()
+                    mock_get.reset_mock()
+                    mock_save.reset_mock()
+                    mock_save.side_effect = [exc_obj, exc_obj, exc_obj,
+                                             exc_obj, exc_obj, exc_obj,
+                                             exc_obj, exc_obj, exc_obj,
+                                             exc_obj, exc_obj, exc_obj,
+                                             exc_obj, exc_obj, exc_obj,
+                                             exc_obj, exc_obj, exc_obj,
+                                             exc_obj, exc_obj, exc_obj,
+                                             exc_obj, exc_obj, exc_obj,
+                                             {}]
+                    handler.delete_rule(payload, None)
+                    # Verified we bailed out after 20 retires.
+                    self.assertEqual(1, mo_nest.call_count)
+                    self.assertEqual(20, mock_get.call_count)
+                    self.assertEqual(20, mock_save.call_count)
 
     @mock.patch('searchlight.elasticsearch.plugins.utils.get_now_str')
     def test_serialize(self, mock_now):
