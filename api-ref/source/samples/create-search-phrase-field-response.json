@@ -1,0 +1,45 @@
+{
+  "hits": {
+    "hits": [
+      {
+        "_score": 12.945373,
+        "_type": "OS::Glance::Image",
+        "_id": "7a99b58d-0b70-4138-8086-ab0cc4bd1ba3",
+        "_source": {
+          "container_format": "bare",
+          "min_ram": 0,
+          "updated_at": "2016-08-25T17:54:02Z",
+          "cim_pasd_processorarchitecture": "Power",
+          "owner": "158776c9face41a7a3026d6c1cae686a",
+          "id": "7a99b58d-0b70-4138-8086-ab0cc4bd1ba3",
+          "size": 5969,
+          "image_type": "image",
+          "disk_format": "raw",
+          "project_id": "158776c9face41a7a3026d6c1cae686a",
+          "status": "active",
+          "description": "Preconfigured with a schmaltz to optimize the foobar",
+          "tags": [],
+          "hw_cpu_policy": "shared",
+          "visibility": "public",
+          "members": [],
+          "min_disk": 0,
+          "virtual_size": null,
+          "name": "My Awesome Image",
+          "checksum": null,
+          "created_at": "2016-08-25T17:54:02Z",
+          "protected": false
+        },
+        "_index": "searchlight-2016_08_25_18_48_30"
+      }
+    ],
+    "total": 1,
+    "max_score": 12.945373
+  },
+  "_shards": {
+    "successful": 1,
+    "failed": 0,
+    "total": 1
+  },
+  "took": 4,
+  "timed_out": false
+}
