@@ -1,0 +1,9 @@
+{
+    "type": "OS::Glance::Image",
+    "query": {
+        "multi_match": {
+            "query":"cirros",
+            "fields": ["_all"]
+        }
+    }
+}

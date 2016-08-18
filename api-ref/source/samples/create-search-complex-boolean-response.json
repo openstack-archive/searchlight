@@ -1,0 +1,93 @@
+{
+  "hits": {
+    "hits": [
+      {
+        "_type": "OS::Glance::Image",
+        "_source": {
+          "status": "active",
+          "created_at": "2016-08-25T17:32:41Z",
+          "project_id": "98c05407d80c405aa6efa01b279385ce",
+          "name": "cirros-0.3.4-x86_64-uec",
+          "tags": [],
+          "image_type": "image",
+          "checksum": "eb9139e4942121f22bbc2afc0400b2a4",
+          "min_ram": 0,
+          "ramdisk_id": "f310fb51-29dc-47bf-8cbd-3ea1170fb4e3",
+          "disk_format": "ami",
+          "updated_at": "2016-08-25T17:32:42Z",
+          "visibility": "public",
+          "kernel_id": "34ddf1d2-b588-4a9a-a3d3-344768c04bfd",
+          "protected": false,
+          "members": [],
+          "container_format": "ami",
+          "min_disk": 0,
+          "owner": "98c05407d80c405aa6efa01b279385ce",
+          "virtual_size": null,
+          "id": "23fa3971-3ed8-435a-a3c6-8addea5153aa",
+          "size": 25165824
+        },
+        "_score": 3.3642778,
+        "_index": "searchlight-2016_08_25_18_48_30",
+        "highlight": {
+          "status": [
+            "<em>active</em>"
+          ],
+          "name": [
+            "<em>cirros</em>-0.3.4-x86_64-uec"
+          ],
+          "visibility": [
+            "<em>public</em>"
+          ]
+        },
+        "_id": "23fa3971-3ed8-435a-a3c6-8addea5153aa"
+      },
+      {
+        "_type": "OS::Glance::Image",
+        "_source": {
+          "status": "active",
+          "created_at": "2016-08-25T17:32:34Z",
+          "project_id": "98c05407d80c405aa6efa01b279385ce",
+          "name": "cirros-0.3.4-x86_64-disk",
+          "tags": [],
+          "image_type": "image",
+          "checksum": "ee1eca47dc88f4879d8a229cc70a07c6",
+          "min_ram": 0,
+          "disk_format": "qcow2",
+          "updated_at": "2016-08-25T17:32:35Z",
+          "visibility": "public",
+          "owner": "98c05407d80c405aa6efa01b279385ce",
+          "protected": false,
+          "members": [],
+          "container_format": "bare",
+          "min_disk": 0,
+          "virtual_size": null,
+          "id": "f34de38c-7a5c-4b00-8015-70a7a63480e8",
+          "size": 13287936
+        },
+        "_score": 3.3642778,
+        "_index": "searchlight-2016_08_25_18_48_30",
+        "highlight": {
+          "status": [
+            "<em>active</em>"
+          ],
+          "name": [
+            "<em>cirros</em>-0.3.4-x86_64-disk"
+          ],
+          "visibility": [
+            "<em>public</em>"
+          ]
+        },
+        "_id": "f34de38c-7a5c-4b00-8015-70a7a63480e8"
+      }
+    ],
+    "total": 2,
+    "max_score": 3.3642778
+  },
+  "_shards": {
+    "successful": 1,
+    "failed": 0,
+    "total": 1
+  },
+  "took": 1,
+  "timed_out": false
+}

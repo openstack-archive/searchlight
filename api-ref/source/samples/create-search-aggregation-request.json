@@ -1,0 +1,11 @@
+{
+    "query": {
+        "match_all": {}
+    },
+    "type": ["OS::Glance::Image"],
+    "limit": 0,
+    "aggregations": {
+        "name": {"terms": {"field": "name"}},
+        "container_format": {"terms": {"field": "container_format"}}
+    }
+}

@@ -1,0 +1,55 @@
+200:
+  default: |
+    The response contains an entity corresponding to the requested resource.
+201:
+  default: |
+    The request has been fullfilled and a new resource created.
+202:
+  default: |
+    The request has been accepted for processing, but the processing has not
+    been completed.
+204:
+  default: |
+    The request has been processed successfully.
+400:
+  default: |
+    The server cannot (or will not) process the request due to a client error.
+  informal: |
+    Your bad ... something is wrong with your request.
+401:
+  default: |
+    You have either forgotten to provide credentials, or the credentials you
+    provided are malformed or expired.
+403:
+  default: |
+    You do not have sufficient permissions to perform the requested action.
+404:
+  default: |
+    The resource you have requested cannot be found.
+409:
+  default: |
+    The request you have made cannot be processed because it conflicts with
+    the current state of the resource.
+410:
+  default: |
+    The requested resource is no longer available at the server and no
+    forwarding address is known.
+413:
+  default: |
+    The payload you have submitted is too large given the configuration of the
+    server.
+415:
+  default: |
+    The server is refusing to service the request because the entity of the
+    request is in a format not supported by the requested resource for the
+    requested method.
+500:
+  default: |
+    The server encountered an unexpected condition which prevented it from
+    fulfilling the request.
+  informal: |
+    Our bad ... something unfortunate happened on the server.
+503:
+  default: |
+    The server is currently unable to handle the request due to a temporary
+    overloading or maintenance of the server.
