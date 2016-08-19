@@ -319,7 +319,7 @@ class FlavorHandler(base.NotificationBase):
 
     @classmethod
     def _get_notification_exchanges(cls):
-        return []
+        return ['nova']
 
     def get_event_handlers(self):
         # TODO(): Currently there is no notification for flavor,
