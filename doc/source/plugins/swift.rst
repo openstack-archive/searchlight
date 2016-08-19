@@ -49,6 +49,8 @@ role must be added prior to running `searchlight-manage index sync`.
     openstack role add --user searchlight --project service ResellerAdmin
 
 
+.. _proxy-server.conf:
+
 proxy-server.conf
 -----------------
 

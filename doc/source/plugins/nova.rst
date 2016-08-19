@@ -128,7 +128,7 @@ incremental updates. Enable notifications using the following::
 .. note::
 
     Restart Nova API and Nova scheduler (n-api, n-sch) after making changes.
-    See :ref:`plugin_notification_topics` for more information on
+    See :ref:`plugin_notifications` for more information on
     notification topics.
 
 local.conf (devstack)
