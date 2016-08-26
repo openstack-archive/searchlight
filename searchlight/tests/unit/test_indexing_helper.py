@@ -52,16 +52,16 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         fake1_admin = list(filter(lambda a: a['_id'] == 'role-fake1_ADMIN',
                                   actions))[0]['_source']
         self.assertEqual('role-fake1', fake1_admin['id'])
-        self.assertTrue('public_field' in fake1_admin)
-        self.assertTrue('admin_wildcard_this' in fake1_admin)
+        self.assertIn('public_field', fake1_admin)
+        self.assertIn('admin_wildcard_this', fake1_admin)
         self.assertEqual('admin', fake1_admin[ROLE_USER_FIELD])
 
         fake1_user = list(filter(lambda a: a['_id'] == 'role-fake1_USER',
                                  actions))[0]['_source']
         self.assertEqual('role-fake1', fake1_user['id'])
-        self.assertTrue('public_field' in fake1_user)
-        self.assertFalse('admin_wildcard_this' in fake1_user)
-        self.assertFalse('admin_specific' in fake1_user)
+        self.assertIn('public_field', fake1_user)
+        self.assertNotIn('admin_wildcard_this', fake1_user)
+        self.assertNotIn('admin_specific', fake1_user)
         self.assertEqual('user', fake1_user[ROLE_USER_FIELD])
 
     def test_non_role_separated_save_docs(self):

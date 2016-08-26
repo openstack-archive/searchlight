@@ -647,7 +647,7 @@ class FunctionalTest(test_utils.BaseTestCase):
         self.launched_servers.append(server)
 
         launch_msg = self.wait_for_servers([server], expect_launch)
-        self.assertTrue(launch_msg is None, launch_msg)
+        self.assertIsNone(launch_msg, launch_msg)
 
     def start_with_retry(self, server, port_name, max_retries,
                          expect_launch=True,
@@ -680,7 +680,7 @@ class FunctionalTest(test_utils.BaseTestCase):
             else:
                 self.launched_servers.append(server)
                 break
-        self.assertTrue(launch_msg is None, launch_msg)
+        self.assertIsNone(launch_msg, launch_msg)
 
     def ping_server(self, port):
         """
