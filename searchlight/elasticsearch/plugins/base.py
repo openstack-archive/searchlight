@@ -522,6 +522,9 @@ class IndexBase(plugin.Plugin):
                 'index': 'not_analyzed',
             }
 
+        if 'updated_at' not in type_mapping['properties'].keys():
+            type_mapping['properties']['updated_at'] = {'type': 'date'}
+
         if self.mapping_use_doc_values:
             helper.IndexingHelper.apply_doc_values(type_mapping)
 
