@@ -22,5 +22,8 @@
     "resource:OS::Neutron::Port": "rule:admin_or_owner",
     "resource:OS::Neutron::Subnet": "rule:admin_or_owner",
     "resource:OS::Neutron::Router": "rule:admin_or_owner",
-    "resource:OS::Neutron::SecurityGroup": "rule:admin_or_owner"
+    "resource:OS::Neutron::SecurityGroup": "rule:admin_or_owner",
+    "resource:OS::Ironic::Chassis": "rule:admin_or_owner",
+    "resource:OS::Ironic::Node": "rule:admin_or_owner",
+    "resource:OS::Ironic::Port": "rule:admin_or_owner"
 }

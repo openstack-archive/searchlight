@@ -18,6 +18,7 @@ import os
 from cinderclient import client as cinder_client
 from designateclient.v2 import client as designate_client
 from glanceclient import client as glance_client
+from ironicclient import client as ironic_client
 from keystoneclient import auth as ks_auth
 from keystoneclient import session as ks_session
 import keystoneclient.v2_0.client as ks_client
@@ -63,6 +64,7 @@ ks_auth.register_conf_options(cfg.CONF, GROUP)
 _session = None
 
 NOVA_MIN_API_VERSION = '2.1'
+IRONIC_API_VERSION = '1.22'
 
 
 def _get_session():
@@ -219,3 +221,14 @@ def get_keystoneclient():
     return ks_client.Client(
         session=session,
         region_name=cfg.CONF.service_credentials.os_region_name)
+
+
+def get_ironicclient():
+    session = _get_session()
+    return ironic_client.get_client(
+        '1',
+        session=session,
+        os_region_name=cfg.CONF.service_credentials.os_region_name,
+        os_endpoint_type=cfg.CONF.service_credentials.os_endpoint_type,
+        os_ironic_api_version=IRONIC_API_VERSION
+    )

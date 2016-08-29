@@ -43,3 +43,7 @@ SWIFT_OBJECT = 'OS::Swift::Object'
 
 KEYSTONE_PROJECT = "OS::Keystone::Project"
 KEYSTONE_USER = "OS::Keystone::User"
+
+IRONIC_NODE = "OS::Ironic::Node"
+IRONIC_PORT = "OS::Ironic::Port"
+IRONIC_CHASSIS = "OS::Ironic::Chassis"
