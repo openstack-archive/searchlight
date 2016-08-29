@@ -20,7 +20,6 @@ import six
 
 from searchlight.common import utils as common_utils
 
-
 # Fields that require special handling for sort to avoid sorting
 # on tokenized values
 RAW_SORT_FIELDS = ('name',)
@@ -82,16 +81,16 @@ class CatalogSearchRepo(object):
                                 self._plugins_list)
         return {
             'plugins': sorted(masked_plugins,
-                              key=operator.itemgetter('name'))
+                              key=operator.itemgetter('type'))
         }
 
     def _get_plugin_list(self):
         plugin_list = []
         for plugin_type, plugin in six.iteritems(self.plugins):
             plugin_list.append({
-                'name': plugin_type,
                 'type': plugin.obj.get_document_type(),
-                'index': plugin.obj.alias_name_search
+                'alias-searching': plugin.obj.alias_name_search,
+                'alias-indexing': plugin.obj.alias_name_listener
             })
         return plugin_list
 

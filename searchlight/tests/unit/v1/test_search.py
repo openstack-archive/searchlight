@@ -219,41 +219,41 @@ class TestControllerPluginsInfo(test_utils.BaseTestCase):
         expected = {
             "plugins": [
                 {
-                    "index": "searchlight-search",
+                    "alias-searching": "searchlight-search",
+                    "alias-indexing": "searchlight-listener",
                     "type": "OS::Designate::RecordSet",
-                    "name": "OS::Designate::RecordSet"
                 },
                 {
-                    "index": "searchlight-search",
+                    "alias-searching": "searchlight-search",
+                    "alias-indexing": "searchlight-listener",
                     "type": "OS::Designate::Zone",
-                    "name": "OS::Designate::Zone"
                 },
                 {
-                    "index": "searchlight-search",
+                    "alias-searching": "searchlight-search",
+                    "alias-indexing": "searchlight-listener",
                     "type": "OS::Glance::Image",
-                    "name": "OS::Glance::Image"
                 },
                 {
-                    "index": "searchlight-search",
+                    "alias-searching": "searchlight-search",
+                    "alias-indexing": "searchlight-listener",
                     "type": "OS::Glance::Metadef",
-                    "name": "OS::Glance::Metadef"
                 },
                 {
-                    "index": "searchlight-search",
+                    "alias-searching": "searchlight-search",
+                    "alias-indexing": "searchlight-listener",
                     "type": "OS::Nova::Server",
-                    "name": "OS::Nova::Server"
                 }
             ]
         }
 
         # Simulate policy filtering
-        doc_types = [p['name'] for p in expected['plugins']]
+        doc_types = [p['type'] for p in expected['plugins']]
         actual = self.search_controller.plugins_info(request, doc_types)
         self.assertEqual(['plugins'], list(actual.keys()))
 
         self.assertEqual(
-            sorted(expected['plugins'], key=operator.itemgetter('name')),
-            sorted(actual['plugins'], key=operator.itemgetter('name')))
+            sorted(expected['plugins'], key=operator.itemgetter('type')),
+            sorted(actual['plugins'], key=operator.itemgetter('type')))
 
 
 class TestControllerFacets(test_utils.BaseTestCase):

@@ -1,0 +1,13 @@
+---
+prelude: >
+  Fix the information returned by the API plugins endpoint.
+deprecations:
+  - Two fields returned in the API plugins endpoint 'name' and
+    'index' have been removed.
+fixes:
+  - The API plugins API endpoint is returning outdated,
+    duplicated and incomplete information. The hat-trick
+    of uselessness. This fix will correct that. The duplicated
+    field ('name') has been removed. The outdated field has been
+    renamed (from 'index' to 'alias-search'). The missing field
+    has been added ('alias-listener').
