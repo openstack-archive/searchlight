@@ -17,7 +17,6 @@
 import abc
 
 from oslo_config import cfg
-from oslo_log import log as logging
 import oslo_messaging
 import six
 
@@ -38,8 +37,6 @@ notifier_opts = [
 
 CONF = cfg.CONF
 CONF.register_opts(notifier_opts)
-
-LOG = logging.getLogger(__name__)
 
 _ALIASES = {
     'searchlight.openstack.common.rpc.impl_kombu': 'rabbit',
