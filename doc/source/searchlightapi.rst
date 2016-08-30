@@ -75,25 +75,32 @@ might yield::
     {
         "plugins": [
             {
-                 "name": "OS::Glance::Image",
                  "type": "OS::Glance::Image",
-                 "index": "searchlight"
+                 "alias-searching": "searchlight-search"
+                 "alias-indexing": "searchlight-listener"
             },
             {
-                 "name": "OS::Glance::Metadef",
                  "type": "OS::Glance::Metadef",
-                 "index": "searchlight"
+                 "alias-searching": "searchlight-search"
+                 "alias-indexing": "searchlight-listener"
             }
 
         ]
     }
 
-This represents Glance image and metadef resources indexed in the same
-Elasticsearch ``index`` and a ``type`` specific to the resource. To view
-all indexed Glance images in Elasticsearch directly, rather than in Searchlight
-(assuming a server running on localhost) would therefore be a request such as::
+This response shows the plugin information associated with the Glance image
+and metadef resources.
 
-    curl http://localhost:9200/searchlight/OS::Glance::Image/_search
+* **type**: the resource group, which is used as the document type in
+  Elasticsearch.
+* **alias-searching**: the Elasticsearch alias used for querying.
+* **alias-indexing**: the Elasticsearch alias used for indexing.
+
+If desired, all indexed Glance images can be queried directly from
+Elasticsearch, rather than using Searchlight. Assuming an Elasticsearch
+server running on localhost, the following request can be made::
+
+    curl http://localhost:9200/searchlight-search/OS::Glance::Image/_search
 
 Running a search
 ~~~~~~~~~~~~~~~~

@@ -605,14 +605,14 @@ class TestSearchApi(functional.FunctionalTest):
                                                TENANT1,
                                                role='user')
         self.assertEqual(
-            0, len(list(filter(lambda p: p['name'] == 'OS::Nova::Server',
+            0, len(list(filter(lambda p: p['type'] == 'OS::Nova::Server',
                                json_content['plugins']))))
 
         response, json_content = self._request('GET', '/search/plugins',
                                                TENANT1,
                                                role='admin')
         self.assertEqual(
-            1, len(list(filter(lambda p: p['name'] == 'OS::Nova::Server',
+            1, len(list(filter(lambda p: p['type'] == 'OS::Nova::Server',
                                json_content['plugins']))))
 
     def test_domain_token_401(self):
