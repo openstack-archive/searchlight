@@ -535,7 +535,6 @@ It's also possible to request facets for a particular type by adding a
     ]
   }
 
-
 As with searches, administrators are able to request facet terms for all
 projects/tenants. By default, facet terms are limited to the currently scoped
 project; adding ``all_projects=true`` as a query parameter removes the
@@ -545,6 +544,63 @@ It is possible to limit the number of ``options`` returned for fields that
 support facet terms. ``limit_terms`` restricts the number of terms (sorted
 in order of descending frequency). A value of 0 indicates no limit, and is the
 default.
+
+Aggregations
+************
+`Faceting`_ (above) is a more general form of `Elasticsearch aggregation`_.
+Faceting is an example of 'bucketing'; 'metrics' includes functions like min,
+max, percentiles.
+
+Aggregations will be based on the ``query`` provided as well as restrictions
+on resource type and any RBAC filters.
+
+To include aggregations in a query, include ``aggs`` or ``aggregations`` in
+a search request body. For instance (``"limit": 0`` prevents Elasticsearch
+returning any results, just the aggregation, though it is valid to retrieve
+both search results and aggregations from a single query)::
+
+  {
+    "query": {"match_all": {}},
+    "limit": 0,
+    "aggregations": {
+      "names": {
+        "terms": {"field": "name"}
+      },
+      "earliest": {
+        "min": {"field": "created_at"}
+      }
+    }
+  }
+
+Response::
+
+  {
+    "hits": {"total": 2, "max_score": 0.0, "hits": []},
+    "aggregations": {
+      "names": {
+        "doc_count_error_upper_bound": 0,
+        "sum_other_doc_count": 0,
+        "buckets": [
+          {"key": "for_instance1", "doc_count": 2},
+          {"key": "instance1", "doc_count": 1}
+        ]
+      },
+      "earliest": {
+        "value": 1459946898000.0,
+        "value_as_string": "2016-04-06T12:48:18.000Z"
+      }
+    }
+  }
+
+Note that for some aggregations ``value_as_string`` may be more useful than
+``value`` - for example, the ``earliest`` aggregation in the example operates
+on a date field whose internal representation is a timestamp.
+
+The `global aggregation`_ type is not allowed because unlike other aggregation
+types it operates outside the the search query scope.
+
+.. _`Elasticsearch aggregation`: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
+.. _`global aggregation`: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-global-aggregation.html
 
 Freeform queries
 ****************

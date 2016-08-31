@@ -4,6 +4,7 @@
     "default": "",
 
     "search:query": "rule:admin_or_owner",
+    "search:query:aggregations": "rule:admin_or_owner",
     "search:plugins_info": "rule:admin_or_owner",
     "search:facets": "rule:admin_or_owner",
 

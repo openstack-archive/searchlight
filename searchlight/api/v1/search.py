@@ -278,6 +278,28 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             output.append(bulk_action)
         return output
 
+    def _validate_aggregations(self, context, aggregations):
+        if aggregations:
+            # Check aggregations against policy
+            try:
+                self.policy_enforcer.enforce(context,
+                                             'search:query:aggregations',
+                                             context.policy_target)
+            except exception.Forbidden as e:
+                raise webob.exc.HTTPForbidden(explanation=e.msg)
+
+            # Reject any requests including the 'global' aggregation type
+            # because it bypasses RBAC. 'global' aggregations can only occur
+            # at the top level, so we only need to check that level
+            for agg_name, agg_definition in six.iteritems(aggregations):
+                if 'global' in agg_definition:
+                    msg = _LE(
+                        "Aggregation '%s' contains the 'global' aggregation "
+                        "which is not allowed") % agg_name
+                    LOG.error(msg)
+                    raise webob.exc.HTTPForbidden(explanation=msg)
+        return aggregations
+
     def _get_es_query(self, context, query, resource_types,
                       all_projects=False):
         is_admin = context.is_admin
@@ -369,12 +391,21 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         offset = body.pop('offset', None)
         limit = body.pop('limit', None)
         highlight = body.pop('highlight', None)
+        aggregations = body.pop('aggregations', None)
+        if not aggregations:
+            aggregations = body.pop('aggs', None)
+        elif 'aggs' in body:
+            raise webob.exc.HTTPBadRequest("A request cannot include both "
+                                           "'aggs' and 'aggregations'")
         sort_order = body.pop('sort', None)
         # all_projects will determine whether an admin sees
         # filtered results or not
         all_projects = body.pop('all_projects', False)
         # Return _version with results?
         version = body.pop('version', None)
+
+        aggregations = self._validate_aggregations(request.context,
+                                                   aggregations)
 
         available_types = self._get_available_types()
         if not types:
@@ -449,6 +480,9 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         if highlight is not None:
             self._set_highlight_queries(highlight, query)
             query_params['query']['highlight'] = highlight
+
+        if aggregations is not None:
+            query_params['query']['aggregations'] = aggregations
 
         if sort_order is not None:
             query_params['query']['sort'] = self._get_sort_order(sort_order)

@@ -46,6 +46,17 @@ class TestSearchApi(functional.FunctionalTest):
     """Test case for API functionality that's not plugin-specific, although
     it can use plugins for the sake of making requests
     """
+    def _modify_policy_file(self, rules):
+        with open(self.policy_file, 'r') as policy_file:
+            existing_policy = json.load(policy_file)
+
+        existing_policy.update(rules)
+
+        with open(self.policy_file, 'w') as policy_file:
+            json.dump(existing_policy, policy_file)
+
+        time.sleep(2)
+
     def test_server_up(self):
         self.assertTrue(self.ping_server(self.api_port))
 
@@ -567,17 +578,8 @@ class TestSearchApi(functional.FunctionalTest):
             self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
         self._index(images_plugin, [image_doc])
 
-        # Modify the policy file to disallow some things
-        with open(self.policy_file, 'r') as policy_file:
-            existing_policy = json.load(policy_file)
-
-        existing_policy["resource:OS::Nova::Server"] = "role:admin"
-
-        with open(self.policy_file, 'w') as policy_file:
-            json.dump(existing_policy, policy_file)
-
-        # Policy file reloads; sleep until then
-        time.sleep(2)
+        # Modify the policy file to restrict Nova servers
+        self._modify_policy_file({"resource:OS::Nova::Server": "role:admin"})
 
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
@@ -643,6 +645,224 @@ class TestSearchApi(functional.FunctionalTest):
                                                       role="user")
         self.assertEqual(1, json_content['hits']['total'])
         self.assertIn('_version', json_content['hits']['hits'][0])
+
+    def test_aggregations(self):
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        images_plugin = self.initialized_plugins['OS::Glance::Image']
+        volumes_plugin = self.initialized_plugins['OS::Cinder::Volume']
+        server_doc = {
+            u'addresses': {},
+            u'id': 'abcdef',
+            u'name': 'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z'
+        }
+
+        image_doc = {
+            "owner": TENANT1,
+            "id": "1234567890",
+            "visibility": "public",
+            "name": "for_instance1",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+
+        volume_doc = {
+            "os-vol-tenant-attr:tenant_id": TENANT1,
+            "user_id": USER1,
+            "id": "deadbeef",
+            "name": "for_instance1",
+            "created_at": "2016-04-06T12:48:18Z",
+            "updated_at": "2016-04-06T12:48:18Z",
+            "volume_type": "lvmdriver-1"
+        }
+
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
+        self._index(images_plugin, [image_doc])
+        self._index(volumes_plugin, [test_utils.DictObj(**volume_doc)])
+
+        query = {
+            "limit": 0,
+            "query": {"match_all": {}},
+            "aggregations": {
+                "names": {"terms": {"field": "name"}},
+                "earliest": {"min": {"field": "created_at"}}
+            }
+        }
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="admin")
+        expected_aggregations = {
+            "names": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": [
+                    {"key": "for_instance1", "doc_count": 2},
+                    {"key": "instance1", "doc_count": 1}
+                ]
+            },
+            "earliest": {
+                "value": 1459946898000.0,
+                "value_as_string": "2016-04-06T12:48:18.000Z"}
+        }
+        # Expect a total count but no hit documents
+        self.assertEqual({"total": 3, "max_score": 0.0, "hits": []},
+                         json_content["hits"])
+        # Should see "aggregations" at the top level
+        self.assertIn("aggregations", json_content)
+        self.assertEqual(expected_aggregations, json_content["aggregations"])
+
+    def test_aggregation_rbac(self):
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        images_plugin = self.initialized_plugins['OS::Glance::Image']
+        server_doc = {
+            u'addresses': {},
+            u'id': 'abcdef',
+            u'name': 'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z'
+        }
+
+        image_doc = {
+            "owner": TENANT1,
+            "id": "1234567890",
+            "visibility": "public",
+            "name": "for_instance1",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
+        self._index(images_plugin, [image_doc])
+
+        # Set type to ignore the image for all queries
+        query = {
+            "limit": 0,
+            "type": "OS::Nova::Server",
+            "query": {"match_all": {}},
+            "aggregations": {
+                "names": {"terms": {"field": "name"}}
+            }
+        }
+
+        expected_aggregation = {
+            "names": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": [
+                    {"key": "instance1", "doc_count": 1}
+                ]
+            }
+        }
+
+        expected_aggregation_no_results = {
+            "names": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": []
+            }
+        }
+
+        # Expected aggregation results
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="member")
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation, json_content['aggregations'])
+
+        # Now with a different tenant
+        response, json_content = self._search_request(query,
+                                                      TENANT2,
+                                                      role="member")
+        self.assertEqual(0, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation_no_results,
+                         json_content['aggregations'])
+
+        # Now with all_projects
+        query['all_projects'] = True
+        response, json_content = self._search_request(query,
+                                                      TENANT2,
+                                                      role="member")
+        self.assertEqual(0, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation_no_results,
+                         json_content['aggregations'])
+
+        # Now admin all projects
+        response, json_content = self._search_request(query,
+                                                      TENANT2,
+                                                      role="admin")
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation, json_content['aggregations'])
+
+    def test_global_aggregation_not_allowed(self):
+        query = {
+            "limit": 0,
+            "query": {"match_all": {}},
+            "aggregations": {
+                "cheating": {
+                    "global": {},
+                    "aggs": {
+                        "names": {"terms": {"field": "name"}}
+                    }
+                }
+            }
+        }
+
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="admin",
+                                                      decode_json=False)
+        # TODO(sjmc7) Grr! https://bugs.launchpad.net/searchlight/+bug/1610398
+        self.assertNotEqual(200, response.status)
+        # self.assertEqual(403, response.status)
+
+    def test_aggregation_policy(self):
+        query = {
+            "limit": 0,
+            "query": {"match_all": {}},
+            "aggregations": {
+                "names": {"terms": {"field": "name"}}
+            }
+        }
+
+        # Alter the default policy to allow aggregation only for admins
+        self._modify_policy_file({'search:query:aggregations': 'role:admin'})
+
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="member",
+                                                      decode_json=False)
+        self.assertEqual(403, response.status)
+
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="admin")
+        self.assertEqual(200, response.status)
+
+        # Now let nobody use aggregations
+        self._modify_policy_file({'search:query:aggregations': '!'})
+
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="member",
+                                                      decode_json=False)
+        self.assertEqual(403, response.status)
+
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="admin",
+                                                      decode_json=False)
+        self.assertEqual(403, response.status)
 
 
 class TestServerServicePolicies(functional.FunctionalTest):
