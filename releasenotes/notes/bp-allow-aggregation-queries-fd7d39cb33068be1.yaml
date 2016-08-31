@@ -1,0 +1,8 @@
+---
+prelude: >
+  Allow aggregations as part of a search request.
+features:
+  - Allows aggregations to be requested (as 'aggs'
+    or 'aggregations' in a search request body). See
+    https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
+

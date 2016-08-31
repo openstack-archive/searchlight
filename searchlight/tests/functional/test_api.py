@@ -762,3 +762,161 @@ class TestServerServicePolicies(functional.FunctionalTest):
         # we can't test exceptions raised during deserialization.
         # See https://bugs.launchpad.net/searchlight/+bug/1610398
         self.assertNotEqual(200, response.status)
+
+    def test_aggregations(self):
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        images_plugin = self.initialized_plugins['OS::Glance::Image']
+        volumes_plugin = self.initialized_plugins['OS::Cinder::Volume']
+        server_doc = {
+            u'addresses': {},
+            u'id': 'abcdef',
+            u'name': 'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z'
+        }
+
+        image_doc = {
+            "owner": TENANT1,
+            "id": "1234567890",
+            "visibility": "public",
+            "name": "for_instance1",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+
+        volume_doc = {
+            "os-vol-tenant-attr:tenant_id": TENANT1,
+            "user_id": USER1,
+            "id": "deadbeef",
+            "name": "for_instance1",
+            "created_at": "2016-04-06T12:48:18Z",
+            "updated_at": "2016-04-06T12:48:18Z",
+            "volume_type": "lvmdriver-1"
+        }
+
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
+        self._index(images_plugin, [image_doc])
+        self._index(volumes_plugin, [test_utils.DictObj(**volume_doc)])
+
+        query = {
+            "limit": 0,
+            "query": {"match_all": {}},
+            "aggregations": {
+                "names": {"terms": {"field": "name"}},
+                "earliest": {"min": {"field": "created_at"}}
+            }
+        }
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="admin")
+        expected_aggregations = {
+            "names": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": [
+                    {"key": "for_instance1", "doc_count": 2},
+                    {"key": "instance1", "doc_count": 1}
+                ]
+            },
+            "earliest": {
+                "value": 1459946898000.0,
+                "value_as_string": "2016-04-06T12:48:18.000Z"}
+        }
+        # Expect a total count but no hit documents
+        self.assertEqual({"total": 3, "max_score": 0.0, "hits": []},
+                         json_content["hits"])
+        # Should see "aggregations" at the top level
+        self.assertIn("aggregations", json_content)
+        self.assertEqual(expected_aggregations, json_content["aggregations"])
+
+    def test_aggregation_rbac(self):
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        images_plugin = self.initialized_plugins['OS::Glance::Image']
+        server_doc = {
+            u'addresses': {},
+            u'id': 'abcdef',
+            u'name': 'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z'
+        }
+
+        image_doc = {
+            "owner": TENANT1,
+            "id": "1234567890",
+            "visibility": "public",
+            "name": "for_instance1",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(servers_plugin, [test_utils.DictObj(**server_doc)])
+        self._index(images_plugin, [image_doc])
+
+        # Set type to ignore the image for all queries
+        query = {
+            "limit": 0,
+            "type": "OS::Nova::Server",
+            "query": {"match_all": {}},
+            "aggregations": {
+                "names": {"terms": {"field": "name"}}
+            }
+        }
+
+        expected_aggregation = {
+            "names": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": [
+                    {"key": "instance1", "doc_count": 1}
+                ]
+            }
+        }
+
+        expected_aggregation_no_results = {
+            "names": {
+                "doc_count_error_upper_bound": 0,
+                "sum_other_doc_count": 0,
+                "buckets": []
+            }
+        }
+
+        # Expected aggregation results
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="member")
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation, json_content['aggregations'])
+
+        # Now with a different tenant
+        response, json_content = self._search_request(query,
+                                                      TENANT2,
+                                                      role="member")
+        self.assertEqual(0, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation_no_results,
+                         json_content['aggregations'])
+
+        # Now with all_projects
+        query['all_projects'] = True
+        response, json_content = self._search_request(query,
+                                                      TENANT2,
+                                                      role="member")
+        self.assertEqual(0, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation_no_results,
+                         json_content['aggregations'])
+
+        # Now admin all projects
+        response, json_content = self._search_request(query,
+                                                      TENANT2,
+                                                      role="admin")
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(expected_aggregation, json_content['aggregations'])
