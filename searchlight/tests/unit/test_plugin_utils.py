@@ -29,7 +29,9 @@ now_str = now.strftime(plugin_utils.FORMAT)
 class TestPluginUtils(test_utils.BaseTestCase):
     def test_facet_value_query(self):
         fields = ['simple', 'nested.single', 'nested.list']
-        aggregation_query = plugin_utils.get_facets_query(fields, 10)
+        field_types = ['string', 'nested', 'object']
+        aggregation_query = plugin_utils.get_facets_query(fields, field_types,
+                                                          10)
 
         expected = dict((
             unit_test_utils.simple_facet_field_agg('simple', size=10),

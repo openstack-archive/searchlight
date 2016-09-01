@@ -62,7 +62,7 @@ class RecordSetIndex(designate.DesignateBase):
                 "action": {"type": "string", "index": "not_analyzed"},
                 "type": {"type": "string", "index": "not_analyzed"},
                 "records": {
-                    "type": "nested",
+                    "type": "object",
                     "properties": {
                         "data": {"type": "string"}
                     }

@@ -38,7 +38,7 @@ class HypervisorIndex(base.IndexBase):
             'properties': {
                 'id': string_not_analyzed,
                 'service': {
-                    'type': 'nested',
+                    'type': 'object',
                     'properties': {
                         'id': integer,
                         'host': string_not_analyzed,
@@ -46,14 +46,14 @@ class HypervisorIndex(base.IndexBase):
                     }
                 },
                 'cpu_info': {
-                    'type': 'nested',
+                    'type': 'object',
                     'properties': {
                         'vendor': string_not_analyzed,
                         'model': string_not_analyzed,
                         'arch': string_not_analyzed,
                         'features': string_not_analyzed,
                         'topology': {
-                            'type': 'nested',
+                            'type': 'object',
                             'properties': {
                                 'cores': integer,
                                 'threads': integer,

@@ -1,0 +1,10 @@
+---
+prelude: >
+  Fix mappings for fields erroneously marked as 'nested',
+  and allow facet options for 'object' fields.
+upgrade:
+  - Mappings have changed for several types; it is strongly
+    recommended all data be reindexed and the API service
+    restarted.
+fixes:
+  - Bug 1619047 Unnest nova server flavor and image mapping properties
