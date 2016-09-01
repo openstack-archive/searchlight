@@ -100,6 +100,11 @@ valid token based on the integration account credentials::
  tenant_name = service
  auth_url = http://127.0.0.1:35357
 
+ # If resource_plugin.include_region_name is set, this value will be
+ # the default value for the 'region_name' field on all documents
+ # os_region_name =
+
+
 Service integration account
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -88,6 +88,7 @@ class FakePluginBase(base.IndexBase):
         self.options.resource_group_name = 'searchlight'
         self.options.enabled = True
         self.options.mapping_use_doc_values = True
+        self.options.override_region_name = None
 
         self.engine = es_engine
         self.document_type = self.get_document_type()

@@ -16,6 +16,8 @@
 import copy
 from elasticsearch import exceptions as es_exceptions
 import mock
+from oslo_config import cfg
+import six
 
 from searchlight.elasticsearch.plugins import helper
 from searchlight.elasticsearch import ROLE_USER_FIELD
@@ -92,6 +94,43 @@ class TestIndexingHelper(test_utils.BaseTestCase):
                          sorted(fake1.pop(ROLE_USER_FIELD)))
         self.assertEqual(fake_plugins.NON_ROLE_SEPARATED_DATA[0],
                          actions[0]['_source'])
+
+    @mock.patch('searchlight.elasticsearch.plugins.helper.helpers.bulk')
+    @mock.patch.object(cfg.CONF, 'resource_plugin')
+    @mock.patch.object(cfg.CONF, 'service_credentials')
+    def test_region_mapping(self, service_credentials_conf,
+                            resource_plugin_conf, mock_bulk):
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+
+        resource_plugin_conf.include_region_name = True
+        service_credentials_conf.os_region_name = 'test-region'
+
+        indexing_helper = helper.IndexingHelper(plugin)
+
+        _, mapping = six.next(plugin.get_full_mapping())
+        self.assertIn('region_name', mapping['properties'])
+
+        count = len(plugin.get_objects())
+        fake_versions = range(1, count + 1)
+        indexing_helper.save_documents(plugin.get_objects(),
+                                       fake_versions)
+
+        self.assertEqual(1, len(mock_bulk.call_args_list))
+        actions = list(mock_bulk.call_args_list[0][1]['actions'])
+        self.assertEqual(['test-region'],
+                         actions[0]['_source']['region_name'])
+
+        # Test without a region
+        resource_plugin_conf.include_region_name = False
+        mock_bulk.reset_mock()
+
+        _, mapping = six.next(plugin.get_full_mapping())
+        self.assertNotIn('region_name', mapping['properties'])
+        indexing_helper.save_documents(plugin.get_objects(),
+                                       fake_versions)
+        actions = list(mock_bulk.call_args_list[0][1]['actions'])
+        self.assertNotIn('region_name', actions[0]['_source'])
 
     def test_role_separated_delete(self):
         """Test that deletion for a role-separated plugin deletes both docs"""
