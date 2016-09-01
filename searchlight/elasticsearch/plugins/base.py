@@ -406,7 +406,7 @@ class IndexBase(plugin.Plugin):
 
         This is in the format of OS::Service::Resource typically.
         """
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def register_parent(self, parent):
         if not self.parent_plugin:
