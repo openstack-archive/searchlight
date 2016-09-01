@@ -96,6 +96,15 @@ release = version_info.release_string()
 # The short X.Y version.
 version = version_info.version_string()
 
+# Config logABug feature
+giturl = (u'http://git.openstack.org/cgit/'
+          u'openstack/searchlight/tree/api-ref/source')
+# source tree
+# html_context allows us to pass arbitrary values into the html template
+html_context = {"bug_tag": "api-ref",
+                "giturl": giturl,
+                "bug_project": "searchlight"}
+
 
 # for a list of supported languages.
 #
