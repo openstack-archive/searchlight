@@ -369,12 +369,6 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         offset = body.pop('offset', None)
         limit = body.pop('limit', None)
         highlight = body.pop('highlight', None)
-        aggregations = body.pop('aggregations', None)
-        if not aggregations:
-            aggregations = body.pop('aggs', None)
-        elif 'aggs' in body:
-            raise webob.exc.HTTPBadRequest("A request cannot include both "
-                                           "'aggs' and 'aggregations'")
         sort_order = body.pop('sort', None)
         # all_projects will determine whether an admin sees
         # filtered results or not
@@ -455,9 +449,6 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         if highlight is not None:
             self._set_highlight_queries(highlight, query)
             query_params['query']['highlight'] = highlight
-
-        if aggregations is not None:
-            query_params['query']['aggregations'] = aggregations
 
         if sort_order is not None:
             query_params['query']['sort'] = self._get_sort_order(sort_order)
