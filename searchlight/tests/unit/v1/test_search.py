@@ -188,24 +188,6 @@ class TestControllerSearch(test_utils.BaseTestCase):
                 index_name, doc_type, query, offset,
                 limit, ignore_unavailable=True, version=True)
 
-    def test_search_aggregations(self):
-        request = unit_test_utils.get_fake_request()
-        with mock.patch(REPO_SEARCH, return_value={}) as mock_search:
-            query = {"query": {"match_all": {}},
-                     "aggs": {"test": {"terms": {"field": "some_field"}}}}
-            index_name = "searchlight"
-            limit = 10
-            offset = 0
-            doc_type = "OS::Glance::Image"
-
-            self.search_controller.search(
-                request, query, index_name, doc_type, offset, limit,
-                version=True)
-
-            mock_search.assert_called_once_with(
-                index_name, doc_type, query, offset,
-                limit, ignore_unavailable=True, version=True)
-
 
 class TestControllerPluginsInfo(test_utils.BaseTestCase):
 
@@ -792,46 +774,6 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }))
         output = self.deserializer.search(request)
         self.assertEqual(True, output['version'])
-
-    def test_search_aggregations(self):
-        request = unit_test_utils.get_fake_request()
-
-        aggs = {'names': {'terms': {'field': 'name'}},
-                'max_something': {'max': {'field': 'something'}}}
-
-        # Apply highlighting to 'name' explicitly setting require_field_match
-        # and 'content' explicitly setting a highlight_query
-        request.body = six.b(jsonutils.dumps({
-            'type': ['OS::Glance::Metadef'],
-            'query': {'match_all': {}},
-            'aggregations': aggs}))
-
-        output = self.deserializer.search(request)
-        self.assertEqual(aggs, output['query']['aggregations'])
-
-        # Test 'aggs' too
-        request.body = six.b(jsonutils.dumps({
-            'type': ['OS::Glance::Metadef'],
-            'query': {'match_all': {}},
-            'aggs': aggs}))
-        output = self.deserializer.search(request)
-        self.assertEqual(aggs, output['query']['aggregations'])
-
-    def test_search_aggregations_bad_request(self):
-        """Test that 'aggs' AND 'aggregations' can't be specified together"""
-        request = unit_test_utils.get_fake_request()
-
-        aggs = {"something": "something"}
-        request.body = six.b(jsonutils.dumps({
-            'type': ['OS::Glance::Metadef'],
-            'query': {'match_all': {}},
-            'aggregations': aggs,
-            'aggs': aggs}))
-
-        self.assertRaisesRegexp(
-            webob.exc.HTTPBadRequest,
-            "A request cannot include both 'aggs' and 'aggregations'",
-            self.deserializer.search, request)
 
 
 class TestResponseSerializer(test_utils.BaseTestCase):
