@@ -758,7 +758,4 @@ class TestServerServicePolicies(functional.FunctionalTest):
                                                       TENANT1,
                                                       role="user",
                                                       decode_json=False)
-        # TODO(sjmc7) There's a bug in the functional tests such that
-        # we can't test exceptions raised during deserialization.
-        # See https://bugs.launchpad.net/searchlight/+bug/1610398
-        self.assertNotEqual(200, response.status)
+        self.assertEqual(403, response.status)
