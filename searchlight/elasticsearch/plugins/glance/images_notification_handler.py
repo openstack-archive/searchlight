@@ -63,7 +63,7 @@ class ImageHandler(base.NotificationBase):
             self.index_helper.save_document(
                 payload,
                 version=self.get_version(payload, timestamp))
-        except glanceclient.exceptions.NotFound:
+        except glanceclient.exc.NotFound:
             LOG.warning(_LW("Image %s not found; deleting") % image_id)
             try:
                 self.index_helper.delete_document({'_id': image_id})
