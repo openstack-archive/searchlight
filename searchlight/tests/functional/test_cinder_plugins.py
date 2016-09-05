@@ -140,12 +140,17 @@ class TestCinderNotifications(test_listener.TestSearchListenerBase):
 
         self.index_alias = self.volume_plugin.alias_name_listener
 
+        volume = {
+            'id': VOLUME_ID1,
+            'user_id': USER_ID,
+            'created_at': '2016-03-07T16:51:09.000000',
+            'updated_at': '2016-03-07T16:51:09.000000'
+        }
+        self.volume_fixture = utils.DictObj(**volume)
+
     @mock.patch(volume_manager + '.get')
     def test_volume_cud(self, mock_volume_get):
-        mock_volume = mock.Mock(id=VOLUME_ID1, user_id=USER_ID,
-                                created_at='2016-03-07T16:51:09.000000',
-                                updated_at='2016-03-07T16:51:09.000000')
-        mock_volume_get.return_value = mock_volume
+        mock_volume_get.return_value = self.volume_fixture
 
         vol_create = self.volume_events['volume.create.end']
         self._send_event_to_listener(vol_create, self.index_alias)
@@ -162,10 +167,7 @@ class TestCinderNotifications(test_listener.TestSearchListenerBase):
 
     @mock.patch(volume_manager + '.get')
     def test_volume_attach(self, mock_volume_get):
-        mock_volume = mock.Mock(id=VOLUME_ID1, user_id=USER_ID,
-                                created_at='2016-03-07T16:51:09.000000',
-                                updated_at='2016-03-07T16:51:09.000000')
-        mock_volume_get.return_value = mock_volume
+        mock_volume_get.return_value = self.volume_fixture
 
         vol_attach = self.volume_events['volume.attach.end']
         self._send_event_to_listener(vol_attach, self.index_alias)
