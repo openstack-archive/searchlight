@@ -18,6 +18,7 @@ import datetime
 import mock
 import six
 
+import glanceclient.exc
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins.base import NotificationBase
@@ -750,3 +751,21 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             ignore_unavailable=True,
             size=0
         )
+
+    @mock.patch('searchlight.elasticsearch.plugins.helper.IndexingHelper.'
+                'delete_document')
+    def test_create_or_update_exception(self, mock_delete):
+        notification = _notification_fixture(
+            self.members_image['id'],
+            checksum=self.members_image['checksum'],
+            name=self.members_image['name'],
+            is_public=False,
+            size=self.members_image['size'],
+            owner=self.members_image['owner'])
+
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        side_effect=glanceclient.exc.NotFound):
+            self.notification_handler.create_or_update(
+                notification, None)
+            mock_delete.assert_called_with(
+                {'_id': self.members_image['id']})
