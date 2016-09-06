@@ -467,7 +467,7 @@ class TestSearchApi(functional.FunctionalTest):
                              'No protected attributes should be present')
 
         for field in (u'status', u'OS-DCF:diskConfig'):
-            self.assertTrue(field in hit['_source'])
+            self.assertIn(field, hit['_source'])
 
     def test_role_fishing(self):
         """Run some searches to ward against 'fishing' type attacks such that

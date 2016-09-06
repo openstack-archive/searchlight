@@ -390,11 +390,11 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }))
 
         output = self.deserializer.search(request)
-        self.assertFalse('_source' in output)
+        self.assertNotIn('_source', output)
         self.assertEqual(['some', 'thing.*'], output['_source_include'])
         # Don't test the role filter exclusion here
-        self.assertTrue(set(['other.*', 'thing']) <=
-                        set(output['_source_exclude']))
+        self.assertLessEqual(set(['other.*', 'thing']),
+                             set(output['_source_exclude']))
 
     def test_fields_exclude_rbac(self):
         """Test various forms for source_exclude"""

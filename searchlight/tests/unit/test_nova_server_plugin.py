@@ -531,8 +531,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_created_at_updated_at(self, mock_version):
-        self.assertTrue('created_at' not in self.instance1.to_dict())
-        self.assertTrue('updated_at' not in self.instance1.to_dict())
+        self.assertNotIn('created_at', self.instance1.to_dict())
+        self.assertNotIn('updated_at', self.instance1.to_dict())
 
         with mock.patch(nova_server_getter, return_value=self.instance1):
             serialized = self.plugin.serialize(self.instance1.id)
@@ -574,8 +574,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         with mock.patch.object(not_handler, 'index_from_api') as mock_update:
             events = not_handler.get_event_handlers()
-            self.assertTrue('compute.instance.volume.attach' in events)
-            self.assertTrue('compute.instance.volume.detach' in events)
+            self.assertIn('compute.instance.volume.attach', events)
+            self.assertIn('compute.instance.volume.detach', events)
 
             attach = events['compute.instance.volume.attach']
             attach(vol_payload, 1234)

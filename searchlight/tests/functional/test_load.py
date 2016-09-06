@@ -65,18 +65,18 @@ class TestSearchLoad(functional.FunctionalTest):
         admin1_doc = self._get_elasticsearch_doc(
             index_name, doc_type, 'role-fake1_ADMIN'
         )
-        self.assertTrue('admin_specific' in admin1_doc['_source'])
-        self.assertTrue('admin_wildcard_this' in admin1_doc['_source'])
-        self.assertTrue('public_field' in admin1_doc['_source'])
+        self.assertIn('admin_specific', admin1_doc['_source'])
+        self.assertIn('admin_wildcard_this', admin1_doc['_source'])
+        self.assertIn('public_field', admin1_doc['_source'])
         self.assertEqual('admin',
                          admin1_doc['_source'][ROLE_USER_FIELD])
 
         user1_doc = self._get_elasticsearch_doc(
             index_name, doc_type, 'role-fake1_USER'
         )
-        self.assertFalse('admin_specific' in user1_doc['_source'])
-        self.assertFalse('admin_wildcard_this' in user1_doc['_source'])
-        self.assertTrue('public_field' in user1_doc['_source'])
+        self.assertNotIn('admin_specific', user1_doc['_source'])
+        self.assertNotIn('admin_wildcard_this', user1_doc['_source'])
+        self.assertIn('public_field', user1_doc['_source'])
         self.assertEqual('admin',
                          admin1_doc['_source'][ROLE_USER_FIELD])
 
