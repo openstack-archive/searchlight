@@ -219,7 +219,11 @@ Global Configuration Options
 | resource_group_name | searchlight   | Determines the ElasticSearch index  |                           |
 |                     |               | and alias where documents will be   | | Restart services        |
 |                     |               | stored. Index names will be         | | Re-index all types      |
-|                     |               | suffixed with a timestamp.          |                           |
+|                     |               | suffixed with a timestamp. Group    |                           |
+|                     |               | name must consist of only lowercase |                           |
+|                     |               | alphanumeric characters and         |                           |
+|                     |               | underscores. The first character    |                           |
+|                     |               | cannot be an underscore.            |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 | include_region_name |               | Defined for all plugins. Controls   | | Restart services        |
 |                     |               | whether or not to include           | | Reindex all             |
