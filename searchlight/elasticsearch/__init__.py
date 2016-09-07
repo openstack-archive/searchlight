@@ -95,7 +95,7 @@ class CatalogSearchRepo(object):
         return plugin_list
 
     def facets(self, for_index, for_doc_types, all_projects, limit_terms,
-               include_fields=True):
+               include_fields=True, exclude_options=False):
         """If include_fields is False, the only information returned will
         be a document count for the resource type.
         """
@@ -111,7 +111,8 @@ class CatalogSearchRepo(object):
                 # Add field facets if include_fields is true
                 field_facets, doc_count = plugin.obj.get_facets(
                     self.context, all_projects, limit_terms,
-                    include_fields=include_fields)
+                    include_fields=include_fields,
+                    exclude_options=exclude_options)
 
                 type_facets = {"doc_count": doc_count}
                 if include_fields:

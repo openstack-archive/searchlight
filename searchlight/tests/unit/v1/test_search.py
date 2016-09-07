@@ -781,7 +781,19 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         expected_doc_types = sorted(utils.get_search_plugins().keys())
         expected = {'index_name': None, 'doc_type': expected_doc_types,
                     'all_projects': False, 'limit_terms': 0,
-                    'include_fields': True}
+                    'include_fields': True, 'exclude_options': False}
+        self.assertEqual(expected, output)
+
+    def test_facet_exclude_options(self):
+        path = '/v1/search/facets?exclude_options=True'
+        request = unit_test_utils.get_fake_request(path=path)
+        output = self.deserializer.facets(request)
+
+        output['doc_type'] = sorted(output['doc_type'])
+        expected_doc_types = sorted(utils.get_search_plugins().keys())
+        expected = {'index_name': None, 'doc_type': expected_doc_types,
+                    'all_projects': False, 'limit_terms': 0,
+                    'include_fields': True, 'exclude_options': True}
         self.assertEqual(expected, output)
 
     def test_search_version(self):

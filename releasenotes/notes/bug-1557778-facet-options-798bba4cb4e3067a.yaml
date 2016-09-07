@@ -1,0 +1,13 @@
+---
+prelude: >
+    Disable returning options for the facet fields.
+features:
+  - Currently the "facet" endpoint will return all
+    information relating to a facet field, including
+    the options. The new parameter "exclude_options"
+    to the facet endpoint will prevent the options
+    for all facet fields from being returned. This option
+    will avoid an aggregation query being performed
+    on Elasticsearch, improving performance. The default
+    behavior (not specifying this option) is return the
+    options for all facet fields.

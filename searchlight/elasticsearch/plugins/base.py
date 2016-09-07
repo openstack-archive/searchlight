@@ -190,7 +190,7 @@ class IndexBase(plugin.Plugin):
                                          index=index_name)
 
     def get_facets(self, request_context, all_projects=False, limit_terms=0,
-                   include_fields=True):
+                   include_fields=True, exclude_options=False):
         """Get facets available for searching, in the form of a list of
         dicts with keys "name", "type" and optionally "options" if a field
         should have discreet allowed values. If include_fields is false,
@@ -274,7 +274,7 @@ class IndexBase(plugin.Plugin):
 
         facet_terms, doc_count = self._get_facet_terms(
             facet_terms_for, request_context, all_projects,
-            limit_terms=limit_terms)
+            limit_terms=limit_terms, exclude_options=exclude_options)
 
         if include_fields:
             for facet in facets:
@@ -296,9 +296,13 @@ class IndexBase(plugin.Plugin):
         return ()
 
     def _get_facet_terms(self, fields, request_context,
-                         all_projects, limit_terms):
-        # fields can be empty if there are no facet terms desired,
-        # but we will run a size=0 search to get the doc count
+                         all_projects, limit_terms,
+                         exclude_options=False):
+        # Fields can be empty if there are no facet terms desired,
+        # but we will run a size=0 search to get the doc count. If the
+        # user does not want the options associated with the facet fields,
+        # do not aggregate. This is controlled with a parameter to the
+        # API call.
         body = {}
         term_aggregations = {}
 
@@ -310,8 +314,10 @@ class IndexBase(plugin.Plugin):
             nested_fields = [name
                              for name, properties in six.iteritems(mapping)
                              if properties['type'] == 'nested']
-            term_aggregations = utils.get_facets_query(fields, nested_fields,
-                                                       limit_terms)
+            if not exclude_options:
+                term_aggregations = utils.get_facets_query(fields,
+                                                           nested_fields,
+                                                           limit_terms)
             if term_aggregations:
                 body['aggs'] = term_aggregations
 

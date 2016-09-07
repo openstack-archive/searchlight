@@ -522,13 +522,16 @@ class FunctionalTest(test_utils.BaseTestCase):
                              role, decode_json)
 
     def _facet_request(self, tenant, doc_type=None, role="member",
-                       decode_json=True, include_fields=None):
+                       decode_json=True, include_fields=None,
+                       exclude_options=None):
         url = "/search/facets"
         params = {}
         if doc_type:
             params['type'] = doc_type
         if include_fields is not None:
             params['include_fields'] = "true" if include_fields else "false"
+        if exclude_options is not None:
+            params['exclude_options'] = "true" if exclude_options else "false"
         url += '?' + urllib.parse.urlencode(params)
         return self._request("GET", url, tenant, role=role,
                              decode_json=decode_json)

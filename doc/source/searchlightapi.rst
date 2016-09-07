@@ -545,6 +545,12 @@ support facet terms. ``limit_terms`` restricts the number of terms (sorted
 in order of descending frequency). A value of 0 indicates no limit, and is the
 default.
 
+It is possible to not return any options for facets. By default all options
+are returned for fields that support facet terms. Adding
+``exclude_options=true`` as a query parameter will return only the facet
+field and not any of the options. Using this option will avoid an aggregation
+query being performed on Elasticsearch, providing a performance boost.
+
 Aggregations
 ************
 `Faceting`_ (above) is a more general form of `Elasticsearch aggregation`_.

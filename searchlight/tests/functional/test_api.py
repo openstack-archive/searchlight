@@ -318,6 +318,7 @@ class TestSearchApi(functional.FunctionalTest):
                  test_utils.DictObj(**server2),
                  test_utils.DictObj(**server3)])
 
+        # Query facets with options.
         response, json_content = self._facet_request(
             TENANT1,
             doc_type="OS::Nova::Server")
@@ -330,6 +331,27 @@ class TestSearchApi(functional.FunctionalTest):
                 {u'doc_count': 2, u'key': u'ACTIVE'},
                 {u'doc_count': 1, u'key': u'RESUMING'},
             ],
+            u'type': u'string'
+        }
+
+        status_facet = list(six.moves.filter(
+            lambda f: f['name'] == 'status',
+            json_content['OS::Nova::Server']['facets']
+        ))[0]
+        self.assertEqual(
+            expected,
+            status_facet,
+        )
+
+        # Query facets without options.
+        response, json_content = self._facet_request(
+            TENANT1,
+            doc_type="OS::Nova::Server", exclude_options=True)
+
+        self.assertEqual(3, json_content['OS::Nova::Server']['doc_count'])
+
+        expected = {
+            u'name': u'status',
             u'type': u'string'
         }
 

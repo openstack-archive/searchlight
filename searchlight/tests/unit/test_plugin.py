@@ -663,3 +663,32 @@ class TestPlugin(test_utils.BaseTestCase):
                              set(f["name"] for f in facets))
             self.assertEqual(set(["string"]),
                              set(f["type"] for f in facets))
+
+    def test_facets(self):
+        """If you have a weak constitution, we may want to avert your eyes
+           now. We want to verify that the "exclude_options" parameter for
+           facets will not result in any aggregation in the Elasticsearch
+           query. The actual ES query is buried in the bowels of Searchlight.
+           Instead of trying to call it directly through the searchcontroller
+           and mock mutliple levels of Servers/Requests/Catalogs/etc we will
+           go directly to the IndexBase call.
+        """
+        request = unit_test_utils.get_fake_request(is_admin=True)
+        mock_engine = mock.Mock()
+        simple_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        mock_engine.search.return_value = {"hits": {"total": 0}}
+        simple_plugin._get_facet_terms(fields={},
+                                       request_context=request.context,
+                                       all_projects=False, limit_terms=False,
+                                       exclude_options=True)
+        # Verify there is no aggregation when searching Elasticsearch.
+        body = {'query': {
+                'filtered': {'filter': {'and':
+                             [{'term': {
+                               '__searchlight-user-role': 'admin'}}]}}}
+                }
+        mock_engine.search.assert_called_with(body=body,
+                                              doc_type='fake-simple',
+                                              ignore_unavailable=True,
+                                              index='searchlight-search',
+                                              size=0)
