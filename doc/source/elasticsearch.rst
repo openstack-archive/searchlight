@@ -18,13 +18,13 @@
 Installing and Configuring Elasticsearch
 ========================================
 The Searchlight indexing service is responsible for indexing data in
-`Elasticsearch <http://http://www.elasticsearch.org/>`_;
+`Elasticsearch <http://www.elastic.co>`_;
 Elasticsearch has very good documentation on installation but some pointers
 are provided here.
 
-.. IMPORTANT:: We *strongly* recommend using Elasticsearch 1.x and the
-   accompanying python client version. Searchlight has not been tested with
-   v2 and has some known issues around indexing data.
+.. IMPORTANT:: We *strongly* recommend using Elasticsearch 2.x and the
+   accompanying python client version. Searchlight has not been tested
+   with v5.
 
 Installation
 ~~~~~~~~~~~~
@@ -51,7 +51,7 @@ downloaded and extracted, you can start Elasticsearch with::
 
 For more details see the `installation instructions <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html>`_.
 
-Quick command line example with 1.4.2:
+Quick command line example with 2.3.4:
 
 .. note::
 
@@ -60,8 +60,8 @@ Quick command line example with 1.4.2:
 Download the ES package::
 
     $ cd ~
-    $ wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.4.2.deb
-    $ sudo dpkg -i elasticsearch-1.4.2.deb
+    $ wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+    $ sudo dpkg -i elasticsearch-2.3.4.deb
     $ sudo update-rc.d elasticsearch defaults 95 10
     $ sudo /etc/init.d/elasticsearch start
 
