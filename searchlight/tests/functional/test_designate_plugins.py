@@ -156,14 +156,14 @@ class TestDesignateListener(test_listener.TestSearchListenerBase):
         verification_keys = ['id', 'name', 'zone_id', 'type']
         self._verify_result(create_event, verification_keys, result)
 
-        query = {"filter": {"term": {"records.data": "10.0.0.1"}},
+        query = {"filter": {"term": {"records": "10.0.0.1"}},
                  "type": self.recordsets_plugin.get_document_type()}
         response, search_results = self._search_request(query, EVENT_TENANT1)
         self.assertEqual(1, search_results['hits']['total'])
         self.assertEqual(EVENT_RS_ID,
                          search_results['hits']['hits'][0]['_source']['id'])
 
-        query['filter']['term']['records.data'] = "10.0.0.2"
+        query['filter']['term']['records'] = "10.0.0.2"
         response, search_results = self._search_request(query, EVENT_TENANT1)
         self.assertEqual(1, search_results['hits']['total'])
         self.assertEqual(EVENT_RS_ID,
