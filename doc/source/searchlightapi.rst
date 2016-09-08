@@ -473,7 +473,8 @@ To list supported facets, issue a ``GET`` to
       },
       {
         "name": "objects.properties.description",
-        "type": "string"
+        "type": "string",
+        "nested": true
       },
       ...
     ],
@@ -499,7 +500,8 @@ To list supported facets, issue a ``GET`` to
       },
       {
         "name": "image.id",
-        "type": "string"
+        "type": "string",
+        "nested": false
       },
       {
         "name": "OS-EXT-AZ:availability_zone",
@@ -514,6 +516,11 @@ To list supported facets, issue a ``GET`` to
       ...
     ]
   }
+
+Facet fields containing the 'nested' (boolean) attribute indicate that the
+field mapping type is either 'nested' or 'object'. This can influence how a
+field should be queried. In general 'object' types are queried as any other
+field; 'nested' types require some `additional complexity`_.
 
 It's also possible to request facets for a particular type by adding a
 ``type`` query parameter. For instance, a ``GET`` to
@@ -550,6 +557,8 @@ are returned for fields that support facet terms. Adding
 ``exclude_options=true`` as a query parameter will return only the facet
 field and not any of the options. Using this option will avoid an aggregation
 query being performed on Elasticsearch, providing a performance boost.
+
+.. _`additional complexity`: https://www.elastic.co/guide/en/elasticsearch/reference/current/nested.html
 
 Aggregations
 ************

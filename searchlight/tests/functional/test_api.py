@@ -367,7 +367,8 @@ class TestSearchApi(functional.FunctionalTest):
     def test_nested_facets(self):
         """Check facets for a nested field (networks.OS-EXT-IPS:type). We
         expect a single count per server matched, not per object in the
-        'networks' field
+        'networks' field. Also check that for fields that are typed as
+        'object' (not 'nested') they're marked appropriately
         """
         servers_plugin = self.initialized_plugins['OS::Nova::Server']
         server1 = {
@@ -437,7 +438,8 @@ class TestSearchApi(functional.FunctionalTest):
                 {u'doc_count': 2, u'key': u'fixed'},
                 {u'doc_count': 1, u'key': u'floating'},
             ],
-            u'type': u'string'
+            u'type': u'string',
+            u'nested': True
         }
         fixed_network_facet = list(six.moves.filter(
             lambda f: f['name'] == 'networks.OS-EXT-IPS:type',
@@ -446,6 +448,25 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual(
             expected,
             fixed_network_facet,
+        )
+
+        # Check that 'image.id' (not nested but 'object') has nested=False
+        expected = {
+            u'name': u'image.id',
+            u'type': u'string',
+            u'nested': False,
+            u'resource_type': u'OS::Glance::Image',
+            u'options': [
+                {u'doc_count': 2, u'key': u'a'}
+            ]
+        }
+        image_facet = list(six.moves.filter(
+            lambda f: f['name'] == 'image.id',
+            json_content['OS::Nova::Server']['facets']
+        ))[0]
+        self.assertEqual(
+            expected,
+            image_facet,
         )
 
     def test_server_role_field_rbac(self):

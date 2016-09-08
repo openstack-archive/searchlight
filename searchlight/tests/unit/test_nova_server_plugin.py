@@ -522,7 +522,8 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                                   facets))[0]
         expected_status = {'name': 'status', 'options': [], 'type': 'string'}
         expected_image = {'name': 'image.id', 'options': [], 'type': 'string',
-                          'resource_type': 'OS::Glance::Image'}
+                          'resource_type': 'OS::Glance::Image',
+                          'nested': False}
 
         self.assertEqual(expected_status, status_facet)
         self.assertEqual(expected_image, image_facet)

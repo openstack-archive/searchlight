@@ -15,6 +15,7 @@
 
 import collections
 import mock
+import operator
 import six
 import types
 
@@ -432,11 +433,13 @@ class TestPlugin(test_utils.BaseTestCase):
                 {
                     "type": "string",
                     "name": "nested.reference_id_2",
-                    "resource_type": "OS::Cinder::Snapshot"
+                    "resource_type": "OS::Cinder::Snapshot",
+                    "nested": True,
                 },
                 {
                     "type": "string",
                     "name": "nested.some_key",
+                    "nested": True
                 },
                 {
                     "type": "integer",
@@ -658,11 +661,13 @@ class TestPlugin(test_utils.BaseTestCase):
         with mock.patch.object(plugin, 'get_mapping',
                                return_value=fake_mapping):
             facets, _ = plugin.get_facets(fake_request.context)
-            self.assertEqual(2, len(facets))
-            self.assertEqual(set(["nested.inner", "object.inner"]),
-                             set(f["name"] for f in facets))
-            self.assertEqual(set(["string"]),
-                             set(f["type"] for f in facets))
+            facets = sorted(facets, key=operator.itemgetter("name"))
+            expected = [
+                {"name": "nested.inner", "type": "string", "nested": True},
+                {"name": "object.inner", "type": "string", "nested": False},
+            ]
+
+            self.assertEqual(expected, facets)
 
     def test_facets(self):
         """If you have a weak constitution, we may want to avert your eyes

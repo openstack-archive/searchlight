@@ -208,23 +208,32 @@ class IndexBase(plugin.Plugin):
 
             return False
 
-        def get_facets_for(property_mapping, meta_mapping, prefix=''):
+        def get_facets_for(property_mapping, meta_mapping, prefix='',
+                           inside_nested=None):
             mapping_facets = []
             for name, properties in six.iteritems(property_mapping):
-                if properties.get('type', 'object') in ('nested', 'object'):
+                property_type = properties.get('type', 'object')
+                if property_type in ('nested', 'object'):
                     if include_facet(prefix + name):
+                        is_nested = property_type == 'nested'
                         mapping_facets.extend(
                             get_facets_for(properties['properties'],
                                            meta_mapping,
-                                           "%s%s." % (prefix, name)))
+                                           "%s%s." % (prefix, name),
+                                           inside_nested=is_nested))
                 else:
                     indexed = properties.get('index', None) != 'no'
                     if indexed and include_facet(name):
                         facet_name = prefix + name
                         mapping_facet = {
                             'name': facet_name,
-                            'type': properties['type']
+                            'type': property_type
                         }
+
+                        # If we're inside either an object or nested object,
+                        # add that to the mapping too
+                        if inside_nested is not None:
+                            mapping_facet['nested'] = inside_nested
 
                         # Add raw field if it's an analyzed field,
                         # aggregation on analyzed string field doesn't
