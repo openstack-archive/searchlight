@@ -359,14 +359,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
 
         # Test fields with options
         complex_facet_option_fields = (
-            'image.id', 'flavor.id', 'networks.name',
-            'networks.OS-EXT-IPS:type', 'networks.version')
+            'networks.name', 'networks.OS-EXT-IPS:type', 'networks.version')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
 
         simple_facet_option_fields = (
             'status', 'OS-EXT-AZ:availability_zone', 'security_groups',
-            'locked'
+            'locked', 'flavor.id', 'image.id'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))
@@ -417,14 +416,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual(set(expected_facet_names), set(facet_names))
 
         complex_facet_option_fields = (
-            'image.id', 'flavor.id', 'networks.name',
-            'networks.OS-EXT-IPS:type', 'networks.version')
+            'networks.name', 'networks.OS-EXT-IPS:type', 'networks.version')
         aggs = dict(unit_test_utils.complex_facet_field_agg(name)
                     for name in complex_facet_option_fields)
 
         simple_facet_option_fields = (
             'status', 'OS-EXT-AZ:availability_zone', 'security_groups',
-            'host_status', 'locked'
+            'host_status', 'locked', 'image.id', 'flavor.id'
         )
         aggs.update(dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in simple_facet_option_fields))

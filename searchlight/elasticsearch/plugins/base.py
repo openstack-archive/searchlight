@@ -211,7 +211,7 @@ class IndexBase(plugin.Plugin):
         def get_facets_for(property_mapping, meta_mapping, prefix=''):
             mapping_facets = []
             for name, properties in six.iteritems(property_mapping):
-                if properties.get('type') == 'nested':
+                if properties.get('type', 'object') in ('nested', 'object'):
                     if include_facet(prefix + name):
                         mapping_facets.extend(
                             get_facets_for(properties['properties'],
@@ -261,6 +261,7 @@ class IndexBase(plugin.Plugin):
         # Don't retrieve facet terms for any excluded fields
         included_fields = set(f['name'] for f in facets)
         options_fields = set(self.facets_with_options) & included_fields
+
         raw_fields = dict([(f['name'], f['facet_field'])
                            for f in facets
                            if f.get('facet_field')])
@@ -298,13 +299,21 @@ class IndexBase(plugin.Plugin):
                          all_projects, limit_terms):
         # fields can be empty if there are no facet terms desired,
         # but we will run a size=0 search to get the doc count
-        term_aggregations = utils.get_facets_query(fields, limit_terms)
-
         body = {}
-        # We may just be running a size-0 search to get a document count
-        if term_aggregations:
-            # .. but no! We do want aggregations
-            body['aggs'] = term_aggregations
+        term_aggregations = {}
+
+        if fields:
+            mapping = self.get_mapping()['properties']
+            # Nested fields will be all the mapped fields with type=='nested'
+            # Not tremendously keen on the way this is structured but the
+            # nested fields are a bit special case
+            nested_fields = [name
+                             for name, properties in six.iteritems(mapping)
+                             if properties['type'] == 'nested']
+            term_aggregations = utils.get_facets_query(fields, nested_fields,
+                                                       limit_terms)
+            if term_aggregations:
+                body['aggs'] = term_aggregations
 
         role_filter = request_context.user_role_filter
         plugin_filters = [{

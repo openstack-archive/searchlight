@@ -630,3 +630,36 @@ class TestPlugin(test_utils.BaseTestCase):
         call_args = mock_engine.search.call_args_list
         self.assertEqual(1, len(call_args))
         self.assertIn('aggs', call_args[0][1]['body'])
+
+    def test_nested_object_facets(self):
+        """Check 'nested' and 'object' types are treated the same for facets"""
+        mock_engine = mock.Mock()
+        plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+        fake_request = unit_test_utils.get_fake_request(
+            'a', 'b', '/v1/search/facets', is_admin=True
+        )
+
+        mock_engine.search.return_value = {
+            "hits": {"total": 1}
+        }
+
+        fake_mapping = {
+            "properties": {
+                "nested": {
+                    "type": "nested",
+                    "properties": {"inner": {"type": "string"}}
+                },
+                "object": {
+                    "type": "object",
+                    "properties": {"inner": {"type": "string"}}
+                }
+            }
+        }
+        with mock.patch.object(plugin, 'get_mapping',
+                               return_value=fake_mapping):
+            facets, _ = plugin.get_facets(fake_request.context)
+            self.assertEqual(2, len(facets))
+            self.assertEqual(set(["nested.inner", "object.inner"]),
+                             set(f["name"] for f in facets))
+            self.assertEqual(set(["string"]),
+                             set(f["type"] for f in facets))

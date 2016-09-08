@@ -412,14 +412,14 @@ def normalize_date_fields(document,
         document[u'updated_at'] = document[updated_at]
 
 
-def get_facets_query(fields, limit_terms):
+def get_facets_query(fields, nested_fields, limit_terms):
     term_aggregations = {}
     for facet in fields:
         if isinstance(facet, tuple):
             facet_name, actual_field = facet
         else:
             facet_name, actual_field = facet, facet
-        if '.' in facet_name:
+        if '.' in facet_name and facet_name.split('.')[0] in nested_fields:
             # Needs a nested aggregate
             term_aggregations[facet_name] = {
                 "nested": {"path": facet_name.split('.')[0]},

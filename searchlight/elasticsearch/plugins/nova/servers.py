@@ -47,7 +47,7 @@ class ServerIndex(base.IndexBase):
                     }
                 },
                 'flavor': {
-                    'type': 'nested',
+                    'type': 'object',
                     'properties': {
                         'id': {'type': 'string', 'index': 'not_analyzed'}
                     }
@@ -81,7 +81,7 @@ class ServerIndex(base.IndexBase):
                     }
                 },
                 'image': {
-                    'type': 'nested',
+                    'type': 'object',
                     'properties': {
                         'id': {'type': 'string', 'index': 'not_analyzed'}
                     }

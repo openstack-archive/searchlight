@@ -60,13 +60,11 @@ class MetadefIndex(base.IndexBase):
                 'project_id': {'type': 'string', 'index': 'not_analyzed'},
                 'visibility': {'type': 'string', 'index': 'not_analyzed'},
                 'resource_types': {
-                    'type': 'nested',
+                    'type': 'object',
                     'properties': {
-                        'name': {'type': 'string'},
-                        # TODO(sjmc7): add these back in? They don't seem
-                        # to be accessible via the API
-                        # 'prefix': {'type': 'string'},
-                        # 'properties_target': {'type': 'string'},
+                        # sjmc7 - removing prefix, properties_target since they
+                        # aren't accessible though the API
+                        'name': {'type': 'string'}
                     },
                 },
                 'objects': {

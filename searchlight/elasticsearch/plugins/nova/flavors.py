@@ -29,30 +29,30 @@ class FlavorIndex(base.IndexBase):
         return resource_types.NOVA_FLAVOR
 
     def get_mapping(self):
-        str_analysis = {'type': 'string', 'index': 'not_analyzed'}
+        string_not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
         integer = {'type': 'integer'}
         return {
             'dynamic': True,
             'properties': {
-                'id': str_analysis,
-                'tenant_id': str_analysis,
+                'id': string_not_analyzed,
+                'tenant_id': string_not_analyzed,
                 'OS-FLV-DISABLED:disabled': {'type': 'boolean'},
                 'OS-FLV-EXT-DATA:ephemeral': integer,
                 'disk': integer,
                 'name': {
                     'type': 'string',
                     'fields': {
-                        'raw': str_analysis
+                        'raw': string_not_analyzed
                     }
                 },
                 'os-flavor-access:is_public': {'type': 'boolean'},
-                FLAVOR_ACCESS_FIELD: str_analysis,
+                FLAVOR_ACCESS_FIELD: string_not_analyzed,
                 'ram': integer,
                 'rxtx_factor': {'type': 'float'},
-                'swap': str_analysis,
+                'swap': string_not_analyzed,
                 'vcpus': integer,
                 'extra-specs': {
-                    'type': 'nested',
+                    'type': 'object',
                     'properties': {}
                 }
             }
