@@ -40,7 +40,7 @@ class Plugin(object):
 
     @classmethod
     def get_config_group_name(cls):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     @classmethod
     def register_cfg_opts(cls, namespace):
