@@ -61,12 +61,7 @@ class RecordSetIndex(designate.DesignateBase):
                 "status": {"type": "string", "index": "not_analyzed"},
                 "action": {"type": "string", "index": "not_analyzed"},
                 "type": {"type": "string", "index": "not_analyzed"},
-                "records": {
-                    "type": "object",
-                    "properties": {
-                        "data": {"type": "string"}
-                    }
-                },
+                "records": {"type": "string"},
                 "zone_id": {"type": "string", "index": "not_analyzed"},
             },
             "_parent": {

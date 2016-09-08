@@ -160,8 +160,7 @@ class RecordSetHandler(base.NotificationBase):
 
     def _serialize(self, obj):
         obj['project_id'] = obj.pop('tenant_id')
-        obj['zone_id'] = obj.pop('zone_id')
-        obj['records'] = [{"data": i["data"]} for i in obj["records"]]
+        obj['records'] = [i['data'] for i in obj['records']]
         if not obj['updated_at'] and obj['created_at']:
             obj['updated_at'] = obj['created_at']
         return obj
