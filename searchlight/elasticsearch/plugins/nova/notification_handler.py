@@ -70,7 +70,9 @@ class InstanceHandler(base.NotificationBase):
     def get_log_fields(self, event_type, payload):
         return (('id', payload.get('instance_id')),
                 ('state', payload.get('state')),
-                ('state_description', payload.get('state_description')))
+                ('state_description', payload.get('state_description')),
+                ('old_task_state', payload.get('old_task_state')),
+                ('new_task_state', payload.get('new_task_state')))
 
     def get_event_handlers(self):
         return {
@@ -116,6 +118,7 @@ class InstanceHandler(base.NotificationBase):
          * new_task_state == block_device_mapping -> state update
          * new_task_state = spawning -> state update
          * state == active, old_task_state == spawning -> ignore
+         * state == error -> full index
 
         There are a set of power state transitions that all follow the same
         kind of structure, with 2 updates and .start and .end events. For these
@@ -135,7 +138,12 @@ class InstanceHandler(base.NotificationBase):
         update_if_state_matches = None
         ignore_update = False
 
-        if new_state == 'building':
+        if new_state == 'error':
+            # There are several ways in which an instance can end up in an
+            # error state; it may result in duplicate API requests but it's
+            # hard to predict them all
+            pass
+        elif new_state == 'building':
             if old_task_state == 'scheduling' and new_task_state is None:
                 # This update arrives after scheduling, and immediately prior
                 # to create.start (or an update to error state)
