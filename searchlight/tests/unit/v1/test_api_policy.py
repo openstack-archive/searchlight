@@ -304,3 +304,21 @@ class TestSearchPolicy(test_utils.BaseTestCase):
                 'get_images', fake_target, expect_creds)
             nova_enforce.enforce.assert_called_with(
                 'os_compute_api:servers:index', fake_target, expect_creds)
+
+    @mock.patch('searchlight.api.v1.search.' +
+                'RequestDeserializer._get_request_body')
+    def test_aggregation_policy(self, mock_request_body):
+        request = unit_test_utils.get_fake_request(is_admin=False)
+        search_deserializer = search.RequestDeserializer(
+            utils.get_search_plugins(),
+            policy_enforcer=self.enforcer)
+
+        with mock.patch.object(self.enforcer, 'enforce') as mock_enforce:
+            mock_request_body.return_value = {
+                'query': {'match_all': {}},
+                'aggregations': {'terms': {'field': 'some_field'}}
+            }
+            search_deserializer.search(request)
+            mock_enforce.assert_called_with(request.context,
+                                            'search:query:aggregations',
+                                            request.context.policy_target)
