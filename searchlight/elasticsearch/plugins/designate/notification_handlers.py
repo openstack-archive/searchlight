@@ -114,7 +114,8 @@ class ZoneHandler(base.NotificationBase):
 
     def delete(self, payload, timestamp):
         zone_id = payload['id']
-        version = self.get_version(payload, timestamp)
+        version = self.get_version(payload, timestamp,
+                                   preferred_date_field='deleted_at')
         self.recordset_helper.delete_documents_with_parent(zone_id,
                                                            version=version)
 
@@ -166,7 +167,8 @@ class RecordSetHandler(base.NotificationBase):
         return obj
 
     def delete_recordset(self, payload, timestamp):
-        version = self.get_version(payload, timestamp)
+        version = self.get_version(payload, timestamp,
+                                   preferred_date_field='deleted_at')
         self.index_helper.delete_document(
             {'_id': payload['id'], '_version': version,
              '_parent': payload['zone_id']})
