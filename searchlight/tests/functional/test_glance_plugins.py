@@ -218,8 +218,9 @@ class TestGlancePlugins(functional.FunctionalTest):
 
     def test_image_rbac_member(self):
         """Test glance.image RBAC based on the "member" field"""
+        owner = str(uuid.uuid4())
         accessible_doc = {
-            "owner": str(uuid.uuid4()),
+            "owner": owner,
             "id": str(uuid.uuid4()),
             "visibility": "private",
             "name": "accessible doc",
@@ -246,20 +247,40 @@ class TestGlancePlugins(functional.FunctionalTest):
                         [accessible_doc, inaccessible_doc])
 
         accessible_doc["project_id"] = accessible_doc["owner"]
-        accessible_doc["members"] = [test_api.TENANT1, test_api.TENANT2]
         inaccessible_doc["members"] = [made_up_tenant]
 
         # Someone in TENANT1 or TENANT2 should have access to "accessible_doc"
+        # but should only see their tenant in 'members'
+        accessible_doc["members"] = [test_api.TENANT1]
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
         self.assertEqual(200, response.status)
         self.assertEqual([accessible_doc], self._get_hit_source(json_content))
 
+        accessible_doc["members"] = [test_api.TENANT2]
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT2)
         self.assertEqual(200, response.status)
         self.assertEqual([accessible_doc], self._get_hit_source(json_content))
 
+        # A user in 'owner' should see the member list
+        accessible_doc["members"] = [test_api.TENANT1, test_api.TENANT2]
+        response, json_content = self._search_request(test_api.MATCH_ALL,
+                                                      owner)
+        self.assertEqual(200, response.status)
+        self.assertEqual([accessible_doc], self._get_hit_source(json_content))
+
+        # An admin should see the member list even if they're in another tenant
+        accessible_doc["members"] = [test_api.TENANT1, test_api.TENANT2]
+        accessible_doc["image_type"] = "image"
+        response, json_content = self._search_request(
+            {"query": {"term": {"owner": owner}}, "all_projects": True},
+            str(uuid.uuid4()),
+            role="admin")
+        self.assertEqual(200, response.status)
+        self.assertEqual([accessible_doc], self._get_hit_source(json_content))
+
+        # A user in another tenant shouldn't see it at all
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       str(uuid.uuid4()))
         self.assertEqual(200, response.status)
