@@ -145,13 +145,25 @@ class ImageIndex(base.IndexBase):
 
     def filter_result(self, hit, request_context):
         super(ImageIndex, self).filter_result(hit, request_context)
+
+        source = hit['_source']
+
         if property_utils.is_property_protection_enabled():
-            source = hit['_source']
             for key in list(source.keys()):
                 if key not in self._image_base_properties:
                     if not self.property_rules.check_property_rules(
                             key, 'read', request_context):
                         del source[key]
+
+        # Strip out the members list for non-admins or non-owners. The glance
+        # api leaves just the current tenant in the list for non-admins
+        if not (request_context.is_admin or
+                source['owner'] == request_context.tenant):
+            if source.get('members', []):
+                # Remove any members that don't match the current tenant
+                source['members'] = list(filter(
+                    lambda m: m == request_context.tenant,
+                    source['members']))
 
     def get_objects(self):
         from searchlight.elasticsearch.plugins import openstack_clients
