@@ -52,6 +52,7 @@ class TestPlugin(test_utils.BaseTestCase):
             index='fake', doc_type='fake-simple',
             body={
                 'properties': {
+                    'updated_at': {'type': 'date'},
                     'id': {'type': 'string', 'index': 'not_analyzed'},
                     ROLE_USER_FIELD: {'include_in_all': False,
                                       'type': 'string',
@@ -81,6 +82,7 @@ class TestPlugin(test_utils.BaseTestCase):
                 body={
                     '_parent': {'type': 'fake-simple'},
                     'properties': {
+                        'updated_at': {'type': 'date'},
                         'id': {'type': 'string', 'index': 'not_analyzed'},
                         'parent_id': {'type': 'string',
                                       'index': 'not_analyzed'},
@@ -94,6 +96,7 @@ class TestPlugin(test_utils.BaseTestCase):
                 doc_type='fake-simple',
                 body={
                     'properties': {
+                        'updated_at': {'type': 'date'},
                         'id': {'type': 'string', 'index': 'not_analyzed'},
                         ROLE_USER_FIELD: {'include_in_all': False,
                                           'type': 'string',
@@ -347,6 +350,17 @@ class TestPlugin(test_utils.BaseTestCase):
 
                 encountered_in[field_name].append(resource_type)
 
+        def verify_normalized_fields(resource_type, full_mapping):
+            """Some fields need to be included in all Elasticsearch mappings.
+               Mostly these fields are used bhy the UI for queries. We want
+               to verify that these fields do indeed exist in all mappings.
+            """
+            # List of fields that are required.
+            fields = ['updated_at']
+
+            for field in fields:
+                self.assertIn(field, full_mapping['properties'].keys())
+
         index_base = 'searchlight.elasticsearch.plugins.base.IndexBase'
         with mock.patch(index_base + '.enabled',
                         new_callable=mock.PropertyMock, return_value=True):
@@ -354,6 +368,8 @@ class TestPlugin(test_utils.BaseTestCase):
             for resource_type, plugin in six.iteritems(plugins):
                 props = plugin.obj.get_mapping()['properties']
                 merge_and_assert_conflict(resource_type, props)
+                for doc_type, mapping in plugin.obj.get_full_mapping():
+                    verify_normalized_fields(doc_type, mapping)
 
     def test_set_child_plugin_group(self):
         """Test setting child plugin's resource_group_name while loading

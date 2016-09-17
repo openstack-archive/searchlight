@@ -1,0 +1,7 @@
+---
+prelude: >
+  Add "updated_at" field to all mappings.
+fixes:
+  - All Elasticsearch mappings need to include the
+    field "udated_at". This field is used by
+    Searchlight UI to sort the results.
