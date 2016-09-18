@@ -18,6 +18,7 @@ from elasticsearch import exceptions as es_exc
 from elasticsearch import helpers
 import logging
 import oslo_utils
+import six
 
 from oslo_config import cfg
 from oslo_utils import encodeutils
@@ -488,3 +489,24 @@ def transform_facets_results(result_aggregations, resource_type):
                 "defined correctly?") % format_msg)
             facet_terms[term] = []
     return facet_terms
+
+
+def find_missing_types(index_type_mapping):
+    """Find if doc types are not exist in given indices"""
+    missing_index, missing_type = [], []
+
+    if not index_type_mapping:
+        return missing_index, missing_type
+
+    es_engine = searchlight.elasticsearch.get_api()
+
+    for index in six.iterkeys(index_type_mapping):
+        for doc_type in index_type_mapping[index]:
+            try:
+                mapping = es_engine.indices.get_mapping(index, doc_type)
+                if not mapping:
+                    missing_type.append(doc_type)
+            except es_exc.NotFoundError:
+                missing_index.append(index)
+
+    return set(missing_index), set(missing_type)

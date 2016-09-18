@@ -278,6 +278,7 @@ class IndexCommands(object):
         # as the source for all data. This implies everything in the
         # es_reindex dictionary and nothing in the plugins_to_index list.
         es_reindex = {}
+        es_reindex_mapping = {}
         plugins_to_index = copy.copy(plugins_list)
         if _type or force_es:
             for resource_type, ext in plugins_list:
@@ -287,8 +288,34 @@ class IndexCommands(object):
                 # If force_es is None, then "_type" is set. Adjust as needed.
                 if doc_type not in _type:
                     es_reindex[doc_type] = ext.obj
+                    doc_type_list = es_reindex_mapping.setdefault(
+                        ext.obj.alias_name_search, [])
+                    doc_type_list.append(doc_type)
                     # Don't reindex this type
                     plugins_to_index.remove((resource_type, ext))
+
+        missing_index, missing_type = \
+            es_utils.find_missing_types(es_reindex_mapping)
+
+        if missing_index:
+            print(
+                "Missing indices when trying to re-index resource information"
+                " from existing Elasticsearch data: %(index)s.\n" % {
+                    "index": ", ".join(missing_index)})
+
+        if missing_type:
+            print(
+                "Missing type mappings when trying to re-index resource "
+                "information from existing Elasticsearch data: %(type)s.\n" % {
+                    "type": ", ".join(missing_type)})
+
+        if not force and (missing_index or missing_type):
+            print(
+                "Either indices or type mappings are missing, you should do "
+                "a full api re-index without specifying --type parameter.\n"
+            )
+            print("Aborting")
+            sys.exit(1)
 
         if not force:
             # For display purpose, we want to iterate on only parthenogenetic

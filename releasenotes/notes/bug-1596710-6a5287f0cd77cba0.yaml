@@ -1,0 +1,15 @@
+---
+prelude: >
+    When user requests a reindex by specifying --type
+    parameter, searchlight may copy existing Elasticsearch
+    data to reindex, if these old indices or type mappings
+    are missing, newly created indices will have incomplete
+    resource data.
+
+fixes:
+  - Fix a bug that incomplete types may be copyed during
+    reindex. Add checks about data integrity before copying
+    existing Elasticsearch data, warn user if there is any
+    missing index or type mapping and exit. Users can
+    suppress exit behavior by using force parameter.
+

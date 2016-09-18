@@ -12,6 +12,7 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+from elasticsearch import exceptions as es_exc
 import mock
 
 from oslo_config import cfg
@@ -204,3 +205,38 @@ class TestPluginUtils(test_utils.BaseTestCase):
         ]
         for name in valid_names:
             self.assertIsNotNone(re.match(resource_group_reg, name))
+
+    def test_find_missing_types(self):
+        with mock.patch((
+                'searchlight.elasticsearch.plugins.utils.searchlight'
+                '.elasticsearch.get_api')) as mock_api:
+
+            mock_engine = mock.Mock()
+            mock_api.return_value = mock_engine
+            # Test no mapping exists
+            mock_engine.indices.get_mapping.return_value = {}
+            results = plugin_utils.find_missing_types(
+                {
+                    'index': ['OS::Nova::Server',
+                              'OS::Neutron::Subnet']
+                }
+            )
+            mock_engine.indices.get_mapping.assert_called()
+            self.assertEqual(
+                (set([]), set(['OS::Nova::Server', 'OS::Neutron::Subnet'])),
+                results
+            )
+
+            mock_engine.reset_mock()
+            # Test no index exists
+            mock_engine.indices.get_mapping.side_effect = \
+                es_exc.NotFoundError()
+            results = plugin_utils.find_missing_types(
+                {
+                    'searchlight-search': ['OS::Nova::Server']
+                }
+            )
+            mock_engine.indices.get_mapping.assert_called()
+            self.assertEqual(
+                (set(['searchlight-search']), set([])),
+                results)
