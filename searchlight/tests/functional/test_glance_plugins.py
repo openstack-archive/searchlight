@@ -407,6 +407,26 @@ class TestGlancePlugins(functional.FunctionalTest):
         self.assertEqual(200, response.status)
         self.assertEqual([], self._get_hit_source(json_content))
 
+    def test_index_with_dot_in_field(self):
+        test_doc = {
+            "owner": test_api.TENANT1,
+            "id": uuidutils.generate_uuid(),
+            "name": "test image",
+            "visibility": "public",
+            "property_1.2.3": "test_property",
+            "created_at": "2016-04-06T12:48:18Z"
+        }
+
+        self._index(self.images_plugin, [test_doc])
+        response, json_content = self._search_request(test_api.MATCH_ALL,
+                                                      test_api.TENANT1,
+                                                      role="admin")
+        self.assertEqual(200, response.status)
+        expected = test_doc.copy()
+        expected.update(image_type="image", members=[],
+                        project_id=test_api.TENANT1)
+        self.assertEqual([expected], self._get_hit_source(json_content))
+
 
 class TestGlanceListener(test_listener.TestSearchListenerBase):
     def __init__(self, *args, **kwargs):
