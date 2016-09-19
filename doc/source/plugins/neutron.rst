@@ -134,6 +134,23 @@ Routers are visible within a tenant.
 Floating IPs are visible within a tenant.
 Security groups are visible within a tenant.
 
+Neutron Ports Notifications
+===========================
+
+Not all Neutron ports send notifications when created/updated. Depending on the port's
+``device_owner``, the notifications will be sent. The ``device_owner``'s that will
+send a notification are:
+
+    * compute:*
+    * baremetal:*
+
+We want the initial indexing (and subsequent re-indexings) to match the state that
+Searchlight receives from the Neutron notifications. Having this mismatch will lead
+to the Searchlight state being out of sync with the Neutron state. To prevent this
+from happening, ``searchlight-manage`` will index only the Neutron ports that have
+``device_owner`` defined above. All other ports with ``device_owner`` not listed
+above will be ignored when indexing.
+
 Release Notes
 =============
 
