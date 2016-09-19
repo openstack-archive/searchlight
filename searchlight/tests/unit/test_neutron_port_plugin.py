@@ -43,7 +43,7 @@ def _create_port_fixture(port_id, tenant_id, network_id, **kwargs):
         u'binding:vif_type': u'ovs',
         u'binding:vnic_type': u'normal',
         u'device_id': None,
-        u'device_owner': None,
+        u'device_owner': 'compute:None',
         u'dns_assignment': [{
             u'fqdn': u'host-fd70-b64a-666f--1.openstacklocal.',
             u'hostname': u'host-fd70-b64a-666f--1',
@@ -77,10 +77,15 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
         self._create_fixtures()
 
     def _create_fixtures(self):
-        self.port1 = _create_port_fixture(ID1, TENANT1, NETWORK1)
+        self.port = _create_port_fixture(ID1, TENANT1, NETWORK1)
+        self.none_port = _create_port_fixture(UUID_PORT_ID, TENANT1, NETWORK1,
+                                              device_owner=None)
         self.dhcp_port = _create_port_fixture(UUID_PORT_ID, TENANT1, NETWORK1,
                                               device_owner='network:dhcp')
-        self.ports = [self.port1, self.dhcp_port]
+        # device_owner is 'compute:*', indexed.
+        self.indexed_ports = [self.port]
+        # device_owner is not 'compute:*', not indexed.
+        self.ignored_ports = [self.dhcp_port, self.none_port]
 
     def test_default_index_name(self):
         self.assertEqual('searchlight', self.plugin.resource_group_name)
@@ -132,13 +137,19 @@ class TestPortLoaderPlugin(test_utils.BaseTestCase):
         admin_only_fields = self.plugin.admin_only_fields
         self.assertEqual(['binding:*'], admin_only_fields)
 
-    def test_no_dhcp_ports(self):
+    def test_indexed_ports(self):
         with mock.patch('neutronclient.v2_0.client.Client.list_ports',
-                        return_value={'ports': self.ports}):
+                        return_value={'ports': self.indexed_ports}):
             listed_objects = list(self.plugin.get_objects())
-            self.assertEqual([self.port1], listed_objects)
+            self.assertEqual([self.port], listed_objects)
+
+    def test_ignored_ports(self):
+        with mock.patch('neutronclient.v2_0.client.Client.list_ports',
+                        return_value={'ports': self.ignored_ports}):
+            listed_objects = list(self.plugin.get_objects())
+            self.assertEqual([], listed_objects)
 
     def test_serialize(self):
-        serialized = self.plugin.serialize(self.port1)
+        serialized = self.plugin.serialize(self.port)
         # project id should get copied from tenant_id
         self.assertEqual(TENANT1, serialized['project_id'])

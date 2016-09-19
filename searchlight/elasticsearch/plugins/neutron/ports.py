@@ -154,13 +154,23 @@ class PortIndex(base.IndexBase):
             ]
 
     def get_objects(self):
+        # This list of owners shamelessly taken from the Neutron code:
+        #     neutron/neutron/notifiers/nova.py
+        valid_owners = ('compute:', 'baremetal:')
+
         neutron_client = openstack_clients.get_neutronclient()
         for port in neutron_client.list_ports()['ports']:
+            if (not port['device_owner'] or
+               not port['device_owner'].startswith(valid_owners)):
+                continue
+            """The check/TODO below is superceded by the above check. When we
+               flesh out the device owner check, re-enable the check below.
             # TODO(sjmc7): Remove this once we can get proper notifications
             # about DHCP ports.
             #  See https://bugs.launchpad.net/searchlight/+bug/1558790
             if port['device_owner'] == 'network:dhcp':
                 continue
+            """
 
             yield port
 
