@@ -154,7 +154,6 @@ class VolumeIndex(base.IndexBase):
         """
         return {'os-vol-tenant-attr:tenant_id': True,
                 'tenant_id': True,
-                'project_id': True,
                 'migration_status': True,
                 'os-vol-host-attr:host': True,
                 'replication_status': True,
