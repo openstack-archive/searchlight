@@ -66,6 +66,8 @@ class VolumeIndex(base.IndexBase):
                 'created_at': {'type': 'date'},
                 'description': {'type': 'string'},
                 'encrypted': {'type': 'boolean'},
+                'migration_status': {
+                    'type': 'string', 'index': 'not_analyzed'},
                 'multiattach': {'type': 'boolean'},
                 'name': {
                     'type': 'string',
