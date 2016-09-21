@@ -6,7 +6,7 @@
         "allowed_address_pairs": [],
         "extra_dhcp_opts": [],
         "updated_at": "2016-03-21T16:36:56",
-        "device_owner": "",
+        "device_owner": "compute:None",
         "binding:profile": {},
         "port_security_enabled": true,
         "fixed_ips": [
@@ -279,7 +279,7 @@
         "allowed_address_pairs": [],
         "extra_dhcp_opts": [],
         "updated_at": "2016-03-21T16:48:40",
-        "device_owner": "",
+        "device_owner": "compute:None",
         "port_security_enabled": true,
         "binding:profile": {},
         "fixed_ips": [
