@@ -45,8 +45,7 @@ class ZoneHandler(base.NotificationBase):
         return {
             "dns.zone.create": self.create_or_update,
             "dns.zone.update": self.create_or_update,
-            "dns.zone.delete": self.delete,
-            "dns.zone.exists": self.create_or_update
+            "dns.zone.delete": self.delete
         }
 
     def _serialize(self, payload):
