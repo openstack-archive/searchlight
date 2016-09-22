@@ -907,6 +907,68 @@ class TestSearchApi(functional.FunctionalTest):
                                                       decode_json=False)
         self.assertEqual(403, response.status)
 
+    def test_is_admin_project(self):
+        """The X-IS-ADMIN-PROJECT header is the current solution to the
+        problems caused by the overloaded 'admin' role. It's only set if
+        configured in keystone, and defaults to True for back compatibility.
+        """
+        one_tenant_doc = {
+            u'addresses': {},
+            u'id': 'abcdef',
+            u'tenant_id': TENANT1,
+            u'user_id': USER1,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z'
+        }
+        two_tenant_doc = {
+            u'addresses': {},
+            u'id': '12341234',
+            u'tenant_id': TENANT2,
+            u'user_id': USER1,
+            u'image': {u'id': u'a'},
+            u'flavor': {u'id': u'1'},
+            u'created_at': u'2016-04-07T15:49:35Z',
+            u'updated_at': u'2016-04-07T15:51:35Z'
+        }
+
+        # A request with HTTP_X_IS_ADMIN_PROJECT=false should not allow a
+        # TENANT1-scoped request to retrieve both servers if set to True it
+        # should (assuming they also have the admin role)
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(servers_plugin, [test_utils.DictObj(**one_tenant_doc),
+                                         test_utils.DictObj(**two_tenant_doc)])
+
+        query = {"type": "OS::Nova::Server",
+                 "all_projects": True,
+                 "query": {"match_all": {}},
+                 "sort": "id"}
+        # First try admin request, is-admin-project false
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="admin",
+                                                      is_admin_project=False)
+        self.assertEqual(['abcdef_USER'],
+                         [h['_id'] for h in json_content['hits']['hits']])
+
+        # Now try with is_admin_project True
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="admin",
+                                                      is_admin_project=True)
+        self.assertEqual(['12341234_ADMIN', 'abcdef_ADMIN'],
+                         [h['_id'] for h in json_content['hits']['hits']])
+
+        # Now try with is_admin_project True but member role
+        response, json_content = self._search_request(query,
+                                                      TENANT1,
+                                                      role="member",
+                                                      is_admin_project=True)
+        self.assertEqual(['abcdef_USER'],
+                         [h['_id'] for h in json_content['hits']['hits']])
+
 
 class TestServerServicePolicies(functional.FunctionalTest):
     def _write_policy_file(self, filename, rules):

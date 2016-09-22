@@ -124,16 +124,23 @@ class ContextMiddleware(BaseContextMiddleware):
                 raise webob.exc.HTTPInternalServerError(
                     _('Invalid service catalog json.'))
 
+        # TODO(sjmc7) consider changing this to use RequestContext.from_environ
+        # rather than parsing headers ourselves.
+        # Default this to true is the header's missing; older versions
+        # of oslo_context don't include it and some keystone configurations
+        # may not include it either. Look at defaulting to False in ocata
+        is_admin_project = req.headers.get('X-Is-Admin-Project',
+                                           'true').lower() == 'true'
         kwargs = {
             'user': req.headers.get('X-User-Id'),
             'tenant': req.headers.get('X-Tenant-Id'),
             'roles': roles,
-            'is_admin': CONF.admin_role.strip().lower() in roles,
             'auth_token': req.headers.get('X-Auth-Token', deprecated_token),
             'owner_is_tenant': CONF.owner_is_tenant,
             'service_catalog': service_catalog,
             'policy_enforcer': self.policy_enforcer,
             'request_id': req.headers.get('X-Openstack-Request-ID'),
+            'is_admin_project': is_admin_project
         }
 
         return searchlight.context.RequestContext(**kwargs)
