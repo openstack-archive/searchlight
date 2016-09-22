@@ -1,6 +1,6 @@
 {
-    "context_is_admin":  "role:admin",
-    "admin_or_owner":  "is_admin:True or project_id:%(project_id)s",
+    "context_is_admin":  "role:admin and is_admin_project:True",
+    "admin_or_owner":  "rule:context_is_admin or project_id:%(project_id)s",
     "default": "",
 
     "search:query": "rule:admin_or_owner",
