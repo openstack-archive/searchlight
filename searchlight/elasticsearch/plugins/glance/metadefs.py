@@ -126,6 +126,8 @@ class MetadefIndex(base.IndexBase):
         return serialize_glance_metadef_ns(metadef_obj)
 
     def filter_result(self, hit, request_context):
+        super(MetadefIndex, self).filter_result(hit, request_context)
+
         # Revert the change we make to fit the 'tags' mapping used in other
         # plugins (see serialize_glance_metadef_ns in __init__.py)
         source = hit['_source']
