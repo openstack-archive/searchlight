@@ -502,10 +502,13 @@ class IndexBase(plugin.Plugin):
         return None
 
     def filter_result(self, hit, request_context):
-        """Filter each outgoing search result; document in hit['_source']. By
-        default, this does nothing since information shouldn't be indexed.
+        """Filter each outgoing search result; document in hit['_source'].
         """
-        pass
+        if 'highlight' in hit:
+            # We need to clean up any fields 'leaked' by highlighting.
+            # As a reminder since this is a rare case, the 'highlight'
+            # dict is a peer of '_source' in the overall hit structure.
+            hit['highlight'].pop(ROLE_USER_FIELD, None)
 
     @abc.abstractmethod
     def get_mapping(self):

@@ -207,6 +207,8 @@ class ServerIndex(base.IndexBase):
         return serialize_nova_server(server)
 
     def filter_result(self, hit, request_context):
+        super(ServerIndex, self).filter_result(hit, request_context)
+
         # Reverse the change we make to security groups in serialize() to
         # maintain compatibility with the nova API response
         source = hit['_source']
