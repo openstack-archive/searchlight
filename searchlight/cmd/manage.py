@@ -78,8 +78,8 @@ class IndexCommands(object):
             LOG.warning(_LW("Service is not available for plugin: "
                             "%(doc)s") % {"doc": doc})
         except Exception as e:
-            LOG.error(_LE("Failed to setup index extension "
-                          "%(ex)s: %(e)s") % {'ex': index_name, 'e': e})
+            LOG.exception(_LE("Failed to setup index extension "
+                              "%(ex)s: %(e)s") % {'ex': index_name, 'e': e})
             raise
 
     def _es_reindex_worker(self, es_reindex, resource_groups, index_names):
@@ -108,8 +108,8 @@ class IndexCommands(object):
                          {'src': alias_search, 'dst': index_names[group],
                           'types': ', '.join(es_reindex)})
             except Exception as e:
-                LOG.error(_LE("Failed to setup index extension "
-                              "%(ex)s: %(e)s") % {'ex': dst_index, 'e': e})
+                LOG.exception(_LE("Failed to setup index extension "
+                                  "%(ex)s: %(e)s") % {'ex': dst_index, 'e': e})
                 raise
 
     @args('--group', metavar='<group>', dest='group',
@@ -169,9 +169,8 @@ class IndexCommands(object):
             max_workers = cfg.CONF.manage.workers
         except cfg.ConfigFileValueError as e:
             LOG.error(_LE("Invalid value for config file option "
-                          "'manage.workers'."))
-            LOG.error(_LE("The number of thread workers, must be greater "
-                          "than 0."))
+                          "'manage.workers'. The number of thread workers "
+                          "must be greater than 0."))
             sys.exit(3)
 
         # Grab the list of plugins registered as entry points through stevedore
@@ -388,8 +387,8 @@ class IndexCommands(object):
             try:
                 es_utils.setup_alias(index_names[group], search, listen)
             except Exception as e:
-                LOG.error(_LE("Failed to setup alias for resource group "
-                              "%(g)s: %(e)s") % {'g': group, 'e': e})
+                LOG.exception(_LE("Failed to setup alias for resource group "
+                                  "%(g)s: %(e)s") % {'g': group, 'e': e})
                 es_utils.alias_error_cleanup(index_names)
                 raise
 
