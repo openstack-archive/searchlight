@@ -15,6 +15,7 @@
 
 from oslo_log import log as logging
 
+from elasticsearch import helpers
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.neutron import serialize_floatingip
 from searchlight.elasticsearch.plugins.neutron import serialize_network
@@ -29,6 +30,8 @@ import searchlight.elasticsearch
 from searchlight.i18n import _LE, _LW, _LI
 
 LOG = logging.getLogger(__name__)
+
+SECGROUP_RETRIES = 20
 
 
 class NetworkHandler(base.NotificationBase):
@@ -337,45 +340,93 @@ class SecurityGroupHandler(base.NotificationBase):
                 {'sec_id': sec_id, 'exc': exc})
 
     def create_or_update_rule(self, payload, timestamp):
+        # The issue here is that the notification is not complete.
+        # We have only a single rule that needs to be added to an
+        # existing group. A major issue is that we may be updating
+        # the ES document while other workers are modifying the rules
+        # in the same ES document. This requires an aggressive retry policy,
+        # using the "version" field. Since the ES document will have been
+        # modified after a conflict, we will need to grab the latest version
+        # of the document before continuing. After "retries" number of times,
+        # we will admit failure and not try the update anymore.
+        # NB: Most of the looping logic is the same as in "delete_rule".
+        #     The read/modify the ES document is different. If the logic
+        #     changes, please make the changes there.
         group_id = payload['security_group_rule']['security_group_id']
         LOG.debug("Updating security group rule information for %s", group_id)
 
-        # Read, modify, write of an existing security group.
-        doc = self.index_helper.get_document(group_id)
+        for attempts in range(SECGROUP_RETRIES):
+            # Read, modify, write of an existing security group.
+            doc = self.index_helper.get_document(group_id)
 
-        if not doc:
-            return
-        body = doc['_source']
-        if not body or 'security_group_rules' not in body:
-            return
+            if not doc:
+                return
+            body = doc['_source']
+            if not body or 'security_group_rules' not in body:
+                return
 
-        body['security_group_rules'].append(payload['security_group_rule'])
+            body['security_group_rules'].append(payload['security_group_rule'])
 
-        # Bump version for race condition prevention.
-        version = doc['_version'] + 1
-        self.index_helper.save_document(body, version=version)
+            version = doc['_version']
+            try:
+                version += 1
+                self.index_helper.save_document(body, version=version)
+                break
+            except helpers.BulkIndexError as e:
+                if e.errors[0]['index']['status'] == 409:
+                    # Conflict error, retry with new version of doc.
+                    pass
+                else:
+                    raise
+
+        if attempts == (SECGROUP_RETRIES - 1):
+            LOG.error(_LE('Error adding security group rule %(id)s:'
+                          ' Too many retries') % {'id': group_id})
 
     def delete_rule(self, payload, timestamp):
+        # See comment for create_or_update_rule() for details.
         rule_id = payload['security_group_rule_id']
         LOG.debug("Updating security group rule information for %s", rule_id)
 
         field = 'security_group_rules'
 
         # Read, modify, write of an existing security group.
-        doc = self.get_doc_by_nested_field(
+        # To avoid a race condition, we are searching for the document
+        # in a round-about way. Outside of the retry loop, we will
+        # search for the document and save the document ID. This way we
+        # do not need to search inside the loop. We will access the document
+        # directly by the ID which will always return the latest version.
+        orig_doc = self.get_doc_by_nested_field(
             "security_group_rules", "id", rule_id, version=True)
-
-        if not doc:
+        if not orig_doc:
             return
-        body = doc['hits']['hits'][0]['_source']
-        if not body or field not in body:
-            return
+        doc_id = orig_doc['hits']['hits'][0]['_id']
+        doc = orig_doc['hits']['hits'][0]
+        for attempts in range(SECGROUP_RETRIES):
+            body = doc['_source']
+            if not body or field not in body:
+                return
 
-        body[field] = list(filter(lambda r: r['id'] != rule_id, body[field]))
+            body[field] = \
+                list(filter(lambda r: r['id'] != rule_id, body[field]))
 
-        # Bump version for race condition prevention.
-        version = doc['hits']['hits'][0]['_version'] + 1
-        self.index_helper.save_document(body, version=version)
+            version = doc['_version']
+            try:
+                version += 1
+                self.index_helper.save_document(body, version=version)
+                break
+            except helpers.BulkIndexError as e:
+                if e.errors[0]['index']['status'] == 409:
+                    # Conflict. Retry with new version.
+                    doc = self.index_helper.get_document(doc_id)
+                    if not doc:
+                        return
+                else:
+                    raise
+
+        if attempts == (SECGROUP_RETRIES - 1):
+            LOG.error(_LE('Error deleting security group rule %(id)s:'
+                          ' Too many retries') % {'id': rule_id})
 
     def get_doc_by_nested_field(self, path, field, value, version=False):
         """Query ElasticSearch based on a nested field. The caller will
