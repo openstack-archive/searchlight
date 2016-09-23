@@ -34,3 +34,17 @@ class TestContextMiddleware(test_utils.BaseTestCase):
         # Validate that request-id do not starts with 'req-req-'
         self.assertFalse(resp_req_id.startswith('req-req-'))
         self.assertTrue(resp_req_id.startswith('req-'))
+
+    def test_is_admin_project(self):
+        middleware = context.ContextMiddleware(None)
+        req = webob.Request.blank('/')
+        req_context = middleware._get_authenticated_context(req)
+        self.assertTrue(req_context.is_admin_project)
+
+        req = webob.Request.blank('/', headers={'X-Is-Admin-Project': 'True'})
+        req_context = middleware._get_authenticated_context(req)
+        self.assertTrue(req_context.is_admin_project)
+
+        req = webob.Request.blank('/', headers={'X-Is-Admin-Project': 'False'})
+        req_context = middleware._get_authenticated_context(req)
+        self.assertFalse(req_context.is_admin_project)

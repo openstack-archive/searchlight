@@ -514,12 +514,17 @@ class FunctionalTest(test_utils.BaseTestCase):
             content = jsonutils.loads(content)
         return response, content
 
-    def _search_request(self, body, tenant, role="member", decode_json=True):
+    def _search_request(self, body, tenant, role="member", decode_json=True,
+                        is_admin_project=None):
         """Conduct a search against all elasticsearch indices unless specified
         in `body`. Returns the response and json-decoded content.
         """
+        extra_headers = {}
+        if is_admin_project is not None:
+            extra_headers['X-Is-Admin-Project'] = str(is_admin_project)
+
         return self._request("POST", "/search", tenant, body,
-                             role, decode_json)
+                             role, decode_json, extra_headers)
 
     def _facet_request(self, tenant, doc_type=None, role="member",
                        decode_json=True, include_fields=None,
