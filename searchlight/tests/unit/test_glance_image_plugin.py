@@ -769,3 +769,39 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                 notification, None)
             mock_delete.assert_called_with(
                 {'_id': self.members_image['id']})
+
+    def test_image_member_list(self):
+        with mock.patch('glanceclient.v2.image_members.Controller.list',
+                        return_value=self.members_image_members):
+            serialized = self.plugin.serialize(self.members_image)
+
+        # Admin context
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search', is_admin=True
+        )
+        result_hit = {'_source': copy.deepcopy(serialized)}
+
+        # Expect to see all three tenants
+        self.plugin.filter_result(result_hit, fake_request.context)
+        self.assertEqual(set([TENANT1, TENANT2, TENANT3]),
+                         set(result_hit['_source']['members']))
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT1, '/v1/search', is_admin=False
+        )
+        result_hit = {'_source': copy.deepcopy(serialized)}
+
+        # Tenant1 can see the image but doesn't own it
+        self.plugin.filter_result(result_hit, fake_request.context)
+        self.assertEqual(set([TENANT1]),
+                         set(result_hit['_source']['members']))
+
+        fake_request = unit_test_utils.get_fake_request(
+            USER1, TENANT2, '/v1/search', is_admin=False
+        )
+        result_hit = {'_source': copy.deepcopy(serialized)}
+
+        # Tenant2 owns the image and should see all three members
+        self.plugin.filter_result(result_hit, fake_request.context)
+        self.assertEqual(set([TENANT1, TENANT2, TENANT3]),
+                         set(result_hit['_source']['members']))
