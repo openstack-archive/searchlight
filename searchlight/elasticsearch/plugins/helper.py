@@ -417,6 +417,28 @@ class IndexingHelper(object):
             return self._index_alias_multiple_indexes_get(
                 doc_id=doc_id, routing=routing)
 
+    def get_docs_by_nested_field(self, path, field, value, version=False):
+        """Query ElasticSearch based on a nested field. The caller will
+           need to specify the path of the nested field as well as the
+           field itself. We will include the 'version' field if commanded
+           as such by the caller.
+        """
+        # Set up query for accessing a nested field.
+        nested_field = path + "." + field
+        body = {"query": {"nested": {
+                "path": path, "query": {"term": {nested_field: value}}}}}
+        if version:
+            body['version'] = True
+        try:
+            return self.engine.search(index=self.alias_name,
+                                      doc_type=self.document_type,
+                                      body=body, ignore_unavailable=True)
+        except Exception as exc:
+            LOG.warning(_LW(
+                'Error querying %(p)s %(f)s. Error %(exc)s') %
+                {'p': path, 'f': field, 'exc': exc})
+            raise
+
     def update_document(self, document, doc_id, update_as_script,
                         expected_version=None):
         """Updates are a little simpler than inserts because the documents

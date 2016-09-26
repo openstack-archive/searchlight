@@ -154,6 +154,12 @@ above will be ignored when indexing.
 Release Notes
 =============
 
+1.0.0.0 (Newton)
+----------------
+
+The Neutron tenant RBAC policy functionality is supported as
+part of the OS::Neutron::Net resource type.
+
 0.2.0.0 (Mitaka)
 ----------------
 

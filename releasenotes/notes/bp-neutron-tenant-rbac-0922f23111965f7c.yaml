@@ -1,0 +1,9 @@
+---
+prelude: >
+    Add support for the new Neutron tenant RBAC
+    policy functionality. This allows networks
+    to be shared across tenants.
+features:
+  - Add support for the new Neutron tenant RBAC
+    policy functionality. This allows networks
+    to be shared across tenants.

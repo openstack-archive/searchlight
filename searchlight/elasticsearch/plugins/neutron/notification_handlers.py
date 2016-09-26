@@ -17,6 +17,8 @@ from oslo_log import log as logging
 
 from elasticsearch import helpers
 from searchlight.elasticsearch.plugins import base
+from searchlight.elasticsearch.plugins.helper import USER_ID_SUFFIX
+from searchlight.elasticsearch.plugins.neutron import add_rbac
 from searchlight.elasticsearch.plugins.neutron import serialize_floatingip
 from searchlight.elasticsearch.plugins.neutron import serialize_network
 from searchlight.elasticsearch.plugins.neutron import serialize_port
@@ -26,12 +28,12 @@ from searchlight.elasticsearch.plugins.neutron import serialize_subnet
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
 
-import searchlight.elasticsearch
-from searchlight.i18n import _LE, _LW, _LI
+from searchlight.i18n import _LE, _LI
 
 LOG = logging.getLogger(__name__)
 
 SECGROUP_RETRIES = 20
+RBAC_VALID_ACTIONS = ["access_as_shared", "access_as_external"]
 
 
 class NetworkHandler(base.NotificationBase):
@@ -43,7 +45,9 @@ class NetworkHandler(base.NotificationBase):
         return {
             'network.create.end': self.create_or_update,
             'network.update.end': self.create_or_update,
-            'network.delete.end': self.delete
+            'network.delete.end': self.delete,
+            'rbac_policy.create.end': self.rbac_create,
+            'rbac_policy.delete.end': self.rbac_delete
         }
 
     def get_log_fields(self, event_type, payload):
@@ -52,6 +56,15 @@ class NetworkHandler(base.NotificationBase):
             return ('id', payload['network'].get('id')),
         elif 'network_id' in payload:
             return ('id', payload['network_id']),
+        elif 'rbac_policy' in payload:
+            return (
+                ('network_id', payload['rbac_policy'].get('object_id')),
+                ('target_tenant',
+                 payload['rbac_policy'].get('target_tenant')),
+                ('object_type',
+                 payload['rbac_policy'].get('object_type')))
+        elif 'rbac_policy_id' in payload:
+            return ('rbac_policy_id', payload['rbac_policy_id']),
         return ()
 
     def create_or_update(self, payload, timestamp):
@@ -76,6 +89,91 @@ class NetworkHandler(base.NotificationBase):
                 'Error deleting network %(network_id)s '
                 'from index. Error: %(exc)s') %
                 {'network_id': network_id, 'exc': exc})
+
+    def rbac_create(self, payload, timestamp):
+        """RBAC policy is making a network visible to users in a specfic
+           tenant. Previously this network was not visible to users in that
+           tenant. We will want to add this tenant to the members list.
+           Also add the RBAC policy.
+        """
+        valid_types = ["network"]
+
+        event_type = payload['rbac_policy']['object_type']
+        action = payload['rbac_policy']['action']
+        if action not in RBAC_VALID_ACTIONS or event_type not in valid_types:
+            # I'm bored. Nothing that concerns nor interests us.
+            return
+
+        network_id = payload['rbac_policy']['object_id']
+        target_tenant = payload['rbac_policy']['target_tenant']
+        policy_id = payload['rbac_policy']['id']
+        LOG.debug("Adding RBAC policy for network %s with tenant %s",
+                  network_id, target_tenant)
+
+        # Read, modify, write an existing network document. Grab and modify
+        # the admin version of the document. When saving the document it will
+        # be indexed for both admin and user.
+        doc = self.index_helper.get_document(network_id, for_admin=True)
+
+        if not doc or not doc['_source']:
+            LOG.error(_LE('Error adding rule to network. Network %(id)s '
+                      'does not exist.') % {'id': network_id})
+            return
+
+        body = doc['_source']
+
+        # Update network with RBAC policy.
+        add_rbac(body, target_tenant, policy_id)
+
+        # Bump version for race condition prevention. Use doc and not
+        # body, since '_version' is outside of '_source'.
+        version = doc['_version'] + 1
+        self.index_helper.save_document(body, version=version)
+
+    def rbac_delete(self, payload, timestamp):
+        """RBAC policy is making a network invisible to users in specific
+           tenant. Previously this network was visible to users in that
+           tenant. We will remove this tenant from the members list.
+           Also remove the RBAC policy.
+        """
+        policy_id = payload['rbac_policy_id']
+
+        # Read, modify, write an existing network document. For both the
+        # admin and user version of the document.
+
+        # Find all documents (admin and user) with the policy ID.
+        docs = self.index_helper.get_docs_by_nested_field(
+            "rbac_policy", "rbac_id", policy_id, version=True)
+
+        if not docs or not docs['hits']['hits']:
+            return
+
+        for doc in docs['hits']['hits']:
+            if doc['_id'].endswith(USER_ID_SUFFIX):
+                # We only want to use the admin document.
+                continue
+            body = doc['_source']
+
+            target_tenant = None
+            policies = body['rbac_policy']
+            for p in policies:
+                if p.get('rbac_id') == policy_id:
+                    target_tenant = p['target_tenant']
+
+            # Remove target_tenant from members list.
+            members_list = (body['members'])
+            if target_tenant in members_list:
+                members_list.remove(target_tenant)
+                body['members'] = members_list
+
+            # Remove RBAC policy.
+            new_list = [p for p in policies if p.get('rbac_id') != policy_id]
+            body['rbac_policy'] = new_list
+
+            # Bump version for race condition prevention. Use doc and not
+            # body, since '_version' is outside of '_source'.
+            version = doc['_version'] + 1
+            self.index_helper.save_document(body, version=version)
 
 
 class PortHandler(base.NotificationBase):
@@ -396,7 +494,7 @@ class SecurityGroupHandler(base.NotificationBase):
         # search for the document and save the document ID. This way we
         # do not need to search inside the loop. We will access the document
         # directly by the ID which will always return the latest version.
-        orig_doc = self.get_doc_by_nested_field(
+        orig_doc = self.index_helper.get_docs_by_nested_field(
             "security_group_rules", "id", rule_id, version=True)
         if not orig_doc:
             return
@@ -427,27 +525,3 @@ class SecurityGroupHandler(base.NotificationBase):
         if attempts == (SECGROUP_RETRIES - 1):
             LOG.error(_LE('Error deleting security group rule %(id)s:'
                           ' Too many retries') % {'id': rule_id})
-
-    def get_doc_by_nested_field(self, path, field, value, version=False):
-        """Query ElasticSearch based on a nested field. The caller will
-           need to specify the path of the nested field as well as the
-           field itself. We will include the 'version' field if commanded
-           as such by the caller.
-        """
-        es_engine = searchlight.elasticsearch.get_api()
-
-        # Set up query for accessing a nested field.
-        nested_field = path + "." + field
-        body = {"query": {"nested": {
-                "path": path, "query": {"term": {nested_field: value}}}}}
-        if version:
-            body['version'] = True
-        try:
-            return es_engine.search(index=self.index_helper.alias_name,
-                                    doc_type=self.index_helper.document_type,
-                                    body=body, ignore_unavailable=True)
-        except Exception as exc:
-            LOG.warning(_LW(
-                'Error querying %(p)s %(f)s. Error %(exc)s') %
-                {'p': path, 'f': field, 'exc': exc})
-            return {}

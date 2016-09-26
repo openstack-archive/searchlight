@@ -159,7 +159,8 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
                     '_version': 1}]}}
 
         handler = self.plugin.get_notification_handler()
-        with mock.patch.object(handler, 'get_doc_by_nested_field') as mo_nest:
+        with mock.patch.object(self.plugin.index_helper,
+                               'get_docs_by_nested_field') as mo_nest:
             with mock.patch.object(self.plugin.index_helper,
                                    'get_document') as mock_get:
                 with mock.patch.object(self.plugin.index_helper,
