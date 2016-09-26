@@ -131,6 +131,31 @@ operations are allowed.
 See http://docs.openstack.org/developer/oslo.policy/api.html for details on
 rule formatting.
 
+During the last few cycles concerns were raised about the scope of the
+``admin`` role within openstack. Many services consider any token scoped with
+the ``admin`` role to have access to resources within any project. With the
+introduction of keystone v3 it is possible to create users with the admin role
+on a particular project, but not with the intention of them seeing resources in
+other projects.
+
+Keystone added two configuration options called ``admin_project_name`` and
+``admin_project_domain_name`` to attempt to address this. If a request is
+authenticated against a the project whose name is ``admin_project_name``
+in the ``admin_project_domain_name`` domain, a flag is set on the
+authentication response headers indicating that the user is authenticated
+against the administrative project. This can then be supported by the policy
+rule (in Searchlight's ``policy.json``)::
+
+    "is_admin_context": "role:admin and is_admin_project:True"
+
+Since devstack configures keystone to support those options, this is the
+default in Searchlight. To maintain backwards compatibility, if your keystone
+is *not* configured to set these options, any token with the ``admin`` role
+will be assumed to have administrative powers (this approach has been taken
+by other Openstack services).
+
+For more history see https://bugs.launchpad.net/keystone/+bug/968696.
+
 Access to operations
 --------------------
 
