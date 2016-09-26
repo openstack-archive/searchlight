@@ -720,7 +720,7 @@ class NotificationBase(object):
         updated = None
 
         # Pick the best/preferred date field to calculate version from
-        date_fields = ('updated_at', 'created_at')
+        date_fields = ('updated_at', 'created_at', 'deleted_at')
         if preferred_date_field:
             date_fields = (preferred_date_field,) + date_fields
 
