@@ -131,9 +131,10 @@ class SubnetIndex(base.IndexBase):
                 }
             }
         else:
-            """ Subnet(s) are visible to their owners or if they belong
+            """Subnet(s) are visible to their owners or if they belong
             to networks with the 'shared' property for users without admin
-            role ."""
+            role.
+            """
             has_parent_query = {'term': {'shared': True}}
 
         rbac_filter = [{
