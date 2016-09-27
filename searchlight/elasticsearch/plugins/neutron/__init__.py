@@ -18,11 +18,30 @@ import copy
 from searchlight.elasticsearch.plugins import utils
 
 
+def add_rbac(network, target_tenant, policy_id):
+    """Update a network based on an RBAC policy.
+    """
+    # Add target_tenant to members list.
+    members_list = network['members']
+    if target_tenant not in members_list:
+        members_list.append(target_tenant)
+
+    # Add RBAC policy.
+    rbac_policy = network['rbac_policy']
+    policy = {'rbac_id': policy_id, 'target_tenant': target_tenant}
+    rbac_policy.append(policy)
+    network['rbac_policy'] = rbac_policy
+
+
 def serialize_network(network):
     serialized = copy.deepcopy(network)
     # Remove subnets because we index them separately
     serialized.pop('subnets')
     serialized['project_id'] = serialized['tenant_id']
+    if 'members' not in serialized:
+        serialized['members'] = []
+    if 'rbac_policy' not in serialized:
+        serialized['rbac_policy'] = []
     return serialized
 
 

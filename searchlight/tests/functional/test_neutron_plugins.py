@@ -327,6 +327,24 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self._verify_result(update_event, verification_keys, result,
                             inner_key='network')
 
+        rbac_create_event = self.network_events['rbac_policy.create.end']
+        self._send_event_to_listener(rbac_create_event, self.listener_alias)
+        result = self._verify_event_processing(rbac_create_event,
+                                               owner=EV_TENANT)
+        cbody = result['hits']['hits'][0]['_source']
+        # Verify internal states are not visible.
+        self.assertNotIn('members', cbody)
+        self.assertNotIn('rbac_policy', cbody)
+
+        rbac_delete_event = self.network_events['rbac_policy.delete.end']
+        self._send_event_to_listener(rbac_delete_event, self.listener_alias)
+        result = self._verify_event_processing(rbac_delete_event,
+                                               owner=EV_TENANT)
+        dbody = result['hits']['hits'][0]['_source']
+        # Verify internal states are not visible.
+        self.assertNotIn('members', dbody)
+        self.assertNotIn('rbac_policy', dbody)
+
         delete_event = self.network_events['network.delete.end']
         self._send_event_to_listener(delete_event, self.listener_alias)
         self._verify_event_processing(delete_event, count=0,

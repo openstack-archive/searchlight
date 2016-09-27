@@ -78,6 +78,8 @@ class TestNetworkLoaderPlugin(test_utils.BaseTestCase):
         self.assertEqual(_now_str, serialized['updated_at'])
         # project id should get copied from tenant_id
         self.assertEqual(TENANT1, serialized['project_id'])
+        self.assertEqual([], serialized['members'])
+        self.assertEqual([], serialized['rbac_policy'])
 
     def test_rbac_filter(self):
         fake_request = unit_test_utils.get_fake_request(
@@ -88,6 +90,7 @@ class TestNetworkLoaderPlugin(test_utils.BaseTestCase):
             'bool': {
                 'should': [
                     {'term': {'tenant_id': TENANT1}},
+                    {'terms': {'members': [TENANT1, '*']}},
                     {'term': {'router:external': True}},
                     {'term': {'shared': True}}
                 ]
