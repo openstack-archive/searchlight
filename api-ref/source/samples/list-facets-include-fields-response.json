@@ -1,0 +1,11 @@
+{
+    "OS::Nova::Server": {
+        "doc_count": 7
+    },
+    "OS::Neutron::Net": {
+        "doc_count": 19
+    },
+    "OS::Glance::Image": {
+        "doc_count": 68
+    }
+}

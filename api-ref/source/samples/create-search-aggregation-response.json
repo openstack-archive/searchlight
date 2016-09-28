@@ -1,0 +1,64 @@
+{
+    "_shards": {
+        "successful": 1,
+        "failed": 0,
+        "total": 1
+    },
+    "aggregations": {
+        "container_format": {
+            "buckets": [
+                {
+                    "doc_count": 101,
+                    "key": "bare"
+                },
+                {
+                    "doc_count": 1,
+                    "key": "aki"
+                },
+                {
+                    "doc_count": 1,
+                    "key": "ami"
+                },
+                {
+                    "doc_count": 1,
+                    "key": "ari"
+                }
+            ],
+            "doc_count_error_upper_bound": 0,
+            "sum_other_doc_count": 0
+        },
+        "name": {
+            "buckets": [
+                {
+                    "doc_count": 100,
+                    "key": "image"
+                },
+                {
+                    "doc_count": 3,
+                    "key": "0.3.4"
+                },
+                {
+                    "doc_count": 3,
+                    "key": "cirros"
+                },
+                {
+                    "doc_count": 3,
+                    "key": "uec"
+                },
+                {
+                    "doc_count": 3,
+                    "key": "x86_64"
+                }
+            ],
+            "doc_count_error_upper_bound": 0,
+            "sum_other_doc_count": 0
+        }
+    },
+    "hits": {
+        "hits": [],
+        "max_score": 0.0,
+        "total": 104
+    },
+    "took": 5
+    "timed_out": false,
+}

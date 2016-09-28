@@ -14,11 +14,12 @@
       License for the specific language governing permissions and limitations
       under the License.
 
+:tocdepth: 3
+
 ==================
 Search Service API
 ==================
 
-The API Reference is on the way.  In the meantime, please see:
+.. rest_expand_all::
 
-http://docs.openstack.org/developer/searchlight/
-
+.. include:: searchlight-v1.inc

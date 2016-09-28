@@ -1,0 +1,8 @@
+{
+    "type": "OS::Glance::Image",
+    "query": {
+        "match_phrase": {
+            "description": "Preconfigured with a schmaltz to optimize the foobar"
+        }
+    }
+}

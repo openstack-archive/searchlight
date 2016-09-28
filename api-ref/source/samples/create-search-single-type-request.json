@@ -1,0 +1,6 @@
+{
+    "query": {
+        "match_all": {}
+    },
+    "type": "OS::Glance::Image"
+}

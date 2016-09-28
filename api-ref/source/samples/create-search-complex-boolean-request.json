@@ -1,0 +1,25 @@
+{
+    "type": "OS::Glance::Image",
+    "query": {
+        "bool" : {
+            "must" : [
+                { "term" : { "status" : "active" } },
+                { "term" : { "visibility" : "public" } }
+            ],
+            "must_not" : [
+                { "range" : { "min_ram" : { "gt" : 4096 } } },
+                { "terms" : { "disk_format" : ["aki", "ari"] } }
+            ],
+            "should" : [
+                { "match" : { "name" : "cirros" } },
+                { "match" : { "tag" : "cirros" } }
+            ],
+            "minimum_should_match" : 1
+        }
+    },
+    "highlight": {
+       "fields": {
+          "*":{}
+       }
+   }
+}

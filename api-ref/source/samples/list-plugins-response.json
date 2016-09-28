@@ -1,0 +1,14 @@
+{
+    "plugins": [
+        {
+             "type": "OS::Glance::Image",
+             "alias-indexing": "searchlight-listener",
+             "alias-searching": "searchlight-search"
+        },
+        {
+             "type": "OS::Glance::Metadef",
+             "alias-indexing": "searchlight-listener",
+             "alias-searching": "searchlight-search"
+        }
+    ]
+}
