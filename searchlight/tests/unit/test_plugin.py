@@ -14,6 +14,7 @@
 #    under the License.
 
 import collections
+import copy
 import mock
 import operator
 import six
@@ -713,3 +714,29 @@ class TestPlugin(test_utils.BaseTestCase):
                                               ignore_unavailable=True,
                                               index='searchlight-search',
                                               size=0)
+
+    def test_filter_result(self):
+        """Verify that any highlighted query results will filter out
+           the ROLE_USER_FIELD field.
+        """
+        request = unit_test_utils.get_fake_request(is_admin=True)
+        mock_engine = mock.Mock()
+        simple_plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
+
+        # Verify with ROLE_USER_FIELD
+        hit = {"_source": {"owner": "<em>admin</em>"},
+               "highlight": {
+                   "owner": "<em>admin</em>",
+                   "__searchlight-user-role": "<em>admin</em>"}}
+
+        simple_plugin.filter_result(hit, request.context)
+        self.assertNotIn('__searchlight-user-role', hit['highlight'])
+
+        # Verify without ROLE_USER_FIELD
+        hit = {"_source": {"owner": "<em>admin</em>"},
+               "highlight": {
+                   "owner": "<em>admin</em>"}}
+
+        original_hit = copy.deepcopy(hit)
+        simple_plugin.filter_result(hit, request.context)
+        self.assertEqual(original_hit, hit)
