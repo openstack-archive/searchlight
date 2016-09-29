@@ -7,5 +7,5 @@ features:
   - Allows a deployer to override some index-level
     Elasticsearch settings for all Searchlight-created
     indices. This is useful when running Searchlight on
-    a shared Elasticsearch cluster. Settings are overriden
+    a shared Elasticsearch cluster. Settings are overridden
     using the elasticsearch.index_settings config option.

@@ -407,7 +407,7 @@ documentation_.
 .. _documentation: https://www.elastic.co/guide/en/elasticsearch/reference/2.1/doc-values.html
 
 Generally this default will be fine. However, there are several ways in which
-the default can be overriden:
+the default can be overridden:
 
 * Globally in plugin configuration; in ``searchlight.conf``::
 
