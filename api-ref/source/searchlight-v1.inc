@@ -101,29 +101,6 @@ API automatically uses this index, so you don't need to specify it.  We only
 mention it here because you'll see its name in some Elasticsearch responses
 that you'll receive from the Search API, so it's worth knowing what it is.
 
-.. note::
-   The situation is actually a bit more complicated than we just portrayed it,
-   so in the spirit of full disclosure, here are a few points to keep in mind:
-
-   - Indices are transient, since a new one is created whenever Searchlight is
-     re-indexed. The name of the index is described below, but a timestamp is
-     appended to the name. All accesses to Elasticsearch are done through
-     aliases and not directly through an index. For more details on aliases
-     see the `List plugins`_ call.
-   - By default, Searchlight uses a single index named 'searchlight'.  An
-     operator, however, may choose to use a different name.  Further, an
-     operator may choose to have different resource types indexed into
-     different indices so that, for example, "OS::Cinder::Volume" can have one
-     Elasticsearch index, "OS::Neutron::Net" can have a different Elasticsearch
-     index and "OS::Neutron::SecurityGroup" can have a third separate
-     Elasticsearch index.  But a default installation will use a single
-     'searchlight' index.
-   - For architectural reasons (primarily to allow zero-downtime re-indexing),
-     Searchlight doesn't refer to the index directly, but instead uses *index
-     aliases*.  The key impact this has on you as a consumer of the API is that
-     you'll see references to aliases, instead of directly to the index, in
-     some Search API responses.
-
 One final point. Searchlight accomplishes its magic by using *plugins* that
 understand and index particular OpenStack resource types.  So in order for a
 resource type to be accessible via the Search API, there must be a Searchlight
@@ -680,6 +657,32 @@ Response Example
 ----------------
 
 .. literalinclude:: samples/create-search-aggregation-response.json
+
+
+Notes
+~~~~~
+
+The index you see in responses is not a literal ElasticSearch index.
+Here are a few points to keep in mind:
+
+- For architectural reasons (primarily to allow zero-downtime re-indexing),
+  Searchlight doesn't refer to the index directly, but instead uses *index
+  aliases*. The key impact this has on you as a consumer of the API is that
+  you'll see references to aliases, instead of directly to the index, in
+  some Search API responses.
+- All accesses to ElasticSearch are done through aliases and not directly
+  through an index. For more details on aliases see the `List plugins`_
+  call. The actual indices behind the aliases are transient, since a new
+  one is created whenever Searchlight is re-indexed.
+- By default, Searchlight uses a single index named 'searchlight'. An
+  operator, however, may choose to use a different name.  Further, an
+  operator may choose to have different resource types indexed into
+  different indices so that, for example, "OS::Cinder::Volume" can have one
+  Elasticsearch index, "OS::Neutron::Net" can have a different Elasticsearch
+  index and "OS::Neutron::SecurityGroup" can have a third separate
+  ElasticSearch index. When this is done, the aliases exposed via the
+  Searchlight API will also change accordingly.
+
 
 References
 ~~~~~~~~~~
