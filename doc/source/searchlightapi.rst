@@ -612,7 +612,7 @@ Note that for some aggregations ``value_as_string`` may be more useful than
 on a date field whose internal representation is a timestamp.
 
 The `global aggregation`_ type is not allowed because unlike other aggregation
-types it operates outside the the search query scope.
+types it operates outside the search query scope.
 
 .. _`Elasticsearch aggregation`: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations.html
 .. _`global aggregation`: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-global-aggregation.html
