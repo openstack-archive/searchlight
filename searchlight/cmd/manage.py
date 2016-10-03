@@ -193,7 +193,7 @@ class IndexCommands(object):
         Resource Group. With the Zero Downtime functionality, we are using
         aliases to index into ElasticSearch. We now have multiple Document
         Types sharing a single alias. If any member of a Resource Group (an
-        ES alias) is re-syncing *all* members of that Resoruce Group needs
+        ES alias) is re-syncing *all* members of that Resource Group needs
         to re-sync.
 
         The final list of plugins to use for re-syncing *must* come only from
