@@ -568,6 +568,34 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
+    def test_offset_from_error(self):
+        """Test that providing offset and from cause errors"""
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            'offset': 10,
+            'from': 10
+        }))
+        self.assertRaisesRegexp(
+            webob.exc.HTTPBadRequest,
+            "Provide 'offset' or 'from', but not both",
+            self.deserializer.search, request)
+
+    def test_limit_size_error(self):
+        """Test that providing limit and size cause errors"""
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            'size': 10,
+            'limit': 10
+        }))
+        self.assertRaisesRegexp(
+            webob.exc.HTTPBadRequest,
+            "Provide 'limit' or 'size', but not both",
+            self.deserializer.search, request)
+
     def test_limit_and_offset(self):
         request = unit_test_utils.get_fake_request()
         request.body = six.b(jsonutils.dumps({
@@ -578,10 +606,20 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         }))
 
         output = self.deserializer.search(request)
-        self.assertEqual(['searchlight-search'], output['index'])
-        self.assertEqual(['OS::Glance::Metadef'], output['doc_type'])
-        self.assertEqual(1, output['limit'])
-        self.assertEqual(2, output['offset'])
+        self.assertEqual(1, output['size'])
+        self.assertEqual(2, output['from_'])
+
+    def test_from_and_size(self):
+        request = unit_test_utils.get_fake_request()
+        request.body = six.b(jsonutils.dumps({
+            'type': ['OS::Glance::Metadef'],
+            'query': {'match_all': {}},
+            'size': 1,
+            'from': 2,
+        }))
+        output = self.deserializer.search(request)
+        self.assertEqual(1, output['size'])
+        self.assertEqual(2, output['from_'])
 
     def test_single_sort(self):
         """Test that a single sort field is correctly transformed"""

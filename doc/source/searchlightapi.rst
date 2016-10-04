@@ -265,6 +265,32 @@ Elasticsearch's `term query <http://www.elasticsearch.org/guide/en/elasticsearch
     }
   }
 
+Limiting and paging results
+***************************
+Elasticsearch (and Searchlight) support paging_ through the
+``size`` and ``from`` parameters (Searchlight also accepts
+``limit`` and ``offset`` respectively as synonyms). ``from`` is
+zero-indexed. If ``size`` is zero, no results will be returned. This
+can be useful for retrieving the total number of hits for a query without
+being interested in the results themselves, or for `aggregations`_::
+
+ {
+   "query": {"match_all": {}},
+   "size": 0
+ }
+
+Gives::
+
+ {
+   "hits": {
+     "hits": [],
+     "max_score": 0.0,
+     "total": 40
+   }
+ }
+
+.. _paging: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-from-size.html
+
 Limiting the fields returned
 ****************************
 To restrict the ``source`` to include only certain fields using Elasticsearch's
@@ -570,13 +596,13 @@ Aggregations will be based on the ``query`` provided as well as restrictions
 on resource type and any RBAC filters.
 
 To include aggregations in a query, include ``aggs`` or ``aggregations`` in
-a search request body. For instance (``"limit": 0`` prevents Elasticsearch
+a search request body. ``"size": 0`` prevents Elasticsearch
 returning any results, just the aggregation, though it is valid to retrieve
-both search results and aggregations from a single query)::
+both search results and aggregations from a single query. For example::
 
   {
     "query": {"match_all": {}},
-    "limit": 0,
+    "size": 0,
     "aggregations": {
       "names": {
         "terms": {"field": "name"}

@@ -45,23 +45,23 @@ class SearchController(object):
         self.plugins = plugins or {}
 
     def search(self, req, query, index=None, doc_type=None,
-               offset=0, limit=None, **kwargs):
+               from_=0, size=None, **kwargs):
         """Supported kwargs:
         :param _source:
         :param _source_include:
         :param _source_exclude:
         :return:
         """
-        if limit is None:
-            limit = CONF.limit_param_default
+        if size is None:
+            size = CONF.limit_param_default
 
         try:
             search_repo = self.gateway.get_catalog_search_repo(req.context)
             result = search_repo.search(index,
                                         doc_type,
                                         query,
-                                        offset,
-                                        limit,
+                                        from_,
+                                        size,
                                         ignore_unavailable=True,
                                         **kwargs)
 
@@ -200,31 +200,43 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         return doc_type
 
-    def _validate_offset(self, offset):
+    def _validate_integer_param(self, value, gte, param_name):
         try:
-            offset = int(offset)
+            value = int(value)
         except ValueError:
-            msg = _("offset param must be an integer")
+            msg = _("%s param must be an integer") % param_name
             raise webob.exc.HTTPBadRequest(explanation=msg)
 
-        if offset < 0:
-            msg = _("offset param must be positive")
+        if value < gte:
+            msg = _("%(param_name)s param must be greater than or equal "
+                    "to %(gte)s") % {'param_name': param_name, 'gte': gte}
             raise webob.exc.HTTPBadRequest(explanation=msg)
 
-        return offset
+        return value
 
-    def _validate_limit(self, limit):
-        try:
-            limit = int(limit)
-        except ValueError:
-            msg = _("limit param must be an integer")
+    def _validate_offset(self, offset, from_):
+        if offset is not None and from_ is not None:
+            msg = "Provide 'offset' or 'from', but not both"
             raise webob.exc.HTTPBadRequest(explanation=msg)
 
-        if limit < 0:
-            msg = _("limit param must be a non-negative integer")
+        if offset is not None:
+            return self._validate_integer_param(offset, 0, 'offset')
+        elif from_ is not None:
+            return self._validate_integer_param(from_, 0, 'from')
+
+        return None
+
+    def _validate_limit(self, limit, size):
+        if limit is not None and size is not None:
+            msg = "Provide 'limit' or 'size', but not both"
             raise webob.exc.HTTPBadRequest(explanation=msg)
 
-        return limit
+        if limit is not None:
+            return self._validate_integer_param(limit, 0, 'limit')
+        elif size is not None:
+            return self._validate_integer_param(size, 0, 'size')
+
+        return None
 
     def _validate_actions(self, actions):
         if not actions:
@@ -391,7 +403,9 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         types = body.pop('type', None)
         _source = body.pop('_source', None)
         offset = body.pop('offset', None)
+        from_ = body.pop('from', None)
         limit = body.pop('limit', None)
+        size = body.pop('size', None)
         highlight = body.pop('highlight', None)
         aggregations = body.pop('aggregations', None)
         if not aggregations:
@@ -473,11 +487,13 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
 
         query_params['_source_exclude'] = source_exclude
 
-        if offset is not None:
-            query_params['offset'] = self._validate_offset(offset)
+        from_ = self._validate_offset(offset, from_)
+        if from_ is not None:
+            query_params['from_'] = from_
 
-        if limit is not None:
-            query_params['limit'] = self._validate_limit(limit)
+        size = self._validate_limit(limit, size)
+        if size is not None:
+            query_params['size'] = size
 
         if highlight is not None:
             self._set_highlight_queries(highlight, query)
