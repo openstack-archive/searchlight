@@ -91,7 +91,7 @@ class NetworkHandler(base.NotificationBase):
                 {'network_id': network_id, 'exc': exc})
 
     def rbac_create(self, payload, timestamp):
-        """RBAC policy is making a network visible to users in a specfic
+        """RBAC policy is making a network visible to users in a specific
            tenant. Previously this network was not visible to users in that
            tenant. We will want to add this tenant to the members list.
            Also add the RBAC policy.
