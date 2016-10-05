@@ -600,7 +600,6 @@ class IndexBase(plugin.Plugin):
             cfg.StrOpt("admin_only_fields"),
             cfg.BoolOpt('mapping_use_doc_values'),
             cfg.ListOpt('override_region_name',
-                        default=None,
                         help="Override the region name configured in "
                              "'service_credentials'. This is useful when a "
                              "service is deployed as a cloud-wide service "
