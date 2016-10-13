@@ -222,7 +222,7 @@ Request
 
 .. NOTE(rosmaita): we can force extra space below the parameters
    table by inserting raw html here, but it would be better to
-   put up a patch the the os-api-ref to modify the style in CSS
+   put up a patch on the os-api-ref project to modify the style in CSS
 
 .. TODO(rosmaita): remove this example
 
