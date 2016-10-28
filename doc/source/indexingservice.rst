@@ -36,6 +36,7 @@ See each plugin below for detailed information about specific plugins:
 .. toctree::
    :maxdepth: 1
    :glob:
+
    plugins/*
 
 .. _Indexing-Model:
@@ -233,7 +234,6 @@ option. Specifying both options on the command line will result in an error.
     The resource group cannot be changed when using this option.
     If you do change the resource group, the underlying index will
     be changed and will result in an empty index.
-=======
 
 .. _ES-Index-Cleanup:
 
