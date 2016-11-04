@@ -1,0 +1,115 @@
+{
+  "servergroup.delete": {
+    "event_type": "servergroup.delete",
+    "payload": {
+      "server_group_id": "655de27b-b8cb-4b45-8642-7cd9b54d9ea5"
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "project_id": "b1fbc598025841899f63333269abe1d2",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-03-14 00:44:57.126816",
+      "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+    }
+  },
+  "servergroup.create": {
+    "event_type": "servergroup.create",
+    "payload": {
+      "server_group_id": "655de27b-b8cb-4b45-8642-7cd9b54d9ea5",
+      "project_id": "b1fbc598025841899f63333269abe1d2",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "name": "test1",
+      "policies": ["affinity"]},
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "project_id": "b1fbc598025841899f63333269abe1d2",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-03-14 00:44:57.126816",
+      "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+    }
+  },
+  "servergroup.addmember": {
+    "event_type": "servergroup.addmember",
+    "payload": {
+      "server_group_id": "655de27b-b8cb-4b45-8642-7cd9b54d9ea5",
+      "instance_uuids": ["ab327a92-25c5-4c1d-b0be-8ee55632defc"]
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "project_id": "b1fbc598025841899f63333269abe1d2",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-03-14 00:44:57.126816",
+      "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+    }
+  },
+  "compute.instance.delete.end": {
+    "event_type": "compute.instance.delete.end",
+    "payload": {
+      "state_description": "",
+      "availability_zone": "None",
+      "terminated_at": "2016-12-16T09:35:42.050191",
+      "ephemeral_gb": 0,
+      "instance_type_id": 7,
+      "deleted_at": "2016-12-16T09:35:42.000000",
+      "reservation_id": "r-d47kchmp",
+      "memory_mb": 2048,
+      "display_name": "test3",
+      "hostname": "test3",
+      "state": "deleted",
+      "progress": "",
+      "launched_at": "2016-12-16T09:30:55.000000",
+      "metadata": {},
+      "node": "zhenyu-dev",
+      "ramdisk_id": "39f25eee-dded-466b-9156-c13b6db28afd",
+      "access_ip_v6": "None",
+      "disk_gb": 20,
+      "access_ip_v4": "None",
+      "kernel_id": "a481e4fb-5597-479f-95bd-bf65aeb2fd23",
+      "host": "zhenyu-dev",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "image_ref_url": "http://10.3.150.17:9292/images/2ff3a1d3-ed70-4c3f-94ac-941461153bc0",
+      "cell_name": "",
+      "root_gb": 20,
+      "tenant_id": "b1fbc598025841899f63333269abe1d2",
+      "created_at": "2016-12-16 09:30:47+00:00",
+      "instance_id": "ab327a92-25c5-4c1d-b0be-8ee55632defc",
+      "instance_type": "m1.small",
+      "vcpus": 1,
+      "image_meta": {
+        "kernel_id": "a481e4fb-5597-479f-95bd-bf65aeb2fd23",
+        "container_format": "ami",
+        "min_ram": "0",
+        "ramdisk_id": "39f25eee-dded-466b-9156-c13b6db28afd",
+        "disk_format": "ami",
+        "min_disk": "20",
+        "base_image_ref": "2ff3a1d3-ed70-4c3f-94ac-941461153bc0"
+      },
+      "architecture": "None",
+      "os_type": "None",
+      "instance_flavor_id": "2"
+    },
+    "publisher_id": "network.devstack",
+    "ctxt": {
+      "project_name": "demo",
+      "user_id": "d2ac2752732444adac10fc4911fdac75",
+      "project_id": "b1fbc598025841899f63333269abe1d2",
+      "user_name": "demo"
+    },
+    "metadata": {
+      "timestamp": "2016-03-14 00:44:57.126816",
+      "message_id": "56428f7d-3f07-4b23-882d-612d8852e422"
+    }
+  }
+}

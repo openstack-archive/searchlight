@@ -595,6 +595,12 @@ class IndexingHelper(object):
         for field, definition in mapping['properties'].items():
             apply_doc_values(definition)
 
+    def simple_search(self, type, query):
+        search_results = self.engine.search(index=self.alias_name,
+                                            doc_type=type,
+                                            body=query)
+        return search_results['hits']
+
 
 def _is_multiple_alias_exception(e):
     """Verify that this exception is specifically the IllegalArgument

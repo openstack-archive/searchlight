@@ -16,12 +16,15 @@
 import novaclient.exceptions
 from oslo_log import log as logging
 
+from elasticsearch import helpers
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
+from searchlight.elasticsearch.plugins import utils
 from searchlight.i18n import _LE, _LW
 
-
 LOG = logging.getLogger(__name__)
+
+SERVERGROUP_RETRIES = 20
 
 
 class InstanceHandler(base.NotificationBase):
@@ -302,3 +305,118 @@ class InstanceHandler(base.NotificationBase):
                 'Error deleting instance %(instance_id)s '
                 'from index: %(exc)s') %
                 {'instance_id': instance_id, 'exc': exc})
+
+
+class ServerGroupHandler(base.NotificationBase):
+    """Handles nova server group notifications.
+    """
+
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['nova']
+
+    def get_event_handlers(self):
+        return {
+            'servergroup.delete': self.delete,
+            'servergroup.create': self.create,
+            'servergroup.addmember': self.addmember,
+            'compute.instance.delete.end': self.delete_instance
+        }
+
+    def _update_server_group_members(self, sg_id, member_id, delete=False):
+        # The issue here is that the notification is not complete.
+        # We have only a single member that needs to be added to an
+        # existing group. A major issue is that we may be updating
+        # the ES document while other workers are modifying the rules
+        # in the same ES document. This requires an aggressive retry policy,
+        # using the "version" field. Since the ES document will have been
+        # modified after a conflict, we will need to grab the latest version
+        # of the document before continuing. After "retries" number of times,
+        # we will admit failure and not try the update anymore.
+        LOG.debug("Updating server group member information for %s", sg_id)
+
+        for attempts in range(SERVERGROUP_RETRIES):
+            # Read, modify, write of an existing security group.
+            doc = self.index_helper.get_document(sg_id)
+
+            if not doc:
+                return
+            body = doc['_source']
+            if not body or 'members' not in body:
+                return
+
+            if delete:
+                body['members'] = list(filter(
+                    lambda r: r != member_id, body['members']))
+            else:
+                body['members'].append(member_id)
+
+            version = doc['_version']
+            try:
+                version += 1
+                self.index_helper.save_document(body, version=version)
+                break
+            except helpers.BulkIndexError as e:
+                if e.errors[0]['index']['status'] == 409:
+                    # Conflict error, retry with new version of doc.
+                    pass
+                else:
+                    raise
+
+        if attempts == (SERVERGROUP_RETRIES - 1):
+            LOG.error(_LE('Error updating server group member %(id)s:'
+                          ' Too many retries') % {'id': member_id})
+
+    def create(self, payload, timestamp):
+        payload['id'] = payload.pop('server_group_id')
+        payload['metadata'] = {}
+        payload['members'] = []
+        payload['updated_at'] = utils.get_now_str()
+
+        LOG.debug("creating nova server group"
+                  "information for %s", payload['id'])
+        version = self.get_version(payload, timestamp)
+        self.index_helper.save_document(payload, version=version)
+
+    def addmember(self, payload, timestamp):
+        server_group_id = payload['server_group_id']
+        instance_id = payload['instance_uuids'][0]
+        self._update_server_group_members(server_group_id,
+                                          instance_id)
+
+    def delete_instance(self, payload, timestamp):
+
+        # When an instance is deleted from Nova, its' record in
+        # InstanceGroup DB was cleaned directly from DB layer in
+        # Nova, we should perform sync to keep Searchlight
+        # up-to-date with Nova DB.
+        instance_id = payload['instance_id']
+
+        query = {'filter': {'term': {'members': instance_id}}}
+        search_results = self.index_helper.simple_search(
+            query=query, type="OS::Nova::ServerGroup")
+
+        try:
+            result = search_results['hits'][0]
+            server_group_id = result['_id']
+            self._update_server_group_members(server_group_id,
+                                              instance_id,
+                                              delete=True)
+        except IndexError:
+            LOG.debug("No nova server group information for instance %s",
+                      instance_id)
+
+    def delete(self, payload, timestamp):
+        server_group_id = payload['server_group_id']
+        LOG.debug("Deleting nova server group information for %s",
+                  server_group_id)
+        if not server_group_id:
+            return
+
+        try:
+            self.index_helper.delete_document({'_id': server_group_id})
+        except Exception as exc:
+            LOG.error(
+                _LE('Error deleting server group %(server_group_id)s '
+                    'from index: %(exc)s') % {
+                    'server_group_id': server_group_id, 'exc': exc})
