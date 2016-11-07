@@ -118,12 +118,12 @@ modindex_common_prefix = ['searchlight.']
 # Grouping the document tree for man pages.
 # List of tuples 'sourcefile', 'target', u'title', u'Authors name', 'manual'
 
-man_pages = [
+#man_pages = [
 #    ('man/searchlightapi', 'searchlight-api', u'Searchlight API Server',
 #     [u'OpenStack'], 1),
 #    ('man/searchlightlistener', 'searchlight-listener', u'Searchlight indexing agent',
 #     [u'OpenStack'], 1),
-]
+#]
 
 
 # -- Options for HTML output -------------------------------------------------
