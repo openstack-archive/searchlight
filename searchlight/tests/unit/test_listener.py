@@ -82,3 +82,19 @@ class TestListener(test_utils.BaseTestCase):
                          handler1.event1_called_with)
         self.assertEqual([({'test': 'payload'}, 1234)],
                          handler2.event1_called_with)
+
+
+@mock.patch.object(listener.LOG, 'info')
+class TestEndpointPriorities(test_utils.BaseTestCase):
+    def test_priorities(self, log_info_mock):
+        handler = PretendNotificationHandler()
+        plugin = mock.Mock()
+        plugin.get_notification_handler.return_value = handler
+
+        plugins = {'plugin': StevedorePlugin('plugin', plugin)}
+        notification_ep = listener.NotificationEndpoint(plugins)
+        fake_metadata = {'timestamp': 'fake'}
+        notification_ep.info({}, 'fake', 'test.create.end', {}, fake_metadata)
+        self.assertEqual('INFO', log_info_mock.call_args[0][1]['priority'])
+        notification_ep.error({}, 'fake', 'test.create.end', {}, fake_metadata)
+        self.assertEqual('ERROR', log_info_mock.call_args[0][1]['priority'])

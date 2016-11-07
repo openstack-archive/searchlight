@@ -70,7 +70,7 @@ class NotificationEndpoint(object):
                           {'ext': plugin.name, 'e': e})
 
     def _log_notification(self, handler, ctxt, doc_type, event_type,
-                          payload, metadata):
+                          payload, metadata, priority):
         project = ctxt.get('project_id', ctxt.get('tenant_id',
                                                   ctxt.get('tenant', '-')))
         if not project:
@@ -80,20 +80,24 @@ class NotificationEndpoint(object):
         log_context = {'event_type': event_type,
                        'doc_type': doc_type,
                        'timestamp': metadata['timestamp'],
-                       'project': project}
+                       'project': project,
+                       'priority': priority}
         payload_fields = handler.get_log_fields(event_type, payload)
         additional = " ".join("%s:%s" % (k, v or '-')
                               for k, v in payload_fields)
         log_context['additional'] = additional or ''
         LOG.info(_LI("Starting %(doc_type)s %(event_type)s \"%(timestamp)s\" "
-                     "project_id:%(project)s %(additional)s"), log_context)
+                     "priority:%(priority)s project_id:%(project)s "
+                     "%(additional)s"), log_context)
         return log_context
 
     def _log_finished(self, log_context):
         LOG.info(_LI("Finished %(doc_type)s %(event_type)s \"%(timestamp)s\" "
-                     "project_id:%(project)s %(additional)s"), log_context)
+                     "priority:%(priority)s project_id:%(project)s "
+                     "%(additional)s"), log_context)
 
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+    def _process_event(self, ctxt, publisher_id, event_type, payload,
+                       metadata, priority):
 
         event_type_l = event_type.lower()
         # The notification map contains a list of plugins for each event
@@ -102,7 +106,7 @@ class NotificationEndpoint(object):
             handler = plugin.get_notification_handler()
             log_context = self._log_notification(
                 handler, ctxt, plugin.document_type,
-                event_type_l, payload, metadata)
+                event_type_l, payload, metadata, priority)
             handler.process(
                 ctxt,
                 publisher_id,
@@ -110,6 +114,14 @@ class NotificationEndpoint(object):
                 payload,
                 metadata)
             self._log_finished(log_context)
+
+    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+        self._process_event(ctxt, publisher_id, event_type, payload, metadata,
+                            'INFO')
+
+    def error(self, ctxt, publisher_id, event_type, payload, metadata):
+        self._process_event(ctxt, publisher_id, event_type, payload, metadata,
+                            'ERROR')
 
 
 class ListenerService(os_service.Service):
