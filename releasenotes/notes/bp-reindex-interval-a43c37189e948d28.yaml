@@ -1,0 +1,4 @@
+---
+features:
+  - Adds on option "--notification-less" to "searchlight-manage index sync"
+    to re-sync only plugins that don't have notifications.
