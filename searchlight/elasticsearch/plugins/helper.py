@@ -129,7 +129,7 @@ class IndexingHelper(object):
 
     def _index_alias_multiple_indexes_get(self, doc_id, routing=None):
         """Getting a document from an alias with multiple indexes will fail.
-           We need to retrive it from one of the indexes. We will choose
+           We need to retrieve it from one of the indexes. We will choose
            the latest index. Since the indexes are named with a timestamp,
            a reverse sort will bring the latest to the front.
         """
