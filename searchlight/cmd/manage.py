@@ -283,14 +283,13 @@ class IndexCommands(object):
                 def _format_plugin(plugin, indent=0):
                     plugin_doc_type = plugin.get_document_type()
                     handler = plugin.get_notification_handler()
-                    event_list = handler.get_notification_supported_events()
 
                     display = '\n' + '    ' * indent + '--> ' if indent else ''
                     display += '%s (%s)' % (plugin_doc_type,
                                             plugin.resource_group_name)
                     if plugin_doc_type in es_reindex:
                         display += ' *'
-                    if not event_list:
+                    if not handler:
                         display += ' !!'
                         plugins_without_notifications.append(plugin)
                     return display + ''.join(_format_plugin(c, indent + 1)

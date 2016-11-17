@@ -184,7 +184,10 @@ class IndexBase(plugin.Plugin):
         for obj in object_list:
             document = self.serialize(obj)
             documents.append(document)
-            version = self.NotificationHandlerCls.get_version(document)
+            if self.NotificationHandlerCls:
+                version = self.NotificationHandlerCls.get_version(document)
+            else:
+                version = NotificationBase.get_version(document)
             versions.append(version)
         self.index_helper.save_documents(documents, versions=versions,
                                          index=index_name)

@@ -136,13 +136,16 @@ class ListenerService(os_service.Service):
         for plugin_type, plugin in six.iteritems(self.plugins):
             try:
                 handler = plugin.obj.get_notification_handler()
-                topic_exchanges = handler.get_notification_topics_exchanges()
-                for plugin_topic in topic_exchanges:
-                    if isinstance(plugin_topic, six.string_types):
-                        raise Exception(
-                            _LE("Plugin %s should return a list of topic"
-                                "exchange pairs") % plugin.__class__.__name__)
-                    topics_exchanges.add(plugin_topic)
+                if handler:
+                    topic_exchanges = (
+                        handler.get_notification_topics_exchanges())
+                    for plugin_topic in topic_exchanges:
+                        if isinstance(plugin_topic, six.string_types):
+                            raise Exception(
+                                _LE("Plugin %s should return a list of topic"
+                                    "exchange pairs") %
+                                plugin.__class__.__name__)
+                        topics_exchanges.add(plugin_topic)
             except Exception as e:
                 LOG.error(_LE("Failed to retrieve notification topic(s)"
                               " and exchanges from search plugin "

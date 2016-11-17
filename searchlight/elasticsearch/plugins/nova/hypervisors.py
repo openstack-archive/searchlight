@@ -15,14 +15,11 @@
 
 from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
-from searchlight.elasticsearch.plugins.nova \
-    import notification_handler
 from searchlight.elasticsearch.plugins.nova import serialize_nova_hypervisor
 from searchlight.elasticsearch.plugins import openstack_clients
 
 
 class HypervisorIndex(base.IndexBase):
-    NotificationHandlerCls = notification_handler.HypervisorHandler
 
     @classmethod
     def get_document_type(self):
