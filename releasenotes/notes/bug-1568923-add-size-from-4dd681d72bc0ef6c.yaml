@@ -1,0 +1,8 @@
+---
+prelude: >
+  Added 'size' and 'from' as synonyms of 'limit' and
+  'offset', to closer match the Elasticsearch API.
+features:
+  - In order to more closely match the Elasticsearch API,
+    'size' and 'from' can be used in place of 'limit'
+    and 'offset'.
