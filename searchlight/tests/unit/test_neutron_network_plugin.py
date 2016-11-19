@@ -15,8 +15,8 @@
 
 import datetime
 from oslo_utils import timeutils
+from oslo_utils import uuidutils
 import random
-import uuid
 
 from searchlight.elasticsearch.plugins.neutron import\
     networks as networks_plugin
@@ -31,7 +31,7 @@ TENANT1 = "8eaac046b2c44ab99246cb0850c7f06d"
 
 
 def _network_fixture(network_id, tenant_id, name, **kwargs):
-    network_id = kwargs.pop('network_id', str(uuid.uuid4()))
+    network_id = kwargs.pop('network_id', uuidutils.generate_uuid())
     fixture = {
         "admin_state_up": True,
         "id": network_id,

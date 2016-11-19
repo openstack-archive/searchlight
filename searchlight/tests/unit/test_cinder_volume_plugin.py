@@ -15,7 +15,8 @@
 
 import datetime
 import mock
-import uuid
+
+from oslo_utils import uuidutils
 
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_volume
 from searchlight.elasticsearch.plugins.cinder import volumes as volumes_plugin
@@ -26,8 +27,8 @@ import searchlight.tests.utils as test_utils
 USER1 = u'1111bbbbccccc'
 ID1 = u'abc1-2345-6789'
 ID2 = u'1bac-5bd3-78fd'
-SERVER_ID = uuid.uuid4()
-ATTACH_ID = uuid.uuid4()
+SERVER_ID = uuidutils.generate_uuid()
+ATTACH_ID = uuidutils.generate_uuid()
 TENANT1 = u'aaabbbccc'
 
 

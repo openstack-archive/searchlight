@@ -16,7 +16,7 @@
 import datetime
 import mock
 from oslo_utils import timeutils
-import uuid
+from oslo_utils import uuidutils
 
 from searchlight.elasticsearch.plugins.neutron import\
     ports as port_plugin
@@ -28,7 +28,7 @@ USER1 = u'27f4d76b-be62-4e4e-aa33bb11cc55'
 ID1 = u'813dd936-663e-4e5b-877c-986021b73e2c'
 TENANT1 = u'8eaac046b2c44ab99246cb0850c7f06d'
 NETWORK1 = u'bc0adf22-3aef-4e7b-8b99-12670b5a76b5'
-UUID_PORT_ID = str(uuid.uuid4())
+UUID_PORT_ID = uuidutils.generate_uuid()
 _now_str = timeutils.isotime(datetime.datetime.utcnow())
 
 

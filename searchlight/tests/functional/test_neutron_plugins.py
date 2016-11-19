@@ -15,7 +15,8 @@
 
 import copy
 import mock
-import uuid
+
+from oslo_utils import uuidutils
 
 from searchlight.listener import NotificationEndpoint
 from searchlight.tests import functional
@@ -495,7 +496,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         self._send_event_to_listener(create_event, self.listener_alias)
 
         dhcp_event = copy.deepcopy(create_event)
-        dhcp_event['payload']['port']['id'] = str(uuid.uuid4())
+        dhcp_event['payload']['port']['id'] = uuidutils.generate_uuid()
         dhcp_event['payload']['port']['device_owner'] = 'network:dhcp'
         self._send_event_to_listener(dhcp_event, self.listener_alias)
 

@@ -18,17 +18,18 @@ import mock
 import os
 import six
 import time
-import uuid
+
+from oslo_utils import uuidutils
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.tests import functional
 from searchlight.tests import utils as test_utils
 
-TENANT1 = str(uuid.uuid4())
-TENANT2 = str(uuid.uuid4())
-TENANT3 = str(uuid.uuid4())
+TENANT1 = uuidutils.generate_uuid()
+TENANT2 = uuidutils.generate_uuid()
+TENANT3 = uuidutils.generate_uuid()
 
-USER1 = str(uuid.uuid4())
+USER1 = uuidutils.generate_uuid()
 
 fake_version_list = [test_utils.FakeVersion('2.1'),
                      test_utils.FakeVersion('2.1')]
@@ -65,7 +66,7 @@ class TestSearchApi(functional.FunctionalTest):
         things are working.
         """
         images_plugin = self.initialized_plugins['OS::Glance::Image']
-        doc_id = str(uuid.uuid4())
+        doc_id = uuidutils.generate_uuid()
         doc = {
             "owner": TENANT1,
             "visibility": "public",
@@ -192,7 +193,7 @@ class TestSearchApi(functional.FunctionalTest):
 
     def test_query_none(self):
         """Test search when query is not specified"""
-        id_1 = str(uuid.uuid4())
+        id_1 = uuidutils.generate_uuid()
         tenant1_doc = {
             "owner": TENANT1,
             "id": id_1,
@@ -212,7 +213,7 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
 
     def test_facet_exclude_fields(self):
-        id_1 = str(uuid.uuid4())
+        id_1 = uuidutils.generate_uuid()
         tenant1_doc = {
             "owner": TENANT1,
             "id": id_1,
@@ -242,7 +243,7 @@ class TestSearchApi(functional.FunctionalTest):
     def test_facet_rbac(self):
         tenant1_doc = {
             "owner": TENANT1,
-            "id": str(uuid.uuid4()),
+            "id": uuidutils.generate_uuid(),
             "visibility": "private",
             "name": "owned by tenant 1",
             "container_format": "not-shown",
@@ -250,7 +251,7 @@ class TestSearchApi(functional.FunctionalTest):
         }
         tenant2_doc = {
             "owner": TENANT2,
-            "id": str(uuid.uuid4()),
+            "id": uuidutils.generate_uuid(),
             "visibility": "private",
             "name": "owned by tenant 1",
             "container_format": "shown",
@@ -670,7 +671,7 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual(401, response.status)
 
     def test_search_version(self):
-        id_1 = str(uuid.uuid4())
+        id_1 = uuidutils.generate_uuid()
         tenant1_doc = {
             "owner": TENANT1,
             "id": id_1,
