@@ -335,7 +335,7 @@ class IndexCommands(object):
         #   mappings. Only then can we add it to the aliases. We first
         #   need to create all indexes. This is done by resource group.
         #   We cache and turn off new indexes' refresh intervals,
-        #   this will improve the the performance of data re-syncing.
+        #   this will improve the performance of data re-syncing.
         #   After data get re-synced, set the refresh interval back.
         #   Once all indexes are created, we need to initialize the
         #   indexes. This is done by document type.

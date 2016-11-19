@@ -204,7 +204,7 @@ def add_extra_mappings(index_name, doc_type_info):
 
     # Create an empty mapping that cannot be used. We need to make sure it
     # has a "_parent" field for the "has_parent" queries. Make sure that the
-    # the "_parent" field is not used anywhere else.
+    # "_parent" field is not used anywhere else.
     for doc_type, has_parent in doc_type_info:
         body = {'dynamic': 'strict',
                 'properties': {
