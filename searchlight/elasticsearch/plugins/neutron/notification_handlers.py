@@ -217,7 +217,7 @@ class PortHandler(base.NotificationBase):
             LOG.info(_LI("Skipping notification for DHCP port %s. If neutron "
                          "is sending notifications for DHCP ports, the "
                          "Searchlight plugin should be updated to process "
-                         "them.") % port_id)
+                         "them."), port_id)
             return
 
         LOG.debug("Updating port information for %s", port_id)
