@@ -15,7 +15,8 @@
 
 import datetime
 import mock
-import uuid
+
+from oslo_utils import uuidutils
 
 from elasticsearch import helpers
 from searchlight.elasticsearch.plugins.neutron import\
@@ -23,9 +24,9 @@ from searchlight.elasticsearch.plugins.neutron import\
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
-USER1 = str(uuid.uuid4())
-ID1 = str(uuid.uuid4())
-TENANT1 = str(uuid.uuid4())
+USER1 = uuidutils.generate_uuid()
+ID1 = uuidutils.generate_uuid()
+TENANT1 = uuidutils.generate_uuid()
 _now_str = datetime.datetime.isoformat(datetime.datetime.utcnow())
 
 

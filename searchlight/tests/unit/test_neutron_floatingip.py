@@ -15,7 +15,8 @@
 
 import datetime
 import mock
-import uuid
+
+from oslo_utils import uuidutils
 
 from searchlight.elasticsearch.plugins.neutron import\
     floatingips as floatingips_plugin
@@ -30,15 +31,15 @@ NETWORK1 = u'bc0adf22-3aef-4e7b-8b99-12670b5a76b5'
 
 _now_str = datetime.datetime.isoformat(datetime.datetime.utcnow())
 
-FIP_ID1 = str(uuid.uuid4())
-FIP_ID2 = str(uuid.uuid4())
+FIP_ID1 = uuidutils.generate_uuid()
+FIP_ID2 = uuidutils.generate_uuid()
 
-PORT_ID = str(uuid.uuid4())
+PORT_ID = uuidutils.generate_uuid()
 
 
 def _create_fixture(fip_id, tenant_id, network_id, ip_addr, **kwargs):
     fixture = {
-        "router_id": str(uuid.uuid4()),
+        "router_id": uuidutils.generate_uuid(),
         "status": "ACTIVE" if "fixed_ip_address" in kwargs else "DOWN",
         "description": "",
         "dns_name": "",

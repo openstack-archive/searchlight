@@ -38,6 +38,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import excutils
 from oslo_utils import netutils
+from oslo_utils import uuidutils
 import six
 from webob import exc
 
@@ -262,7 +263,7 @@ def validate_key_cert(key_file, cert_file):
                             'ce': ce})
 
     try:
-        data = str(uuid.uuid4())
+        data = uuidutils.generate_uuid()
         digest = CONF.digest_algorithm
         if digest == 'sha1':
             LOG.warning(

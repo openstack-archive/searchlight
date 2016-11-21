@@ -14,14 +14,15 @@
 # limitations under the License.
 
 import copy
-import uuid
+
+from oslo_utils import uuidutils
 
 from searchlight.tests import functional
 
 
 MATCH_ALL = {"query": {"match_all": {}}}
 
-OWNER1 = str(uuid.uuid4())
+OWNER1 = uuidutils.generate_uuid()
 NETWORK_TENANT_ID = '8eaac046b2c44ab99246cb0850c7f06d'
 
 

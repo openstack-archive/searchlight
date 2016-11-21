@@ -17,7 +17,8 @@ import copy
 import json
 import mock
 import six
-import uuid
+
+from oslo_utils import uuidutils
 
 from searchlight.listener import NotificationEndpoint
 from searchlight.tests import functional
@@ -40,7 +41,7 @@ class TestGlancePlugins(functional.FunctionalTest):
     def test_image_property_protection(self):
         doc_with_properties = {
             "owner": test_api.TENANT1,
-            "id": str(uuid.uuid4()),
+            "id": uuidutils.generate_uuid(),
             "name": "doc with properties",
             "x_none_permitted": "nobody can do anything",
             "x_foo_matcher": "admin only",
@@ -108,7 +109,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         """Test that an admin has access to everything"""
         image_doc = {
             "owner": test_api.TENANT1,
-            "id": str(uuid.uuid4()),
+            "id": uuidutils.generate_uuid(),
             "name": "abc",
             "visibility": "private",
             "members": [test_api.TENANT1],
@@ -170,7 +171,7 @@ class TestGlancePlugins(functional.FunctionalTest):
 
     def test_image_rbac_owner(self):
         """Test glance.image RBAC based on the "owner" field"""
-        id_1 = str(uuid.uuid4())
+        id_1 = uuidutils.generate_uuid()
         tenant1_doc = {
             "owner": test_api.TENANT1,
             "id": id_1,
@@ -180,7 +181,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         }
         tenant2_doc = {
             "owner": test_api.TENANT2,
-            "id": str(uuid.uuid4()),
+            "id": uuidutils.generate_uuid(),
             "visibility": "private",
             "name": "owned by tenant 2",
             "created_at": "2016-04-06T12:48:18Z"
@@ -218,17 +219,17 @@ class TestGlancePlugins(functional.FunctionalTest):
 
     def test_image_rbac_member(self):
         """Test glance.image RBAC based on the "member" field"""
-        owner = str(uuid.uuid4())
+        owner = uuidutils.generate_uuid()
         accessible_doc = {
             "owner": owner,
-            "id": str(uuid.uuid4()),
+            "id": uuidutils.generate_uuid(),
             "visibility": "private",
             "name": "accessible doc",
             "created_at": "2016-04-06T12:48:18Z"
         }
         inaccessible_doc = {
-            "owner": str(uuid.uuid4()),
-            "id": str(uuid.uuid4()),
+            "owner": uuidutils.generate_uuid(),
+            "id": uuidutils.generate_uuid(),
             "visibility": "private",
             "name": "inaccessible_doc doc",
             "created_at": "2016-04-06T12:48:18Z"
@@ -236,7 +237,7 @@ class TestGlancePlugins(functional.FunctionalTest):
 
         # Assign TENANT1, TENANT2 to accessible doc and a fake member to
         # inaccessible doc
-        made_up_tenant = str(uuid.uuid4())
+        made_up_tenant = uuidutils.generate_uuid()
         fake_members = (
             [{"member_id": test_api.TENANT1, "status": "accepted"},
              {"member_id": test_api.TENANT2, "status": "accepted"}],
@@ -275,36 +276,37 @@ class TestGlancePlugins(functional.FunctionalTest):
         accessible_doc["image_type"] = "image"
         response, json_content = self._search_request(
             {"query": {"term": {"owner": owner}}, "all_projects": True},
-            str(uuid.uuid4()),
+            uuidutils.generate_uuid(),
             role="admin")
         self.assertEqual(200, response.status)
         self.assertEqual([accessible_doc], self._get_hit_source(json_content))
 
         # A user in another tenant shouldn't see it at all
-        response, json_content = self._search_request(test_api.MATCH_ALL,
-                                                      str(uuid.uuid4()))
+        response, json_content = self._search_request(
+            test_api.MATCH_ALL, uuidutils.generate_uuid())
         self.assertEqual(200, response.status)
         self.assertEqual([], self._get_hit_source(json_content))
 
     def test_image_rbac_visibility(self):
         """Test that "visibility: public" makes images visible"""
         visible_doc = {
-            "owner": str(uuid.uuid4()),
-            "id": str(uuid.uuid4()),
+            "owner": uuidutils.generate_uuid(),
+            "id": uuidutils.generate_uuid(),
             "visibility": "public",
             "name": "visible doc",
             "created_at": "2016-04-06T12:48:18Z"
         }
         invisible_doc = {
-            "owner": str(uuid.uuid4()),
-            "id": str(uuid.uuid4()),
+            "owner": uuidutils.generate_uuid(),
+            "id": uuidutils.generate_uuid(),
             "visibility": "private",
             "name": "visible doc",
             "created_at": "2016-04-06T12:48:18Z"
         }
 
         # Generate a fake tenant id for invisible_doc's "members"
-        fake_member = {"member_id": str(uuid.uuid4()), "status": "accepted"}
+        fake_member = {"member_id": uuidutils.generate_uuid(),
+                       "status": "accepted"}
         with mock.patch(member_list, return_value=[fake_member]):
             self._index(self.images_plugin,
                         [visible_doc, invisible_doc],
@@ -321,8 +323,8 @@ class TestGlancePlugins(functional.FunctionalTest):
 
     def test_metadef_rbac_visibility(self):
         visible_doc = {
-            "owner": str(uuid.uuid4()),
-            "id": str(uuid.uuid4()),
+            "owner": uuidutils.generate_uuid(),
+            "id": uuidutils.generate_uuid(),
             "visibility": "public",
             "name": "visible doc",
             "namespace": "TEST_VISIBLE",
@@ -332,8 +334,8 @@ class TestGlancePlugins(functional.FunctionalTest):
             "created_at": "2016-04-06T12:48:18Z"
         }
         invisible_doc = {
-            "owner": str(uuid.uuid4()),
-            "id": str(uuid.uuid4()),
+            "owner": uuidutils.generate_uuid(),
+            "id": uuidutils.generate_uuid(),
             "visibility": "private",
             "name": "visible doc",
             "namespace": "TEST_INVISIBLE",
@@ -373,7 +375,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "created_at": "2016-04-06T12:48:18Z"
         }
         invisible_doc = {
-            "owner": str(uuid.uuid4()),
+            "owner": uuidutils.generate_uuid(),
             "namespace": "INVISIBLE",
             "visibility": "private",
             "properties": {},
