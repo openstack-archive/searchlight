@@ -122,7 +122,7 @@ Notifications must be configured properly for searchlight to process
 incremental updates. Enable notifications using the following::
 
     [oslo_messaging_notifications]
-    driver = messaging
+    driver = messagingv2
     notify_on_state_change=vm_and_task_state
 
 .. note::
@@ -156,7 +156,7 @@ Notifications must be configured properly for searchlight to process
 incremental updates. Enable notifications using the following::
 
     [oslo_messaging_notifications]
-    driver = messaging
+    driver = messagingv2
 
 .. note::
 
