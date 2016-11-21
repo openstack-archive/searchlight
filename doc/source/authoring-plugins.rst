@@ -107,9 +107,9 @@ Openstack documents some of the notifications_ sent by some services. It's
 also possible to eavesdrop on notifications sent by running services. Taking
 neutron as an example (though all services are slightly different), we can
 make it output notifications by editing ``/etc/neutron/neutron.conf`` and
-adding under the ``[DEFAULT]`` section::
+adding under the ``[oslo_messaging_notifications]`` section::
 
-    notification_driver = messaging
+    driver = messagingv2
 
 There are then two ways to configure the service to send notifications that
 Searchlight can receive. The recommended method is to use notification pools,
