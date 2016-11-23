@@ -192,7 +192,7 @@ class TestSearchLoad(functional.FunctionalTest):
                 es_utils.delete_index(expected_index_name)
 
             patch_es_reindex.assert_called_with(
-                [non_role_plugin.get_document_type()],
+                {non_role_plugin.get_document_type(): non_role_plugin},
                 [('searchlight', 'searchlight-search',
                  'searchlight-listener')],
                 {'searchlight': expected_index_name}
@@ -237,7 +237,7 @@ class TestSearchLoad(functional.FunctionalTest):
                 es_utils.delete_index(expected_index_name)
 
             patch_es_reindex.assert_called_with(
-                [non_role_plugin.get_document_type()],
+                {non_role_plugin.get_document_type(): non_role_plugin},
                 [('searchlight', 'searchlight-search',
                  'searchlight-listener')],
                 {'searchlight': expected_index_name}
