@@ -18,7 +18,6 @@ from elasticsearch import exceptions as es_exc
 from elasticsearch import helpers
 import logging
 import oslo_utils
-import six
 
 from oslo_config import cfg
 from oslo_utils import encodeutils
@@ -180,7 +179,7 @@ def _get_index_settings_from_config():
     if CONF.elasticsearch.index_gc_deletes is not None:
         index_settings['gc_deletes'] = CONF.elasticsearch.index_gc_deletes
 
-    for setting, value in six.iteritems(CONF.elasticsearch.index_settings):
+    for setting, value in CONF.elasticsearch.index_settings.items():
         if setting.startswith('index.'):
             setting = setting[len('index_'):]
 
@@ -467,7 +466,7 @@ def transform_facets_results(result_aggregations, resource_type):
        ]}
     """
     facet_terms = {}
-    for term, aggregation in six.iteritems(result_aggregations):
+    for term, aggregation in result_aggregations.items():
         if term in aggregation:
             # Again, deeper nesting question
             term_buckets = aggregation[term]['buckets']

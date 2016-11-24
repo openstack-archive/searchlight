@@ -18,7 +18,6 @@ from elasticsearch import exceptions as es_exc
 from elasticsearch import helpers
 import logging
 from oslo_utils import fnmatch
-import six
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.i18n import _LE, _LW, _LI
@@ -550,7 +549,7 @@ class IndexingHelper(object):
         Returns a copy of the document even if there's nothing to remove.
         """
         sanitized_document = {}
-        for k, v in six.iteritems(document):
+        for k, v in document.items():
             # Only return a field if it doesn't have ANY matches against
             # admin_only_fields
             if not any(fnmatch.fnmatch(k, field)
@@ -568,7 +567,7 @@ class IndexingHelper(object):
         """
         def apply_doc_values(field_def):
             if field_def.get('type', 'object') in ('nested', 'object'):
-                for _, nested_def in six.iteritems(field_def['properties']):
+                for _, nested_def in field_def['properties'].items():
                     apply_doc_values(nested_def)
             else:
                 if 'doc_values' not in field_def:
@@ -578,16 +577,16 @@ class IndexingHelper(object):
                           field_def.get('index', '') == 'not_analyzed'):
                         field_def['doc_values'] = True
 
-                for _, multidef in six.iteritems(field_def.get('fields', {})):
+                for _, multidef in field_def.get('fields', {}).items():
                     apply_doc_values(multidef)
 
         # Check dynamic templates. These are a list of dicts each with a single
         # key (the template name) and a mapping definition
         for dynamic_template in mapping.get('dynamic_templates', []):
-            for dyn_field, dyn_mapping in six.iteritems(dynamic_template):
+            for dyn_field, dyn_mapping in dynamic_template.items():
                 apply_doc_values(dyn_mapping['mapping'])
 
-        for field, definition in six.iteritems(mapping['properties']):
+        for field, definition in mapping['properties'].items():
             apply_doc_values(definition)
 
 

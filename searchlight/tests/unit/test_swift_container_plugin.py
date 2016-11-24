@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import datetime
-import six
 import time
 
 
@@ -84,10 +83,10 @@ def _notification_container_fixture(account_id, **kwargs):
         'project_id': None,
         'project_domain_id': None
     }
-    for k, v in six.iteritems(kwargs):
+    for k, v in kwargs.items():
         if k in notification:
             notification[k] = v
-    for k, v in six.iteritems(metadata):
+    for k, v in metadata.items():
         notification[k] = v
     return notification
 

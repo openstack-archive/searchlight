@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import json
-import six
 
 from searchlight.tests.functional import generate_load_data
 
@@ -27,7 +26,7 @@ class FakeImage(dict):
 
 class FakeImageMember(dict):
     def __init__(self, **kwargs):
-        for key, value in six.iteritems(kwargs):
+        for key, value in kwargs.items():
             self.__setitem__(key, value)
 
 
@@ -120,7 +119,7 @@ class FakeGlanceClient(object):
         self._image_members_list = []
         with open(generate_load_data.IMAGE_MEMBERS_FILE, "r") as file:
             image_members_data = json.load(file)
-        for image_id, image_members in six.iteritems(image_members_data):
+        for image_id, image_members in image_members_data.items():
             for image_member in image_members:
                 fake_image_member = FakeImageMember(**image_member)
                 self._image_members_list.append(fake_image_member)

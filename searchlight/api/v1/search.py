@@ -305,7 +305,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             # Reject any requests including the 'global' aggregation type
             # because it bypasses RBAC. 'global' aggregations can only occur
             # at the top level, so we only need to check that level
-            for agg_name, agg_definition in six.iteritems(aggregations):
+            for agg_name, agg_definition in aggregations.items():
                 if 'global' in agg_definition:
                     msg = _LE(
                         "Aggregation '%s' contains the 'global' aggregation "
@@ -369,7 +369,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                 if sort_field in searchlight.elasticsearch.RAW_SORT_FIELDS:
                     return sort_field + ".raw"
             elif isinstance(sort_field, dict):
-                for field_name, sort_params in six.iteritems(sort_field):
+                for field_name, sort_params in sort_field.items():
                     if field_name in searchlight.elasticsearch.RAW_SORT_FIELDS:
                         # There should only be one object
                         return {field_name + ".raw": sort_params}
@@ -385,7 +385,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         highlighting all the filter terms we add for RBAC.
         """
         highlight_fields = highlight.get('fields', {})
-        for field_name, highlight_params in six.iteritems(highlight_fields):
+        for field_name, highlight_params in highlight_fields.items():
             if 'highlight_query' not in highlight_params:
                 highlight_params['highlight_query'] = query
 

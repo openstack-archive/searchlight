@@ -33,7 +33,7 @@ def serialize_cinder_volume(volume):
     LOG.debug("Serializing volume %s for project %s",
               volume.id, volume.user_id)
 
-    serialized = {k: v for k, v in six.iteritems(volume.to_dict())
+    serialized = {k: v for k, v in volume.to_dict().items()
                   if k not in BLACKLISTED_FIELDS}
 
     project_id = serialized.get('os-vol-tenant-attr:tenant_id')
@@ -56,7 +56,7 @@ def serialize_cinder_snapshot(snapshot):
     LOG.debug("Serializing snapshot %s for project %s",
               snapshot.id, project_id)
 
-    serialized = {k: v for k, v in six.iteritems(snapshot.to_dict())
+    serialized = {k: v for k, v in snapshot.to_dict().items()
                   if k not in BLACKLISTED_FIELDS}
 
     if 'tenant_id' not in serialized:

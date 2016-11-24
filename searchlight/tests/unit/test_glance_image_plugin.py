@@ -16,7 +16,6 @@
 import copy
 import datetime
 import mock
-import six
 
 import glanceclient.exc
 from oslo_utils import timeutils
@@ -76,7 +75,7 @@ def _image_fixture(image_id, **kwargs):
         'updated_at': DATE1,
     }
     image.update(kwargs)
-    for k, v in six.iteritems(extra_properties):
+    for k, v in extra_properties.items():
         image[k] = v
     return image
 
@@ -103,10 +102,10 @@ def _notification_fixture(image_id, **kwargs):
         'updated_at': DATE1,
         'properties': {}
     }
-    for k, v in six.iteritems(kwargs):
+    for k, v in kwargs.items():
         if k in notification:
             notification[k] = v
-    for k, v in six.iteritems(properties):
+    for k, v in properties.items():
         notification['properties'][k] = v
     return notification
 

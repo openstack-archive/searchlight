@@ -15,7 +15,6 @@
 
 import datetime
 import logging
-import six
 
 from oslo_utils import timeutils
 
@@ -36,7 +35,7 @@ dateformat = "%a, %d %b %Y %H:%M:%S %Z"
 
 
 def serialize_swift_account(account):
-    metadocument = {k: account.get(k, None) for k, v in six.iteritems(account)
+    metadocument = {k: account.get(k, None) for k, v in account.items()
                     if k.lower().startswith("x-account-meta")}
     account_fields = ('id', 'name')
     document = {f: account.get(f, None) for f in account_fields}
@@ -66,7 +65,7 @@ def serialize_swift_account_notification(account):
 
 def serialize_swift_container(container):
     metadocument = {k: container.get(k, None) for k, v in
-                    six.iteritems(container)
+                    container.items()
                     if k.lower().startswith("x-container-meta")}
     container_fields = ('id',
                         'name',
@@ -104,7 +103,7 @@ def serialize_swift_container_notification(container):
 
 
 def serialize_swift_object(sobject):
-    metadocument = {k: sobject.get(k, None) for k, v in six.iteritems(sobject)
+    metadocument = {k: sobject.get(k, None) for k, v in sobject.items()
                     if k.lower().startswith("x-object-meta")}
     object_fields = ('id',
                      'name',

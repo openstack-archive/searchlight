@@ -50,7 +50,7 @@ class NotificationEndpoint(object):
     def __init__(self, plugins):
         self.plugins = plugins
         self.notification_target_map = {}
-        for plugin_type, plugin in six.iteritems(self.plugins):
+        for plugin_type, plugin in self.plugins.items():
             try:
                 handler = plugin.obj.get_notification_handler()
                 if not handler:
@@ -133,7 +133,7 @@ class ListenerService(os_service.Service):
 
     def topics_and_exchanges(self):
         topics_exchanges = set()
-        for plugin_type, plugin in six.iteritems(self.plugins):
+        for plugin_type, plugin in self.plugins.items():
             try:
                 handler = plugin.obj.get_notification_handler()
                 if handler:

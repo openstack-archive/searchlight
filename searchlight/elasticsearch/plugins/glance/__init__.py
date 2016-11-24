@@ -99,7 +99,7 @@ def serialize_glance_notification(note):
     for attr in ('deleted', 'deleted_at'):
         note.pop(attr, None)
 
-    for k, v in six.iteritems(note.pop('properties', {})):
+    for k, v in note.pop('properties', {}).items():
         note[k] = v
     # 'Members' will be set in serialize_glance_image
     return serialize_glance_image(note)
@@ -138,7 +138,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
         }
         serialized_obj['properties'] = sorted([
             _serialize_property(name, property)
-            for name, property in six.iteritems(obj.get('properties', {}))
+            for name, property in obj.get('properties', {}).items()
         ], key=operator.itemgetter('name'))
         return serialized_obj
 
@@ -178,8 +178,7 @@ def serialize_glance_metadef_ns(metadef_namespace):
         _serialize_tag(tag) for tag in metadef_namespace.get('tags', [])])
     document['properties'] = sorted([
         _serialize_property(name, property)
-        for name, property in six.iteritems(
-            metadef_namespace.get('properties', {}))
+        for name, property in metadef_namespace.get('properties', {}).items()
     ], key=operator.itemgetter('name'))
     document['objects'] = sorted([
         _serialize_object(obj) for obj in metadef_namespace.get('objects', [])

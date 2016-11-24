@@ -51,7 +51,7 @@ def serialize_nova_server(server):
 
     LOG.debug("Serializing server %s for project %s",
               server.id, server.tenant_id)
-    serialized = {k: v for k, v in six.iteritems(server.to_dict())
+    serialized = {k: v for k, v in server.to_dict().items()
                   if k not in BLACKLISTED_FIELDS}
 
     # Some enhancements
@@ -95,7 +95,7 @@ def serialize_nova_hypervisor(hypervisor, updated_at=None):
 
 
 def serialize_nova_flavor(flavor, updated_at=None):
-    serialized = {k: v for k, v in six.iteritems(flavor.to_dict())
+    serialized = {k: v for k, v in flavor.to_dict().items()
                   if k not in ("links")}
     serialized["extra_specs"] = flavor.get_keys()
 
@@ -119,7 +119,7 @@ def _format_networks(server, serialized):
     # Keep the original as well
     addresses = copy.deepcopy(server.addresses)
 
-    for net_name, ports in six.iteritems(addresses):
+    for net_name, ports in addresses.items():
         for port in ports:
 
             LOG.debug("Transforming net %s port %s for server %s",

@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
@@ -231,7 +229,7 @@ class MetadefHandler(base.NotificationBase):
 
     def format_property(self, payload):
         prop_data = {}
-        for key, value in six.iteritems(payload):
+        for key, value in payload.items():
             if key not in self.property_delete_keys and value:
                 prop_data[key] = value
         return prop_data

@@ -843,7 +843,7 @@ class ElasticsearchWrapper(object):
             'ES_HEAP_SIZE': '50m'
         }
         cmd = 'elasticsearch '
-        cmd += ' '.join('--%s=%s' % kv for kv in six.iteritems(es_options))
+        cmd += ' '.join('--%s=%s' % kv for kv in es_options.items())
 
         # Fork and retain the PID
         self.elasticsearch_pid = test_utils.fork_exec(cmd,
