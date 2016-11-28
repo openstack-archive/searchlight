@@ -21,7 +21,7 @@ from oslo_utils import fnmatch
 import six
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
-from searchlight.i18n import _LE, _LW, _LI
+from searchlight.i18n import _LE, _LW
 
 # Refer to ROLE_USER_FIELD
 ADMIN_ID_SUFFIX = "_ADMIN"
@@ -357,7 +357,7 @@ class IndexingHelper(object):
         total_hits = search_results['hits']['total']
         if not total_hits:
             ctx = {'doc_type': self.document_type, 'id': doc_id}
-            LOG.warning(_LI(
+            LOG.warning(_LW(
                 "No results found for %(doc_type)s id %(id)s; can't find "
                 "routing to delete") % ctx)
             return
