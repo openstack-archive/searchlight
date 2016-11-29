@@ -556,6 +556,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                                    'delete_document') as mock_deleter:
                 fake_timestamp = '2015-09-01 08:57:35.282586'
                 notification_handler.index_from_api(
+                    'fake_event_type',
                     {u'instance_id': u'missing',
                      u'updated_at': u'2016-02-01T00:00:00Z'},
                     fake_timestamp)
@@ -675,96 +676,96 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             # type, payload, timestamp
             type_handler = event_handlers.get(message[0], None)
             if type_handler:
-                type_handler(message[1], message[2])
+                type_handler(*message)
 
         with mock.patch.object(self.plugin.index_helper,
                                'save_documents') as mock_save, \
-            mock.patch.object(self.plugin.index_helper,
-                              'update_document') as mock_update, \
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                def assert_call_counts(get, save, update):
+                def assert_call_counts(get, save):
                     # Helper to reduce copy pasta
                     self.assertEqual(get, nova_getter.call_count)
                     self.assertEqual(save, mock_save.call_count)
-                    self.assertEqual(update, mock_update.call_count)
 
                 # Expect a nova API hit from the first update
                 handle_message(successful_boot_events[0],
                                "compute.instance.update")
-                assert_call_counts(get=1, save=1, update=0)
+                assert_call_counts(get=1, save=1)
 
                 # Expect nothing for the next update (should be ignored)
                 handle_message(successful_boot_events[1],
                                "compute.instance.update")
-                assert_call_counts(get=1, save=1, update=0)
+                assert_call_counts(get=1, save=1)
 
                 # Causes a nova GET
                 handle_message(successful_boot_events[2],
                                "compute.instance.create.start")
-                assert_call_counts(get=2, save=2, update=0)
+                assert_call_counts(get=2, save=2)
 
                 # Update after create.start is ignored
                 handle_message(successful_boot_events[3],
                                "compute.instance.update")
-                assert_call_counts(get=2, save=2, update=0)
+                assert_call_counts(get=2, save=2)
 
                 # Then networking, disk mapping etc
                 mock_engine.get.return_value = {
                     '_version': 3,
                     '_source': {
                         'OS-EXT-STS:vm_state': 'building',
-                        'OS-EXT-STS:task_state': None
+                        'OS-EXT-STS:task_state': None,
+                        'id': 1
                     }
                 }
                 handle_message(successful_boot_events[4],
                                "compute.instance.update")
-                assert_call_counts(get=2, save=2, update=1)
+                assert_call_counts(get=2, save=3)
 
                 mock_engine.get.return_value = {
                     '_version': 4,
                     '_source': {
                         'OS-EXT-STS:vm_state': 'building',
-                        'OS-EXT-STS:task_state': 'networking'
+                        'OS-EXT-STS:task_state': 'networking',
+                        'id': 1
                     }
                 }
                 handle_message(successful_boot_events[5],
                                "compute.instance.update")
-                assert_call_counts(get=2, save=2, update=2)
+                assert_call_counts(get=2, save=4)
 
                 mock_engine.get.return_value = {
                     '_version': 5,
                     '_source': {
                         'OS-EXT-STS:vm_state': 'building',
-                        'OS-EXT-STS:task_state': 'block_device_mapping'
+                        'OS-EXT-STS:task_state': 'block_device_mapping',
+                        'id': 1
                     }
                 }
                 handle_message(successful_boot_events[6],
                                "compute.instance.update")
-                assert_call_counts(get=2, save=2, update=3)
+                assert_call_counts(get=2, save=5)
 
                 # port.create events are ignored
                 handle_message(successful_boot_events[7],
                                "port.create.start")
                 handle_message(successful_boot_events[8],
                                "port.create.end")
-                assert_call_counts(get=2, save=2, update=3)
+                assert_call_counts(get=2, save=5)
 
                 # image.send ignored
                 handle_message(successful_boot_events[9], "image.send")
                 handle_message(successful_boot_events[10], "image.send")
-                assert_call_counts(get=2, save=2, update=3)
+                assert_call_counts(get=2, save=5)
 
                 # final update is also ignored because create.end follows
                 handle_message(successful_boot_events[11],
                                "compute.instance.update")
-                assert_call_counts(get=2, save=2, update=3)
+                assert_call_counts(get=2, save=5)
 
                 # create.end causes full save
                 handle_message(successful_boot_events[12],
                                "compute.instance.create.end")
-                assert_call_counts(get=3, save=3, update=3)
+                assert_call_counts(get=3, save=6)
 
     def test_racing_state_change_notifications(self):
         """Test that a 'state update' change doesn't get applied if it looks
@@ -777,7 +778,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         event_handlers = handler.get_event_handlers()
 
         with mock.patch.object(self.plugin.index_helper,
-                               'update_document') as mock_update:
+                               'save_document') as mock_save:
             # Simulate the 'spawning' event getting processed first
             mock_engine.get.return_value = {
                 '_version': 4,
@@ -787,6 +788,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                 }
             }
             event_handlers['compute.instance.update'](
+                'compute.instance.update',
                 dict(state_description="block_device_mapping",
                      old_state="building", state="building",
                      old_task_state="networking",
@@ -794,7 +796,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                      instance_id=u"a380287d-1f61-4887-959c-8c5ab8f75f8f"),
                 "2016-05-12 20:44:41.298666")
 
-            self.assertEqual(0, mock_update.call_count)
+            self.assertEqual(0, mock_save.call_count)
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_delete_state_change_notifications(self, mock_version):
@@ -845,7 +847,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             # type, payload, timestamp
             type_handler = event_handlers.get(message[0], None)
             if type_handler:
-                type_handler(message[1], message[2])
+                type_handler(*message)
             else:
                 if expect_handled:
                     self.fail("Expected event '%s' to be handled" %
@@ -940,7 +942,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             # type, payload, timestamp
             type_handler = event_handlers.get(message[0], None)
             if type_handler:
-                type_handler(message[1], message[2])
+                type_handler(*message)
             else:
                 if expect_handled:
                     self.fail("Expected event '%s' to be handled" %
@@ -1021,7 +1023,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             # type, payload, timestamp
             type_handler = event_handlers.get(message[0], None)
             if type_handler:
-                type_handler(message[1], message[2])
+                type_handler(*message)
             else:
                 if expect_handled:
                     self.fail("Expected event '%s' to be handled" %
@@ -1132,7 +1134,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             # type, payload, timestamp
             type_handler = event_handlers.get(message[0], None)
             if type_handler:
-                type_handler(message[1], message[2])
+                type_handler(*message)
             else:
                 if expect_handled:
                     self.fail("Expected event '%s' to be handled" %
@@ -1239,9 +1241,9 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                              "Expected event type doesn't match test "
                              "message type.")
             # type, payload, timestamp
-            type_handler = event_handlers.get(message[0], None)
+            type_handler = event_handlers.get(message[0])
             if type_handler:
-                type_handler(message[1], message[2])
+                type_handler(*message)
             else:
                 if expect_handled:
                     self.fail("Expected event '%s' to be handled" %

@@ -37,8 +37,8 @@ class PretendNotificationHandler(base.NotificationBase):
             'test.create.end': self.event1
         }
 
-    def event1(self, payload, timestamp):
-        self.event1_called_with.append((payload, timestamp))
+    def event1(self, event_type, payload, timestamp):
+        self.event1_called_with.append((event_type, payload, timestamp))
 
 
 class StevedorePlugin(object):
@@ -67,7 +67,7 @@ class TestListener(test_utils.BaseTestCase):
 
         plugins = {'plugin1': StevedorePlugin('plugin1', plugin1),
                    'plugin2': StevedorePlugin('plugin1', plugin2)}
-        notification_ep = listener.NotificationEndpoint(plugins)
+        notification_ep = listener.NotificationEndpoint(plugins, mock.Mock())
 
         self.assertEqual(['test.create.end'],
                          list(notification_ep.notification_target_map.keys()))
@@ -78,9 +78,9 @@ class TestListener(test_utils.BaseTestCase):
         notification_ep.info({}, None, 'test.create.end',
                              {'test': 'payload'}, {'timestamp': 1234})
 
-        self.assertEqual([({'test': 'payload'}, 1234)],
+        self.assertEqual([('test.create.end', {'test': 'payload'}, 1234)],
                          handler1.event1_called_with)
-        self.assertEqual([({'test': 'payload'}, 1234)],
+        self.assertEqual([('test.create.end', {'test': 'payload'}, 1234)],
                          handler2.event1_called_with)
 
 
@@ -92,7 +92,7 @@ class TestEndpointPriorities(test_utils.BaseTestCase):
         plugin.get_notification_handler.return_value = handler
 
         plugins = {'plugin': StevedorePlugin('plugin', plugin)}
-        notification_ep = listener.NotificationEndpoint(plugins)
+        notification_ep = listener.NotificationEndpoint(plugins, mock.Mock())
         fake_metadata = {'timestamp': 'fake'}
         notification_ep.info({}, 'fake', 'test.create.end', {}, fake_metadata)
         self.assertEqual('INFO', log_info_mock.call_args[0][1]['priority'])

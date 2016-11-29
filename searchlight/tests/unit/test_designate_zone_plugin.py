@@ -16,8 +16,11 @@
 import datetime
 import mock
 
-from searchlight.elasticsearch.plugins.designate import zones as zones_plugin
+from searchlight.elasticsearch.plugins import designate
 from searchlight.elasticsearch import ROLE_USER_FIELD
+from searchlight import pipeline
+from searchlight.tests.unit.test_designate_recordset_plugin import \
+    _recordset_fixture
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -53,7 +56,8 @@ def _zone_fixture(zone_id, tenant_id, name, **kwargs):
 class TestZonePlugin(test_utils.BaseTestCase):
     def setUp(self):
         super(TestZonePlugin, self).setUp()
-        self.plugin = zones_plugin.ZoneIndex()
+        self.plugin = designate.zones.ZoneIndex()
+        self.plugin.child_plugins = [designate.recordsets.RecordSetIndex()]
 
         self._create_fixtures()
 
@@ -74,6 +78,13 @@ class TestZonePlugin(test_utils.BaseTestCase):
         self.zone3 = _zone_fixture(ID3, TENANT2, name='tenant2.com.',
                                    type='PRIMARY')
         self.zones = (self.zone1, self.zone2, self.zone3)
+
+    def check_item(
+            self, item, expected_type, event_type, payload, plugin_type):
+        self.assertIsInstance(item, expected_type)
+        self.assertEqual(event_type, item.event_type)
+        self.assertIsInstance(item.plugin, plugin_type)
+        self.assertEqual(payload, item.payload)
 
     def test_missing_updated(self):
         """Designate records don't always have a value for 'updated'"""
@@ -137,3 +148,191 @@ class TestZonePlugin(test_utils.BaseTestCase):
     def test_serialize(self):
         serialized = self.plugin.serialize(self.zone1)
         self.assertEqual(TENANT1, serialized['project_id'])
+
+    def test_delete_zone(self):
+        delete_event = (
+            "dns.zone.delete",
+            {
+                "shard": 776,
+                "minimum": 3600,
+                "ttl": 3600,
+                "serial": 1459409054,
+                "deleted_at": None,
+                "id": "3081593e-10ca-408c-af77-1397e689c177",
+                "parent_zone_id": None,
+                "retry": 600,
+                "transferred_at": None,
+                "version": 10,
+                "type": "PRIMARY",
+                "email": "foo@example.org",
+                "status": "PENDING",
+                "description": None,
+                "deleted": "0",
+                "updated_at": "2016-03-31T17:39:05.000000",
+                "expire": 86400,
+                "masters": [],
+                "name": "myzone.net.",
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:30:02.000000",
+                "pool_id": "794ccc2c-d751-44fe-b57f-8894c9f5c842",
+                "refresh": 3588,
+                "delayed_notify": False,
+                "action": "DELETE",
+                "attributes": []
+            },
+            "2016-03-31 17:39:05.495730"
+        )
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'delete_document') as mock_zone_delete:
+            with mock.patch.object(
+                    self.plugin.child_plugins[0].index_helper,
+                    'delete_documents') as mock_recordset_delete:
+                with mock.patch(
+                        'elasticsearch.helpers.scan') as mock_scan:
+                    # mock scan method to return child recordset
+                    mock_scan.return_value = [{'_id': 'recordset1'}]
+                    type_handler = event_handlers.get(delete_event[0], None)
+                    result = type_handler(*delete_event)
+                    self.assertEqual(1, mock_zone_delete.call_count)
+                    self.assertEqual(1, mock_recordset_delete.call_count)
+                    self.assertEqual(2, len(result))
+                    self.check_item(result[0],
+                                    pipeline.DeleteItem,
+                                    delete_event[0],
+                                    delete_event[1],
+                                    designate.recordsets.RecordSetIndex
+                                    )
+                    self.assertEqual("recordset1", result[0].doc_id)
+                    self.check_item(result[1],
+                                    pipeline.DeleteItem,
+                                    delete_event[0],
+                                    delete_event[1],
+                                    designate.zones.ZoneIndex)
+                    self.assertEqual(
+                        "3081593e-10ca-408c-af77-1397e689c177",
+                        result[1].doc_id)
+
+    def test_update_zone(self):
+        update_event = (
+            "dns.zone.update",
+            {
+                "shard": 776,
+                "minimum": 3600,
+                "ttl": 4800,
+                "serial": 1459402269,
+                "deleted_at": None,
+                "id": "3081593e-10ca-408c-af77-1397e689c177",
+                "parent_zone_id": None,
+                "retry": 600,
+                "transferred_at": None,
+                "version": 2,
+                "type": "PRIMARY",
+                "email": "foo@example.org",
+                "status": "PENDING",
+                "description": None,
+                "deleted": "0",
+                "updated_at": "2016-03-31T05:31:10.000000",
+                "expire": 86400,
+                "masters": [],
+                "name": "myzone.net.",
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:30:02.000000",
+                "pool_id": "794ccc2c-d751-44fe-b57f-8894c9f5c842",
+                "refresh": 3588,
+                "delayed_notify": False,
+                "action": "UPDATE",
+                "attributes": []
+            },
+            "2016-03-31 05:31:10.232924"
+        )
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_document') as mock_save:
+            result = event_handlers.get(update_event[0])(*update_event)
+            self.assertEqual(1, mock_save.call_count)
+            self.check_item(result,
+                            pipeline.IndexItem,
+                            update_event[0],
+                            update_event[1],
+                            designate.zones.ZoneIndex
+                            )
+
+    def test_initial_create_zone(self):
+        create_event = (
+            "dns.zone.create",
+            {
+                "shard": 776,
+                "minimum": 3600,
+                "ttl": 3600,
+                "serial": 1459402202,
+                "deleted_at": None,
+                "id": "3081593e-10ca-408c-af77-1397e689c177",
+                "parent_zone_id": None,
+                "retry": 600,
+                "transferred_at": None,
+                "version": 1,
+                "type": "PRIMARY",
+                "email": "foo@example.org",
+                "status": "PENDING",
+                "description": None,
+                "deleted": "0",
+                "updated_at": None,
+                "expire": 86400,
+                "masters": [],
+                "name": "myzone.net.",
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:30:02.000000",
+                "pool_id": "794ccc2c-d751-44fe-b57f-8894c9f5c842",
+                "refresh": 3588,
+                "delayed_notify": False,
+                "action": "CREATE",
+                "attributes": []
+            },
+            "2016-03-31 05:30:02.692222"
+        )
+        handler = self.plugin.get_notification_handler()
+        with mock.patch(
+                'searchlight.elasticsearch.plugins.designate._get_recordsets'
+        ) as mock_list:
+            with mock.patch.object(handler.index_helper,
+                                   'save_documents') as mock_save:
+                with mock.patch.object(handler.recordset_helper,
+                                       'save_documents') as mock_rs_save:
+                    mock_list.return_value = [
+                        _recordset_fixture(
+                            "1",
+                            "3081593e-10ca-408c-af77-1397e689c177",
+                            "80264096ac454d3d904002491fafe2ec",
+                            name='www.test.com.',
+                            type='A',
+                            records=['192.0.2.1'])
+                    ]
+                    result = handler.process({},
+                                             "central.ubunt",
+                                             create_event[0],
+                                             create_event[1],
+                                             {'timestamp': create_event[2]}
+                                             )
+                    self.assertEqual(1, mock_save.call_count)
+                    self.assertEqual(1, mock_rs_save.call_count)
+                    self.assertEqual(len(result), 2)
+                    self.check_item(result[0],
+                                    pipeline.IndexItem,
+                                    create_event[0],
+                                    create_event[1],
+                                    designate.zones.ZoneIndex)
+                    self.assertEqual("3081593e-10ca-408c-af77-1397e689c177",
+                                     result[0].doc_id)
+                    self.check_item(result[1],
+                                    pipeline.IndexItem,
+                                    create_event[0],
+                                    create_event[1],
+                                    designate.recordsets.RecordSetIndex)
+                    self.assertEqual("1", result[1].doc_id)

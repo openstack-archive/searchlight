@@ -16,6 +16,7 @@
 import mock
 
 from searchlight.listener import NotificationEndpoint
+from searchlight.pipeline import PipelineManager
 from searchlight.tests import functional
 from searchlight.tests.functional import test_listener
 from searchlight.tests import utils
@@ -88,7 +89,10 @@ class TestDesignateListener(test_listener.TestSearchListenerBase):
         notification_plugins = {
             plugin.document_type: utils.StevedoreMock(plugin)
             for plugin in (self.zones_plugin, self.recordsets_plugin)}
-        self.notification_endpoint = NotificationEndpoint(notification_plugins)
+        self.notification_endpoint = NotificationEndpoint(
+            notification_plugins,
+            PipelineManager(notification_plugins)
+        )
 
         self.listener_alias = self.zones_plugin.alias_name_listener
 

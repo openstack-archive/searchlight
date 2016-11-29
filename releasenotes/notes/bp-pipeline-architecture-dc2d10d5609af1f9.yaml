@@ -1,0 +1,11 @@
+---
+prelude: >
+    Introduce a pipeline architecture to configure
+    publishers for resource plugins.
+features:
+  - Publishers can be configured at plugin level or
+    top level in configuration file. When Searchlight
+    does incremental updates via notifications,
+    configured publishers will receive information
+    about modified resources and publish them to subscribers
+    outside Searchlight.

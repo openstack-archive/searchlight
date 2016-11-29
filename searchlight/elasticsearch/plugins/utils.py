@@ -22,6 +22,7 @@ import six
 
 from oslo_config import cfg
 from oslo_utils import encodeutils
+from searchlight.context import RequestContext
 import searchlight.elasticsearch
 from searchlight.i18n import _LE, _LW
 
@@ -510,3 +511,17 @@ def find_missing_types(index_type_mapping):
                 missing_index.append(index)
 
     return set(missing_index), set(missing_type)
+
+
+def normalize_es_document(es_doc, plugin):
+    """
+    Remove any elasticsearch specific field and apply plugin's filter_result
+    method to given document.
+    """
+    # Remove user role field
+    es_doc.pop(searchlight.elasticsearch.ROLE_USER_FIELD, None)
+
+    # Apply plugin's filter_result
+    admin_context = RequestContext()
+    plugin.filter_result({'_source': es_doc}, admin_context)
+    return es_doc

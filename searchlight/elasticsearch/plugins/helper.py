@@ -340,6 +340,7 @@ class IndexingHelper(object):
                 action['_version'] = version
 
         self.delete_documents(to_delete, override_role_separation=True)
+        return to_delete
 
     def delete_document_unknown_parent(self, doc_id, version=None):
         """Deletes a document that requires routing but where the routing is

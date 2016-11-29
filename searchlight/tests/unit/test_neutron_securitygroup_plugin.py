@@ -114,7 +114,8 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
     def test_rule_update_exception(self):
         # Set up the return documents.
         payload = _secgrouprule_fixture(ID1, TENANT1)
-        doc = {'_source': {'security_group_rules': []}, '_version': 1}
+        doc = {'_source': {'security_group_rules': [], 'id': 1},
+               '_version': 1}
 
         handler = self.plugin.get_notification_handler()
         with mock.patch.object(self.plugin.index_helper,
@@ -129,7 +130,8 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
 
                 # 1 retry (exception).
                 mock_save.side_effect = [exc_obj, {}]
-                handler.create_or_update_rule(payload, None)
+                handler.create_or_update_rule(
+                    'security_group_rule.create.end', payload, None)
                 # 1 retry +  1 success = 2 calls.
                 self.assertEqual(2, mock_get.call_count)
                 self.assertEqual(2, mock_save.call_count)
@@ -145,7 +147,8 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
                                          exc_obj, exc_obj, exc_obj, exc_obj,
                                          exc_obj, exc_obj, exc_obj, exc_obj,
                                          {}]
-                handler.create_or_update_rule(payload, None)
+                handler.create_or_update_rule(
+                    'security_group_rule.create.end', payload, None)
                 # Verified we bailed out after 20 retires.
                 self.assertEqual(20, mock_get.call_count)
                 self.assertEqual(20, mock_save.call_count)
@@ -153,7 +156,8 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
     def test_rule_delete_exception(self):
         # Set up the return documents.
         payload = {'security_group_rule_id': ID1}
-        doc_get = {'_source': {'security_group_rules': []}, '_version': 1}
+        doc_get = {'_source': {'security_group_rules': [], 'id': 1},
+                   '_version': 1}
         doc_nest = {'hits': {'hits': [{
                     '_id': 123456789,
                     '_source': {'security_group_rules': []},
@@ -175,7 +179,8 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
 
                     # 1 retry (exception).
                     mock_save.side_effect = [exc_obj, {}]
-                    handler.delete_rule(payload, None)
+                    handler.delete_rule(
+                        'security_group_rule.delete.end', payload, None)
                     # 1 retry +  1 success = 2 calls.
                     self.assertEqual(1, mo_nest.call_count)
                     self.assertEqual(1, mock_get.call_count)
@@ -195,7 +200,8 @@ class TestSecurityGroupLoaderPlugin(test_utils.BaseTestCase):
                                              exc_obj, exc_obj, exc_obj,
                                              exc_obj, exc_obj, exc_obj,
                                              {}]
-                    handler.delete_rule(payload, None)
+                    handler.delete_rule(
+                        'security_group_rule.delete.end', payload, None)
                     # Verified we bailed out after 20 retires.
                     self.assertEqual(1, mo_nest.call_count)
                     self.assertEqual(20, mock_get.call_count)

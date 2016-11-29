@@ -19,6 +19,7 @@ from oslo_log import log as logging
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_volume
 from searchlight.i18n import _LW, _LE
+from searchlight import pipeline
 
 
 LOG = logging.getLogger(__name__)
@@ -50,19 +51,25 @@ class VolumeHandler(base.NotificationBase):
     def get_log_fields(self, event_type, payload):
         return ('id', payload.get('volume_id')),
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         volume_id = payload['volume_id']
         LOG.debug("Updating cinder volume information for %s", volume_id)
 
         try:
-            payload = serialize_cinder_volume(volume_id)
-            version = self.get_version(payload, timestamp)
-            self.index_helper.save_document(payload, version=version)
+            volume_payload = serialize_cinder_volume(volume_id)
+            version = self.get_version(volume_payload, timestamp)
+            self.index_helper.save_document(volume_payload, version=version)
+            return pipeline.IndexItem(
+                self.index_helper.plugin,
+                event_type,
+                payload,
+                volume_payload
+            )
         except cinderclient.exceptions.NotFound:
             LOG.warning(_LW("Volume %s not found; deleting") % volume_id)
             self.delete(payload, timestamp)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         volume_id = payload['volume_id']
         LOG.debug("Deleting cinder volume information for %s", volume_id)
         if not volume_id:
@@ -70,6 +77,12 @@ class VolumeHandler(base.NotificationBase):
 
         try:
             self.index_helper.delete_document({'_id': volume_id})
+            return pipeline.DeleteItem(
+                self.index_helper.plugin,
+                event_type,
+                payload,
+                volume_id
+            )
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting volume %(volume_id)s '

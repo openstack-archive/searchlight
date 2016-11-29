@@ -20,6 +20,7 @@ import mock
 from oslo_utils import uuidutils
 
 from searchlight.listener import NotificationEndpoint
+from searchlight.pipeline import PipelineManager
 from searchlight.tests import functional
 from searchlight.tests.functional import generate_load_data
 from searchlight.tests.functional import mock_glance_pyclient
@@ -451,7 +452,10 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         notification_plugins = {
             plugin.document_type: utils.StevedoreMock(plugin)
             for plugin in (self.images_plugin, self.metadefs_plugin)}
-        self.notification_endpoint = NotificationEndpoint(notification_plugins)
+        self.notification_endpoint = NotificationEndpoint(
+            notification_plugins,
+            PipelineManager(notification_plugins)
+        )
 
         self.images_index = self.images_plugin.alias_name_listener
         self.metadefs_index = self.metadefs_plugin.alias_name_listener
@@ -563,7 +567,6 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
 
     def test_md_namespace_create_event(self):
         """Send metadef_namespace.create notification event to listener"""
-
         create_event = self.metadef_events["metadef_namespace.create"]
         self._send_event_to_listener(create_event, self.metadefs_index)
         result = self._verify_event_processing(create_event)
@@ -588,10 +591,8 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         """Send an outdated metadef_namespace.update notification event to
         listener, test if the document will be updated
         """
-
         create_event = self.metadef_events['metadef_namespace.create']
         self._send_event_to_listener(create_event, self.metadefs_index)
-
         update_event = self.metadef_events['metadef_namespace.update']
         self._send_event_to_listener(update_event, self.metadefs_index)
 

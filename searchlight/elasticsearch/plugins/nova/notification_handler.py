@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from copy import deepcopy
 import novaclient.exceptions
 from oslo_log import log as logging
 
@@ -21,6 +22,7 @@ from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
 from searchlight.elasticsearch.plugins import utils
 from searchlight.i18n import _LE, _LW
+from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
 
@@ -109,7 +111,7 @@ class InstanceHandler(base.NotificationBase):
             # https://blueprints.launchpad.net/nova/+spec/interface-notifications
         }
 
-    def index_from_update(self, payload, timestamp):
+    def index_from_update(self, event_type, payload, timestamp):
         """Determine whether or not to process a full update. The updates, and
         how they are processed, are:
         BUILD (state=building unless noted)
@@ -213,14 +215,16 @@ class InstanceHandler(base.NotificationBase):
             LOG.debug("Skipping update or indexing for %s; event contains no "
                       "useful information", payload['instance_id'])
         elif not update_if_state_matches:
-            self.index_from_api(payload, timestamp)
+            return self.index_from_api(event_type, payload, timestamp)
         elif self.partial_state_updates:
-            self._partial_state_update(payload, update_if_state_matches)
+            return self._partial_state_update(
+                event_type, payload, update_if_state_matches)
         else:
             LOG.debug("Skipping partial state update for %s; functionality "
                       "is disabled", payload['instance_id'])
 
-    def _partial_state_update(self, payload, update_if_state_matches):
+    def _partial_state_update(
+            self, event_type, payload, update_if_state_matches):
         """Issue a partial document update that will only affect
         state and task_state fields.
         """
@@ -234,7 +238,7 @@ class InstanceHandler(base.NotificationBase):
         }
 
         if state_field_values:
-            # Run a partial document update. Don't want to use groovy scripting
+            # Don't want to use groovy scripting
             # because there's a high chance it'll be disabled; instead, will
             # get 'n' retrieve ourselves
             preexisting = self.index_helper.get_document(instance_id,
@@ -257,20 +261,23 @@ class InstanceHandler(base.NotificationBase):
                 return True
 
             if preexisting:
-                current_version = preexisting['_version']
                 if should_update(preexisting['_source']):
                     LOG.debug("Performing state update for %s", instance_id)
-                    # All preconditions matched; update_document will attempt
-                    # to run a partial document update
+                    # All preconditions matched; save_document will attempt
+                    # to save merged document
                     # TODO(sjmc7) - use the existing update_at to generate
                     # a new timestamp? Still seems kind of made up
-                    self.index_helper.update_document(
-                        state_field_values,
-                        instance_id,
-                        update_as_script=False,
-                        expected_version=current_version)
+                    preexisting['_source'].update(state_field_values)
+                    self.index_helper.save_document(
+                        preexisting['_source'],
+                        version=preexisting['_version'] + 1
+                    )
+                    return pipeline.IndexItem(self.index_helper.plugin,
+                                              event_type,
+                                              payload,
+                                              preexisting['_source'])
 
-    def index_from_api(self, payload, timestamp):
+    def index_from_api(self, event_type, payload, timestamp):
         """Index from the nova API"""
         instance_id = payload['instance_id']
         LOG.debug("Updating nova server information for %s", instance_id)
@@ -279,6 +286,10 @@ class InstanceHandler(base.NotificationBase):
             self.index_helper.save_document(
                 serialized_payload,
                 version=self.get_version(serialized_payload, timestamp))
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,
+                                      serialized_payload)
         except novaclient.exceptions.NotFound:
             LOG.warning(_LW("Instance %s not found; deleting") % instance_id)
 
@@ -287,9 +298,9 @@ class InstanceHandler(base.NotificationBase):
             deleted = (payload.get('state_description') == 'deleting' or
                        payload.get('state') == 'deleted')
             if not deleted:
-                self.delete(payload, timestamp)
+                return self.delete(event_type, payload, timestamp)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         instance_id = payload['instance_id']
         LOG.debug("Deleting nova instance information for %s", instance_id)
         if not instance_id:
@@ -300,6 +311,11 @@ class InstanceHandler(base.NotificationBase):
                                        preferred_date_field='deleted_at')
             self.index_helper.delete_document(
                 {'_id': instance_id, '_version': version})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       instance_id
+                                       )
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting instance %(instance_id)s '
@@ -355,7 +371,7 @@ class ServerGroupHandler(base.NotificationBase):
             try:
                 version += 1
                 self.index_helper.save_document(body, version=version)
-                break
+                return body
             except helpers.BulkIndexError as e:
                 if e.errors[0]['index']['status'] == 409:
                     # Conflict error, retry with new version of doc.
@@ -367,24 +383,34 @@ class ServerGroupHandler(base.NotificationBase):
             LOG.error(_LE('Error updating server group member %(id)s:'
                           ' Too many retries') % {'id': member_id})
 
-    def create(self, payload, timestamp):
-        payload['id'] = payload.pop('server_group_id')
-        payload['metadata'] = {}
-        payload['members'] = []
-        payload['updated_at'] = utils.get_now_str()
+    def create(self, event_type, payload, timestamp):
+        server_group = deepcopy(payload)
+        server_group['id'] = server_group.pop('server_group_id')
+        server_group['metadata'] = {}
+        server_group['members'] = []
+        server_group['updated_at'] = utils.get_now_str()
 
         LOG.debug("creating nova server group"
-                  "information for %s", payload['id'])
-        version = self.get_version(payload, timestamp)
-        self.index_helper.save_document(payload, version=version)
+                  "information for %s", server_group['id'])
+        version = self.get_version(server_group, timestamp)
+        self.index_helper.save_document(server_group, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  server_group)
 
-    def addmember(self, payload, timestamp):
+    def addmember(self, event_type, payload, timestamp):
         server_group_id = payload['server_group_id']
         instance_id = payload['instance_uuids'][0]
-        self._update_server_group_members(server_group_id,
-                                          instance_id)
+        server_group = self._update_server_group_members(server_group_id,
+                                                         instance_id)
+        if server_group:
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,
+                                      server_group)
 
-    def delete_instance(self, payload, timestamp):
+    def delete_instance(self, event_type, payload, timestamp):
 
         # When an instance is deleted from Nova, its' record in
         # InstanceGroup DB was cleaned directly from DB layer in
@@ -399,14 +425,20 @@ class ServerGroupHandler(base.NotificationBase):
         try:
             result = search_results['hits'][0]
             server_group_id = result['_id']
-            self._update_server_group_members(server_group_id,
-                                              instance_id,
-                                              delete=True)
+            server_group = self._update_server_group_members(
+                server_group_id,
+                instance_id,
+                delete=True)
         except IndexError:
             LOG.debug("No nova server group information for instance %s",
                       instance_id)
+        if server_group:
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,
+                                      server_group)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         server_group_id = payload['server_group_id']
         LOG.debug("Deleting nova server group information for %s",
                   server_group_id)
@@ -415,6 +447,11 @@ class ServerGroupHandler(base.NotificationBase):
 
         try:
             self.index_helper.delete_document({'_id': server_group_id})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       server_group_id
+                                       )
         except Exception as exc:
             LOG.error(
                 _LE('Error deleting server group %(server_group_id)s '
