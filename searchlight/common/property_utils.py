@@ -14,11 +14,12 @@
 
 from collections import OrderedDict
 import re
+import six
+from six.moves import configparser
 
 from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_policy import policy
-from six.moves import configparser
 
 import searchlight.api.policy
 from searchlight.common import exception
@@ -26,7 +27,11 @@ from searchlight.i18n import _, _LE, _LW
 
 # NOTE(bourke): The default dict_type is collections.OrderedDict in py27, but
 # we must set manually for compatibility with py26
-CONFIG = configparser.SafeConfigParser(dict_type=OrderedDict)
+# SafeConfigParser was deprecated in Python 3.2
+if six.PY3:
+    CONFIG = configparser.ConfigParser(dict_type=OrderedDict)
+else:
+    CONFIG = configparser.SafeConfigParser(dict_type=OrderedDict)
 LOG = logging.getLogger(__name__)
 
 property_opts = [
