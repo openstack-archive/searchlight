@@ -291,7 +291,7 @@ function _install_elasticsearch {
         return
     fi
     if is_ubuntu; then
-        is_package_installed openjdk-7-jre-headless || install_package openjdk-7-jre-headless
+        is_package_installed default-jdk-headless || install_package default-jdk-headless
 
         sudo dpkg -i ${FILES}/elasticsearch-${ELASTICSEARCH_VERSION}.deb
         sudo update-rc.d elasticsearch defaults 95 10
