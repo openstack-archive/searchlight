@@ -91,22 +91,25 @@ class IndexCommands(object):
             # Grab the correct tuple as a list, convert list to a
             # single tuple, extract second member (the search
             # alias) of tuple.
+            plugins_reindex = [
+                doc_type for doc_type, plugin in six.iteritems(es_reindex)
+                if plugin.resource_group_name == group]
             alias_search = \
                 [a for a in resource_groups if a[0] == group][0][1]
             LOG.info(_LI("ES Reindex start from %(src)s to %(dst)s "
                          "for types %(types)s") %
                      {'src': alias_search, 'dst': index_names[group],
-                      'types': ', '.join(es_reindex)})
+                      'types': ', '.join(plugins_reindex)})
             dst_index = index_names[group]
             try:
                 es_utils.reindex(src_index=alias_search,
                                  dst_index=dst_index,
-                                 type_list=es_reindex)
+                                 type_list=plugins_reindex)
                 es_utils.refresh_index(dst_index)
                 LOG.info(_LI("ES Reindex end from %(src)s to %(dst)s "
                              "for types %(types)s") %
                          {'src': alias_search, 'dst': index_names[group],
-                          'types': ', '.join(es_reindex)})
+                          'types': ', '.join(plugins_reindex)})
             except Exception as e:
                 LOG.exception(_LE("Failed to setup index extension "
                                   "%(ex)s: %(e)s") % {'ex': dst_index, 'e': e})
@@ -253,8 +256,8 @@ class IndexCommands(object):
         #
         # Also, if force_es is set the user wishes to use ES exclusively
         # as the source for all data. This implies everything in the
-        # es_reindex list and nothing in the plugins_to_index list.
-        es_reindex = []
+        # es_reindex dictionary and nothing in the plugins_to_index list.
+        es_reindex = {}
         plugins_to_index = copy.copy(plugins_list)
         if _type or force_es:
             for resource_type, ext in plugins_list:
@@ -263,7 +266,7 @@ class IndexCommands(object):
                 # If force_es is set, then "_type" is None. Always do this.
                 # If force_es is None, then "_type" is set. Adjust as needed.
                 if doc_type not in _type:
-                    es_reindex.append(doc_type)
+                    es_reindex[doc_type] = ext.obj
                     # Don't reindex this type
                     plugins_to_index.remove((resource_type, ext))
 
