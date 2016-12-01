@@ -123,7 +123,10 @@ class IndexCommands(object):
           help="Don't prompt (answer 'y')")
     @args('--apply-mapping-changes', dest='force_es', action='store_true',
           help="Use existing indexed data but apply mappings and settings")
-    def sync(self, group=None, _type=None, force=False, force_es=False):
+    @args('--notification-less', dest='notification_less', action='store_true',
+          help="Index only plugins without notification")
+    def sync(self, group=None, _type=None, force=False, force_es=False,
+             notification_less=False):
         def wait_for_threads():
             """Patiently wait for all running threads to complete.
             """
@@ -161,11 +164,19 @@ class IndexCommands(object):
 
             sys.exit(0)
 
-        if force_es and _type:
+        if _type and notification_less:
+            LOG.error(_LE("Ignoring --type since --notification-less is "
+                          "specified."))
+
+        if force_es and (_type or notification_less):
+            if notification_less:
+                option = "--notification-less"
+            else:
+                option = "--type"
             # The user cannot specify both of these options simultaneously.
             print("\nInvalid set of options.")
-            print("Cannot specify both '--type' and '--apply-mapping-changes "
-                  "simultaneously.\n")
+            print("Cannot specify both '%s' and '--apply-mapping-changes' "
+                  "simultaneously.\n" % option)
             sys.exit(1)
 
         try:
@@ -183,6 +194,8 @@ class IndexCommands(object):
         # index and _type are lists because of nargs='*'
         group = group.split(',') if group else []
         _type = _type.split(',') if _type else []
+
+        _plugins_without_notification = []
 
         _type = utils.expand_type_matches(
             _type, six.viewkeys(search_plugins))
@@ -213,6 +226,13 @@ class IndexCommands(object):
         sync needs to be a separate step. The API states that if any invalid
         plugin was specified by the caller, the entire operation fails.
         """
+        if notification_less:
+            for res_type, ext in six.iteritems(search_plugins):
+                if not ext.obj.get_notification_handler():
+                    _plugins_without_notification.append(
+                        ext.obj.get_document_type())
+            # Override _type list.
+            _type = _plugins_without_notification
 
         # First Pass: Document Types.
         if _type:
@@ -308,8 +328,12 @@ class IndexCommands(object):
                   '\n'.join(map(format_selection, sorted(display_plugins))))
 
             if es_reindex:
-                print("Any types marked with * will be reindexed from "
-                      "existing Elasticsearch data.\n")
+                msg = ("Any types marked with * will be reindexed from "
+                       "existing Elasticsearch data.\n")
+                if notification_less:
+                    LOG.warning(msg)
+                else:
+                    print(msg)
 
             if plugins_without_notifications:
                 print("Any types marked with !! do not support incremental "
@@ -317,12 +341,13 @@ class IndexCommands(object):
                 print("These types must be fully re-indexed periodically or "
                       "should be disabled.\n")
 
-            ans = six.moves.input(
-                "\nUse '--force' to suppress this message.\n"
-                "OK to continue? [y/n]: ")
-            if ans.lower() != 'y':
-                print("Aborting.")
-                sys.exit(0)
+            if not notification_less:
+                ans = six.moves.input(
+                    "\nUse '--force' to suppress this message.\n"
+                    "OK to continue? [y/n]: ")
+                if ans.lower() != 'y':
+                    print("Aborting.")
+                    sys.exit(0)
 
         # Start the re-indexing process.
         # Now we are starting to change Elasticsearch. Let's clean up

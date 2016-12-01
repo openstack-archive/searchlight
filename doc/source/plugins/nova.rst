@@ -69,6 +69,7 @@ This plugin represents each of the Nova compute nodes.
 
     [resource_plugin:os_nova_hypervisor]
     enabled = true
+    resource_group_name = sl_without_notification
 
 .. note::
 
@@ -84,6 +85,7 @@ Plugin: OS::Nova::Flavor
 
     [resource_plugin:os_nova_flavor]
     enabled = true
+    resource_group_name = sl_without_notification
 
 .. note::
 
@@ -99,6 +101,7 @@ Plugin: OS::Nova::SeverGroup
 
     [resource_plugin:os_nova_servergroup]
     enabled = true
+    resource_group_name = sl_without_notification
 
 .. note::
 

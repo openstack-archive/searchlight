@@ -132,6 +132,17 @@ To index all resources in the 'searchlight' resource group::
 
 You will be prompted to confirm unless ``--force`` is provided.
 
+To reindex resources only without notification::
+
+    $ searchlight-manage index sync --notification-less
+
+.. note::
+
+    We *strongly* recommend putting the notification-less plugins in their own
+    resource group and scheduling a `cron https://en.wikipedia.org/wiki/Cron`_
+    job to periodically re-sync the notification plugins to keep the documents
+    up to date.
+
 The ``searchlight-manage index sync`` command may be re-run at any time to
 perform a full re-index of the data. As described above, there should be no
 or very little impact on search requests during this process.
