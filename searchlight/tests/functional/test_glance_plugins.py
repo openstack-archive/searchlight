@@ -16,7 +16,6 @@
 import copy
 import json
 import mock
-import six
 
 from oslo_utils import uuidutils
 
@@ -69,7 +68,7 @@ class TestGlancePlugins(functional.FunctionalTest):
                           "any_old_property", "spl_read_only_prop",
                           'image_type']
         expected_result = dict((k, v)
-                               for k, v in six.iteritems(doc_with_properties)
+                               for k, v in doc_with_properties.items()
                                if k not in expect_removed)
         expected_result['members'] = []
         expected_result['project_id'] = test_api.TENANT1
@@ -84,7 +83,7 @@ class TestGlancePlugins(functional.FunctionalTest):
                           "any_old_property", "x_owner_anything",
                           "image_type"]
         expected_result = dict((k, v)
-                               for k, v in six.iteritems(doc_with_properties)
+                               for k, v in doc_with_properties.items()
                                if k not in expect_removed)
         expected_result['members'] = []
         expected_result['project_id'] = test_api.TENANT1
@@ -97,7 +96,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         self.assertEqual(200, response.status)
         expect_removed = ["x_none_permitted", "x_none_read"]
         expected_result = dict((k, v)
-                               for k, v in six.iteritems(doc_with_properties)
+                               for k, v in doc_with_properties.items()
                                if k not in expect_removed)
         expected_result['members'] = []
         expected_result['project_id'] = test_api.TENANT1

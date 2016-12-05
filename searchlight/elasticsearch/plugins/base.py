@@ -214,7 +214,7 @@ class IndexBase(plugin.Plugin):
         def get_facets_for(property_mapping, meta_mapping, prefix='',
                            inside_nested=None):
             mapping_facets = []
-            for name, properties in six.iteritems(property_mapping):
+            for name, properties in property_mapping.items():
                 property_type = properties.get('type', 'object')
                 if property_type in ('nested', 'object'):
                     if include_facet(prefix + name):
@@ -324,7 +324,7 @@ class IndexBase(plugin.Plugin):
             # Not tremendously keen on the way this is structured but the
             # nested fields are a bit special case
             nested_fields = [name
-                             for name, properties in six.iteritems(mapping)
+                             for name, properties in mapping.items()
                              if properties['type'] == 'nested']
             if not exclude_options:
                 term_aggregations = utils.get_facets_query(fields,
@@ -372,7 +372,7 @@ class IndexBase(plugin.Plugin):
         """Check that fields that are expected to define a 'raw' field do so"""
         fields_needing_raw = searchlight.elasticsearch.RAW_SORT_FIELDS
         mapped_properties = self.get_mapping().get('properties', {})
-        for field_name, field_mapping in six.iteritems(mapped_properties):
+        for field_name, field_mapping in mapped_properties.items():
             if field_name in fields_needing_raw:
                 raw = field_mapping.get('fields', {}).get('raw', None)
                 if not raw:

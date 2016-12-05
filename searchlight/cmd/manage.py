@@ -236,7 +236,7 @@ class IndexCommands(object):
 
         # First Pass: Document Types.
         if _type:
-            for res_type, ext in six.iteritems(search_plugins):
+            for res_type, ext in search_plugins.items():
                 plugin_obj = ext.obj
                 type_set.discard(plugin_obj.get_document_type())
                 if plugin_obj.get_document_type() in _type:
@@ -249,7 +249,7 @@ class IndexCommands(object):
         resource_groups = []
         plugin_objs = {}
         plugins_list = []
-        for res_type, ext in six.iteritems(search_plugins):
+        for res_type, ext in search_plugins.items():
             plugin_obj = ext.obj
             group_set.discard(plugin_obj.resource_group_name)
             if (not group) or (plugin_obj.resource_group_name in group):
@@ -398,7 +398,7 @@ class IndexCommands(object):
         #   from the plugins and add a mapping for them as needed to the newly
         #   created indices.
         doc_type_info = []
-        for res_type, ext in six.iteritems(search_plugins):
+        for res_type, ext in search_plugins.items():
             doc_type_info.append((ext.obj.get_document_type(),
                                   ext.obj.parent_plugin_type))
         for index in list(index_names.values()):
@@ -481,7 +481,7 @@ class IndexCommands(object):
     def aliases(self):
         # Grab a list of aliases used by Searchlight.
         aliases = []
-        for res_type, ext in six.iteritems(utils.get_search_plugins()):
+        for res_type, ext in utils.get_search_plugins().items():
             aliases.append(ext.obj.alias_name_listener)
             aliases.append(ext.obj.alias_name_search)
 
@@ -528,7 +528,7 @@ def add_command_parsers(subparsers):
     """Adds any commands and subparsers for their actions. This code's
     from the Glance equivalent.
     """
-    for command_name, cls in six.iteritems(COMMANDS):
+    for command_name, cls in COMMANDS.items():
         command_object = cls()
 
         parser = subparsers.add_parser(command_name)

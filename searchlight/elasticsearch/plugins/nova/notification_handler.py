@@ -15,7 +15,6 @@
 
 import novaclient.exceptions
 from oslo_log import log as logging
-import six
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
@@ -239,7 +238,7 @@ class InstanceHandler(base.NotificationBase):
                                                          for_admin=True)
 
             def should_update(_source):
-                for key, value in six.iteritems(update_if_state_matches):
+                for key, value in update_if_state_matches.items():
                     key = self._state_fields[key]
                     if key not in _source:
                         LOG.debug("Skipping state update for %s; precondition "

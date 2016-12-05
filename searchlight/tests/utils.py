@@ -115,7 +115,7 @@ class BaseTestCase(testtools.TestCase):
         test by the fixtures cleanup process.
         """
         group = kw.pop('group', None)
-        for k, v in six.iteritems(kw):
+        for k, v in kw.items():
             CONF.set_override(k, v, group)
 
 

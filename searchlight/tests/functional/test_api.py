@@ -517,7 +517,7 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual(1, len(json_content['hits']['hits']))
         hit = json_content['hits']['hits'][0]
         self.assertEqual(doc_id + "_USER", hit['_id'])
-        for k, v in six.iteritems(hit):
+        for k, v in hit.items():
             self.assertFalse(k.startswith('OS-EXT-SRV-ATTR:'),
                              'No protected attributes should be present')
 

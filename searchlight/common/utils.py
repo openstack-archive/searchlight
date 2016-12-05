@@ -438,7 +438,7 @@ def get_search_plugins():
     # multiple times, in practice get_search_plugins is rarely called.
     # Unfortunately there's nowhere better to put this; stevedore instantiates
     # the plugins before we get to them
-    for plugin_type, loaded_plugin in six.iteritems(plugins):
+    for plugin_type, loaded_plugin in plugins.items():
         parent_type = loaded_plugin.obj.parent_plugin_type()
         if parent_type:
             LOG.debug("Setting up link between parent (%s) and child (%s)"

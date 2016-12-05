@@ -327,7 +327,7 @@ class TestPlugin(test_utils.BaseTestCase):
                         'include_in_all', 'properties']
 
         def merge_and_assert_conflict(resource_type, properties):
-            for field_name, field_type in six.iteritems(properties):
+            for field_name, field_type in properties.items():
 
                 # Ignore some properties (see above)
                 for prop in ignore_props:
@@ -366,7 +366,7 @@ class TestPlugin(test_utils.BaseTestCase):
         with mock.patch(index_base + '.enabled',
                         new_callable=mock.PropertyMock, return_value=True):
             plugins = searchlight_utils.get_search_plugins()
-            for resource_type, plugin in six.iteritems(plugins):
+            for resource_type, plugin in plugins.items():
                 props = plugin.obj.get_mapping()['properties']
                 merge_and_assert_conflict(resource_type, props)
                 for doc_type, mapping in plugin.obj.get_full_mapping():

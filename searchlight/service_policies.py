@@ -15,7 +15,6 @@
 
 import logging
 import os
-import six
 
 from oslo_config import cfg
 from oslo_policy import policy
@@ -52,7 +51,7 @@ def _get_enforcers():
     if not _ENFORCERS:
         _ENFORCERS = {}
         pol_files = cfg.CONF.service_policies.service_policy_files
-        for service, pol_file in six.iteritems(pol_files):
+        for service, pol_file in pol_files.items():
             base_path = str(cfg.CONF.service_policies.service_policy_path)
             service_policy_path = os.path.join(base_path,
                                                pol_file)
