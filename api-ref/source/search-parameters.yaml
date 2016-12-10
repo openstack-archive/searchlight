@@ -136,7 +136,7 @@ facet-list:
     contains the following fields:
 
     - name - the name of the facet
-    - type - the datatype of the fact
+    - type - the datatype of the facet
     - facet_field - (optional, may be available for some string fields)
       may be used to do an exact term match
   in: body

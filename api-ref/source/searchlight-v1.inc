@@ -49,7 +49,8 @@ name and resource name.  For example, a Nova server (or "instance") has the
 resource type identifier ``OS::Nova::Server``.
 
 A list of OpenStack resource type identifiers is maintained by the Heat project
-at http://docs.openstack.org/developer/heat/template_guide/openstack.html
+at `OpenStack Resource Types
+<http://docs.openstack.org/developer/heat/template_guide/openstack.html>`_.
 
 To summarize, you need to know the identifier for each OpenStack resource type
 you're interested in so that you can efficiently search for those resources.
@@ -518,7 +519,7 @@ Create a phrase search
 Submit a search request that looks for a phrase in a particular field.
 
 A common scenario is that you have custom metadata on some resources describing
-the resource in natural langage.  For example, you may have set a property
+the resource in natural language.  For example, you may have set a property
 named ``description`` on your images, where the value is a natural language
 sentence describing the recommended uses for that image.  You can query the
 Search API for responses that match that phrase in that field.
