@@ -120,20 +120,3 @@ class CatalogSearchRepo(object):
                 facets[resource_type] = type_facets
 
         return facets
-
-
-def using_elasticsearch_v2():
-    if elasticsearch.__version__[0] == 2:
-        message = (
-            "\n** The elasticsearch v2 python client is installed. **\n"
-            "Currently Searchlight cannot clear plugin data using "
-            "the v2 client.\nInstead, please manually delete any "
-            "indices with data to be cleared and reindex with "
-            "'--no-delete'. \nSee the developer documentation "
-            "(http://docs.openstack.org/developer/searchlight/"
-            "dev-environment.html) under 'Initialize the Elasticsearch "
-            "Index' for details.\n\n"
-            "If you are running a version 1 server, you may also install "
-            "the 1.9.0 client instead of the above steps.")
-        return message
-    return None
