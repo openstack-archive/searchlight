@@ -16,6 +16,7 @@
 from searchlight.api import policy
 from searchlight.common import property_utils
 from searchlight.common import resource_types
+from searchlight.common import utils
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance \
     import images_notification_handler
@@ -145,9 +146,11 @@ class ImageIndex(base.IndexBase):
 
     def filter_result(self, hit, request_context):
         super(ImageIndex, self).filter_result(hit, request_context)
-
+        highlight = hit.get('highlight')
+        if highlight:
+            utils.restore_dots_in_field_names(highlight)
         source = hit['_source']
-
+        utils.restore_dots_in_field_names(source)
         if property_utils.is_property_protection_enabled():
             for key in list(source.keys()):
                 if key not in self._image_base_properties:

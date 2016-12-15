@@ -14,6 +14,7 @@
 #    under the License.
 
 from searchlight.common import resource_types
+from searchlight.common import utils
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.glance \
     import metadefs_notification_handler
@@ -130,7 +131,11 @@ class MetadefIndex(base.IndexBase):
 
         # Revert the change we make to fit the 'tags' mapping used in other
         # plugins (see serialize_glance_metadef_ns in __init__.py)
+        highlight = hit.get('highlight')
+        if highlight:
+            utils.restore_dots_in_field_names(highlight)
         source = hit['_source']
+        utils.restore_dots_in_field_names(source)
         tags = source.pop('tags', None)
         if tags is not None:
             source['tags'] = [{"name": tag} for tag in tags]

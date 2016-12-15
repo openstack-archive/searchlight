@@ -51,6 +51,7 @@ CONF = cfg.CONF
 
 FEATURE_BLACKLIST = ['content-length', 'content-type', 'x-image-meta-size']
 SEARCHLIGHT_TEST_SOCKET_FD_STR = 'SEARCHLIGHT_TEST_SOCKET_FD'
+DOT_REPLACEMENT_KEY = '++'
 
 
 def safe_mkdirs(path):
@@ -473,3 +474,26 @@ def expand_type_matches(types, document_types):
         expanded_types.append(_type)
 
     return expanded_types
+
+
+def _convert_field(document, original, current):
+    """Convert field name by replacing original string with current"""
+    if isinstance(document, dict):
+        for k, v in six.iteritems(document):
+            if isinstance(v, list) or isinstance(v, dict):
+                _convert_field(v, original, current)
+            if original in k:
+                document.pop(k)
+                document[k.replace(original, current)] = v
+    elif isinstance(document, list):
+        for doc in document:
+            if isinstance(doc, list) or isinstance(doc, dict):
+                _convert_field(doc, original, current)
+
+
+def replace_dots_in_field_names(document):
+    _convert_field(document, '.', DOT_REPLACEMENT_KEY)
+
+
+def restore_dots_in_field_names(document):
+    _convert_field(document, DOT_REPLACEMENT_KEY, '.')

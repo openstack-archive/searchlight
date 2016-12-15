@@ -1,0 +1,11 @@
+---
+prelude: >
+    In Elasticsearch 2.x field names cannot contain '.', so when indexing
+    document with property contains '.' in field name, it will fail with
+    error "cannot contain '.'".
+upgrade:
+  - If you want to search field contains '.', you need to replace '.' with
+    '++', e.g. 'sahara_tag_2.7.1' -> 'sahara_tag_2++7++1'.
+fixes:
+  - Replace '.' with '++' when saving documents to Elasticsearch, and
+    convert back when searching results.

@@ -19,6 +19,7 @@ from elasticsearch import helpers
 import logging
 from oslo_utils import fnmatch
 
+from searchlight.common import utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
 from searchlight.i18n import _LE, _LW
 
@@ -182,6 +183,11 @@ class IndexingHelper(object):
             use_index = self.alias_name
         else:
             use_index = index
+
+        for document in documents:
+            # NOTE: In Elasticsearch 2.0 field names cannot contain '.', change
+            # '.' to '__'.
+            utils.replace_dots_in_field_names(document)
 
         try:
             result = helpers.bulk(
