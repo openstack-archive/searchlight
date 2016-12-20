@@ -215,9 +215,9 @@ to the Searchlight configuration file::
     workers=6
 
 The use of threads can also affect the parsing of the log files. The
-default formating of the log messages include only the process ID,
+default formatting of the log messages include only the process ID,
 but no thread-specific information. This can be changed by modifying
-the formating string settings in the Searchlight configuration file.
+the formatting string settings in the Searchlight configuration file.
 To add the thread ID for a message, add ``%(thread)d``. To add the thread
 name, add ``%(threadName)s``. For example, to add the thread ID and the
 thread name after the process ID to the logging message, the following
