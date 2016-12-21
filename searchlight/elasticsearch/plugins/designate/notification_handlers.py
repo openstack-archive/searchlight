@@ -72,7 +72,7 @@ class ZoneHandler(base.NotificationBase):
         handled = super(ZoneHandler, self).process(
             ctxt, publisher_id, event_type, payload, metadata)
         try:
-            # NOTE: So if this is a initial zone we need to index the SOA / NS
+            # NOTE: So if this is an initial zone we need to index the SOA / NS
             # records it will have. Let's do this when receiving the create
             # event.
             if event_type == 'dns.zone.create':

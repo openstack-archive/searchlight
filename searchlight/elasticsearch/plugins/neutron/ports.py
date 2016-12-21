@@ -163,7 +163,7 @@ class PortIndex(base.IndexBase):
             if (not port['device_owner'] or
                not port['device_owner'].startswith(valid_owners)):
                 continue
-            """The check/TODO below is superceded by the above check. When we
+            """The check/TODO below is superseded by the above check. When we
                flesh out the device owner check, re-enable the check below.
             # TODO(sjmc7): Remove this once we can get proper notifications
             # about DHCP ports.

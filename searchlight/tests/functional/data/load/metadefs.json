@@ -1741,7 +1741,7 @@
                     "X-Gene"
                 ],
                 "type": "string",
-                "description": "Specifies the CPU model. Use this property to ensure that your vm runs on a a specific cpu model.",
+                "description": "Specifies the CPU model. Use this property to ensure that your vm runs on a specific cpu model.",
                 "title": "Model"
             }
         },

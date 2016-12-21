@@ -137,7 +137,7 @@ class IndexBase(plugin.Plugin):
 
     def prepare_index(self, index_name):
         """Prepare a new index for usage with this listener. We need to be
-           caled immediately after a new index is created, but before it
+           called immediately after a new index is created, but before it
            gets associated with an alias. Prepping means we will add
            the settings and mapping for this listener's document type.
         """

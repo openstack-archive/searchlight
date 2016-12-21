@@ -465,7 +465,7 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         self._verify_result(create_event, verification_keys, result)
 
     def test_image_update_conflict(self):
-        """Send a outdated image.update notification event to listener,
+        """Send an outdated image.update notification event to listener,
            test if the document will be updated
         """
         create_event = self.image_events["image.create"]
@@ -585,7 +585,7 @@ class TestGlanceListener(test_listener.TestSearchListenerBase):
         self._verify_result(update_event, verification_keys, result)
 
     def test_md_namespace_update_conflict(self):
-        """Send a outdated metadef_namespace.update notification event to
+        """Send an outdated metadef_namespace.update notification event to
         listener, test if the document will be updated
         """
 

@@ -111,7 +111,7 @@ class SwiftContainerHandler(base.NotificationBase):
         # notification payload doesn't have any date/time fields
         # so temporarily use metadata timestamp value as
         # updated_at field to retrieve version
-        # Remove it when notifcation starts sending datetime field(s)
+        # Remove it when notification starts sending datetime field(s)
         payload['updated_at'] = timestamp
         version = self.get_version(payload, timestamp,
                                    preferred_date_field='deleted_at')
@@ -174,7 +174,7 @@ class SwiftObjectHandler(base.NotificationBase):
         # notification payload doesn't have any date/time fields
         # so temporarily use metadata timestamp value as
         # updated_at field to retrieve version
-        # Remove it when notifcation starts sending datetime field(s)
+        # Remove it when notification starts sending datetime field(s)
         payload['updated_at'] = timestamp
         version = self.get_version(payload, timestamp,
                                    preferred_date_field='deleted_at')
