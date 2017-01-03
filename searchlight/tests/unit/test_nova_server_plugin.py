@@ -1291,3 +1291,28 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                                "compute.instance.unshelve.end",
                                expect_handled=False)
                 assert_call_counts(get=1, save=1, es_gets=3)
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    def test_server_rename(self, mock_version):
+        """Test that a notification received with an 'active' state
+        is processed.
+        """
+        instance_id = self.instance1.id
+        update_event = \
+            dict(old_state='active', state='active',
+                 old_task_state=None, new_task_state=None,
+                 name='renamed', instance_id=instance_id)
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+        type_handler = event_handlers['compute.instance.update']
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save, \
+            mock.patch(nova_server_getter,
+                       return_value=self.instance1) as nova_getter:
+
+                type_handler('compute.instance.update', update_event,
+                             '2016-07-17 19:52:13.523135')
+                nova_getter.assert_called_with(instance_id)
+                self.assertEqual(1, mock_save.call_count)

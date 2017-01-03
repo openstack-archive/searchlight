@@ -134,6 +134,7 @@ class InstanceHandler(base.NotificationBase):
           active -> suspending -> suspended -> resuming -> active
         """
         new_state = payload.get('state', None)
+        old_state = payload.get('old_state', None)
         new_task_state = payload.get('new_task_state', None)
         old_task_state = payload.get('old_task_state', None)
 
@@ -147,6 +148,11 @@ class InstanceHandler(base.NotificationBase):
             # There are several ways in which an instance can end up in an
             # error state; it may result in duplicate API requests but it's
             # hard to predict them all
+            pass
+        elif (new_state == 'active' and old_state == 'active' and
+                old_task_state is None and new_task_state is None):
+            # This is probably a legitimate server update and should
+            # be processed
             pass
         elif new_state == 'building':
             if old_task_state == 'scheduling' and new_task_state is None:
@@ -165,9 +171,6 @@ class InstanceHandler(base.NotificationBase):
             # This is received a few microseconds ahead of instance.create.end
             # and indicates the end of the init sequence; ignore this one in
             # favor of create.end
-            ignore_update = True
-        elif (new_state == 'active' and
-                new_task_state is None and old_task_state is None):
             ignore_update = True
         elif new_task_state is None and old_task_state is not None:
             # These happen right before a corresponding .end event
