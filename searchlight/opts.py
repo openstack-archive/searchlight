@@ -16,7 +16,8 @@
 import itertools
 import operator
 
-import keystoneclient.auth.conf
+from keystoneauth1 import loading
+
 import searchlight.api.versions
 import searchlight.common.config
 import searchlight.common.property_utils
@@ -36,8 +37,7 @@ def list_opts():
         ('service_credentials',
          itertools.chain(
              searchlight.elasticsearch.plugins.openstack_clients.client_opts,
-             keystoneclient.auth.conf.get_common_conf_options(),
-             keystoneclient.session.Session.get_conf_options(),
+             loading.get_auth_common_conf_options(),
              list_auth_opts())),
         ('resource_plugin',
          searchlight.elasticsearch.plugins.base.indexer_opts),
@@ -56,7 +56,7 @@ def list_auth_opts():
     # Inspired by similar code in neutron
     opt_list = []
     for plugin in ['password', 'v2password', 'v3password']:
-        plugin_options = keystoneclient.auth.conf.get_plugin_options(plugin)
+        plugin_options = loading.get_auth_plugin_conf_options(plugin)
         for plugin_option in plugin_options:
             if all(option.name != plugin_option.name for option in opt_list):
                 opt_list.append(plugin_option)

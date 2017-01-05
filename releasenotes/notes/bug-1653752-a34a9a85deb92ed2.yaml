@@ -1,0 +1,5 @@
+---
+upgrade:
+  - Need to specify auth_type or auth_plugin(deprecated) to v2password
+    in service_credentials group to make index work properly if you
+    were using keystone v2 auth.

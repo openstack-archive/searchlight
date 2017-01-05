@@ -100,12 +100,13 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF api public_endpoint $SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/
 
     # OpenStack users
-    # FIXME(ekarlso): Make this configurable to support ks v3 also
-    iniset $SEARCHLIGHT_CONF service_credentials auth_plugin password
+    iniset $SEARCHLIGHT_CONF service_credentials auth_type password
     iniset $SEARCHLIGHT_CONF service_credentials username searchlight
-    iniset $SEARCHLIGHT_CONF service_credentials tenant_name $SERVICE_TENANT_NAME
+    iniset $SEARCHLIGHT_CONF service_credentials user_domain_id default
+    iniset $SEARCHLIGHT_CONF service_credentials project_domain_id default
     iniset $SEARCHLIGHT_CONF service_credentials password $SERVICE_PASSWORD
-    iniset $SEARCHLIGHT_CONF service_credentials auth_url $KEYSTONE_AUTH_URI/v2.0
+    iniset $SEARCHLIGHT_CONF service_credentials project_name $SERVICE_PROJECT_NAME
+    iniset $SEARCHLIGHT_CONF service_credentials auth_url $KEYSTONE_SERVICE_URI
     iniset $SEARCHLIGHT_CONF service_credentials os_region_name $REGION_NAME
 
     # Keystone Middleware

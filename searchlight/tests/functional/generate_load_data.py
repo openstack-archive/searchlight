@@ -28,8 +28,8 @@ SERVER_GROUP_FILE = \
 
 
 from glanceclient.v2 import client as glance
+from keystoneauth1 import session
 from keystoneclient.auth.identity import v2
-from keystoneclient import session
 import novaclient.client
 
 _session = None

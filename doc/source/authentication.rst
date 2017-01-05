@@ -77,7 +77,7 @@ to your environment::
 
   [keystone_authtoken]
   auth_url = http://127.0.0.1:35357
-  auth_plugin = password
+  auth_type = password
   project_domain_id = default
   project_name = service
   user_domain_id = default
@@ -94,11 +94,26 @@ valid token based on the integration account credentials::
 
  [service_credentials]
  # These are needed to make API calls to other services when indexing
- auth_plugin = password
+ auth_type = password
  username = searchlight
  password = <SERVICE_PASSWORD>
- tenant_name = service
+ user_domain_id = default
+ project_domain_id = default
+ project_name = service
  auth_url = http://127.0.0.1:35357
+
+ # If resource_plugin.include_region_name is set, this value will be
+ # the default value for the 'region_name' field on all documents
+ # os_region_name =
+
+For keystone v2 development::
+
+ [service_credentials]
+ auth_type = v2password
+ username = searchlight
+ tenant_name = service
+ password = <SERVICE_PASSWORD>
+ auth_url = http://127.0.0.1:35357/v2.0
 
  # If resource_plugin.include_region_name is set, this value will be
  # the default value for the 'region_name' field on all documents

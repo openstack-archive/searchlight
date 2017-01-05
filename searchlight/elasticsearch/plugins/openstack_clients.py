@@ -20,9 +20,9 @@ from designateclient.v2 import client as designate_client
 from glanceclient import client as glance_client
 from ironicclient import client as ironic_client
 from ironicclient import exc as ironic_exceptions
-from keystoneclient import auth as ks_auth
+from keystoneauth1 import loading as ka_loading
 from keystoneclient import exceptions as keystone_exceptions
-from keystoneclient import session as ks_session
+
 import keystoneclient.v2_0.client as ks_client
 import neutronclient.v2_0.client as neutron_client
 from novaclient import client as nova_client
@@ -55,13 +55,13 @@ compute_api_version = cfg.StrOpt(
          'nova version-list.')
 
 GROUP = "service_credentials"
+CONF = cfg.CONF
 
-cfg.CONF.register_opts(client_opts, group=GROUP)
-cfg.CONF.register_opt(compute_api_version, group="service_credentials:nova")
+CONF.register_opts(client_opts, group=GROUP)
+CONF.register_opt(compute_api_version, group="service_credentials:nova")
 
-ks_session.Session.register_conf_options(cfg.CONF, GROUP)
-
-ks_auth.register_conf_options(cfg.CONF, GROUP)
+ka_loading.register_session_conf_options(CONF, GROUP)
+ka_loading.register_auth_conf_options(CONF, GROUP)
 
 _session = None
 
@@ -72,11 +72,9 @@ IRONIC_API_VERSION = '1.22'
 def _get_session():
     global _session
     if not _session:
-        auth = ks_auth.load_from_conf_options(cfg.CONF, GROUP)
-
-        _session = ks_session.Session.load_from_conf_options(
-            cfg.CONF, GROUP)
-        _session.auth = auth
+        auth = ka_loading.load_auth_from_conf_options(CONF, GROUP)
+        _session = ka_loading.load_session_from_conf_options(
+            CONF, GROUP, auth=auth)
     return _session
 
 
@@ -86,8 +84,8 @@ def get_glanceclient():
     return glance_client.Client(
         version='2',
         session=session,
-        interface=cfg.CONF.service_credentials.os_endpoint_type,
-        region_name=cfg.CONF.service_credentials.os_region_name
+        interface=CONF.service_credentials.os_endpoint_type,
+        region_name=CONF.service_credentials.os_region_name
     )
 
 
@@ -98,11 +96,11 @@ def get_novaclient():
         return nova_client.Client(
             version=api_version,
             session=session,
-            region_name=cfg.CONF.service_credentials.os_region_name,
-            endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
+            region_name=CONF.service_credentials.os_region_name,
+            endpoint_type=CONF.service_credentials.os_endpoint_type
         )
 
-    version = cfg.CONF["service_credentials:nova"].compute_api_version
+    version = CONF["service_credentials:nova"].compute_api_version
     # Check whether Nova can support the provided microversion.
     max_version = do_get_client().versions.list()[-1].version
     if LooseVersion(version) > LooseVersion(max_version) or \
@@ -119,8 +117,8 @@ def get_designateclient():
 
     return designate_client.Client(
         session=session,
-        region_name=cfg.CONF.service_credentials.os_region_name,
-        endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
+        region_name=CONF.service_credentials.os_region_name,
+        endpoint_type=CONF.service_credentials.os_endpoint_type
     )
 
 
@@ -128,8 +126,8 @@ def get_neutronclient():
     session = _get_session()
     return neutron_client.Client(
         session=session,
-        region_name=cfg.CONF.service_credentials.os_region_name,
-        endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
+        region_name=CONF.service_credentials.os_region_name,
+        endpoint_type=CONF.service_credentials.os_endpoint_type
     )
 
 
@@ -139,8 +137,8 @@ def get_cinderclient():
     return cinder_client.Client(
         version='2',
         session=session,
-        region_name=cfg.CONF.service_credentials.os_region_name,
-        endpoint_type=cfg.CONF.service_credentials.os_endpoint_type
+        region_name=CONF.service_credentials.os_region_name,
+        endpoint_type=CONF.service_credentials.os_endpoint_type
     )
 
 # Swift still needs special handling because it doesn't support
@@ -172,21 +170,21 @@ def get_swiftclient():
 
     os_options = {
         'service_type': service_type,
-        'region_name': cfg.CONF.service_credentials.os_region_name,
-        'endpoint_type': cfg.CONF.service_credentials.os_endpoint_type,
+        'region_name': CONF.service_credentials.os_region_name,
+        'endpoint_type': CONF.service_credentials.os_endpoint_type,
     }
 
     # When swiftclient supports session, use session instead of
     # preauthtoken param below
     _swiftclient = swiftclient.client.Connection(
         auth_version='2',
-        user=cfg.CONF.service_credentials.username,
-        key=cfg.CONF.service_credentials.password,
-        authurl=cfg.CONF.service_credentials.auth_url,
-        tenant_name=cfg.CONF.service_credentials.tenant_name,
+        user=CONF.service_credentials.username,
+        key=CONF.service_credentials.password,
+        authurl=CONF.service_credentials.auth_url,
+        tenant_name=CONF.service_credentials.tenant_name,
         os_options=os_options,
-        cacert=cfg.CONF.service_credentials.cafile,
-        insecure=cfg.CONF.service_credentials.insecure
+        cacert=CONF.service_credentials.cafile,
+        insecure=CONF.service_credentials.insecure
     )
 
     return _swiftclient
@@ -200,18 +198,18 @@ def get_swiftclient_st(storageurl):
 
     os_options = {
         'service_type': service_type,
-        'region_name': cfg.CONF.service_credentials.os_region_name,
-        'endpoint_type': cfg.CONF.service_credentials.os_endpoint_type,
+        'region_name': CONF.service_credentials.os_region_name,
+        'endpoint_type': CONF.service_credentials.os_endpoint_type,
     }
     swift_client = swiftclient.client.Connection(
         auth_version='2',
-        user=cfg.CONF.service_credentials.username,
-        key=cfg.CONF.service_credentials.password,
-        authurl=cfg.CONF.service_credentials.auth_url,
-        tenant_name=cfg.CONF.service_credentials.tenant_name,
+        user=CONF.service_credentials.username,
+        key=CONF.service_credentials.password,
+        authurl=CONF.service_credentials.auth_url,
+        tenant_name=CONF.service_credentials.tenant_name,
         os_options=os_options,
-        cacert=cfg.CONF.service_credentials.cafile,
-        insecure=cfg.CONF.service_credentials.insecure,
+        cacert=CONF.service_credentials.cafile,
+        insecure=CONF.service_credentials.insecure,
         preauthurl=storageurl,
     )
     return swift_client
@@ -222,7 +220,7 @@ def get_keystoneclient():
 
     return ks_client.Client(
         session=session,
-        region_name=cfg.CONF.service_credentials.os_region_name)
+        region_name=CONF.service_credentials.os_region_name)
 
 
 def get_ironicclient():
@@ -231,8 +229,8 @@ def get_ironicclient():
         return ironic_client.get_client(
             '1',
             session=session,
-            os_region_name=cfg.CONF.service_credentials.os_region_name,
-            os_endpoint_type=cfg.CONF.service_credentials.os_endpoint_type,
+            os_region_name=CONF.service_credentials.os_region_name,
+            os_endpoint_type=CONF.service_credentials.os_endpoint_type,
             os_ironic_api_version=IRONIC_API_VERSION
         )
     except ironic_exceptions.AmbiguousAuthSystem:
