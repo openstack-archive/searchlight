@@ -247,15 +247,19 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
     def __init__(self, *args, **kwargs):
         super(TestNovaListeners, self).__init__(*args, **kwargs)
         self.server_events = self._load_fixture_data('events/servers.json')
+        self.server_group_events = self._load_fixture_data(
+            'events/server_group.json')
 
     def setUp(self):
         super(TestNovaListeners, self).setUp()
         self.servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        self.sg_plugin = self.initialized_plugins['OS::Nova::ServerGroup']
 
         notification_plugins = {
             plugin.document_type: utils.StevedoreMock(plugin)
-            for plugin in (self.servers_plugin,)}
+            for plugin in (self.servers_plugin, self.sg_plugin)}
         self.notification_endpoint = NotificationEndpoint(notification_plugins)
+
         self.listener_alias = self.servers_plugin.alias_name_listener
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
@@ -282,3 +286,60 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
         result = self._verify_event_processing(error_update, owner=EV_TENANT)
         self._verify_result(error_update, ['tenant_id'], result)
         mock_nova.assert_called_with(inst_id)
+
+    def test_server_group_create_delete(self):
+        # Test #1: Create a server group.
+        create_event = self.server_group_events["servergroup.create"]
+        self._send_event_to_listener(create_event, self.listener_alias)
+
+        query = {
+            "query": {"match_all": {}},
+            "type": "OS::Nova::ServerGroup"
+        }
+
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(create_event['payload']['server_group_id'],
+                         json_content['hits']['hits'][0]['_source']['id'])
+
+        # Test #2: Add a new member to the server group.
+        add_event = self.server_group_events['servergroup.addmember']
+        self._send_event_to_listener(add_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Nova::ServerGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        # Verify the new member was added to the server group.
+        members = (
+            json_content['hits']['hits'][0]['_source']['members'])
+        self.assertEqual(1, len(members))
+
+        # Test #3: Delete the new member from the server group.
+        delete_event = \
+            self.server_group_events['compute.instance.delete.end']
+        self._send_event_to_listener(delete_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Nova::ServerGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        # Verify the new member was deleted from the server group.
+        members = (
+            json_content['hits']['hits'][0]['_source']['members'])
+        self.assertEqual(0, len(members))
+
+        # Test #4: Delete the server group.
+        delete_event = self.server_group_events['servergroup.delete']
+        self._send_event_to_listener(delete_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Nova::ServerGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        self.assertEqual(0, json_content['hits']['total'])
