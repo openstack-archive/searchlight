@@ -20,8 +20,6 @@ Routines for configuring Searchlight
 """
 
 import logging
-import logging.config
-import logging.handlers
 import os
 import tempfile
 
