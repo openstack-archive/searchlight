@@ -513,3 +513,22 @@ joins, per se, but this linkage does allow running queries referencing children
 (or parents).
 
 .. _mapping: https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+
+Pipeline architecture
+---------------------
+Notification handlers can emit enriched resource data into pipeline, configured
+publishers could use these data to notify external systems. To use this feature,
+each event handler should return one or a sequence of pipeline items. These items
+will be passed to subscribed publshers::
+
+        def create_or_update(self, event_type, payload, timestamp):
+            network_id = payload['network']['id']
+            LOG.debug("Updating network information for %s", network_id)
+
+            network = serialize_network(payload['network'])
+            version = self.get_version(network, timestamp)
+
+            self.index_helper.save_document(network, version=version)
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,

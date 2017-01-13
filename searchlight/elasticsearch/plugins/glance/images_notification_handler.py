@@ -22,6 +22,7 @@ from searchlight.elasticsearch.plugins.glance \
 from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_notification
 from searchlight.i18n import _LE, _LW
+from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
 
@@ -56,39 +57,47 @@ class ImageHandler(base.NotificationBase):
     def serialize_notification(self, notification):
         return serialize_glance_notification(notification)
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         image_id = payload['id']
         try:
-            payload = self.serialize_notification(payload)
+            image_payload = self.serialize_notification(payload)
             self.index_helper.save_document(
-                payload,
-                version=self.get_version(payload, timestamp))
+                image_payload,
+                version=self.get_version(image_payload, timestamp))
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,
+                                      image_payload)
         except glanceclient.exc.NotFound:
             LOG.warning(_LW("Image %s not found; deleting") % image_id)
-            try:
-                self.index_helper.delete_document({'_id': image_id})
-            except Exception as exc:
-                LOG.error(_LE(
-                    'Error deleting image %(image_id)s from index: %(exc)s') %
-                    {'image_id': image_id, 'exc': exc})
+            return self.delete(event_type, payload, timestamp)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         image_id = payload['id']
         try:
             version = self.get_version(payload, timestamp,
                                        preferred_date_field='deleted_at')
             self.index_helper.delete_document(
                 {'_id': image_id, '_version': version})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       image_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting image %(image_id)s from index: %(exc)s') %
                 {'image_id': image_id, 'exc': exc})
 
-    def sync_members(self, payload, timestamp):
+    def sync_members(self, event_type, payload, timestamp):
         image_id = payload['image_id']
         image_es = self.index_helper.get_document(image_id,
                                                   for_admin=True)
 
-        payload = serialize_glance_image_members(image_es['_source'], payload)
+        image_payload = serialize_glance_image_members(image_es['_source'],
+                                                       payload)
 
-        self.index_helper.save_document(payload)
+        self.index_helper.save_document(image_payload)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  image_payload)

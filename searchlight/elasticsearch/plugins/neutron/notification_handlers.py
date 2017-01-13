@@ -27,8 +27,8 @@ from searchlight.elasticsearch.plugins.neutron import serialize_security_group
 from searchlight.elasticsearch.plugins.neutron import serialize_subnet
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
-
 from searchlight.i18n import _LE, _LI
+from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
 
@@ -67,7 +67,7 @@ class NetworkHandler(base.NotificationBase):
             return ('rbac_policy_id', payload['rbac_policy_id']),
         return ()
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         network_id = payload['network']['id']
         LOG.debug("Updating network information for %s", network_id)
 
@@ -76,21 +76,29 @@ class NetworkHandler(base.NotificationBase):
         version = self.get_version(network, timestamp)
 
         self.index_helper.save_document(network, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  network)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         network_id = payload['network_id']
         LOG.debug("Deleting network information for %s", network_id)
         try:
             # Note that it's not necessary to delete ports; neutron will not
             # allow deletion of a network that has ports assigned on it
             self.index_helper.delete_document({'_id': network_id})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       network_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting network %(network_id)s '
                 'from index. Error: %(exc)s') %
                 {'network_id': network_id, 'exc': exc})
 
-    def rbac_create(self, payload, timestamp):
+    def rbac_create(self, event_type, payload, timestamp):
         """RBAC policy is making a network visible to users in a specific
            tenant. Previously this network was not visible to users in that
            tenant. We will want to add this tenant to the members list.
@@ -129,8 +137,12 @@ class NetworkHandler(base.NotificationBase):
         # body, since '_version' is outside of '_source'.
         version = doc['_version'] + 1
         self.index_helper.save_document(body, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  body)
 
-    def rbac_delete(self, payload, timestamp):
+    def rbac_delete(self, event_type, payload, timestamp):
         """RBAC policy is making a network invisible to users in specific
            tenant. Previously this network was visible to users in that
            tenant. We will remove this tenant from the members list.
@@ -174,6 +186,10 @@ class NetworkHandler(base.NotificationBase):
             # body, since '_version' is outside of '_source'.
             version = doc['_version'] + 1
             self.index_helper.save_document(body, version=version)
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,
+                                      body)
 
 
 class PortHandler(base.NotificationBase):
@@ -207,7 +223,7 @@ class PortHandler(base.NotificationBase):
             ('network_id', network_id)
         )
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         port_id = payload['port']['id']
 
         if payload['port'].get('device_owner', None) == 'network:dhcp':
@@ -228,19 +244,29 @@ class PortHandler(base.NotificationBase):
         version = self.get_version(port, timestamp)
 
         self.index_helper.save_document(port, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  port)
 
-    def delete(self, payload, timestamp):
-        port_id = payload['port_id']
+    def delete_port(self, event_type, payload, timestamp):
+        return self.delete(event_type, payload, payload['port_id'])
+
+    def delete(self, event_type, payload, port_id):
         LOG.debug("Deleting port information for %s; finding routing", port_id)
         try:
             self.index_helper.delete_document_unknown_parent(port_id)
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       port_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting port %(port_id)s '
                 'from index. Error: %(exc)s') %
                 {'port_id': port_id, 'exc': exc})
 
-    def create_or_update_from_interface(self, payload, timestamp):
+    def create_or_update_from_interface(self, event_type, payload, timestamp):
         """Unfortunately there seems to be no notification for ports created
         as part of a router interface creation, nor for DHCP ports. This
         means we need to go to the API.
@@ -252,14 +278,19 @@ class PortHandler(base.NotificationBase):
         serialized = serialize_port(port)
         version = self.get_version(serialized, timestamp)
         self.index_helper.save_document(serialized, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  serialized
+                                  )
 
-    def delete_from_interface(self, payload, timestamp):
+    def delete_from_interface(self, event_type, payload, timestamp):
         """The partner of create_or_update_from_interface. There's no separate
         port deletion notification.
         """
         port_id = payload['router_interface']['port_id']
         LOG.debug("Deleting port %s from router interface", port_id)
-        self.delete({'port_id': port_id}, timestamp)
+        return self.delete(event_type, payload, port_id)
 
 
 class SubnetHandler(base.NotificationBase):
@@ -286,20 +317,28 @@ class SubnetHandler(base.NotificationBase):
             ('network_id', network_id)
         )
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         subnet_id = payload['subnet']['id']
         LOG.debug("Updating subnet information for %s", subnet_id)
         subnet = serialize_subnet(payload['subnet'])
 
         version = self.get_version(subnet, timestamp)
         self.index_helper.save_document(subnet, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  subnet)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         subnet_id = payload['subnet_id']
         LOG.debug("Deleting subnet information for %s; finding routing",
                   subnet_id)
         try:
             self.index_helper.delete_document_unknown_parent(subnet_id)
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       subnet_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting subnet %(subnet_id)s '
@@ -325,7 +364,7 @@ class RouterHandler(base.NotificationBase):
                                 payload.get('router', {}).get('id'))
         return ('id', router_id),
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         router_id = payload['router']['id']
         LOG.debug("Updating router information for %s", router_id)
         router = serialize_router(
@@ -333,12 +372,20 @@ class RouterHandler(base.NotificationBase):
             updated_at=utils.timestamp_to_isotime(timestamp))
         version = self.get_version(router, timestamp)
         self.index_helper.save_document(router, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  router)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         router_id = payload['router_id']
         LOG.debug("Deleting router information for %s", router_id)
         try:
             self.index_helper.delete_document({'_id': router_id})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       router_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting router %(router)s '
@@ -368,7 +415,7 @@ class FloatingIPHandler(base.NotificationBase):
             ('network_id', network_id)
         )
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         fip_id = payload['floatingip']['id']
         LOG.debug("Updating floatingip information for %s", fip_id)
         floatingip = serialize_floatingip(
@@ -376,12 +423,20 @@ class FloatingIPHandler(base.NotificationBase):
             updated_at=utils.timestamp_to_isotime(timestamp))
         version = self.get_version(floatingip, timestamp)
         self.index_helper.save_document(floatingip, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  floatingip)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         fip_id = payload['floatingip_id']
         LOG.debug("Deleting floatingip information for %s", fip_id)
         try:
             self.index_helper.delete_document({'_id': fip_id})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       fip_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting floating ip %(fip)s '
@@ -414,7 +469,7 @@ class SecurityGroupHandler(base.NotificationBase):
                                payload.get('security_group', {}).get('id'))
         return ('id', group_id),
 
-    def create_or_update_group(self, payload, timestamp):
+    def create_or_update_group(self, event_type, payload, timestamp):
         group_name = payload['security_group']['name']
         sec_id = payload['security_group']['id']
         LOG.debug("Updating security group information for %(grp)s (%(sec)s)" %
@@ -426,18 +481,26 @@ class SecurityGroupHandler(base.NotificationBase):
         version = self.get_version(doc, timestamp)
 
         self.index_helper.save_document(doc, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  doc)
 
-    def delete_group(self, payload, timestamp):
+    def delete_group(self, event_type, payload, timestamp):
         sec_id = payload['security_group_id']
         LOG.debug("Deleting security group information for %s", sec_id)
         try:
             self.index_helper.delete_document({'_id': sec_id})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       sec_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting security_group %(sec_id)s. Error: %(exc)s') %
                 {'sec_id': sec_id, 'exc': exc})
 
-    def create_or_update_rule(self, payload, timestamp):
+    def create_or_update_rule(self, event_type, payload, timestamp):
         # The issue here is that the notification is not complete.
         # We have only a single rule that needs to be added to an
         # existing group. A major issue is that we may be updating
@@ -469,7 +532,10 @@ class SecurityGroupHandler(base.NotificationBase):
             try:
                 version += 1
                 self.index_helper.save_document(body, version=version)
-                break
+                return pipeline.IndexItem(self.index_helper.plugin,
+                                          event_type,
+                                          payload,
+                                          body)
             except helpers.BulkIndexError as e:
                 if e.errors[0]['index']['status'] == 409:
                     # Conflict error, retry with new version of doc.
@@ -481,7 +547,7 @@ class SecurityGroupHandler(base.NotificationBase):
             LOG.error(_LE('Error adding security group rule %(id)s:'
                           ' Too many retries') % {'id': group_id})
 
-    def delete_rule(self, payload, timestamp):
+    def delete_rule(self, event_type, payload, timestamp):
         # See comment for create_or_update_rule() for details.
         rule_id = payload['security_group_rule_id']
         LOG.debug("Updating security group rule information for %s", rule_id)
@@ -512,7 +578,10 @@ class SecurityGroupHandler(base.NotificationBase):
             try:
                 version += 1
                 self.index_helper.save_document(body, version=version)
-                break
+                return pipeline.IndexItem(self.index_helper.plugin,
+                                          event_type,
+                                          payload,
+                                          body)
             except helpers.BulkIndexError as e:
                 if e.errors[0]['index']['status'] == 409:
                     # Conflict. Retry with new version.

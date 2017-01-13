@@ -19,7 +19,7 @@ from oslo_log import log as logging
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_snapshot
 from searchlight.i18n import _LE, _LW
-
+from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
 
@@ -49,18 +49,23 @@ class SnapshotHandler(base.NotificationBase):
             ('volume_id', payload.get('volume_id'))
         )
 
-    def create_or_update(self, payload, timestamp):
+    def create_or_update(self, event_type, payload, timestamp):
         snapshot_id = payload['snapshot_id']
         LOG.debug("Updating cinder snapshot information for %s", snapshot_id)
         try:
-            payload = serialize_cinder_snapshot(snapshot_id)
-            version = self.get_version(payload, timestamp)
-            self.index_helper.save_document(payload, version=version)
+            snapshot_payload = serialize_cinder_snapshot(snapshot_id)
+            version = self.get_version(snapshot_payload, timestamp)
+            self.index_helper.save_document(snapshot_payload, version=version)
+            return pipeline.IndexItem(
+                self.index_helper.plugin,
+                event_type,
+                payload,
+                snapshot_payload)
         except cinderclient.exceptions.NotFound:
             LOG.warning(_LW("Snapshot %s not found; deleting") % snapshot_id)
             self.delete(payload, timestamp)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         snapshot_id = payload['snapshot_id']
         volume_id = payload['volume_id']
         LOG.debug("Deleting cinder snapshot information for %s", snapshot_id)
@@ -70,6 +75,8 @@ class SnapshotHandler(base.NotificationBase):
         try:
             self.index_helper.delete_document({'_id': snapshot_id,
                                                '_parent': volume_id})
+            return pipeline.DeleteItem(
+                self.index_helper.plugin, event_type, payload, snapshot_id)
         except Exception as exc:
             LOG.error(_LE(
                 'Error deleting snapshot %(snapshot_id)s '

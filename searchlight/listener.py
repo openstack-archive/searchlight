@@ -25,6 +25,7 @@ from oslo_service import service as os_service
 
 from searchlight.common import utils
 from searchlight.i18n import _LE, _LI
+from searchlight.pipeline import PipelineManager
 
 LOG = logging.getLogger(__name__)
 
@@ -47,8 +48,9 @@ CONF.register_opts(listener_opts, group="listener")
 
 class NotificationEndpoint(object):
 
-    def __init__(self, plugins):
+    def __init__(self, plugins, pipeline_manager):
         self.plugins = plugins
+        self.pipeline_manager = pipeline_manager
         self.notification_target_map = {}
         for plugin_type, plugin in self.plugins.items():
             try:
@@ -98,7 +100,6 @@ class NotificationEndpoint(object):
 
     def _process_event(self, ctxt, publisher_id, event_type, payload,
                        metadata, priority):
-
         event_type_l = event_type.lower()
         # The notification map contains a list of plugins for each event
         # type subscribed to
@@ -107,12 +108,16 @@ class NotificationEndpoint(object):
             log_context = self._log_notification(
                 handler, ctxt, plugin.document_type,
                 event_type_l, payload, metadata, priority)
-            handler.process(
+            items = handler.process(
                 ctxt,
                 publisher_id,
                 event_type,
                 payload,
                 metadata)
+            # TODO(lei-zh): Add error handing and message acknowledgement
+            # Publishers only work for notification updates
+            if items:
+                self.pipeline_manager.publish(items)
             self._log_finished(log_context)
 
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
@@ -162,7 +167,7 @@ class ListenerService(os_service.Service):
             for pl_topic, pl_exchange in self.topics_exchanges_set
         ]
         endpoints = [
-            NotificationEndpoint(self.plugins)
+            NotificationEndpoint(self.plugins, PipelineManager(self.plugins))
         ]
         listener = oslo_messaging.get_notification_listener(
             transport,

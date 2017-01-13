@@ -16,6 +16,7 @@
 from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
+from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
 
@@ -57,61 +58,125 @@ class MetadefHandler(base.NotificationBase):
     def get_log_fields(self, event_type, payload):
         return ('namespace', payload.get('namespace')),
 
-    def run_update(self, id, payload, script=False):
-        self.index_helper.update_document(payload, id, update_as_script=script)
-
-    def create_ns(self, payload, timestamp):
+    def create_ns(self, event_type, payload, timestamp):
         namespace = self.format_namespace(payload)
         self.index_helper.save_document(
             namespace,
             version=self.get_version(namespace, timestamp))
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  namespace
+                                  )
 
-    def update_ns(self, payload, timestamp):
+    def update_ns(self, event_type, payload, timestamp):
         # Update operation in es doesn't support external version,
         # so we have to manually update the doc and reindex it.
         namespace_es = self.index_helper.get_document(
-            payload['namespace_old'], for_admin=True)['_source']
+            payload['namespace_old'], for_admin=True)
         namespace = self.format_namespace(payload)
-        namespace_es.update(namespace)
+        namespace_es['_source'].update(namespace)
         self.index_helper.save_document(
-            namespace_es,
-            version=self.get_version(namespace_es, timestamp))
+            namespace_es['_source'],
+            version=self.get_version(namespace, timestamp))
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  namespace_es['_source'])
 
-    def delete_ns(self, payload, timestamp):
+    def delete_ns(self, event_type, payload, timestamp):
         id = payload['namespace']
         self.index_helper.delete_document({'_id': id})
+        return pipeline.DeleteItem(self.index_helper.plugin,
+                                   event_type,
+                                   payload,
+                                   id
+                                   )
 
-    def create_obj(self, payload, timestamp):
+    def create_obj(self, event_type, payload, timestamp):
         id = payload['namespace']
         object = self.format_object(payload)
-        self.create_entity(id, "objects", object)
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.create_entity(preexisting['_source'], 'objects', object)
+        self.index_helper.save_document(
+            preexisting['_source'], preexisting['_version'] + 1
+        )
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def update_obj(self, payload, timestamp):
+    def update_obj(self, event_type, payload, timestamp):
         id = payload['namespace']
         object = self.format_object(payload)
-        self.update_entity(id, "objects", object,
-                           payload['name_old'], "name")
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.update_entity(
+            preexisting['_source'], "objects",
+            payload['name_old'],
+            object,
+            "name")
+        self.index_helper.save_document(
+            preexisting['_source'], preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def delete_obj(self, payload, timestamp):
+    def delete_obj(self, event_type, payload, timestamp):
         id = payload['namespace']
-        self.delete_entity(id, "objects", payload['name'], "name")
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.delete_entity(
+            preexisting['_source'], "objects", payload['name'], "name")
+        self.index_helper.save_document(
+            preexisting['_source'], preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def create_prop(self, payload, timestamp):
+    def create_prop(self, event_type, payload, timestamp):
         id = payload['namespace']
         property = self.format_property(payload)
-        self.create_entity(id, "properties", property)
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.create_entity(preexisting['_source'], 'properties', property)
+        self.index_helper.save_document(
+            preexisting['_source'], preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def update_prop(self, payload, timestamp):
+    def update_prop(self, event_type, payload, timestamp):
         id = payload['namespace']
         property = self.format_property(payload)
-        self.update_entity(id, "properties", property,
-                           payload['name_old'], "name")
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.update_entity(
+            preexisting['_source'],
+            "properties",
+            payload['name_old'],
+            property,
+            "name")
+        self.index_helper.save_document(
+            preexisting['_source'], preexisting['_version'] + 1
+        )
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def delete_prop(self, payload, timestamp):
+    def delete_prop(self, event_type, payload, timestamp):
         id = payload['namespace']
-        self.delete_entity(id, "properties", payload['name'], "name")
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.delete_entity(
+            preexisting['_source'], "properties", payload['name'], "name")
+        self.index_helper.save_document(preexisting['_source'],
+                                        preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def create_rs(self, payload, timestamp):
+    def create_rs(self, event_type, payload, timestamp):
         id = payload['namespace']
         resource_type = {}
         resource_type['name'] = payload['name']
@@ -120,89 +185,101 @@ class MetadefHandler(base.NotificationBase):
         if payload['properties_target']:
             resource_type['properties_target'] = payload['properties_target']
 
-        self.create_entity(id, "resource_types", resource_type)
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.create_entity(
+            preexisting['_source'], "resource_types", resource_type)
+        self.index_helper.save_document(preexisting['_source'],
+                                        preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def delete_rs(self, payload, timestamp):
+    def delete_rs(self, event_type, payload, timestamp):
         id = payload['namespace']
-        self.delete_entity(id, "resource_types", payload['name'], "name")
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.delete_entity(
+            preexisting['_source'], "resource_types", payload['name'], "name")
+        self.index_helper.save_document(preexisting['_source'],
+                                        preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def create_tag(self, payload, timestamp):
+    def create_tag(self, event_type, payload, timestamp):
         id = payload['namespace']
         tag = {}
         tag['name'] = payload['name']
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.create_entity(preexisting['_source'], "tags", tag)
+        self.index_helper.save_document(preexisting['_source'],
+                                        preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-        self.create_entity(id, "tags", tag)
-
-    def update_tag(self, payload, timestamp):
+    def update_tag(self, event_type, payload, timestamp):
         id = payload['namespace']
         tag = {}
         tag['name'] = payload['name']
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.update_entity(
+            preexisting['_source'], "tags", tag, payload['name_old'], "name")
+        self.index_helper.save_document(preexisting['_source'],
+                                        preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-        self.update_entity(id, "tags", tag, payload['name_old'], "name")
-
-    def delete_tag(self, payload, timestamp):
+    def delete_tag(self, event_type, payload, timestamp):
         id = payload['namespace']
-        self.delete_entity(id, "tags", payload['name'], "name")
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        self.delete_entity(
+            preexisting['_source'], "tags", payload['name'], "name")
+        self.index_helper.save_document(preexisting['_source'],
+                                        preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
-    def delete_props(self, payload, timestamp):
-        self.delete_field(payload, "properties")
+    def delete_props(self, event_type, payload, timestamp):
+        return self.delete_field(
+            event_type,
+            payload,
+            timestamp,
+            'properties'
+        )
 
-    def delete_objects(self, payload, timestamp):
-        self.delete_field(payload, "objects")
+    def delete_objects(self, event_type, payload, timestamp):
+        return self.delete_field(
+            event_type,
+            payload,
+            timestamp,
+            'objects'
+        )
 
-    def delete_tags(self, payload, timestamp):
-        self.delete_field(payload, "tags")
+    def delete_tags(self, event_type, payload, timestamp):
+        return self.delete_field(
+            event_type,
+            payload,
+            timestamp,
+            'tags'
+        )
 
-    def create_entity(self, id, entity, entity_data):
-        script = ("if (ctx._source.containsKey('%(entity)s'))"
-                  "{ctx._source.%(entity)s += entity_item }"
-                  "else {ctx._source.%(entity)s=entity_list};" %
-                  {"entity": entity})
-
-        params = {
-            "entity_item": entity_data,
-            "entity_list": [entity_data]
-        }
-        payload = {"script": script, "params": params}
-        self.run_update(id, payload, script=True)
-
-    def update_entity(self, id, entity, entity_data, entity_id, field_name):
-        entity_id = entity_id.lower()
-        script = ("obj=null; for(item in ctx._source.%(entity)s)"
-                  "{if(item['%(field_name)s'].toLowerCase() "
-                  " == entity_id ) obj=item;};"
-                  "if(obj!=null)ctx._source.%(entity)s.remove(obj);"
-                  "if (ctx._source.containsKey('%(entity)s'))"
-                  "{ctx._source.%(entity)s += entity_item; }"
-                  "else {ctx._source.%(entity)s=entity_list;}" %
-                  {"entity": entity, "field_name": field_name})
-        params = {
-            "entity_item": entity_data,
-            "entity_list": [entity_data],
-            "entity_id": entity_id
-        }
-        payload = {"script": script, "params": params}
-        self.run_update(id, payload, script=True)
-
-    def delete_entity(self, id, entity, entity_id, field_name):
-        entity_id = entity_id.lower()
-        script = ("obj=null; for(item in ctx._source.%(entity)s)"
-                  "{if(item['%(field_name)s'].toLowerCase() "
-                  " == entity_id ) obj=item;};"
-                  "if(obj!=null)ctx._source.%(entity)s.remove(obj);" %
-                  {"entity": entity, "field_name": field_name})
-        params = {
-            "entity_id": entity_id
-        }
-        payload = {"script": script, "params": params}
-        self.run_update(id, payload, script=True)
-
-    def delete_field(self, payload, field):
+    def delete_field(self, event_type, payload, timestamp, field):
         id = payload['namespace']
-        script = ("if (ctx._source.containsKey('%(field)s'))"
-                  "{ctx._source.remove('%(field)s')}") % {"field": field}
-        payload = {"script": script}
-        self.run_update(id, payload, script=True)
+        preexisting = self.index_helper.get_document(id, for_admin=True)
+        preexisting['_source'].pop(field, None)
+        self.index_helper.save_document(preexisting['_source'],
+                                        preexisting['_version'] + 1)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  preexisting['_source'])
 
     def format_namespace(self, payload):
         for key in self.namespace_delete_keys:
@@ -233,3 +310,24 @@ class MetadefHandler(base.NotificationBase):
             if key not in self.property_delete_keys and value:
                 prop_data[key] = value
         return prop_data
+
+    def create_entity(self, doc, entity_name, entity_data):
+        entity_list = doc.setdefault(entity_name, [])
+        entity_list.append(entity_data)
+        return doc
+
+    def update_entity(self, doc, entity_name, entity_id, entity_data,
+                      field_name):
+        self.delete_entity(doc, entity_name, entity_id, field_name)
+        self.create_entity(doc, entity_name, entity_data)
+        return doc
+
+    def delete_entity(self, doc, entity_name, entity_id, field_name):
+        match_entity = None
+        for index, item in enumerate(doc.get(entity_name, [])):
+            if item[field_name] == entity_id:
+                match_entity = index
+                break
+        if match_entity is not None:
+            doc[entity_name].pop(match_entity)
+        return doc

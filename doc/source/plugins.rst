@@ -22,6 +22,8 @@ Searchlight Plugin Documentation
 The search service determines the types of information that is searchable
 via a plugin mechanism.
 
+.. _installing-plugins:
+
 Installing Plugins
 ------------------
 
@@ -210,6 +212,32 @@ Example::
 See :ref:`individual-plugin-configuration` for more information and examples
 on individual plugin configuration.
 
+Publishers
+..........
+
+Searchlight supports configuration of publishers which push enriched
+notification info to other external systems. To use this feature, you must first
+register publishers in ``setup.cfg``. This is similar to
+:ref:`installing-plugins` action. Within ``setup.cfg`` the setting within
+``[entry_points]`` named ``searchlight.publishers`` should list publishers for
+plugins to use. Don't forget to re-install the python package(`pip install -e`)
+if you have made changes to publisher entry points.
+Example::
+	
+    [entry_points]
+    searchlight.publisher =
+        log_publisher = searchlight.publisher.log.LogPublisher
+
+Publishers can be specified in a default configuration group of `[resource_plugin]`
+in `searchlight.conf` or overridden in a specific plugin’s configuration.
+Example::
+
+    [resource_plugin]
+    publishers = log_publisher
+
+Currently publishers only work for incremental updates. Bulk api updates are not
+supported.
+ 
 Global Configuration Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -252,6 +280,11 @@ Inheritable Common Configuration Options
 |                     |               | services send notifications. Each   |                           |
 |                     |               | plugin defines a list of exchanges  |                           |
 |                     |               | to which it will subscribe.         |                           |
++---------------------+---------------+-------------------------------------+---------------------------+
+| publishers          |               | Plugin can have multiple publishers | Restart listener          |
+|                     |               | seperated by commas. Each publisher |                           |
+|                     |               | will receive enriched notifications |                           |
+|                     |               | once plugin subscribed events come. |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 
 Non-Inheritable Common Configuration Options

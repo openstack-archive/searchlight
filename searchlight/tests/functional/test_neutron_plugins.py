@@ -19,6 +19,7 @@ import mock
 from oslo_utils import uuidutils
 
 from searchlight.listener import NotificationEndpoint
+from searchlight.pipeline import PipelineManager
 from searchlight.tests import functional
 from searchlight.tests.functional import test_api
 from searchlight.tests.functional import test_listener
@@ -305,7 +306,10 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
             for plugin in (self.networks_plugin, self.ports_plugin,
                            self.subnets_plugin, self.routers_plugin,
                            self.fip_plugin, self.secgroup_plugin)}
-        self.notification_endpoint = NotificationEndpoint(notification_plugins)
+        self.notification_endpoint = NotificationEndpoint(
+            notification_plugins,
+            PipelineManager(notification_plugins)
+        )
 
         self.listener_alias = self.networks_plugin.alias_name_listener
 

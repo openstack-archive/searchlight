@@ -14,11 +14,11 @@
 
 from elasticsearch import exceptions
 from oslo_log import log as logging
-import oslo_messaging
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins import designate
 from searchlight.i18n import _LW
+from searchlight import pipeline
 
 
 LOG = logging.getLogger(__name__)
@@ -67,16 +67,16 @@ class ZoneHandler(base.NotificationBase):
                 payload.get('status') == 'DELETED'):
             LOG.debug("Ignoring update notification for Domain with DELETED "
                       "status; event will be processed on delete event")
-            return oslo_messaging.NotificationResult.HANDLED
+            return None
 
-        handled = super(ZoneHandler, self).process(
+        items = super(ZoneHandler, self).process(
             ctxt, publisher_id, event_type, payload, metadata)
         try:
             # NOTE: So if this is an initial zone we need to index the SOA / NS
             # records it will have. Let's do this when receiving the create
             # event.
             if event_type == 'dns.zone.create':
-                if handled != oslo_messaging.NotificationResult.HANDLED:
+                if not items:
                     LOG.warning(_LW("Not writing initial recordsets; exception"
                                     "occurred during zone indexing"))
                     return None
@@ -97,33 +97,54 @@ class ZoneHandler(base.NotificationBase):
                     # to be the same for all initial recordsets)
                     recordset_versions.append(
                         self.get_version(rs, metadata['timestamp']))
-
+                    items.append(
+                        pipeline.IndexItem(self.recordset_helper.plugin,
+                                           event_type,
+                                           payload,
+                                           rs
+                                           )
+                    )
                 self.recordset_helper.save_documents(
                     serialized_recordsets, versions=recordset_versions)
-
-            return oslo_messaging.NotificationResult.HANDLED
+                return items
         except Exception as e:
             LOG.exception(e)
 
-    def create_or_update(self, payload, timestamp):
-        payload = self._serialize(payload)
+    def create_or_update(self, event_type, payload, timestamp):
+        zone_payload = self._serialize(payload)
         self.index_helper.save_document(
+            zone_payload,
+            version=self.get_version(zone_payload, timestamp))
+        return pipeline.IndexItem(
+            self.index_helper.plugin,
+            event_type,
             payload,
-            version=self.get_version(payload, timestamp))
+            zone_payload)
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         zone_id = payload['id']
         version = self.get_version(payload, timestamp,
                                    preferred_date_field='deleted_at')
-        self.recordset_helper.delete_documents_with_parent(zone_id,
-                                                           version=version)
+        delete_recordset = self.recordset_helper.delete_documents_with_parent(
+            zone_id,
+            version=version)
+        items = [pipeline.DeleteItem(
+            self.recordset_helper.plugin,
+            event_type,
+            payload,
+            rs['_id']) for rs in delete_recordset]
 
         try:
             self.index_helper.delete_document(
                 {'_id': zone_id, '_version': version})
+            items.append(pipeline.DeleteItem(self.index_helper.plugin,
+                                             event_type,
+                                             payload,
+                                             zone_id))
         except exceptions.NotFoundError:
             msg = "Zone %s not found when deleting"
             LOG.error(msg, zone_id)
+        return items
 
 
 class RecordSetHandler(base.NotificationBase):
@@ -152,11 +173,16 @@ class RecordSetHandler(base.NotificationBase):
             ('zone_id', payload.get('zone_id'))
         )
 
-    def create_or_update_recordset(self, payload, timestamp):
-        payload = self._serialize(payload)
+    def create_or_update_recordset(self, event_type, payload, timestamp):
+        rs_payload = self._serialize(payload)
         self.index_helper.save_document(
+            rs_payload,
+            version=self.get_version(rs_payload, timestamp))
+        return pipeline.IndexItem(
+            self.index_helper.plugin,
+            event_type,
             payload,
-            version=self.get_version(payload, timestamp))
+            rs_payload)
 
     def _serialize(self, obj):
         obj['project_id'] = obj.pop('tenant_id')
@@ -165,9 +191,13 @@ class RecordSetHandler(base.NotificationBase):
             obj['updated_at'] = obj['created_at']
         return obj
 
-    def delete_recordset(self, payload, timestamp):
+    def delete_recordset(self, event_type, payload, timestamp):
         version = self.get_version(payload, timestamp,
                                    preferred_date_field='deleted_at')
         self.index_helper.delete_document(
             {'_id': payload['id'], '_version': version,
              '_parent': payload['zone_id']})
+        return pipeline.DeleteItem(self.index_helper.plugin,
+                                   event_type,
+                                   payload,
+                                   payload['id'])

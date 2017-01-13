@@ -18,7 +18,6 @@ import calendar
 import logging
 from oslo_config import cfg
 from oslo_config import types
-import oslo_messaging
 from oslo_utils import encodeutils
 from oslo_utils import timeutils
 import re
@@ -50,7 +49,11 @@ indexer_opts = [
                 help='Whether or not to include region_name as a mapping '
                      'field and in documents. The value will be determined '
                      'from service_credentials and override_region_name for '
-                     'each plugin.')
+                     'each plugin.'),
+    cfg.ListOpt('publishers',
+                help='The global publishers configuration, '
+                     'plugin can override this by setting their own publishers'
+                )
 ]
 
 CONF = cfg.CONF
@@ -449,6 +452,13 @@ class IndexBase(plugin.Plugin):
         return self.options.enabled
 
     @property
+    def publishers(self):
+        if self.options.publishers is not None:
+            return self.options.publishers
+        elif cfg.CONF.resource_plugin.publishers is not None:
+            return cfg.CONF.resource_plugin.publishers
+
+    @property
     def allow_admin_ignore_rbac(self):
         """If set for a plugin, an administrative query for all_projects will
         NOT skip RBAC filters.
@@ -606,7 +616,12 @@ class IndexBase(plugin.Plugin):
                         help="Override the region name configured in "
                              "'service_credentials'. This is useful when a "
                              "service is deployed as a cloud-wide service "
-                             "rather than per region (e.g. Region1,Region2).")
+                             "rather than per region (e.g. Region1,Region2)."),
+            cfg.ListOpt('publishers',
+                        help='Used to configure publishers for the plugin, '
+                             'value could be publisher names configured in '
+                             'setup.cfg file.'
+                        )
         ]
         if cls.NotificationHandlerCls:
             opts.extend(cls.NotificationHandlerCls.get_plugin_opts())
@@ -667,9 +682,14 @@ class NotificationBase(object):
     def process(self, ctxt, publisher_id, event_type, payload, metadata):
         """Process the incoming notification message."""
         try:
-            self.get_event_handlers()[event_type](payload,
-                                                  metadata['timestamp'])
-            return oslo_messaging.NotificationResult.HANDLED
+            docs = self.get_event_handlers()[event_type](
+                event_type,
+                payload,
+                metadata['timestamp'])
+            if docs:
+                if not hasattr(docs, '__iter__'):
+                    docs = [docs]
+            return docs
         except Exception as e:
             LOG.error(encodeutils.exception_to_unicode(e))
 

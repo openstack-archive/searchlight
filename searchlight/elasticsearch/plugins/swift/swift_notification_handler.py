@@ -24,6 +24,7 @@ from searchlight.elasticsearch.plugins.swift \
 from searchlight.elasticsearch.plugins.swift \
     import serialize_swift_object_notification
 from searchlight.i18n import _LE
+from searchlight import pipeline
 
 
 LOG = logging.getLogger(__name__)
@@ -48,18 +49,23 @@ class SwiftAccountHandler(base.NotificationBase):
     def get_log_fields(self, event_type, payload):
         return ('account', payload.get('account')),
 
-    def create_or_update(self, payload, timestamp):
-        payload = serialize_swift_account_notification(payload)
+    def create_or_update(self, event_type, payload, timestamp):
+        serialized_account = serialize_swift_account_notification(payload)
         try:
             self.index_helper.save_document(
-                payload,
-                version=self.get_version(payload, timestamp))
+                serialized_account,
+                version=self.get_version(serialized_account, timestamp))
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,
+                                      serialized_account
+                                      )
         except Exception as exc:
             LOG.error(_LE('Error saving account %(id)s '
                           'in index. Error: %(exc)s') %
                       {'id': payload['id'], 'exc': exc})
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         version = self.get_version(payload, timestamp,
                                    preferred_date_field='deleted_at')
         id = payload['account']
@@ -67,6 +73,10 @@ class SwiftAccountHandler(base.NotificationBase):
             self.index_helper.delete_document(
                 {'_id': id, '_version': version,
                  '_routing': payload['account']})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       id)
         except Exception as exc:
             LOG.error(_LE('Error deleting account %(id)s '
                           'from index. Error: %(exc)s') %
@@ -96,18 +106,22 @@ class SwiftContainerHandler(base.NotificationBase):
             ('container', payload.get('container'))
         )
 
-    def create_or_update(self, payload, timestamp):
-        payload = serialize_swift_container_notification(payload)
+    def create_or_update(self, event_type, payload, timestamp):
+        serialized_payload = serialize_swift_container_notification(payload)
         try:
             self.index_helper.save_document(
-                payload,
-                version=self.get_version(payload, timestamp))
+                serialized_payload,
+                version=self.get_version(serialized_payload, timestamp))
+            return pipeline.IndexItem(self.index_helper.plugin,
+                                      event_type,
+                                      payload,
+                                      serialized_payload)
         except Exception as exc:
             LOG.error(_LE('Error saving container %(id)s '
                           'in index. Error: %(exc)s') %
                       {'id': payload['id'], 'exc': exc})
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         # notification payload doesn't have any date/time fields
         # so temporarily use metadata timestamp value as
         # updated_at field to retrieve version
@@ -118,9 +132,16 @@ class SwiftContainerHandler(base.NotificationBase):
         del payload['updated_at']
 
         id = payload['account'] + swift.ID_SEP + payload['container']
+        items = []
         try:
-            self.object_helper.delete_documents_with_parent(
+            delete_docs = self.object_helper.delete_documents_with_parent(
                 id, version=version)
+            items.extend(
+                [pipeline.DeleteItem(
+                    self.index_helper.plugin,
+                    event_type,
+                    payload,
+                    doc['_id']) for doc in delete_docs])
         except Exception as exc:
             LOG.error(_LE('Error deleting objects in container %(id)s '
                           'from index. Error: %(exc)s') %
@@ -129,6 +150,14 @@ class SwiftContainerHandler(base.NotificationBase):
             self.index_helper.delete_document(
                 {'_id': id, '_version': version,
                  '_routing': payload['account']})
+            items.append(
+                pipeline.DeleteItem(
+                    self.index_helper.plugin,
+                    event_type,
+                    payload,
+                )
+            )
+            return items
         except Exception as exc:
             LOG.error(_LE('Error deleting container %(id)s '
                           'from index. Error: %(exc)s') %
@@ -158,19 +187,25 @@ class SwiftObjectHandler(base.NotificationBase):
             ('object', payload.get('object'))
         )
 
-    def create_or_update(self, payload, timestamp):
-        payload = serialize_swift_object_notification(payload)
+    def create_or_update(self, event_type, payload, timestamp):
+        serialized_payload = serialize_swift_object_notification(payload)
         try:
             self.index_helper.save_document(
+                serialized_payload,
+                version=self.get_version(serialized_payload, timestamp)
+            )
+            return pipeline.IndexItem(
+                self.index_helper.plugin,
+                event_type,
                 payload,
-                version=self.get_version(payload, timestamp)
+                serialized_payload
             )
         except Exception as exc:
             LOG.error(_LE('Error saving object %(id)s '
                           'in index. Error: %(exc)s') %
                       {'id': payload['id'], 'exc': exc})
 
-    def delete(self, payload, timestamp):
+    def delete(self, event_type, payload, timestamp):
         # notification payload doesn't have any date/time fields
         # so temporarily use metadata timestamp value as
         # updated_at field to retrieve version
@@ -187,6 +222,12 @@ class SwiftObjectHandler(base.NotificationBase):
             self.index_helper.delete_document(
                 {'_id': id, '_version': version,
                  '_routing': payload['account']})
+            return pipeline.DeleteItem(
+                self.index_helper.plugin,
+                event_type,
+                payload,
+                id
+            )
         except Exception as exc:
             LOG.error(_LE('Error deleting object %(id)s '
                           'from index. Error: %(exc)s') %

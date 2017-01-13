@@ -764,10 +764,15 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
 
         with mock.patch('glanceclient.v2.image_members.Controller.list',
                         side_effect=glanceclient.exc.NotFound):
-            self.notification_handler.create_or_update(
-                notification, None)
-            mock_delete.assert_called_with(
-                {'_id': self.members_image['id']})
+            with mock.patch.object(
+                    self.notification_handler,
+                    'get_version',
+                    return_value='fake_version'):
+                self.notification_handler.create_or_update(
+                    "image.create", notification, None)
+                mock_delete.assert_called_with(
+                    {'_id': self.members_image['id'],
+                     '_version': 'fake_version'})
 
     def test_image_member_list(self):
         with mock.patch('glanceclient.v2.image_members.Controller.list',
@@ -804,3 +809,14 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         self.plugin.filter_result(result_hit, fake_request.context)
         self.assertEqual(set([TENANT1, TENANT2, TENANT3]),
                          set(result_hit['_source']['members']))
+
+
+class TestImageEventHandler(test_utils.BaseTestCase):
+    def setUp(self):
+        super(TestImageEventHandler, self).setUp()
+        self.set_property_protections()
+
+        self._create_images()
+
+        self.plugin = images_plugin.ImageIndex()
+        self.notification_handler = self.plugin.get_notification_handler()

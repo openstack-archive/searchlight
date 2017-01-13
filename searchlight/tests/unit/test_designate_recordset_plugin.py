@@ -19,6 +19,7 @@ import mock
 from searchlight.elasticsearch.plugins.designate import \
     recordsets as recordsets_plugin
 from searchlight.elasticsearch import ROLE_USER_FIELD
+from searchlight import pipeline
 from searchlight.tests.unit import utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
@@ -43,22 +44,23 @@ ID3 = u'90754354-bc43-234b-12b5-789234bcdefa'
 
 
 def _recordset_fixture(id, zone_id, tenant_id, name, **kwargs):
-    zone = {
+    recordset = {
         'tenant_id': tenant_id,
         'zone_id': zone_id,
         'name': name,
         'ttl': 3600,
         'status': 'pending',
         'created_at': created_now,
-        'updated_at': updated_now
+        'updated_at': updated_now,
+        "id": id
     }
-    zone.update(**kwargs)
-    return zone
+    recordset.update(**kwargs)
+    return recordset
 
 
-class TestZonePlugin(test_utils.BaseTestCase):
+class TestRecordsetPlugin(test_utils.BaseTestCase):
     def setUp(self):
-        super(TestZonePlugin, self).setUp()
+        super(TestRecordsetPlugin, self).setUp()
         self.plugin = recordsets_plugin.RecordSetIndex()
 
         self._create_fixtures()
@@ -158,3 +160,119 @@ class TestZonePlugin(test_utils.BaseTestCase):
     def test_serialize(self):
         serialized = self.plugin.serialize(self.recordset1)
         self.assertEqual(TENANT1, serialized['project_id'])
+
+    def test_create_recordset(self):
+        """Test recordset create event"""
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        create_event = (
+            'dns.recordset.create',
+            {
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:48:53.000000",
+                "description": None,
+                "updated_at": None,
+                "records": [{
+                    "status": "PENDING",
+                    "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                    "managed": False,
+                    "managed_resource_id": None,
+                    "managed_resource_type": None,
+                    "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                    "created_at": "2016-03-31T05:48:54.000000",
+                    "managed_extra": None,
+                    "updated_at": None,
+                    "managed_plugin_type": None,
+                    "version": 1,
+                    "managed_plugin_name": None,
+                    "managed_tenant_id": None,
+                    "action": "CREATE",
+                    "hash": "8402992213c4c985429e9f2b23a18847",
+                    "managed_resource_region": None,
+                    "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                    "data": "10.0.0.1",
+                    "id": "01835dc4-b805-4c8f-b962-2a96880f40c7",
+                    "serial": 1459403333,
+                    "description": None
+                }],
+                "version": 1,
+                "ttl": None,
+                "type": "A",
+                "id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "name": "www.myzone.net."
+            },
+            '2016-03-31 05:48:54.102791'
+        )
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_document') as mock_save:
+            type_handler = event_handlers.get(create_event[0], None)
+            result = type_handler(*create_event)
+            self.assertEqual(1, mock_save.call_count)
+            self.assertIsInstance(result, pipeline.IndexItem)
+            self.assertIsInstance(result.plugin,
+                                  recordsets_plugin.RecordSetIndex)
+            self.assertEqual(create_event[0], result.event_type)
+
+    def test_delete_recordset(self):
+        """Test recordset delete event"""
+        mock_engine = mock.Mock()
+        self.plugin.engine = mock_engine
+
+        delete_event = (
+            "dns.recordset.delete",
+            {
+                "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                "created_at": "2016-03-31T05:48:53.000000",
+                "description": None,
+                "updated_at": "2016-03-31T07:24:14.000000",
+                "records": [{
+                    "status": "PENDING",
+                    "zone_id": "3081593e-10ca-408c-af77-1397e689c177",
+                    "managed": False,
+                    "managed_resource_id": None,
+                    "managed_resource_type": None,
+                    "tenant_id": "80264096ac454d3d904002491fafe2ec",
+                    "created_at": "2016-03-31T05:48:54.000000",
+                    "managed_extra": None,
+                    "updated_at": "2016-03-31T07:24:14.000000",
+                    "managed_plugin_type": None,
+                    "version": 3,
+                    "managed_plugin_name": None,
+                    "managed_tenant_id": None,
+                    "action": "DELETE",
+                    "hash": "8402992213c4c985429e9f2b23a18847",
+                    "managed_resource_region": None,
+                    "recordset_id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                    "data": "10.0.0.1",
+                    "id": "01835dc4-b805-4c8f-b962-2a96880f40c7",
+                    "serial": 1459409054,
+                    "description": None
+                }],
+                "version": 3,
+                "ttl": None,
+                "type": "A",
+                "id": "cfe39618-49da-4877-914b-f25ef0fb3dc1",
+                "name": "www.myzone.net."
+            },
+            "2016-03-31 07:24:14.945626"
+        )
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'delete_document') as mock_delete:
+            type_handler = event_handlers.get(delete_event[0], None)
+            result = type_handler(*delete_event)
+            self.assertEqual(1, mock_delete.call_count)
+            self.assertIsInstance(result, pipeline.DeleteItem)
+            self.assertIsInstance(result.plugin,
+                                  recordsets_plugin.RecordSetIndex)
+            self.assertEqual(delete_event[0], result.event_type)
+            self.assertEqual(delete_event[1]["id"], result.doc_id)
