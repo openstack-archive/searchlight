@@ -42,7 +42,9 @@ class ServerGroupIndex(base.IndexBase):
                     }
                 },
                 'policies': {'type': 'string', 'index': 'not_analyzed'},
-                'members': {'type': 'string', 'index': 'not_analyzed'}
+                'members': {'type': 'string', 'index': 'not_analyzed'},
+                'updated_at': {'type': 'date'},
+                'metadata': {'type': 'object', 'properties': {}}
             },
             "_meta": {
                 "project_id": {
