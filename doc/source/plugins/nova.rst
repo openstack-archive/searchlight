@@ -101,17 +101,13 @@ Plugin: OS::Nova::SeverGroup
 
     [resource_plugin:os_nova_servergroup]
     enabled = true
-    resource_group_name = sl_without_notification
+    resource_group_name = searchlight
 
 .. note::
 
     The return value of os-server-groups API from nova doesn't contain
     project and user information before nova API microversion v2.13,
     thus the index cannot been searched by particular project.
-
-    There are no notifications for server groups from nova yet, so we
-    recommend putting it in its own resource group and scheduling a cron job
-    to re-sync with little overhead.
 
 Nova Configuration
 ==================
