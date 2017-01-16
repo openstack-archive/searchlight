@@ -14,11 +14,15 @@
 from searchlight.common import resource_types
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import FLAVOR_ACCESS_FIELD
+from searchlight.elasticsearch.plugins.nova \
+    import notification_handler
 from searchlight.elasticsearch.plugins.nova import serialize_nova_flavor
 from searchlight.elasticsearch.plugins import openstack_clients
 
 
 class FlavorIndex(base.IndexBase):
+
+    NotificationHandlerCls = notification_handler.FlavorHandler
 
     @classmethod
     def get_document_type(self):

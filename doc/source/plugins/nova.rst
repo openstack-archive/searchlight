@@ -85,15 +85,15 @@ Plugin: OS::Nova::Flavor
 
     [resource_plugin:os_nova_flavor]
     enabled = true
-    resource_group_name = sl_without_notification
+    resource_group_name = searchlight
+    notifications_topics_exchanges = versioned_notifications,nova
 
 .. note::
 
-    There are no notifications for flavors from nova yet, so we recommend
-    putting it in its own resource group and scheduling a cron job to
-    periodically re-sync. This will create a very low overhead way to
-    keep the index up to date. The index latency will be dependent on how
-    often you re-sync the data.
+    The notifications topic for flavors is versioned_notifications, so we
+    need to config notifications_topics_exchanges with value
+    'versioned_notifications,nova' in order to get the related versioned
+    notifications from nova.
 
 Plugin: OS::Nova::SeverGroup
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

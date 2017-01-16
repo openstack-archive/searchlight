@@ -1,0 +1,101 @@
+{
+    "flavor.create": {
+        "event_type": "flavor.create",
+        "payload": {
+            "nova_object.version": "1.2",
+            "nova_object.name": "FlavorPayload",
+            "nova_object.data": {
+                "disabled": false,
+                "root_gb": 10,
+                "name": "test_flavor",
+                "ephemeral_gb": 0,
+                "memory_mb": 512,
+                "vcpus": 1,
+                "swap": 0,
+                "rxtx_factor": 1.0,
+                "is_public": true,
+                "flavorid": "100",
+                "vcpu_weight": 0
+            },
+            "nova_object.namespace": "nova"
+        },
+        "publisher_id": "compute.devstack",
+        "ctxt": {
+            "project_name": "demo",
+            "user_id": "d2ac2752732444adac10fc4911fdac75",
+            "project_id": "b1fbc598025841899f63333269abe1d2",
+            "user_name": "demo"
+        },
+        "metadata": {
+            "timestamp": "2017-01-16 05:45:48.649772",
+            "message_id": "7f9a7298-dbcb-11e6-af0d-000c2939705b"
+        }
+    },
+    "flavor.update": {
+        "event_type": "flavor.update",
+        "payload": {
+            "nova_object.version": "1.2",
+            "nova_object.name": "FlavorPayload",
+            "nova_object.data": {
+                "disabled": false,
+                "root_gb": 10,
+                "name": "test_flavor",
+                "ephemeral_gb": 0,
+                "memory_mb": 512,
+                "vcpus": 1,
+                "extra_specs": {
+                    "key1": "value1"
+                },
+                "swap": 0,
+                "rxtx_factor": 1.0,
+                "is_public": true,
+                "flavorid": "100",
+                "vcpu_weight": 0
+            },
+            "nova_object.namespace": "nova"
+        },
+        "publisher_id": "compute.devstack",
+        "ctxt": {
+            "project_name": "demo",
+            "user_id": "d2ac2752732444adac10fc4911fdac75",
+            "project_id": "b1fbc598025841899f63333269abe1d2",
+            "user_name": "demo"
+        },
+        "metadata": {
+            "timestamp": "2017-01-16 06:08:34.649772",
+            "message_id": "852df716-dbcb-11e6-a8df-000c2939705b"
+        }
+    },
+    "flavor.delete": {
+        "event_type": "flavor.delete",
+        "payload": {
+            "nova_object.version": "1.2",
+            "nova_object.name": "FlavorPayload",
+            "nova_object.data": {
+                "disabled": false,
+                "root_gb": 10,
+                "name": "test_flavor",
+                "ephemeral_gb": 0,
+                "memory_mb": 512,
+                "vcpus": 1,
+                "swap": 0,
+                "rxtx_factor": 1.0,
+                "is_public": true,
+                "flavorid": "100",
+                "vcpu_weight": 0
+            },
+            "nova_object.namespace": "nova"
+        },
+        "publisher_id": "compute.devstack",
+        "ctxt": {
+            "project_name": "demo",
+            "user_id": "d2ac2752732444adac10fc4911fdac75",
+            "project_id": "b1fbc598025841899f63333269abe1d2",
+            "user_name": "demo"
+        },
+        "metadata": {
+            "timestamp": "2017-01-16 09:46:48.649772",
+            "message_id": "13b4a52a-dbcc-11e6-984d-000c2939705b"
+        }
+    }
+}

@@ -19,6 +19,7 @@ from oslo_log import log as logging
 
 from elasticsearch import helpers
 from searchlight.elasticsearch.plugins import base
+from searchlight.elasticsearch.plugins.nova import serialize_nova_flavor
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
 from searchlight.elasticsearch.plugins import utils
 from searchlight.i18n import _LE, _LW
@@ -457,3 +458,50 @@ class ServerGroupHandler(base.NotificationBase):
                 _LE('Error deleting server group %(server_group_id)s '
                     'from index: %(exc)s') % {
                     'server_group_id': server_group_id, 'exc': exc})
+
+
+class FlavorHandler(base.NotificationBase):
+    """Handles nova flavor versioned notifications. The payload samples are:
+       http://docs.openstack.org/developer/nova/notifications.html#existing-versioned-notifications
+    """
+
+    @classmethod
+    def _get_notification_exchanges(cls):
+        return ['nova']
+
+    def get_event_handlers(self):
+        return {
+            'flavor.create': self.create_or_update,
+            'flavor.update': self.create_or_update,
+            'flavor.delete': self.delete
+        }
+
+    def get_log_fields(self, event_type, payload):
+        return ('flavorid', payload['nova_object.data']['flavorid']),
+
+    def create_or_update(self, event_type, payload, timestamp):
+        flavor = serialize_nova_flavor(payload['nova_object.data'])
+        version = self.get_version(flavor, timestamp)
+
+        LOG.debug("Updating nova flavor information for %s", flavor['id'])
+        self.index_helper.save_document(flavor, version=version)
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  flavor)
+
+    def delete(self, event_type, payload, timestamp):
+        flavor = payload['nova_object.data']
+        flavor_id = flavor['flavorid']
+        LOG.debug("Deleting nova flavor information for %s", flavor_id)
+
+        try:
+            self.index_helper.delete_document({'_id': flavor_id})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       flavor_id)
+        except Exception as exc:
+            LOG.error(_LE('Error deleting flavor %(flavor_id)s'
+                          'from index: %(exc)s') % {
+                      'flavor_id': flavor_id, 'exc': exc})
