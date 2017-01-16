@@ -55,6 +55,8 @@ log_translation_critical = re.compile(
     r"(.)*LOG\.(critical)\(\s*(_\(|'|\")")
 log_translation_warning = re.compile(
     r"(.)*LOG\.(warning)\(\s*(_\(|'|\")")
+doubled_words_re = re.compile(
+    r"\b(then?|[iao]n|i[fst]|but|f?or|at|and|[dt]o)\s+\1\b")
 
 
 def assert_true_instance(logical_line):
@@ -143,6 +145,19 @@ def check_no_contextlib_nested(logical_line):
         yield(0, msg)
 
 
+def check_doubled_words(physical_line, filename):
+    """Check for the common doubled-word typos
+
+    N343
+    """
+    msg = ("N343: Doubled word '%(word)s' typo found")
+
+    match = re.search(doubled_words_re, physical_line)
+
+    if match:
+        return (0, msg % {'word': match.group(1)})
+
+
 def factory(register):
     register(assert_true_instance)
     register(assert_equal_type)
@@ -151,3 +166,4 @@ def factory(register):
     register(no_direct_use_of_unicode_function)
     register(validate_log_translations)
     register(check_no_contextlib_nested)
+    register(check_doubled_words)

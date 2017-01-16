@@ -23,3 +23,4 @@ Searchlight Specific Commandments
 - [SL325] Validate that LOG.critical messages use _LC.
 - [SL326] Validate that LOG.warning messages use _LW.
 - [SL327] Prevent use of deprecated contextlib.nested
+- [SL343] Check for common double word typos
