@@ -133,7 +133,7 @@ def reindex(src_index, dst_index, type_list, chunk_size=None, time=None):
 
     # Create a Query DSL string to access all documents within the specified
     # document types. We will filter on the "_type" field in this index. Since
-    # there are multple docuent types, we will need to use the "terms" filter.
+    # there are multiple docuent types, we will need to use the "terms" filter.
     # All of the document types will be added to the list for "_type". We need
     # to enable version to allow the search to return the version field. This
     # will be used by the reindexer.
