@@ -66,27 +66,22 @@ class TestSubnetLoaderPlugin(test_utils.BaseTestCase):
         )
         rbac_terms = self.plugin._get_rbac_field_filters(fake_request.context)
         expected_rbac = [
+            {'term': {'tenant_id': TENANT1}},
             {
-                "or": [
-                    {
-                        'term': {'tenant_id': TENANT1}
-                    },
-                    {
-                        'has_parent': {
-                            'type': self.plugin.parent_plugin_type(),
-                            'query': {
-                                "bool": {
-                                    "should": [
-                                        {'term': {'shared': True}},
-                                        {'term': {'router:external': True}}
-                                    ]
-                                }
-                            }
+                'has_parent': {
+                    'type': self.plugin.parent_plugin_type(),
+                    'query': {
+                        "bool": {
+                            "should": [
+                                {'term': {'shared': True}},
+                                {'term': {'router:external': True}}
+                            ]
                         }
                     }
-                ]
+                }
             }
         ]
+
         self.assertEqual(expected_rbac, rbac_terms)
 
     def test_rbac_filter_non_admin_role(self):
@@ -95,15 +90,13 @@ class TestSubnetLoaderPlugin(test_utils.BaseTestCase):
         )
         rbac_terms = self.plugin._get_rbac_field_filters(fake_request.context)
         self.assertEqual(
-            [{"or": [
-                {"term": {"tenant_id": TENANT1}},
-                {
-                    "has_parent": {
-                        "type": "OS::Neutron::Net",
-                        "query": {"term": {"shared": True}}
-                    }
+            [{"term": {"tenant_id": TENANT1}},
+             {
+                "has_parent": {
+                    "type": "OS::Neutron::Net",
+                    "query": {"term": {"shared": True}}
                 }
-            ]}],
+            }],
             rbac_terms
         )
 

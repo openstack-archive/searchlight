@@ -15,7 +15,6 @@
 
 import datetime
 from oslo_utils import timeutils
-from oslo_utils import uuidutils
 import random
 
 from searchlight.elasticsearch.plugins.neutron import\
@@ -31,7 +30,6 @@ TENANT1 = "8eaac046b2c44ab99246cb0850c7f06d"
 
 
 def _network_fixture(network_id, tenant_id, name, **kwargs):
-    network_id = kwargs.pop('network_id', uuidutils.generate_uuid())
     fixture = {
         "admin_state_up": True,
         "id": network_id,
@@ -86,15 +84,13 @@ class TestNetworkLoaderPlugin(test_utils.BaseTestCase):
             USER1, TENANT1, '/v1/search', is_admin=False
         )
         rbac_terms = self.plugin._get_rbac_field_filters(fake_request.context)
-        self.assertEqual([{
-            'bool': {
-                'should': [
-                    {'term': {'tenant_id': TENANT1}},
-                    {'terms': {'members': [TENANT1, '*']}},
-                    {'term': {'router:external': True}},
-                    {'term': {'shared': True}}
-                ]
-            }}],
+        self.assertEqual(
+            [
+                {'term': {'tenant_id': TENANT1}},
+                {'terms': {'members': [TENANT1, '*']}},
+                {'term': {'router:external': True}},
+                {'term': {'shared': True}}
+            ],
             rbac_terms
         )
 

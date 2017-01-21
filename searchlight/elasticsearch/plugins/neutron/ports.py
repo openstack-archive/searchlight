@@ -123,27 +123,23 @@ class PortIndex(base.IndexBase):
             '''lakshmiS: neutron allows users with admin role to
             see ports of network(s) from other tenants when those
             networks are either shared or external.'''
-            return [
-                {
-                    "or": [
-                        {
-                            'term': {'tenant_id': request_context.owner}
-                        },
-                        {
-                            'has_parent': {
-                                'type': self.parent_plugin_type(),
-                                'query': {
-                                    "bool": {
-                                        "should": [
-                                            {'term': {'shared': True}},
-                                            {'term': {'router:external': True}}
-                                        ]
-                                    }
-                                }
-                            }
+            has_parent = {
+                'has_parent': {
+                    'type': self.parent_plugin_type(),
+                    'query': {
+                        "bool": {
+                            "should": [
+                                {'term': {'shared': True}},
+                                {'term': {'router:external': True}}
+                            ]
                         }
-                    ]
+                    }
                 }
+            }
+
+            return [
+                {'term': {'tenant_id': request_context.owner}},
+                has_parent  # from above
             ]
         else:
             ''' Users without admin role are not allowed to see the

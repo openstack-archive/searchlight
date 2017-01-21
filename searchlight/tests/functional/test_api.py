@@ -365,6 +365,55 @@ class TestSearchApi(functional.FunctionalTest):
             status_facet,
         )
 
+    def test_search_rbac(self):
+        servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        server1 = {
+            u'addresses': {},
+            u'flavor': {u'id': u'1'},
+            u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
+            u'image': {u'id': u'a'},
+            u'name': u'instance1',
+            u'status': u'ACTIVE',
+            u'tenant_id': TENANT1,
+            u'created_at': u'2016-04-06T12:48:18Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
+        }
+        server2 = {
+            u'addresses': {},
+            u'flavor': {u'id': u'1'},
+            u'id': u'08ca6c43-eea8-48d0-bbb2-30c50109d5d8',
+            u'image': {u'id': u'a'},
+            u'name': u'instance2',
+            u'status': u'RESUMING',
+            u'tenant_id': TENANT2,
+            u'created_at': u'2016-04-06T12:48:18Z',
+            u'updated_at': u'2016-04-07T15:51:35Z',
+            u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55'
+        }
+
+        with mock.patch(nova_version_getter, return_value=fake_version_list):
+            self._index(
+                servers_plugin,
+                [test_utils.DictObj(**server1),
+                 test_utils.DictObj(**server2)])
+
+        response, json_content = self._search_request(
+            {"query": {"match_all": {}}, "type": "OS::Nova::Server"},
+            TENANT1,
+            role="member")
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(["6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69"],
+                         [h["_source"]["id"]
+                          for h in json_content["hits"]["hits"]])
+
+        response, json_content = self._search_request(
+            {"query": {"match_all": {}}, "type": "OS::Nova::Server",
+             "all_projects": True},
+            TENANT1,
+            role="admin")
+        self.assertEqual(2, json_content['hits']['total'])
+
     def test_nested_facets(self):
         """Check facets for a nested field (networks.OS-EXT-IPS:type). We
         expect a single count per server matched, not per object in the

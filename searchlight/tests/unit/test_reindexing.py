@@ -30,14 +30,14 @@ class TestReindexingUtils(test_utils.BaseTestCase):
         reindex_name = 'searchlight.elasticsearch.plugins.utils.helper_reindex'
 
         expected_single = {'query': {
-                           'filtered': {
+                           'bool': {
                                'filter': {
                                    'terms': {
                                        '_type': single}
                                }
                            }}, 'version': 'true'}
         expected_mult = {'query': {
-                         'filtered': {
+                         'bool': {
                              'filter': {
                                  'terms': {
                                      '_type': mult}

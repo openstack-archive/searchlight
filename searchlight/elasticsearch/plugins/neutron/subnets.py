@@ -137,17 +137,15 @@ class SubnetIndex(base.IndexBase):
             """
             has_parent_query = {'term': {'shared': True}}
 
-        rbac_filter = [{
-            "or": [
-                {'term': {'tenant_id': request_context.owner}},
-                {
-                    'has_parent': {
-                        'type': self.parent_plugin_type(),
-                        'query': has_parent_query
-                    }
+        rbac_filter = [
+            {'term': {'tenant_id': request_context.owner}},
+            {
+                'has_parent': {
+                    'type': self.parent_plugin_type(),
+                    'query': has_parent_query
                 }
-            ]
-        }]
+            }
+        ]
         return rbac_filter
 
     def get_objects(self):

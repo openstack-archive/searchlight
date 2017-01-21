@@ -337,18 +337,32 @@ class IndexBase(plugin.Plugin):
                 body['aggs'] = term_aggregations
 
         role_filter = request_context.user_role_filter
-        plugin_filters = [{
-            "term": {ROLE_USER_FIELD: role_filter}
-        }]
-        if not (request_context.is_admin and all_projects):
-            plugin_filters.extend(
-                self._get_rbac_field_filters(request_context))
 
-        body['query'] = {
-            "filtered": {
+        filter_query = {
+            "bool": {
                 "filter": {
-                    "and": plugin_filters
-                }}}
+                    "bool": {
+                        "must": {
+                            "term": {ROLE_USER_FIELD: role_filter}
+                        }
+                    }
+                }
+            }
+        }
+
+        # Add in the RBAC filters unless all_projects is requested
+        if not (request_context.is_admin and all_projects):
+            rbac_filters = self._get_rbac_field_filters(request_context)
+
+            # minimum_should_match:1 is assumed in filter context,
+            # but I'm including it explicitly so nobody spends an hour
+            # scouring the documentation to check that is the case
+            if rbac_filters:
+                filter_query["bool"]["filter"]["bool"].update(
+                    {"should": self._get_rbac_field_filters(request_context),
+                     "minimum_should_match": 1})
+
+        body['query'] = filter_query
 
         results = self.engine.search(
             index=self.alias_name_search,
@@ -486,25 +500,38 @@ class IndexBase(plugin.Plugin):
         query_filter = {
             'indices': {
                 'index': self.alias_name_search,
-                'no_match_filter': 'none',
-                'filter': {
-                    'and': [
-                        {'type': {'value': self.get_document_type()}}
-                    ]
+                'no_match_query': 'none',
+                'query': {
+                    'bool': {
+                        'filter': {
+                            'bool': {
+                                'must': {
+                                    'type': {
+                                        'value': self.get_document_type()
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
 
         if not (ignore_rbac and self.allow_admin_ignore_rbac):
             rbac_filters = self._get_rbac_field_filters(request_context)
-            query_filter['indices']['filter']['and'].extend(rbac_filters)
+            if rbac_filters:
+                bool_clause = query_filter['indices']['query']['bool']
+                bool_clause['filter']['bool'].update({
+                    'should': rbac_filters,
+                    'minimum_should_match': 1})
 
         return query_filter
 
     @abc.abstractmethod
     def _get_rbac_field_filters(self, request_context):
         """Return any RBAC field filters in a list to be injected into an
-        indices query. Document type will be added.
+        indices query. Document type will be added. The filters will be used
+        in the 'should' filter clause (i.e. OR).
         """
 
     def get_notification_handler(self):

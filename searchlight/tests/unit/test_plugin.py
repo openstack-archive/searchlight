@@ -592,9 +592,13 @@ class TestPlugin(test_utils.BaseTestCase):
 
                 expected_body = {
                     'query': {
-                        'filtered': {
+                        'bool': {
                             'filter': {
-                                'and': [{'term': {ROLE_USER_FIELD: 'admin'}}]
+                                'bool': {
+                                    'must': {
+                                        'term': {ROLE_USER_FIELD: 'admin'}
+                                    }
+                                }
                             }
                         }
                     },
@@ -704,11 +708,19 @@ class TestPlugin(test_utils.BaseTestCase):
                                        all_projects=False, limit_terms=False,
                                        exclude_options=True)
         # Verify there is no aggregation when searching Elasticsearch.
-        body = {'query': {
-                'filtered': {'filter': {'and':
-                             [{'term': {
-                               '__searchlight-user-role': 'admin'}}]}}}
+        body = {
+            'query': {
+                'bool': {
+                    'filter': {
+                        'bool': {
+                            'must': {
+                                'term': {'__searchlight-user-role': 'admin'}
+                            }
+                        }
+                    }
                 }
+            }
+        }
         mock_engine.search.assert_called_with(body=body,
                                               doc_type='fake-simple',
                                               ignore_unavailable=True,

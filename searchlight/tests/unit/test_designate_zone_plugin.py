@@ -127,12 +127,13 @@ class TestZonePlugin(test_utils.BaseTestCase):
             'aggs': dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in ('status', 'type')),
             'query': {
-                'filtered': {
+                'bool': {
                     'filter': {
-                        'and': [
-                            {'term': {ROLE_USER_FIELD: 'user'}},
-                            {'term': {'project_id': TENANT1}}
-                        ]
+                        'bool': {
+                            'must': {'term': {ROLE_USER_FIELD: 'user'}},
+                            'should': [{'term': {'project_id': TENANT1}}],
+                            'minimum_should_match': 1
+                        }
                     }
                 }
             }
