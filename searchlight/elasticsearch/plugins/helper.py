@@ -26,6 +26,7 @@ from searchlight.i18n import _LE, _LW
 # Refer to ROLE_USER_FIELD
 ADMIN_ID_SUFFIX = "_ADMIN"
 USER_ID_SUFFIX = "_USER"
+VERSION_CONFLICT_EXCEPTION = "version_conflict_engine_exception"
 
 
 def strip_role_suffix(strip_from, suffix=None):
@@ -199,7 +200,9 @@ class IndexingHelper(object):
         except helpers.BulkIndexError as e:
             err_msg = []
             for err in e.errors:
-                if "VersionConflict" not in err['index']['error']:
+                if (err['index']['error']['type'] !=
+                    VERSION_CONFLICT_EXCEPTION and
+                        err['index']['status'] != 409):
                     raise
                 err_msg.append("id %(_id)s: %(error)s" % err['index'])
             LOG.warning(_LW('Version conflict %s') % ';'.join(err_msg))
