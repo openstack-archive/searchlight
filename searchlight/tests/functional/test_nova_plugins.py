@@ -211,37 +211,38 @@ class TestNovaPlugins(functional.FunctionalTest):
         self.assertEqual(200, response.status)
         self.assertEqual(1, json_content['hits']['total'])
 
+    def test_server_groups_rbac(self):
+        self._index(self.server_groups_plugin,
+                    [utils.DictObj(**server_group) for server_group in
+                     self.server_groups_objects["server_groups"]])
 
-def test_server_groups_rbac(self):
-    self._index(self.server_groups_plugin,
-                [utils.DictObj(**server_group) for server_group in
-                 self.server_groups_objects])
-
-    query = {
-        "type": ["OS::Nova::ServerGroup"],
-        "query": {
-            "match_all": {}
+        query = {
+            "type": ["OS::Nova::ServerGroup"],
+            "query": {
+                "match_all": {}
+            }
         }
-    }
-
-    response, json_content = self._search_request(query, TENANT1)
-    expected_sources = [{
-        u"user_id": u"944ff1aa607744ab9400acbf6be7f38a",
-        u"policies": [u"affinity"],
-        u"name": u"server_group_1",
-        u"members": [u"8bf01fe7-1369-4059-92de-95ba11ff21dd"],
-        u"project_id": u"d782f6257f0b484c97e9474b74db34a1",
-        u"id": u"d0d017d6-0d41-4b32-b9f8-c43f039defc5",
-        u"metadata": {}
-    }]
-    hits = json_content['hits']['hits']
-    for hit in hits:
-        source = hit["_source"]
-        source.pop("updated_at")
-    actual_sources = [hit["_source"] for hit in hits]
-    self.assertEqual(expected_sources, actual_sources)
-    self.assertEqual(200, response.status)
-    self.assertEqual(1, json_content['hits']['total'])
+        response, json_content = self._search_request(
+            query,
+            self.server_groups_objects["server_groups"][0]["project_id"]
+        )
+        expected_sources = [{
+            u"user_id": u"944ff1aa607744ab9400acbf6be7f38a",
+            u"policies": [u"affinity"],
+            u"name": u"server_group_1",
+            u"members": [u"8bf01fe7-1369-4059-92de-95ba11ff21dd"],
+            u"project_id": u"d782f6257f0b484c97e9474b74db34a1",
+            u"id": u"d0d017d6-0d41-4b32-b9f8-c43f039defc5",
+            u"metadata": {}
+        }]
+        hits = json_content['hits']['hits']
+        for hit in hits:
+            source = hit["_source"]
+            source.pop("updated_at")
+        actual_sources = [hit["_source"] for hit in hits]
+        self.assertEqual(expected_sources, actual_sources)
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
 
 
 class TestNovaListeners(test_listener.TestSearchListenerBase):
