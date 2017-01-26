@@ -1,0 +1,11 @@
+---
+features:
+  - Notifications for flavor are now supported.
+issues:
+  - The projects list will not present in the flavor related
+    versioned notifications if you update the flavor access only
+    because of a lazy-loaded bug in nova.
+upgrade:
+  - To enable the notifications for flavor you need to config
+    `notifications_topics_exchanges = versioned_notifications,nova`
+    under section `resource_plugin:os_nova_flavor`

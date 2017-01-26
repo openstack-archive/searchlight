@@ -17,6 +17,7 @@ import copy
 import json
 import logging
 import novaclient.exceptions
+import novaclient.v2.flavors
 import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
@@ -29,6 +30,15 @@ LOG = logging.getLogger(__name__)
 # All 'links' will also be removed
 BLACKLISTED_FIELDS = set((u'progress', u'links'))
 FLAVOR_ACCESS_FIELD = 'tenant_access'
+FLAVOR_FIELDS_MAP = {
+    'disabled': 'OS-FLV-DISABLED:disabled',
+    'is_public': 'os-flavor-access:is_public',
+    'ephemeral_gb': 'OS-FLV-EXT-DATA:ephemeral',
+    'projects': 'tenant_access',
+    'root_gb': 'disk',
+    'memory_mb': 'ram'
+}
+FLAVOR_BLACKLISTED_FIELDS = ['vcpu_weight', 'flavorid']
 
 
 def _get_flavor_access(flavor):
@@ -95,14 +105,41 @@ def serialize_nova_hypervisor(hypervisor, updated_at=None):
 
 
 def serialize_nova_flavor(flavor, updated_at=None):
-    serialized = {k: v for k, v in flavor.to_dict().items()
-                  if k not in ("links")}
-    serialized["extra_specs"] = flavor.get_keys()
+    if hasattr(flavor, "to_dict"):
+        serialized = {k: v for k, v in flavor.to_dict().items()
+                      if k not in ("links")}
+        serialized["extra_specs"] = flavor.get_keys()
 
-    serialized[FLAVOR_ACCESS_FIELD] = _get_flavor_access(flavor)
+        serialized[FLAVOR_ACCESS_FIELD] = _get_flavor_access(flavor)
+    else:
+        # This is a versioned flavor notification object
+        serialized = copy.deepcopy(flavor)
+        # Flavorid is a uuid like string.
+        serialized['id'] = serialized['flavorid']
+        # Extra specs and projects are added by update operation
+        serialized['extra_specs'] = serialized.get('extra_specs') or {}
+        # NOTE(lyj): If extra_specs is updated, the projects will be a empty
+        # list because of the bug: https://bugs.launchpad.net/nova/+bug/1653221
+        # it is a rare case, so we do nothing here for now.
+        serialized['projects'] = serialized.get('projects')
 
-    if not getattr(flavor, 'updated_at', None):
+        # For consistent with the Flavor API response, we need to remove some
+        # fields, and rename some fields key.
+        for item in FLAVOR_BLACKLISTED_FIELDS:
+            try:
+                serialized.pop(item)
+            except KeyError:
+                pass
+
+        for key, value in six.iteritems(FLAVOR_FIELDS_MAP):
+            try:
+                serialized[value] = serialized.pop(key)
+            except KeyError:
+                pass
+
+    if not serialized.get('updated_at'):
         serialized['updated_at'] = updated_at or utils.get_now_str()
+
     return serialized
 
 

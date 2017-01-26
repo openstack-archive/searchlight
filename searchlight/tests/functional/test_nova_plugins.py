@@ -251,15 +251,18 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
         self.server_events = self._load_fixture_data('events/servers.json')
         self.server_group_events = self._load_fixture_data(
             'events/server_group.json')
+        self.flavor_events = self._load_fixture_data('events/flavor.json')
 
     def setUp(self):
         super(TestNovaListeners, self).setUp()
         self.servers_plugin = self.initialized_plugins['OS::Nova::Server']
         self.sg_plugin = self.initialized_plugins['OS::Nova::ServerGroup']
+        self.flavor_plugin = self.initialized_plugins['OS::Nova::Flavor']
 
         notification_plugins = {
             plugin.document_type: utils.StevedoreMock(plugin)
-            for plugin in (self.servers_plugin, self.sg_plugin)}
+            for plugin in (self.servers_plugin, self.sg_plugin,
+                           self.flavor_plugin)}
         self.notification_endpoint = NotificationEndpoint(
             notification_plugins,
             PipelineManager(notification_plugins)
@@ -343,6 +346,49 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
 
         query = {"query": {"match_all": {}},
                  "type": "OS::Nova::ServerGroup"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        self.assertEqual(0, json_content['hits']['total'])
+
+    def test_flavor_create_update_delete(self):
+        # Test #1: Create a flavor.
+        create_event = self.flavor_events["flavor.create"]
+        self._send_event_to_listener(create_event, self.listener_alias)
+
+        query = {
+            "query": {"match_all": {}},
+            "type": "OS::Nova::Flavor"
+        }
+
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        self.assertEqual(1, json_content['hits']['total'])
+        self.assertEqual(
+            create_event['payload']['nova_object.data']['flavorid'],
+            json_content['hits']['hits'][0]['_source']['id'])
+
+        # Test #2: Update flavor with new extra specs.
+        update_event = self.flavor_events['flavor.update']
+        self._send_event_to_listener(update_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Nova::Flavor"}
+        response, json_content = self._search_request(query, EV_TENANT)
+
+        self.assertEqual(200, response.status)
+        # Verify the new extra_specs was added to the flavor.
+        extra_specs = (
+            json_content['hits']['hits'][0]['_source']['extra_specs'])
+        self.assertEqual({"key1": "value1"}, extra_specs)
+
+        # Test #3: Delete the flavor.
+        delete_event = self.flavor_events['flavor.delete']
+        self._send_event_to_listener(delete_event, self.listener_alias)
+
+        query = {"query": {"match_all": {}},
+                 "type": "OS::Nova::Flavor"}
         response, json_content = self._search_request(query, EV_TENANT)
 
         self.assertEqual(200, response.status)
