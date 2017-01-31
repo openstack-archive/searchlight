@@ -286,7 +286,12 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             'is_admin_project': True,
             'is_admin': False,
             'user_domain_id': None,
-            'project_domain_id': None
+            'project_domain_id': None,
+            'service_user_id': None,
+            'service_user_domain_id': None,
+            'service_project_id': None,
+            'service_project_domain_id': None,
+            'service_roles': []
         }
 
         fake_target = {
