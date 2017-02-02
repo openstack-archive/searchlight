@@ -19,7 +19,9 @@ from cinderclient import client as cinder_client
 from designateclient.v2 import client as designate_client
 from glanceclient import client as glance_client
 from ironicclient import client as ironic_client
+from ironicclient import exc as ironic_exceptions
 from keystoneclient import auth as ks_auth
+from keystoneclient import exceptions as keystone_exceptions
 from keystoneclient import session as ks_session
 import keystoneclient.v2_0.client as ks_client
 import neutronclient.v2_0.client as neutron_client
@@ -225,10 +227,13 @@ def get_keystoneclient():
 
 def get_ironicclient():
     session = _get_session()
-    return ironic_client.get_client(
-        '1',
-        session=session,
-        os_region_name=cfg.CONF.service_credentials.os_region_name,
-        os_endpoint_type=cfg.CONF.service_credentials.os_endpoint_type,
-        os_ironic_api_version=IRONIC_API_VERSION
-    )
+    try:
+        return ironic_client.get_client(
+            '1',
+            session=session,
+            os_region_name=cfg.CONF.service_credentials.os_region_name,
+            os_endpoint_type=cfg.CONF.service_credentials.os_endpoint_type,
+            os_ironic_api_version=IRONIC_API_VERSION
+        )
+    except ironic_exceptions.AmbiguousAuthSystem:
+        raise keystone_exceptions.EndpointNotFound()

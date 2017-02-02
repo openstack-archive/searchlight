@@ -10,9 +10,14 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import mock
+
+from ironicclient import exceptions as ironic_exc
+from keystoneclient import exceptions as keystone_exc
 import searchlight.elasticsearch.plugins.ironic as ironic_plugin
 from searchlight.elasticsearch.plugins.ironic import nodes as nodes_plugin
 from searchlight.elasticsearch.plugins.ironic import resources as ir_resources
+from searchlight.elasticsearch.plugins import openstack_clients
 import searchlight.tests.utils as test_utils
 
 NODE_UUID = "1be26c0b-03f2-4d2e-ae87-c02d7f33c123"
@@ -91,3 +96,11 @@ class TestNodeLoaderPlugin(test_utils.BaseTestCase):
         # properties remapped to node_properties
         self.assertEqual(NODE_PROPERTIES, serialized['node_properties'])
         self.assertNotIn('properties', serialized)
+
+    def test_service_not_present_exception(self):
+        with mock.patch.object(openstack_clients, '_get_session'):
+            with mock.patch('ironicclient.client.get_client') as ironic_cl:
+
+                ironic_cl.side_effect = ironic_exc.AmbiguousAuthSystem
+                self.assertRaises(keystone_exc.EndpointNotFound,
+                                  openstack_clients.get_ironicclient)
