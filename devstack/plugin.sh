@@ -137,6 +137,15 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF resource_plugin:os_designate_zone enabled False
     iniset $SEARCHLIGHT_CONF resource_plugin:os_designate_recordset enabled False
 
+    # Plugin config - disable ironic by default since it's not typically installed
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_chassis enabled False
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_chassis notifications_topics_exchanges ironic_versioned_notifications,ironic
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_node enabled False
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_node notifications_topics_exchanges ironic_versioned_notifications,ironic
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_port enabled False
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_port notifications_topics_exchanges ironic_versioned_notifications,ironic
+
+
     # Plugin config - disable swift by default since it's not typically installed
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_account enabled False
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_container enabled False
