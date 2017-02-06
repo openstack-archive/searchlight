@@ -720,31 +720,42 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'type': 'OS::Nova::Server',
         }))
         output = self.deserializer.search(request)
+        tenant_id = '6838eb7b-6ded-dead-beef-b344c77fe8df'
 
         nova_rbac_filter = {
             'indices': {
-                'filter': {
-                    'and': [
-                        {'type': {'value': 'OS::Nova::Server'}},
-                        {'term': {'tenant_id':
-                                  '6838eb7b-6ded-dead-beef-b344c77fe8df'}}
-                    ]},
+                'query': {
+                    'bool': {
+                        'filter': {
+                            'bool': {
+                                'must': {
+                                    'type': {'value': 'OS::Nova::Server'}
+                                },
+                                'should': [
+                                    {'term': {'tenant_id': tenant_id}}
+                                ],
+                                'minimum_should_match': 1
+                            }
+                        }
+                    }
+                },
                 'index': 'searchlight-search',
-                'no_match_filter': 'none'
+                'no_match_query': 'none'
             }
         }
 
         role_field = searchlight.elasticsearch.ROLE_USER_FIELD
         expected_query = {
             'query': {
-                'filtered': {
+                'bool': {
                     'filter': {
                         'bool': {
                             'must': {'term': {role_field: 'user'}},
-                            'should': [nova_rbac_filter]
+                            'should': [nova_rbac_filter],
+                            'minimum_should_match': 1
                         }
                     },
-                    'query': {'match_all': {}}
+                    'must': {'match_all': {}}
                 }
             }
         }
@@ -758,31 +769,41 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'type': 'OS::Nova::Server',
         }))
         output = self.deserializer.search(request)
-
+        tenant_id = '6838eb7b-6ded-dead-beef-b344c77fe8df'
         nova_rbac_filter = {
             'indices': {
-                'filter': {
-                    'and': [
-                        {'type': {'value': 'OS::Nova::Server'}},
-                        {'term': {'tenant_id':
-                                  '6838eb7b-6ded-dead-beef-b344c77fe8df'}}
-                    ]},
+                'query': {
+                    'bool': {
+                        'filter': {
+                            'bool': {
+                                'must': {
+                                    'type': {'value': 'OS::Nova::Server'}
+                                },
+                                'should': [
+                                    {'term': {'tenant_id': tenant_id}}
+                                ],
+                                'minimum_should_match': 1
+                            }
+                        }
+                    }
+                },
                 'index': 'searchlight-search',
-                'no_match_filter': 'none'
+                'no_match_query': 'none'
             }
         }
 
         role_field = searchlight.elasticsearch.ROLE_USER_FIELD
         expected_query = {
             'query': {
-                'filtered': {
+                'bool': {
                     'filter': {
                         'bool': {
                             'must': {'term': {role_field: 'admin'}},
-                            'should': [nova_rbac_filter]
+                            'should': [nova_rbac_filter],
+                            'minimum_should_match': 1
                         }
                     },
-                    'query': {'match_all': {}}
+                    'must': {'match_all': {}}
                 }
             }
         }
@@ -810,7 +831,9 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         output = self.deserializer.search(request)
 
         # No more tenant restriction in the expected result
-        del nova_rbac_filter['indices']['filter']['and'][1]
+        nova_index_filter = nova_rbac_filter['indices']['query']['bool']
+        del nova_index_filter['filter']['bool']['should']
+        del nova_index_filter['filter']['bool']['minimum_should_match']
 
         self.assertEqual(expected_query, output['query'])
 

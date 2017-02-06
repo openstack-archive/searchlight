@@ -119,16 +119,12 @@ class NetworkIndex(base.IndexBase):
         """Return any RBAC field filters to be injected into an indices
         query. Document type will be added to this list.
         """
-        return [{
-            'bool': {
-                'should': [
-                    {'term': {'tenant_id': request_context.owner}},
-                    {'terms': {'members': [request_context.owner, '*']}},
-                    {'term': {'router:external': True}},
-                    {'term': {'shared': True}}
-                ]
-            }
-        }]
+        return [
+            {'term': {'tenant_id': request_context.owner}},
+            {'terms': {'members': [request_context.owner, '*']}},
+            {'term': {'router:external': True}},
+            {'term': {'shared': True}}
+        ]
 
     def get_rbac_policies(self):
         policies = defaultdict(list)

@@ -115,20 +115,8 @@ class ContainerIndex(base.IndexBase):
             self.parent_plugin.options.reseller_prefix + request_context.owner
 
         return [
-            {
-                'or': [
-                    {
-                        'term': {
-                            'account_id': account_id
-                        }
-                    },
-                    {
-                        'terms': {
-                            'x-container-read': [tenant_member, single_user]
-                        }
-                    }
-                ]
-            }
+            {'term': {'account_id': account_id}},
+            {'terms': {'x-container-read': [tenant_member, single_user]}}
         ]
 
     def get_parent_id_field(self):

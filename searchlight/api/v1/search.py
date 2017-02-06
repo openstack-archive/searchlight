@@ -317,12 +317,8 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
     def _get_es_query(self, context, query, resource_types,
                       all_projects=False):
         is_admin = context.is_admin
-        role_field = searchlight.elasticsearch.ROLE_USER_FIELD
-        role_filter = {
-            'term': {role_field: context.user_role_filter}
-        }
-
         ignore_rbac = is_admin and all_projects
+
         type_and_rbac_filters = []
         for resource_type in resource_types:
             plugin = self.plugins[resource_type].obj
@@ -340,17 +336,29 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                           {'ext': plugin.name, 'e': e})
                 raise webob.exc.HTTPInternalServerError(explanation=msg)
 
+        role_filter = {'term': {searchlight.elasticsearch.ROLE_USER_FIELD:
+                                context.user_role_filter}}
+
+        # Create a filter query for the role filter; RBAC filters are added
+        # in the next step
         es_query = {
-            'filtered': {
+            'bool': {
                 'filter': {
                     'bool': {
-                        'must': role_filter,
-                        'should': type_and_rbac_filters
+                        'must': role_filter
                     }
                 },
-                'query': query
+                'must': query
             }
         }
+
+        if type_and_rbac_filters:
+            # minimum_should_match: 1 is assumed in filter context,
+            # but I'm including it explicitly so nobody spends an
+            # hour scouring the documentation to check
+            es_query['bool']['filter']['bool'].update(
+                {'should': type_and_rbac_filters,
+                 'minimum_should_match': 1})
         return {'query': es_query}
 
     def _get_sort_order(self, sort_order):

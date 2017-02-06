@@ -111,24 +111,16 @@ class ObjectIndex(base.IndexBase):
                 "has_parent": {
                     "type": self.parent_plugin_type(),
                     "query": {
-                        "filtered": {
-                            "query": {"match_all": {}},
-                            "filter": {
-                                "or": [
-                                    {
-                                        'term': {
-                                            'account_id': account_id
-                                        }
-                                    },
-                                    {
-                                        'terms': {
-                                            'x-container-read': [
-                                                tenant_member,
-                                                single_user]
-                                        }
-                                    },
-                                ]
-                            }
+                        "bool": {
+                            "should": [
+                                {'term': {'account_id': account_id}},
+                                {'terms': {
+                                    'x-container-read': [
+                                        tenant_member,
+                                        single_user
+                                    ]
+                                }}
+                            ]
                         }
                     }
                 }

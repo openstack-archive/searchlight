@@ -445,7 +445,8 @@ restriction matching the user's project/tenant::
         ]
 
 Any filters listed will be applied to queries against the plugin's document
-type. Administrative users can specify ``all_projects`` in searches to bypass
+type. A document will match the RBAC filters if any of the clauses match.
+Administrative users can specify ``all_projects`` in searches to bypass
 these filters. This default behavior can be overridden for a plugin by setting
 the ``allow_admin_ignore_rbac`` property to ``False`` on the plugin (currently
 only in code). ``all_projects`` will be ignore for that plugin.

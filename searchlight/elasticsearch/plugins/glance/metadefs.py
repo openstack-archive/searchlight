@@ -102,20 +102,8 @@ class MetadefIndex(base.IndexBase):
 
     def _get_rbac_field_filters(self, request_context):
         return [
-            {
-                'or': [
-                    {
-                        'term': {
-                            'owner': request_context.owner
-                        }
-                    },
-                    {
-                        'term': {
-                            'visibility': 'public'
-                        }
-                    }
-                ]
-            }
+            {'term': {'owner': request_context.owner}},
+            {'term': {'visibility': 'public'}}
         ]
 
     def get_objects(self):

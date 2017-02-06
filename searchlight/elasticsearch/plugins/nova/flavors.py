@@ -82,20 +82,8 @@ class FlavorIndex(base.IndexBase):
         query. Document type will be added to this list.
         """
         return [
-            {
-                'or': [
-                    {
-                        'term': {
-                            'os-flavor-access:is_public': True
-                        }
-                    },
-                    {
-                        'term': {
-                            FLAVOR_ACCESS_FIELD: request_context.tenant
-                        }
-                    }
-                ]
-            }
+            {'term': {'os-flavor-access:is_public': True}},
+            {'term': {FLAVOR_ACCESS_FIELD: request_context.tenant}}
         ]
 
     def filter_result(self, hit, request_context):

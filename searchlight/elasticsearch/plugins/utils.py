@@ -138,7 +138,7 @@ def reindex(src_index, dst_index, type_list, chunk_size=None, time=None):
     # to enable version to allow the search to return the version field. This
     # will be used by the reindexer.
     body = {"version": "true",
-            "query": {"filtered": {"filter": {"terms": {"_type": type_list}}}}}
+            "query": {"bool": {"filter": {"terms": {"_type": type_list}}}}}
     # Debug: Show all documents that ES will re-index.
     # LOG.debug(es_engine.search(index=src_index, body=body, size=500))
     helper_reindex(client=es_engine, source_index=src_index,

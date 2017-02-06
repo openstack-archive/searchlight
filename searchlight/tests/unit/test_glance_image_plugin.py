@@ -489,20 +489,23 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         expected_fragment = {
             "indices": {
                 "index": "searchlight-search",
-                "no_match_filter": "none",
-                "filter": {
-                    "and": [
-                        {
-                            "type": {"value": "OS::Glance::Image"}
-                        },
-                        {
-                            "or": [
-                                {"term": {"owner": TENANT1}},
-                                {"term": {"visibility": "public"}},
-                                {"term": {"members": TENANT1}}
-                            ]
+                "no_match_query": "none",
+                "query": {
+                    "bool": {
+                        "filter": {
+                            "bool": {
+                                "must": {
+                                    "type": {"value": "OS::Glance::Image"}
+                                },
+                                "should": [
+                                    {"term": {"owner": TENANT1}},
+                                    {"term": {"visibility": "public"}},
+                                    {"term": {"members": TENANT1}}
+                                ],
+                                'minimum_should_match': 1
+                            }
                         }
-                    ]
+                    }
                 },
             }
         }
@@ -726,18 +729,17 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'aggs': dict(unit_test_utils.simple_facet_field_agg(name)
                          for name in facet_option_fields),
             'query': {
-                'filtered': {
+                'bool': {
                     'filter': {
-                        'and': [
-                            {'term': {ROLE_USER_FIELD: 'user'}},
-                            {
-                                "or": [
-                                    {'term': {'owner': TENANT1}},
-                                    {'term': {'visibility': 'public'}},
-                                    {'term': {'members': TENANT1}}
-                                ]
-                            }
-                        ]
+                        'bool': {
+                            'must': {'term': {ROLE_USER_FIELD: 'user'}},
+                            'should': [
+                                {'term': {'owner': TENANT1}},
+                                {'term': {'visibility': 'public'}},
+                                {'term': {'members': TENANT1}}
+                            ],
+                            'minimum_should_match': 1
+                        }
                     }
                 }
             }

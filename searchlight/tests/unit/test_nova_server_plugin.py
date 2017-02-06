@@ -373,12 +373,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         expected_agg_query = {
             'aggs': aggs,
             'query': {
-                'filtered': {
+                'bool': {
                     'filter': {
-                        'and': [
-                            {'term': {ROLE_USER_FIELD: 'user'}},
-                            {'term': {'tenant_id': TENANT1}}
-                        ]
+                        'bool': {
+                            'must': {'term': {ROLE_USER_FIELD: 'user'}},
+                            'should': [{'term': {'tenant_id': TENANT1}}],
+                            'minimum_should_match': 1
+                        }
                     }
                 }
             }
@@ -430,12 +431,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         expected_agg_query = {
             'aggs': aggs,
             'query': {
-                'filtered': {
+                'bool': {
                     'filter': {
-                        'and': [
-                            {'term': {ROLE_USER_FIELD: 'admin'}},
-                            {'term': {'tenant_id': TENANT1}}
-                        ]
+                        'bool': {
+                            'must': {'term': {ROLE_USER_FIELD: 'admin'}},
+                            'should': [{'term': {'tenant_id': TENANT1}}],
+                            'minimum_should_match': 1
+                        }
                     }
                 }
             }
@@ -466,12 +468,13 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         self.plugin.get_facets(fake_request.context, all_projects=True)
 
         expected_agg_query_filter = {
-            'filtered': {
+            'bool': {
                 'filter': {
-                    'and': [
-                        {'term': {ROLE_USER_FIELD: 'user'}},
-                        {'term': {'tenant_id': TENANT1}}
-                    ]
+                    'bool': {
+                        'must': {'term': {ROLE_USER_FIELD: 'user'}},
+                        'should': [{'term': {'tenant_id': TENANT1}}],
+                        'minimum_should_match': 1
+                    }
                 }
             }
         }

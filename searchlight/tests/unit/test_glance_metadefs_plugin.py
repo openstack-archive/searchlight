@@ -454,17 +454,22 @@ class TestMetadefLoaderPlugin(test_utils.BaseTestCase):
         expected_fragment = {
             "indices": {
                 "index": "searchlight-search",
-                "no_match_filter": "none",
-                "filter": {
-                    "and": [
-                        {"type": {"value": "OS::Glance::Metadef"}},
-                        {
-                            "or": [
-                                {"term": {"owner": TENANT1}},
-                                {"term": {"visibility": "public"}},
-                            ]
+                "no_match_query": "none",
+                "query": {
+                    "bool": {
+                        "filter": {
+                            "bool": {
+                                "must": {
+                                    "type": {"value": "OS::Glance::Metadef"}
+                                },
+                                "should": [
+                                    {"term": {"owner": TENANT1}},
+                                    {"term": {"visibility": "public"}},
+                                ],
+                                "minimum_should_match": 1
+                            }
                         }
-                    ]
+                    }
                 }
             }
         }
