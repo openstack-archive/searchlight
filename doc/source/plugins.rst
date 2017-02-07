@@ -282,7 +282,7 @@ Inheritable Common Configuration Options
 |                     |               | to which it will subscribe.         |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
 | publishers          |               | Plugin can have multiple publishers | Restart listener          |
-|                     |               | seperated by commas. Each publisher |                           |
+|                     |               | separated by commas. Each publisher |                           |
 |                     |               | will receive enriched notifications |                           |
 |                     |               | once plugin subscribed events come. |                           |
 +---------------------+---------------+-------------------------------------+---------------------------+
