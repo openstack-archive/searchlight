@@ -79,7 +79,7 @@ release = version_info.release_string()
 version = version_info.version_string()
 
 # Config logABug feature
-giturl = (u'http://git.openstack.org/cgit/'
+giturl = (u'https://git.openstack.org/cgit/'
           u'openstack/searchlight/tree/api-ref/source')
 # source tree
 # html_context allows us to pass arbitrary values into the html template
