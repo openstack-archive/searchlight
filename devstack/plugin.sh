@@ -146,6 +146,9 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_port enabled False
     iniset $SEARCHLIGHT_CONF resource_plugin:os_ironic_port notifications_topics_exchanges ironic_versioned_notifications,ironic
 
+    # Plugin config - enable versioned notifications for flavor
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_nova_flavor enabled True
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_nova_flavor notifications_topics_exchanges versioned_notifications,nova
 
     # Plugin config - disable swift by default since it's not typically installed
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_account enabled False
