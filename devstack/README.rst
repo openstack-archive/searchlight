@@ -51,7 +51,7 @@ Existing local.conf customization
 
      > cat local.conf
      [[local|localrc]]
-     enable_plugin searchlight https://github.com/openstack/searchlight
+     enable_plugin searchlight https://git.openstack.org/openstack/searchlight
      enable_service searchlight-api
      enable_service searchlight-listener
 

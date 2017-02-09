@@ -25,7 +25,7 @@ environment. You may set it up using devstack or manually.
 Devstack Development Environment
 ++++++++++++++++++++++++++++++++
 
-Please see: https://github.com/openstack/searchlight/tree/master/devstack
+Please see: http://git.openstack.org/cgit/openstack/searchlight/tree/devstack
 
 .. _Manual Development Environment:
 
@@ -92,13 +92,13 @@ Installing Searchlight
 .. index::
    double: install; searchlight
 
-1. Clone the Searchlight repo from GitHub
+1. Clone the Searchlight repo from git.openstack.org
 
 ::
 
    $ mkdir openstack
    $ cd openstack
-   $ git clone https://github.com/openstack/searchlight.git
+   $ git clone https://git.openstack.org/openstack/searchlight.git
    $ cd searchlight
 
 
