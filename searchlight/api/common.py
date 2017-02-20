@@ -15,11 +15,9 @@
 
 from oslo_concurrency import lockutils
 from oslo_config import cfg
-from oslo_log import log as logging
 
 from searchlight.common import wsgi
 
-LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 _CACHED_THREAD_POOL = {}
