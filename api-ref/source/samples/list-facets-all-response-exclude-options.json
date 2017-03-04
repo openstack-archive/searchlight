@@ -19,7 +19,7 @@
                 "type": "string",
                 "facet_field": "name.raw"
             },
-            ...
+            { "...": "..." }
         ]
     },
     "OS::Glance::Metadef": {
@@ -33,7 +33,7 @@
                 "name": "objects.properties.description",
                 "type": "string"
             },
-            ...
+            { "...": "..." }
         ]
     },
     "OS::Nova::Server": {
@@ -72,7 +72,7 @@
                 ],
                 "type": "string"
             },
-            ...
+            { "...": "..." }
         ]
     }
 }

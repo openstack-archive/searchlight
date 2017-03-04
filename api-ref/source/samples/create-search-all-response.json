@@ -9,7 +9,7 @@
             {
                 "_id": "76580e9d-f83d-49d8-b428-1fb90c5d8e95",
                 "_index": "searchlight",
-                "_type": "OS::Glance::Image"
+                "_type": "OS::Glance::Image",
                 "_score": 1.0,
                 "_source": {
                     "id": "76580e9d-f83d-49d8-b428-1fb90c5d8e95",
@@ -17,7 +17,7 @@
                     "name": "cirros-0.3.2-x86_64-uec",
                     "owner": "d95b27da6e9f4acc9a8031918e443e04",
                     "visibility": "public",
-                    ...
+                    "...": "..."
                 }
             },
             {
@@ -38,20 +38,20 @@
                                     "default": "5432",
                                     "description": "Specifies the TCP/IP port...",
                                     "property": "sw_database_postgresql_listen_port",
-                                    ...
+                                    "...": "..."
                                 },
-                                ...
+                                { "...": "..." }
                             ]
                         }
                     ],
                     "tags": [
                         {
                             "name": "Database"
-                        },
+                        }
                     ]
                 }
             },
-            ...
+            { "...": "..." }
         ],
         "max_score": 1.0,
         "total": 8
