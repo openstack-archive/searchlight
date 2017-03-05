@@ -122,7 +122,9 @@ incremental updates. Enable notifications using the following::
 
     [oslo_messaging_notifications]
     driver = messagingv2
-    notify_on_state_change=vm_and_task_state
+
+    [notifications]
+    notify_on_state_change = vm_and_task_state
 
 .. note::
 
