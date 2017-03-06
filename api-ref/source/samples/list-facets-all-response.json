@@ -4,7 +4,7 @@
         "facets": [
             {
                 "name": "status",
-                "type": "string"
+                "type": "string",
                 "options": [
                     {
                         "key": "queued",
@@ -29,7 +29,7 @@
                 "type": "string",
                 "facet_field": "name.raw"
             },
-            ...
+            { "...": "..." }
         ]
     },
     "OS::Glance::Metadef": {
@@ -45,7 +45,7 @@
                 "nested": true,
                 "type": "string"
             },
-            ...
+            { "...": "..." }
         ]
     },
     "OS::Nova::Server": {
@@ -84,7 +84,7 @@
                 ],
                 "type": "string"
             },
-            ...
+            { "...": "..." }
         ]
     }
 }

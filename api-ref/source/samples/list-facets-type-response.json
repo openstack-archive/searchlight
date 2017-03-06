@@ -21,7 +21,7 @@
                 "type": "string",
                 "facet_field": "name.raw"
             },
-           ...
+           { "...": "..." }
         ]
     }
 }
