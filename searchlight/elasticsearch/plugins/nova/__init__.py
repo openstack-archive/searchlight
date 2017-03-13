@@ -118,9 +118,6 @@ def serialize_nova_flavor(flavor, updated_at=None):
         serialized['id'] = serialized['flavorid']
         # Extra specs and projects are added by update operation
         serialized['extra_specs'] = serialized.get('extra_specs') or {}
-        # NOTE(lyj): If extra_specs is updated, the projects will be a empty
-        # list because of the bug: https://bugs.launchpad.net/nova/+bug/1653221
-        # it is a rare case, so we do nothing here for now.
         serialized['projects'] = serialized.get('projects')
 
         # For consistent with the Flavor API response, we need to remove some
