@@ -38,15 +38,9 @@ notifier_opts = [
 CONF = cfg.CONF
 CONF.register_opts(notifier_opts)
 
-_ALIASES = {
-    'searchlight.openstack.common.rpc.impl_kombu': 'rabbit',
-    'searchlight.openstack.common.rpc.impl_qpid': 'qpid',
-    'searchlight.openstack.common.rpc.impl_zmq': 'zmq',
-}
-
 
 def get_transport():
-    return oslo_messaging.get_transport(CONF, aliases=_ALIASES)
+    return oslo_messaging.get_transport(CONF)
 
 
 class Notifier(object):
