@@ -18,7 +18,6 @@ from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_snapshot
-from searchlight.i18n import _LE, _LW
 from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
@@ -62,7 +61,7 @@ class SnapshotHandler(base.NotificationBase):
                 payload,
                 snapshot_payload)
         except cinderclient.exceptions.NotFound:
-            LOG.warning(_LW("Snapshot %s not found; deleting") % snapshot_id)
+            LOG.warning("Snapshot %s not found; deleting" % snapshot_id)
             self.delete(payload, timestamp)
 
     def delete(self, event_type, payload, timestamp):
@@ -78,7 +77,7 @@ class SnapshotHandler(base.NotificationBase):
             return pipeline.DeleteItem(
                 self.index_helper.plugin, event_type, payload, snapshot_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting snapshot %(snapshot_id)s '
-                'from index. Error: %(exc)s') %
+                'from index. Error: %(exc)s' %
                 {'snapshot_id': snapshot_id, 'exc': exc})

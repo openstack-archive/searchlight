@@ -21,7 +21,6 @@ from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_image_members
 from searchlight.elasticsearch.plugins.glance \
     import serialize_glance_notification
-from searchlight.i18n import _LE, _LW
 from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
@@ -69,7 +68,7 @@ class ImageHandler(base.NotificationBase):
                                       payload,
                                       image_payload)
         except glanceclient.exc.NotFound:
-            LOG.warning(_LW("Image %s not found; deleting") % image_id)
+            LOG.warning("Image %s not found; deleting" % image_id)
             return self.delete(event_type, payload, timestamp)
 
     def delete(self, event_type, payload, timestamp):
@@ -84,8 +83,8 @@ class ImageHandler(base.NotificationBase):
                                        payload,
                                        image_id)
         except Exception as exc:
-            LOG.error(_LE(
-                'Error deleting image %(image_id)s from index: %(exc)s') %
+            LOG.error(
+                'Error deleting image %(image_id)s from index: %(exc)s' %
                 {'image_id': image_id, 'exc': exc})
 
     def sync_members(self, event_type, payload, timestamp):

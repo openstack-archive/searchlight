@@ -27,7 +27,6 @@ from searchlight.elasticsearch.plugins.neutron import serialize_security_group
 from searchlight.elasticsearch.plugins.neutron import serialize_subnet
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
-from searchlight.i18n import _LE, _LI
 from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
@@ -93,9 +92,9 @@ class NetworkHandler(base.NotificationBase):
                                        payload,
                                        network_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting network %(network_id)s '
-                'from index. Error: %(exc)s') %
+                'from index. Error: %(exc)s' %
                 {'network_id': network_id, 'exc': exc})
 
     def rbac_create(self, event_type, payload, timestamp):
@@ -124,8 +123,8 @@ class NetworkHandler(base.NotificationBase):
         doc = self.index_helper.get_document(network_id, for_admin=True)
 
         if not doc or not doc['_source']:
-            LOG.error(_LE('Error adding rule to network. Network %(id)s '
-                      'does not exist.') % {'id': network_id})
+            LOG.error('Error adding rule to network. Network %(id)s '
+                      'does not exist.' % {'id': network_id})
             return
 
         body = doc['_source']
@@ -230,10 +229,10 @@ class PortHandler(base.NotificationBase):
             # TODO(sjmc7): Remove this once we can get proper notifications
             # about DHCP ports.
             #  See https://bugs.launchpad.net/searchlight/+bug/1558790
-            LOG.info(_LI("Skipping notification for DHCP port %s. If neutron "
-                         "is sending notifications for DHCP ports, the "
-                         "Searchlight plugin should be updated to process "
-                         "them."), port_id)
+            LOG.info("Skipping notification for DHCP port %s. If neutron "
+                     "is sending notifications for DHCP ports, the "
+                     "Searchlight plugin should be updated to process "
+                     "them.", port_id)
             return
 
         LOG.debug("Updating port information for %s", port_id)
@@ -261,9 +260,9 @@ class PortHandler(base.NotificationBase):
                                        payload,
                                        port_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting port %(port_id)s '
-                'from index. Error: %(exc)s') %
+                'from index. Error: %(exc)s' %
                 {'port_id': port_id, 'exc': exc})
 
     def create_or_update_from_interface(self, event_type, payload, timestamp):
@@ -340,9 +339,9 @@ class SubnetHandler(base.NotificationBase):
                                        payload,
                                        subnet_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting subnet %(subnet_id)s '
-                'from index: %(exc)s') %
+                'from index: %(exc)s' %
                 {'subnet_id': subnet_id, 'exc': exc})
 
 
@@ -387,9 +386,9 @@ class RouterHandler(base.NotificationBase):
                                        payload,
                                        router_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting router %(router)s '
-                'from index: %(exc)s') %
+                'from index: %(exc)s' %
                 {'router': router_id, 'exc': exc})
 
 
@@ -438,9 +437,9 @@ class FloatingIPHandler(base.NotificationBase):
                                        payload,
                                        fip_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting floating ip %(fip)s '
-                'from index: %(exc)s') %
+                'from index: %(exc)s' %
                 {'fip': fip_id, 'exc': exc})
 
 
@@ -496,8 +495,8 @@ class SecurityGroupHandler(base.NotificationBase):
                                        payload,
                                        sec_id)
         except Exception as exc:
-            LOG.error(_LE(
-                'Error deleting security_group %(sec_id)s. Error: %(exc)s') %
+            LOG.error(
+                'Error deleting security_group %(sec_id)s. Error: %(exc)s' %
                 {'sec_id': sec_id, 'exc': exc})
 
     def create_or_update_rule(self, event_type, payload, timestamp):
@@ -544,8 +543,8 @@ class SecurityGroupHandler(base.NotificationBase):
                     raise
 
         if attempts == (SECGROUP_RETRIES - 1):
-            LOG.error(_LE('Error adding security group rule %(id)s:'
-                          ' Too many retries') % {'id': group_id})
+            LOG.error('Error adding security group rule %(id)s:'
+                      ' Too many retries' % {'id': group_id})
 
     def delete_rule(self, event_type, payload, timestamp):
         # See comment for create_or_update_rule() for details.
@@ -592,5 +591,5 @@ class SecurityGroupHandler(base.NotificationBase):
                     raise
 
         if attempts == (SECGROUP_RETRIES - 1):
-            LOG.error(_LE('Error deleting security group rule %(id)s:'
-                          ' Too many retries') % {'id': rule_id})
+            LOG.error('Error deleting security group rule %(id)s:'
+                      ' Too many retries' % {'id': rule_id})

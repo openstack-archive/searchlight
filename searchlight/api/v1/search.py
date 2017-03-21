@@ -28,7 +28,7 @@ from searchlight.common import utils
 from searchlight.common import wsgi
 import searchlight.elasticsearch
 import searchlight.gateway
-from searchlight.i18n import _, _LE
+from searchlight.i18n import _
 
 
 LOG = logging.getLogger(__name__)
@@ -307,7 +307,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
             # at the top level, so we only need to check that level
             for agg_name, agg_definition in aggregations.items():
                 if 'global' in agg_definition:
-                    msg = _LE(
+                    msg = _(
                         "Aggregation '%s' contains the 'global' aggregation "
                         "which is not allowed") % agg_name
                     LOG.error(msg)
@@ -330,9 +330,9 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                 type_and_rbac_filters.append(plugin_filter)
             except Exception as e:
                 msg = _("Error processing %s RBAC filter") % resource_type
-                LOG.error(_LE("Failed to retrieve RBAC filters "
-                              "from search plugin "
-                              "%(ext)s: %(e)s") %
+                LOG.error("Failed to retrieve RBAC filters "
+                          "from search plugin "
+                          "%(ext)s: %(e)s" %
                           {'ext': plugin.name, 'e': e})
                 raise webob.exc.HTTPInternalServerError(explanation=msg)
 

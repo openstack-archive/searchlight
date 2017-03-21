@@ -19,8 +19,6 @@ import os
 from oslo_config import cfg
 from oslo_policy import policy
 
-from searchlight.i18n import _LE
-
 
 LOG = logging.getLogger(__name__)
 
@@ -68,8 +66,8 @@ def _get_enforcers():
                 missing_config_file = True
 
             if missing_config_file:
-                LOG.error(_LE("Policy file for service %(service)s not found"
-                              " in %(policy_file)s (base path %(base)s)") %
+                LOG.error("Policy file for service %(service)s not found"
+                          " in %(policy_file)s (base path %(base)s)" %
                           {"service": service, "policy_file": pol_file,
                            "base": service_policy_path})
                 raise MissingPolicyFile(

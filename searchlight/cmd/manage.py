@@ -29,7 +29,7 @@ from keystoneclient import exceptions
 from searchlight.common import config
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins import utils as es_utils
-from searchlight.i18n import _, _LE, _LI, _LW
+from searchlight.i18n import _
 
 CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
@@ -63,23 +63,23 @@ class IndexCommands(object):
         index_name = index_names[gname]
         dtype = plugin_obj.document_type
 
-        LOG.info(_LI("API Reindex start %(type)s into %(index_name)s") %
+        LOG.info("API Reindex start %(type)s into %(index_name)s" %
                  {'type': dtype, 'index_name': index_name})
 
         try:
             plugin_obj.index_initial_data(index_name=index_name)
             es_utils.refresh_index(index_name)
 
-            LOG.info(_LI("API Reindex end %(type)s into %(index_name)s") %
+            LOG.info("API Reindex end %(type)s into %(index_name)s" %
                      {'type': dtype, 'index_name': index_name})
         except exceptions.EndpointNotFound:
             # Display a warning, do not propagate.
             doc = plugin_obj.get_document_type()
-            LOG.warning(_LW("Service is not available for plugin: "
-                            "%(doc)s") % {"doc": doc})
+            LOG.warning("Service is not available for plugin: "
+                        "%(doc)s" % {"doc": doc})
         except Exception as e:
-            LOG.exception(_LE("Failed to setup index extension "
-                              "%(ex)s: %(e)s") % {'ex': index_name, 'e': e})
+            LOG.exception("Failed to setup index extension "
+                          "%(ex)s: %(e)s" % {'ex': index_name, 'e': e})
             raise
 
     def _es_reindex_worker(self, es_reindex, resource_groups, index_names):
@@ -96,8 +96,8 @@ class IndexCommands(object):
                 if plugin.resource_group_name == group]
             alias_search = \
                 [a for a in resource_groups if a[0] == group][0][1]
-            LOG.info(_LI("ES Reindex start from %(src)s to %(dst)s "
-                         "for types %(types)s") %
+            LOG.info("ES Reindex start from %(src)s to %(dst)s "
+                     "for types %(types)s" %
                      {'src': alias_search, 'dst': index_names[group],
                       'types': ', '.join(plugins_reindex)})
             dst_index = index_names[group]
@@ -106,13 +106,13 @@ class IndexCommands(object):
                                  dst_index=dst_index,
                                  type_list=plugins_reindex)
                 es_utils.refresh_index(dst_index)
-                LOG.info(_LI("ES Reindex end from %(src)s to %(dst)s "
-                             "for types %(types)s") %
+                LOG.info("ES Reindex end from %(src)s to %(dst)s "
+                         "for types %(types)s" %
                          {'src': alias_search, 'dst': index_names[group],
                           'types': ', '.join(plugins_reindex)})
             except Exception as e:
-                LOG.exception(_LE("Failed to setup index extension "
-                                  "%(ex)s: %(e)s") % {'ex': dst_index, 'e': e})
+                LOG.exception("Failed to setup index extension "
+                              "%(ex)s: %(e)s" % {'ex': dst_index, 'e': e})
                 raise
 
     @args('--group', metavar='<group>', dest='group',
@@ -154,8 +154,8 @@ class IndexCommands(object):
                 future.cancel()
 
             # Politely wait for the current threads to finish.
-            LOG.warning(_LW("Interrupt received, waiting for threads to finish"
-                            " before cleaning up"))
+            LOG.warning("Interrupt received, waiting for threads to finish"
+                        " before cleaning up")
             wait_for_threads()
 
             # Rudely remove any newly created Elasticsearch indices.
@@ -165,8 +165,8 @@ class IndexCommands(object):
             sys.exit(0)
 
         if _type and notification_less:
-            LOG.error(_LE("Ignoring --type since --notification-less is "
-                          "specified."))
+            LOG.error("Ignoring --type since --notification-less is "
+                      "specified.")
 
         if force_es and (_type or notification_less):
             if notification_less:
@@ -182,9 +182,9 @@ class IndexCommands(object):
         try:
             max_workers = cfg.CONF.manage.workers
         except cfg.ConfigFileValueError as e:
-            LOG.error(_LE("Invalid value for config file option "
-                          "'manage.workers'. The number of thread workers "
-                          "must be greater than 0."))
+            LOG.error("Invalid value for config file option "
+                      "'manage.workers'. The number of thread workers "
+                      "must be greater than 0.")
             sys.exit(3)
 
         # Grab the list of plugins registered as entry points through stevedore
@@ -411,8 +411,8 @@ class IndexCommands(object):
                 plugin_obj.prepare_index(
                     index_name=index_names[group_name])
         except Exception:
-            LOG.error(_LE("Error creating index or mapping, aborting "
-                          "without indexing"))
+            LOG.error("Error creating index or mapping, aborting "
+                      "without indexing")
             es_utils.alias_error_cleanup(index_names)
             raise
 
@@ -441,8 +441,8 @@ class IndexCommands(object):
             try:
                 es_utils.setup_alias(index_names[group], search, listen)
             except Exception as e:
-                LOG.exception(_LE("Failed to setup alias for resource group "
-                                  "%(g)s: %(e)s") % {'g': group, 'e': e})
+                LOG.exception("Failed to setup alias for resource group "
+                              "%(g)s: %(e)s" % {'g': group, 'e': e})
                 es_utils.alias_error_cleanup(index_names)
                 raise
 
@@ -524,8 +524,8 @@ class IndexCommands(object):
                 response = {}
             except Exception as e:
                 # Probably an ES connection issue. Alert the user.
-                LOG.error(_LE("Failed retrieving indices from Elasticsearch "
-                              "%(a)s %(e)s") % {'a': alias, 'e': e})
+                LOG.error("Failed retrieving indices from Elasticsearch "
+                          "%(a)s %(e)s" % {'a': alias, 'e': e})
                 sys.exit(3)
 
             for index in response.keys():

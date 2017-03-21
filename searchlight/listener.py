@@ -24,7 +24,6 @@ from oslo_policy import opts as oslo_policy_opts
 from oslo_service import service as os_service
 
 from searchlight.common import utils
-from searchlight.i18n import _LE, _LI
 from searchlight.pipeline import PipelineManager
 
 LOG = logging.getLogger(__name__)
@@ -66,9 +65,9 @@ class NotificationEndpoint(object):
                     self.notification_target_map.setdefault(
                         event.lower(), []).append(plugin.obj)
             except Exception as e:
-                LOG.error(_LE("Failed to retrieve supported notification"
-                              " events from search plugins "
-                              "%(ext)s: %(e)s") %
+                LOG.error("Failed to retrieve supported notification"
+                          " events from search plugins "
+                          "%(ext)s: %(e)s" %
                           {'ext': plugin.name, 'e': e})
 
     def _log_notification(self, handler, ctxt, doc_type, event_type,
@@ -88,15 +87,15 @@ class NotificationEndpoint(object):
         additional = " ".join("%s:%s" % (k, v or '-')
                               for k, v in payload_fields)
         log_context['additional'] = additional or ''
-        LOG.info(_LI("Starting %(doc_type)s %(event_type)s \"%(timestamp)s\" "
-                     "priority:%(priority)s project_id:%(project)s "
-                     "%(additional)s"), log_context)
+        LOG.info("Starting %(doc_type)s %(event_type)s \"%(timestamp)s\" "
+                 "priority:%(priority)s project_id:%(project)s "
+                 "%(additional)s", log_context)
         return log_context
 
     def _log_finished(self, log_context):
-        LOG.info(_LI("Finished %(doc_type)s %(event_type)s \"%(timestamp)s\" "
-                     "priority:%(priority)s project_id:%(project)s "
-                     "%(additional)s"), log_context)
+        LOG.info("Finished %(doc_type)s %(event_type)s \"%(timestamp)s\" "
+                 "priority:%(priority)s project_id:%(project)s "
+                 "%(additional)s", log_context)
 
     def _process_event(self, ctxt, publisher_id, event_type, payload,
                        metadata, priority):
@@ -147,14 +146,14 @@ class ListenerService(os_service.Service):
                     for plugin_topic in topic_exchanges:
                         if isinstance(plugin_topic, six.string_types):
                             raise Exception(
-                                _LE("Plugin %s should return a list of topic"
-                                    "exchange pairs") %
+                                _("Plugin %s should return a list of topic"
+                                  "exchange pairs") %
                                 plugin.__class__.__name__)
                         topics_exchanges.add(plugin_topic)
             except Exception as e:
-                LOG.error(_LE("Failed to retrieve notification topic(s)"
-                              " and exchanges from search plugin "
-                              "%(ext)s: %(e)s") %
+                LOG.error("Failed to retrieve notification topic(s)"
+                          " and exchanges from search plugin "
+                          "%(ext)s: %(e)s" %
                           {'ext': plugin.name, 'e': e})
 
         return topics_exchanges

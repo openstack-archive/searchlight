@@ -28,7 +28,7 @@ import searchlight.elasticsearch
 from searchlight.elasticsearch.plugins import helper
 from searchlight.elasticsearch.plugins import utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
-from searchlight.i18n import _, _LW, _LI
+from searchlight.i18n import _
 from searchlight import plugin
 
 
@@ -99,10 +99,10 @@ class IndexBase(plugin.Plugin):
                 self._group_name = self.parent_plugin.resource_group_name
                 if self.options.resource_group_name is not None and  \
                         self.options.resource_group_name != self._group_name:
-                    LOG.warning(_LW(
+                    LOG.warning(
                         "Overriding resource_group for %(plugin)s because it "
                         "differs from parent plugin %(parent)s resource_group "
-                        "%(resource_group)s") %
+                        "%(resource_group)s" %
                         {"plugin": self.document_type,
                          "parent": self.parent_plugin.document_type,
                          "resource_group": self._group_name}
@@ -145,9 +145,9 @@ class IndexBase(plugin.Plugin):
            the settings and mapping for this listener's document type.
         """
         if self.parent_plugin_type():
-            LOG.debug(_LI(
+            LOG.debug(
                 "Skipping index prep for %(doc_type)s; will be handled by "
-                "parent (%(parent_type)s)") %
+                "parent (%(parent_type)s)" %
                 {"doc_type": self.document_type,
                  "parent_type": self.parent_plugin_type()})
             return
@@ -379,9 +379,9 @@ class IndexBase(plugin.Plugin):
             self.get_document_type())
 
         if term_aggregations and not agg_results:
-            LOG.warning(_LW(
+            LOG.warning(
                 "No aggregations found for %(resource_type)s. There may "
-                "be a mapping problem.") %
+                "be a mapping problem." %
                 {'resource_type': self.get_document_type()})
         return facet_terms, doc_count
 

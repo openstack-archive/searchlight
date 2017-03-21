@@ -18,7 +18,6 @@ from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_volume
-from searchlight.i18n import _LW, _LE
 from searchlight import pipeline
 
 
@@ -66,7 +65,7 @@ class VolumeHandler(base.NotificationBase):
                 volume_payload
             )
         except cinderclient.exceptions.NotFound:
-            LOG.warning(_LW("Volume %s not found; deleting") % volume_id)
+            LOG.warning("Volume %s not found; deleting" % volume_id)
             self.delete(payload, timestamp)
 
     def delete(self, event_type, payload, timestamp):
@@ -84,7 +83,7 @@ class VolumeHandler(base.NotificationBase):
                 volume_id
             )
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting volume %(volume_id)s '
-                'from index. Error: %(exc)s') %
+                'from index. Error: %(exc)s' %
                 {'volume_id': volume_id, 'exc': exc})

@@ -21,7 +21,7 @@ import webob.exc
 from searchlight.api import policy
 from searchlight.common import wsgi
 import searchlight.context
-from searchlight.i18n import _, _LW
+from searchlight.i18n import _
 
 context_opts = [
     cfg.BoolOpt('owner_is_tenant', default=True,
@@ -49,7 +49,7 @@ class BaseContextMiddleware(wsgi.Middleware):
         try:
             request_id = resp.request.context.request_id
         except AttributeError:
-            LOG.warning(_LW('Unable to retrieve request id from context'))
+            LOG.warning('Unable to retrieve request id from context')
         else:
             # For python 3 compatibility need to use bytes type
             prefix = 'req-'

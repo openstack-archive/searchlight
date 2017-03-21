@@ -24,7 +24,6 @@ from oslo_config import cfg
 from oslo_utils import encodeutils
 from searchlight.context import RequestContext
 import searchlight.elasticsearch
-from searchlight.i18n import _LE, _LW
 
 
 # Format for datetime when creating a unique index.
@@ -389,7 +388,7 @@ def alias_error_cleanup(indexes):
             es_engine.indices.delete(index=index, ignore=404)
         except Exception as e:
             msg = {'index': index}
-            LOG.error(_LE("Index [%(index)s] clean-up failed.") % msg)
+            LOG.error("Index [%(index)s] clean-up failed." % msg)
             LOG.error(encodeutils.exception_to_unicode(e))
 
 
@@ -484,10 +483,10 @@ def transform_facets_results(result_aggregations, resource_type):
                 'field': term,
                 'resource_type': resource_type
             }
-            LOG.warning(_LW(
+            LOG.warning(
                 "Unexpected aggregation structure for field "
                 "'%(field)s' in %(resource_type)s. Is the mapping "
-                "defined correctly?") % format_msg)
+                "defined correctly?" % format_msg)
             facet_terms[term] = []
     return facet_terms
 
