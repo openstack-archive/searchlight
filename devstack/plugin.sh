@@ -1,7 +1,7 @@
 # Install and start **Searchlight** service
 
 # To enable Searchlight services, add the following to localrc
-# enable_plugin searchlight http://git.openstack.org/openstack/searchlight
+# enable_plugin searchlight https://git.openstack.org/openstack/searchlight
 # enable_service searchlight-api
 # enable_service searchlight-listener
 
@@ -192,7 +192,6 @@ function init_searchlight {
 function install_searchlight {
     git_clone $SEARCHLIGHT_REPO $SEARCHLIGHT_DIR $SEARCHLIGHT_BRANCH
     setup_develop $SEARCHLIGHT_DIR
-  
     _download_elasticsearch
     _install_elasticsearch
 }
