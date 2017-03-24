@@ -3,17 +3,17 @@
 # Andreas Jaeger <jaegerandi@gmail.com>, 2016. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: searchlight 0.2.1.dev99\n"
+"Project-Id-Version: searchlight 2.0.0.0rc2.dev22\n"
 "Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
-"POT-Creation-Date: 2016-06-01 21:38+0000\n"
+"POT-Creation-Date: 2017-03-21 15:40+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2016-04-12 06:34+0000\n"
+"Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Portuguese (Brazil)\n"
 "Language: pt-BR\n"
-"X-Generator: Zanata 3.7.3\n"
+"X-Generator: Zanata 3.9.6\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 #, python-format
@@ -398,15 +398,6 @@ msgid "eventlet 'poll' nor 'selects' hubs are available on this platform"
 msgstr ""
 "nem o hub 'poll' nem o 'selects' do eventlet estão disponíveis nesta "
 "plataforma"
-
-msgid "limit param must be an integer"
-msgstr "o parâmetro limit deve ser um número inteiro"
-
-msgid "offset param must be an integer"
-msgstr "o parâmetro offset deve ser um número inteiro"
-
-msgid "offset param must be positive"
-msgstr "o parâmetro offset deve ser positivo"
 
 #, python-format
 msgid "unable to launch %(serv)s. Got error: %(e)s"
