@@ -128,7 +128,7 @@ def serialize_nova_flavor(flavor, updated_at=None):
             except KeyError:
                 pass
 
-        for key, value in six.iteritems(FLAVOR_FIELDS_MAP):
+        for key, value in FLAVOR_FIELDS_MAP.items():
             try:
                 serialized[value] = serialized.pop(key)
             except KeyError:
