@@ -51,9 +51,10 @@ common_opts = [
     cfg.IntOpt('api_limit_max', default=1000,
                help=_('Maximum permissible number of items that could be '
                       'returned by a request')),
-    cfg.StrOpt('pydev_worker_debug_host',
-               help=_('The hostname/IP of the pydev process listening for '
-                      'debug connections')),
+    cfg.HostAddressOpt('pydev_worker_debug_host',
+                       help=_('The hostname/IP of the pydev '
+                              'process listening for '
+                              'debug connections')),
     cfg.IntOpt('pydev_worker_debug_port', default=5678,
                help=_('The port on which a pydev process is listening for '
                       'connections.')),

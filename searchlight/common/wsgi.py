@@ -52,9 +52,9 @@ from searchlight.i18n import _, _LE, _LW, _LI
 from searchlight import i18n
 
 bind_opts = [
-    cfg.StrOpt('bind_host', default='0.0.0.0',
-               help=_('Address to bind the server.  Useful when '
-                      'selecting a particular network interface.')),
+    cfg.HostAddressOpt('bind_host', default='0.0.0.0',
+                       help=_('Address to bind the server.  Useful when '
+                              'selecting a particular network interface.')),
     cfg.IntOpt('bind_port',
                help=_('The port on which the server will listen.')),
 ]
