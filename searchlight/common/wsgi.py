@@ -48,8 +48,8 @@ from webob import multidict
 from searchlight.common import config
 from searchlight.common import exception
 from searchlight.common import utils
-from searchlight.i18n import _, _LE, _LW, _LI
 from searchlight import i18n
+from searchlight.i18n import _
 
 bind_opts = [
     cfg.HostAddressOpt('bind_host', default='0.0.0.0',
@@ -289,7 +289,7 @@ class Server(object):
             self.pool.spawn_n(self._single_run, self.application, self.sock)
             return
         else:
-            LOG.info(_LI("Starting %d workers"), self.workers)
+            LOG.info("Starting %d workers", self.workers)
             signal.signal(signal.SIGTERM, self.kill_children)
             signal.signal(signal.SIGINT, self.kill_children)
             signal.signal(signal.SIGHUP, self.hup)
@@ -302,22 +302,21 @@ class Server(object):
     def _remove_children(self, pid):
         if pid in self.children:
             self.children.remove(pid)
-            LOG.info(_LI('Removed dead child %s'), pid)
+            LOG.info('Removed dead child %s', pid)
         elif pid in self.stale_children:
             self.stale_children.remove(pid)
-            LOG.info(_LI('Removed stale child %s'), pid)
+            LOG.info('Removed stale child %s', pid)
         else:
-            LOG.warning(_LW('Unrecognised child %s') % pid)
+            LOG.warning('Unrecognised child %s' % pid)
 
     def _verify_and_respawn_children(self, pid, status):
         if len(self.stale_children) == 0:
             LOG.debug('No stale children')
         if os.WIFEXITED(status) and os.WEXITSTATUS(status) != 0:
-            LOG.error(_LE('Not respawning child %d, cannot '
-                          'recover from termination') % pid)
+            LOG.error('Not respawning child %d, cannot '
+                      'recover from termination' % pid)
             if not self.children and not self.stale_children:
-                LOG.info(
-                    _LI('All workers have terminated. Exiting'))
+                LOG.info('All workers have terminated. Exiting')
                 self.running = False
         else:
             if len(self.children) < self.workers:
@@ -334,7 +333,7 @@ class Server(object):
                 if err.errno not in (errno.EINTR, errno.ECHILD):
                     raise
             except KeyboardInterrupt:
-                LOG.info(_LI('Caught keyboard interrupt. Exiting.'))
+                LOG.info('Caught keyboard interrupt. Exiting.')
                 break
             except exception.SIGHUPInterrupt:
                 self.reload()
@@ -412,12 +411,12 @@ class Server(object):
             # exit on sighup
             self._sock = None
             self.run_server()
-            LOG.info(_LI('Child %d exiting normally'), os.getpid())
+            LOG.info('Child %d exiting normally', os.getpid())
             # self.pool.waitall() is now called in wsgi's server so
             # it's safe to exit here
             sys.exit(0)
         else:
-            LOG.info(_LI('Started child %s'), pid)
+            LOG.info('Started child %s', pid)
             self.children.add(pid)
 
     def run_server(self):
@@ -446,7 +445,7 @@ class Server(object):
 
     def _single_run(self, application, sock):
         """Start a WSGI server in a new green thread."""
-        LOG.info(_LI("Starting single process server"))
+        LOG.info("Starting single process server")
         eventlet.wsgi.server(sock, application, custom_pool=self.pool,
                              log=self._wsgi_logger,
                              debug=False,

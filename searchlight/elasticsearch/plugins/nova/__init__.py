@@ -22,7 +22,6 @@ import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
-from searchlight.i18n import _LW
 
 LOG = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ def _get_flavor_access(flavor):
         return [access.tenant_id for access in
                 n_client.flavor_access.list(flavor=flavor)] or None
     except novaclient.exceptions.Unauthorized:
-        LOG.warning(_LW("Could not return tenant for %s; forbidden") %
+        LOG.warning("Could not return tenant for %s; forbidden" %
                     flavor)
         return None
 

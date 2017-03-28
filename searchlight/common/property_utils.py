@@ -23,7 +23,7 @@ from oslo_policy import policy
 
 import searchlight.api.policy
 from searchlight.common import exception
-from searchlight.i18n import _, _LE, _LW
+from searchlight.i18n import _
 
 # NOTE(bourke): The default dict_type is collections.OrderedDict in py27, but
 # we must set manually for compatibility with py26
@@ -82,17 +82,17 @@ class PropertyRules(object):
             conf_file = CONF.find_file(CONF.property_protection_file)
             CONFIG.read(conf_file)
         except Exception as e:
-            msg = (_LE("Couldn't find property protection file %(file)s: "
-                       "%(error)s.") % {'file': CONF.property_protection_file,
-                                        'error': e})
+            msg = ("Couldn't find property protection file %(file)s: "
+                   "%(error)s." % {'file': CONF.property_protection_file,
+                                   'error': e})
             LOG.error(msg)
             raise InvalidPropProtectConf()
 
         if self.prop_prot_rule_format not in ['policies', 'roles']:
-            msg = _LE("Invalid value '%s' for "
-                      "'property_protection_rule_format'. "
-                      "The permitted values are "
-                      "'roles' and 'policies'") % self.prop_prot_rule_format
+            msg = ("Invalid value '%s' for "
+                   "'property_protection_rule_format'. "
+                   "The permitted values are "
+                   "'roles' and 'policies'") % self.prop_prot_rule_format
             LOG.error(msg)
             raise InvalidPropProtectConf()
 
@@ -108,9 +108,9 @@ class PropertyRules(object):
                     if self.prop_prot_rule_format == 'policies':
                         if ',' in permissions:
                             LOG.error(
-                                _LE("Multiple policies '%s' not allowed "
-                                    "for a given operation. Policies can be "
-                                    "combined in the policy file"),
+                                "Multiple policies '%s' not allowed "
+                                "for a given operation. Policies can be "
+                                "combined in the policy file",
                                 permissions)
                             raise InvalidPropProtectConf()
                         self.prop_exp_mapping[compiled_rule] = property_exp
@@ -121,7 +121,7 @@ class PropertyRules(object):
                         permissions = [permission.strip() for permission in
                                        permissions.split(',')]
                         if '@' in permissions and '!' in permissions:
-                            msg = (_LE(
+                            msg = ((
                                 "Malformed property protection rule in "
                                 "[%(prop)s] %(op)s=%(perm)s: '@' and '!' "
                                 "are mutually exclusive") %
@@ -134,9 +134,9 @@ class PropertyRules(object):
                 else:
                     property_dict[operation] = []
                     LOG.warning(
-                        _LW('Property protection on operation %(operation)s'
-                            ' for rule %(rule)s is not found. No role will be'
-                            ' allowed to perform this operation.') %
+                        ('Property protection on operation %(operation)s'
+                         ' for rule %(rule)s is not found. No role will be'
+                         ' allowed to perform this operation.') %
                         {'operation': operation,
                          'rule': property_exp})
 
@@ -146,9 +146,8 @@ class PropertyRules(object):
         try:
             return re.compile(rule)
         except Exception as e:
-            msg = (_LE("Encountered a malformed property protection rule"
-                       " %(rule)s: %(error)s.") % {'rule': rule,
-                                                   'error': e})
+            msg = ("Encountered a malformed property protection rule"
+                   " %(rule)s: %(error)s." % {'rule': rule, 'error': e})
             LOG.error(msg)
             raise InvalidPropProtectConf()
 

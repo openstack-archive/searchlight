@@ -18,7 +18,6 @@ from searchlight.elasticsearch.plugins.ironic import obj_payload
 from searchlight.elasticsearch.plugins.ironic import resources
 from searchlight.elasticsearch.plugins.ironic import serialize_resource
 from searchlight.elasticsearch.plugins.ironic import versioned_payload
-from searchlight.i18n import _LE
 from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
@@ -97,9 +96,9 @@ class NodeHandler(base.NotificationBase):
                                                event_type, payload, node_id))
             return deleted
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting node %(node_id)s '
-                'from index. Error: %(exc)s') %
+                'from index. Error: %(exc)s' %
                 {'node_id': node_id, 'exc': exc})
 
 
@@ -139,9 +138,9 @@ class PortHandler(base.NotificationBase):
             return pipeline.DeleteItem(self.index_helper.plugin, event_type,
                                        payload, port_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting port %(port_id)s '
-                'from index. Error: %(exc)s') %
+                'from index. Error: %(exc)s' %
                 {'port_id': port_id, 'exc': exc})
 
 
@@ -181,7 +180,7 @@ class ChassisHandler(base.NotificationBase):
             return pipeline.DeleteItem(self.index_helper.plugin, event_type,
                                        payload, chassis_id)
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting chassis %(chassis_id)s '
-                'from index. Error: %(exc)s') %
+                'from index. Error: %(exc)s' %
                 {'chassis_id': chassis_id, 'exc': exc})

@@ -21,7 +21,6 @@ from oslo_utils import fnmatch
 
 from searchlight.common import utils
 from searchlight.elasticsearch import ROLE_USER_FIELD
-from searchlight.i18n import _LE, _LW
 
 # Refer to ROLE_USER_FIELD
 ADMIN_ID_SUFFIX = "_ADMIN"
@@ -125,7 +124,7 @@ class IndexingHelper(object):
                     'doc': self.document_type,
                     'msg': str(e)
                 }
-                LOG.error(_LE("Failed Indexing %(doc)s: %(msg)s") % format_msg)
+                LOG.error("Failed Indexing %(doc)s: %(msg)s" % format_msg)
 
     def _index_alias_multiple_indexes_get(self, doc_id, routing=None):
         """Getting a document from an alias with multiple indexes will fail.
@@ -155,7 +154,7 @@ class IndexingHelper(object):
                 'doc': self.document_type,
                 'msg': str(e)
             }
-            LOG.error(_LE("Failed Indexing %(doc)s: %(msg)s") % format_msg)
+            LOG.error("Failed Indexing %(doc)s: %(msg)s" % format_msg)
 
     def save_document(self, document, version=None):
         if version:
@@ -202,11 +201,11 @@ class IndexingHelper(object):
                 if "VersionConflict" not in err['index']['error']:
                     raise
                 err_msg.append("id %(_id)s: %(error)s" % err['index'])
-            LOG.warning(_LW('Version conflict %s') % ';'.join(err_msg))
+            LOG.warning('Version conflict %s' % ';'.join(err_msg))
             result = 0
         except es_exc.RequestError as e:
             if _is_multiple_alias_exception(e):
-                LOG.error(_LE("Alias [%(a)s] with multiple indexes error") %
+                LOG.error("Alias [%(a)s] with multiple indexes error" %
                           {'a': self.alias_name})
                 self._index_alias_multiple_indexes_bulk(documents=documents,
                                                         versions=versions)
@@ -269,22 +268,22 @@ class IndexingHelper(object):
 
             if all(e['delete']['status'] == 404 for e in exc_payload):
                 LOG.warning(
-                    _LW("Error deleting %(doc_type)s %(ids)s; "
-                        "already deleted") %
+                    "Error deleting %(doc_type)s %(ids)s; "
+                    "already deleted" %
                     {"doc_type": self.plugin.document_type, "ids": doc_ids})
 
             elif all(e['delete']['status'] == 409 for e in exc_payload):
                 # This *should* never happen. If it does, something has gone
                 # wrong but leaving this here for now
                 LOG.warning(
-                    _LW("Error deleting %(doc_type)s %(ids)s; newer versions "
-                        "of some documents have been indexed") %
+                    "Error deleting %(doc_type)s %(ids)s; newer versions "
+                    "of some documents have been indexed" %
                     {"doc_type": self.plugin.document_type, "ids": doc_ids})
             else:
                 raise
         except es_exc.RequestError as e:
             if _is_multiple_alias_exception(e):
-                LOG.error(_LE("Alias [%(a)s] with multiple indexes error") %
+                LOG.error("Alias [%(a)s] with multiple indexes error" %
                           {'a': self.alias_name})
                 self._index_alias_multiple_indexes_bulk(actions=actions)
 
@@ -363,9 +362,9 @@ class IndexingHelper(object):
         total_hits = search_results['hits']['total']
         if not total_hits:
             ctx = {'doc_type': self.document_type, 'id': doc_id}
-            LOG.warning(_LW(
+            LOG.warning(
                 "No results found for %(doc_type)s id %(id)s; can't find "
-                "routing to delete") % ctx)
+                "routing to delete" % ctx)
             return
 
         # There are results. Check that there's only one unique result (may be
@@ -379,8 +378,8 @@ class IndexingHelper(object):
                    'results': ", ".join(distinct_results),
                    'doc_type': self.document_type,
                    'id': doc_id}
-            LOG.error(_LE("%(count)d distinct results (%(results)s) found for "
-                          "get_document_by_query for %(doc_type)s id %(id)s") %
+            LOG.error("%(count)d distinct results (%(results)s) found for "
+                      "get_document_by_query for %(doc_type)s id %(id)s" %
                       ctx)
 
         first_hit = search_results['hits']['hits'][0]
@@ -417,7 +416,7 @@ class IndexingHelper(object):
                 )
         except es_exc.RequestError:
             # TODO(ricka) Verify this is the IllegalArgument exception.
-            LOG.error(_LE("Alias [%(alias)s] with multiple indexes error") %
+            LOG.error("Alias [%(alias)s] with multiple indexes error" %
                       {'alias': self.alias_name})
             #
             return self._index_alias_multiple_indexes_get(
@@ -440,8 +439,8 @@ class IndexingHelper(object):
                                       doc_type=self.document_type,
                                       body=body, ignore_unavailable=True)
         except Exception as exc:
-            LOG.warning(_LW(
-                'Error querying %(p)s %(f)s. Error %(exc)s') %
+            LOG.warning(
+                'Error querying %(p)s %(f)s. Error %(exc)s' %
                 {'p': path, 'f': field, 'exc': exc})
             raise
 
@@ -485,7 +484,7 @@ class IndexingHelper(object):
             LOG.debug("Update result: %s", result)
         except es_exc.RequestError as e:
             if _is_multiple_alias_exception(e):
-                LOG.error(_LE("Alias [%(a)s] with multiple indexes error") %
+                LOG.error("Alias [%(a)s] with multiple indexes error" %
                           {'a': self.alias_name})
                 self._index_alias_multiple_indexes_bulk(actions=actions)
 

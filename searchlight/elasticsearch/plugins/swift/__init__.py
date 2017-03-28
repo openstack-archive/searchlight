@@ -19,7 +19,6 @@ import logging
 from oslo_utils import timeutils
 
 from searchlight.elasticsearch.plugins import openstack_clients
-from searchlight.i18n import _LE
 
 LOG = logging.getLogger(__name__)
 
@@ -149,7 +148,7 @@ def _get_storage_url_prefix():
         storage_url = openstack_clients.get_swiftclient().get_auth()[0]
         return storage_url[:storage_url.index(AUTH_PREFIX)] + AUTH_PREFIX
     except ValueError:
-        LOG.error(_LE("reseller_prefix %s not found in keystone endpoint ")
+        LOG.error("reseller_prefix %s not found in keystone endpoint "
                   % AUTH_PREFIX)
         raise
 

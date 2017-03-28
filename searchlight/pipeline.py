@@ -15,7 +15,6 @@
 
 from oslo_log import log as logging
 from searchlight.elasticsearch.plugins.utils import normalize_es_document
-from searchlight.i18n import _LW
 import stevedore
 
 LOG = logging.getLogger(__name__)
@@ -46,9 +45,9 @@ class PipelineManager(object):
                     try:
                         publishers.append(get_publisher(publisher_name))
                     except Exception as exc:
-                        LOG.warning(_LW(
+                        LOG.warning(
                             'Unable to load publisher %(publisher)s '
-                            'of plugin %(plugin)s: %(exc)s') % {
+                            'of plugin %(plugin)s: %(exc)s' % {
                                 'publisher': publisher_name,
                                 'plugin': plugin.obj.name,
                                 'exc': exc}

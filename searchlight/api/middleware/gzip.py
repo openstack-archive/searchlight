@@ -22,7 +22,6 @@ import re
 from oslo_log import log as logging
 
 from searchlight.common import wsgi
-from searchlight.i18n import _LI
 
 LOG = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ class GzipMiddleware(wsgi.Middleware):
     re_zip = re.compile(r'\bgzip\b')
 
     def __init__(self, app):
-        LOG.info(_LI("Initialized gzip middleware"))
+        LOG.info("Initialized gzip middleware")
         super(GzipMiddleware, self).__init__(app)
 
     def process_response(self, response):

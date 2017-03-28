@@ -24,7 +24,7 @@ from oslo_log import log as logging
 
 from searchlight.api import versions
 from searchlight.common import wsgi
-from searchlight.i18n import _, _LW
+from searchlight.i18n import _
 
 CONF = cfg.CONF
 
@@ -51,7 +51,7 @@ class VersionNegotiationFilter(wsgi.Middleware):
         try:
             version = self._match_version_string(req_version)
         except ValueError:
-            LOG.warning(_LW("Unknown version. Returning version choices."))
+            LOG.warning("Unknown version. Returning version choices.")
             return self.versions_app
 
         req.environ['api.version'] = version

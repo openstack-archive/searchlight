@@ -17,7 +17,6 @@ from oslo_log import log as logging
 
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins import designate
-from searchlight.i18n import _LW
 from searchlight import pipeline
 
 
@@ -77,8 +76,8 @@ class ZoneHandler(base.NotificationBase):
             # event.
             if event_type == 'dns.zone.create':
                 if not items:
-                    LOG.warning(_LW("Not writing initial recordsets; exception"
-                                    "occurred during zone indexing"))
+                    LOG.warning("Not writing initial recordsets; exception"
+                                "occurred during zone indexing")
                     return None
 
                 recordsets = designate._get_recordsets(payload['id'])

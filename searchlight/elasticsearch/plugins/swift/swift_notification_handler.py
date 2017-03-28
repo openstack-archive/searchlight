@@ -23,7 +23,6 @@ from searchlight.elasticsearch.plugins.swift \
     import serialize_swift_container_notification
 from searchlight.elasticsearch.plugins.swift \
     import serialize_swift_object_notification
-from searchlight.i18n import _LE
 from searchlight import pipeline
 
 
@@ -61,8 +60,8 @@ class SwiftAccountHandler(base.NotificationBase):
                                       serialized_account
                                       )
         except Exception as exc:
-            LOG.error(_LE('Error saving account %(id)s '
-                          'in index. Error: %(exc)s') %
+            LOG.error('Error saving account %(id)s '
+                      'in index. Error: %(exc)s' %
                       {'id': payload['id'], 'exc': exc})
 
     def delete(self, event_type, payload, timestamp):
@@ -78,8 +77,8 @@ class SwiftAccountHandler(base.NotificationBase):
                                        payload,
                                        id)
         except Exception as exc:
-            LOG.error(_LE('Error deleting account %(id)s '
-                          'from index. Error: %(exc)s') %
+            LOG.error('Error deleting account %(id)s '
+                      'from index. Error: %(exc)s' %
                       {'id': id, 'exc': exc})
 
 
@@ -117,8 +116,8 @@ class SwiftContainerHandler(base.NotificationBase):
                                       payload,
                                       serialized_payload)
         except Exception as exc:
-            LOG.error(_LE('Error saving container %(id)s '
-                          'in index. Error: %(exc)s') %
+            LOG.error('Error saving container %(id)s '
+                      'in index. Error: %(exc)s' %
                       {'id': payload['id'], 'exc': exc})
 
     def delete(self, event_type, payload, timestamp):
@@ -143,8 +142,8 @@ class SwiftContainerHandler(base.NotificationBase):
                     payload,
                     doc['_id']) for doc in delete_docs])
         except Exception as exc:
-            LOG.error(_LE('Error deleting objects in container %(id)s '
-                          'from index. Error: %(exc)s') %
+            LOG.error('Error deleting objects in container %(id)s '
+                      'from index. Error: %(exc)s' %
                       {'id': id, 'exc': exc})
         try:
             self.index_helper.delete_document(
@@ -159,8 +158,8 @@ class SwiftContainerHandler(base.NotificationBase):
             )
             return items
         except Exception as exc:
-            LOG.error(_LE('Error deleting container %(id)s '
-                          'from index. Error: %(exc)s') %
+            LOG.error('Error deleting container %(id)s '
+                      'from index. Error: %(exc)s' %
                       {'id': id, 'exc': exc})
 
 
@@ -201,8 +200,8 @@ class SwiftObjectHandler(base.NotificationBase):
                 serialized_payload
             )
         except Exception as exc:
-            LOG.error(_LE('Error saving object %(id)s '
-                          'in index. Error: %(exc)s') %
+            LOG.error('Error saving object %(id)s '
+                      'in index. Error: %(exc)s' %
                       {'id': payload['id'], 'exc': exc})
 
     def delete(self, event_type, payload, timestamp):
@@ -229,6 +228,6 @@ class SwiftObjectHandler(base.NotificationBase):
                 id
             )
         except Exception as exc:
-            LOG.error(_LE('Error deleting object %(id)s '
-                          'from index. Error: %(exc)s') %
+            LOG.error('Error deleting object %(id)s '
+                      'from index. Error: %(exc)s' %
                       {'id': id, 'exc': exc})

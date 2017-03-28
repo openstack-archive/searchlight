@@ -22,7 +22,6 @@ import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
-from searchlight.i18n import _LW
 
 LOG = logging.getLogger(__name__)
 
@@ -36,7 +35,7 @@ def _get_image_members(image):
         members = g_client.image_members.list(image['id'])
         return members
     except glanceclient.exc.Unauthorized:
-        LOG.warning(_LW("Could not list image members for %s; forbidden") %
+        LOG.warning("Could not list image members for %s; forbidden" %
                     image['id'])
         return []
 

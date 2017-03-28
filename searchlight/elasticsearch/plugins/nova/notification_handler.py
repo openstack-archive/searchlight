@@ -22,7 +22,6 @@ from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_flavor
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
 from searchlight.elasticsearch.plugins import utils
-from searchlight.i18n import _LE, _LW
 from searchlight import pipeline
 
 LOG = logging.getLogger(__name__)
@@ -295,7 +294,7 @@ class InstanceHandler(base.NotificationBase):
                                       payload,
                                       serialized_payload)
         except novaclient.exceptions.NotFound:
-            LOG.warning(_LW("Instance %s not found; deleting") % instance_id)
+            LOG.warning("Instance %s not found; deleting" % instance_id)
 
             # Where a notification represents an in-progress delete, we will
             # also receive an 'instance.delete' notification shortly
@@ -321,9 +320,9 @@ class InstanceHandler(base.NotificationBase):
                                        instance_id
                                        )
         except Exception as exc:
-            LOG.error(_LE(
+            LOG.error(
                 'Error deleting instance %(instance_id)s '
-                'from index: %(exc)s') %
+                'from index: %(exc)s' %
                 {'instance_id': instance_id, 'exc': exc})
 
 
@@ -384,8 +383,8 @@ class ServerGroupHandler(base.NotificationBase):
                     raise
 
         if attempts == (SERVERGROUP_RETRIES - 1):
-            LOG.error(_LE('Error updating server group member %(id)s:'
-                          ' Too many retries') % {'id': member_id})
+            LOG.error('Error updating server group member %(id)s:'
+                      ' Too many retries' % {'id': member_id})
 
     def create(self, event_type, payload, timestamp):
         server_group = deepcopy(payload)
@@ -458,9 +457,9 @@ class ServerGroupHandler(base.NotificationBase):
                                        )
         except Exception as exc:
             LOG.error(
-                _LE('Error deleting server group %(server_group_id)s '
-                    'from index: %(exc)s') % {
-                    'server_group_id': server_group_id, 'exc': exc})
+                'Error deleting server group %(server_group_id)s '
+                'from index: %(exc)s' %
+                {'server_group_id': server_group_id, 'exc': exc})
 
 
 class FlavorHandler(base.NotificationBase):
@@ -505,6 +504,6 @@ class FlavorHandler(base.NotificationBase):
                                        payload,
                                        flavor_id)
         except Exception as exc:
-            LOG.error(_LE('Error deleting flavor %(flavor_id)s'
-                          'from index: %(exc)s') % {
-                      'flavor_id': flavor_id, 'exc': exc})
+            LOG.error('Error deleting flavor %(flavor_id)s'
+                      'from index: %(exc)s' %
+                      {'flavor_id': flavor_id, 'exc': exc})

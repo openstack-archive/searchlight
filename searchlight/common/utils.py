@@ -43,7 +43,7 @@ import six
 from webob import exc
 
 from searchlight.common import exception
-from searchlight.i18n import _, _LE, _LW
+from searchlight.i18n import _
 from searchlight import plugin
 
 LOG = logging.getLogger(__name__)
@@ -214,10 +214,10 @@ def mutating(func):
 
 
 def setup_remote_pydev_debug(host, port):
-    error_msg = _LE('Error setting up the debug environment. Verify that the'
-                    ' option pydev_worker_debug_host is pointing to a valid '
-                    'hostname or IP on which a pydev server is listening on'
-                    ' the port indicated by pydev_worker_debug_port.')
+    error_msg = ('Error setting up the debug environment. Verify that the'
+                 ' option pydev_worker_debug_host is pointing to a valid '
+                 'hostname or IP on which a pydev server is listening on'
+                 ' the port indicated by pydev_worker_debug_port.')
 
     try:
         try:
@@ -268,13 +268,13 @@ def validate_key_cert(key_file, cert_file):
         digest = CONF.digest_algorithm
         if digest == 'sha1':
             LOG.warning(
-                _LW('The FIPS (FEDERAL INFORMATION PROCESSING STANDARDS)'
-                    ' state that the SHA-1 is not suitable for'
-                    ' general-purpose digital signature applications (as'
-                    ' specified in FIPS 186-3) that require 112 bits of'
-                    ' security. The default value is sha1 in Kilo for a'
-                    ' smooth upgrade process, and it will be updated'
-                    ' with sha256 in next release(L).'))
+                ('The FIPS (FEDERAL INFORMATION PROCESSING STANDARDS)'
+                 ' state that the SHA-1 is not suitable for'
+                 ' general-purpose digital signature applications (as'
+                 ' specified in FIPS 186-3) that require 112 bits of'
+                 ' security. The default value is sha1 in Kilo for a'
+                 ' smooth upgrade process, and it will be updated'
+                 ' with sha256 in next release(L).'))
         out = crypto.sign(key, data, digest)
         crypto.verify(cert, out, data, digest)
     except crypto.Error as ce:

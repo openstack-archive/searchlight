@@ -14,7 +14,6 @@
 #    under the License.
 
 from oslo_log import log as logging
-from searchlight.i18n import _LI
 
 LOG = logging.getLogger(__name__)
 
@@ -22,8 +21,8 @@ LOG = logging.getLogger(__name__)
 class LogPublisher(object):
 
     def publish(self, item):
-        LOG.info(_LI(
-            'Published notification: %(event_type)s %(doc_id)s %(doc)s') % {
+        LOG.info(
+            'Published notification: %(event_type)s %(doc_id)s %(doc)s' % {
                 'event_type': item.event_type,
                 'doc_id': item.doc_id,
                 'doc': getattr(item, 'doc', None)})
