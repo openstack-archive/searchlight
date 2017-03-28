@@ -440,14 +440,14 @@ class FunctionalTest(test_utils.BaseTestCase):
 
         # Reproduce the logic from searchlight.common.utils to set up
         # parent/child relationships; the stevedore structure is different
-        for instance in six.itervalues(self.initialized_plugins):
+        for instance in self.initialized_plugins.values():
             parent_plugin_name = instance.parent_plugin_type()
             if parent_plugin_name:
                 parent_plugin = self.initialized_plugins[parent_plugin_name]
                 instance.register_parent(parent_plugin)
 
         # Reproduce the logic from cmd.manage to prepare the index.
-        for instance in six.itervalues(self.initialized_plugins):
+        for instance in self.initialized_plugins.values():
             instance.prepare_index(index_name=index_name)
 
         # Create the aliases

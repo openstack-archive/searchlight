@@ -92,7 +92,7 @@ class IndexCommands(object):
             # single tuple, extract second member (the search
             # alias) of tuple.
             plugins_reindex = [
-                doc_type for doc_type, plugin in six.iteritems(es_reindex)
+                doc_type for doc_type, plugin in es_reindex.items()
                 if plugin.resource_group_name == group]
             alias_search = \
                 [a for a in resource_groups if a[0] == group][0][1]
@@ -227,7 +227,7 @@ class IndexCommands(object):
         plugin was specified by the caller, the entire operation fails.
         """
         if notification_less:
-            for res_type, ext in six.iteritems(search_plugins):
+            for res_type, ext in search_plugins.items():
                 if not ext.obj.get_notification_handler():
                     _plugins_without_notification.append(
                         ext.obj.get_document_type())

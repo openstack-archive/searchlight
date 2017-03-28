@@ -381,7 +381,7 @@ def no_4byte_params(f):
 
         def _check_dict(data_dict):
             # a dict of dicts has to be checked recursively
-            for key, value in data_dict.iteritems():
+            for key, value in data_dict.items():
                 if isinstance(value, dict):
                     _check_dict(value)
                 else:
@@ -479,7 +479,7 @@ def expand_type_matches(types, document_types):
 def _convert_field(document, original, current):
     """Convert field name by replacing original string with current"""
     if isinstance(document, dict):
-        for k, v in six.iteritems(document):
+        for k, v in document.items():
             if isinstance(v, list) or isinstance(v, dict):
                 _convert_field(v, original, current)
             if original in k:
