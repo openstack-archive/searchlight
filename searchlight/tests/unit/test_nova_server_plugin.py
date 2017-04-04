@@ -143,6 +143,7 @@ def _instance_fixture(instance_id, name, tenant_id, **kwargs):
             }]
         },
         u'hostId': u'd86d2c042a1f233227f70c5e9d2c5829de98d222d0922f469054ac17',
+        u'host_name': u'devstack',
         u'id': instance_id,
         u'image': {
             u'id': u'46b77e67-ce40-44ca-823d-e6f83489f21e',
@@ -167,7 +168,7 @@ def _instance_fixture(instance_id, name, tenant_id, **kwargs):
         u'os-extended-volumes:volumes_attached': [],
         u'progress': 0,
         u'security_groups': [{u'name': u'default'}],
-        u'status': u'ACTIVE',
+        u'status': u'active',
         u'tenant_id': tenant_id,
         u'updated': updated_now,
         u'user_id': USER1}
@@ -181,6 +182,15 @@ def _instance_fixture(instance_id, name, tenant_id, **kwargs):
 class TestServerLoaderPlugin(test_utils.BaseTestCase):
     def setUp(self):
         super(TestServerLoaderPlugin, self).setUp()
+        # Use unversioned notifications
+        version_notifications = \
+            'searchlight.elasticsearch.plugins.nova.notification_handler'\
+            '.InstanceHandler._use_versioned_notifications'
+        mock_versioned = mock.patch(version_notifications,
+                                    return_value=False)
+        mock_versioned.start()
+        self.addCleanup(mock_versioned.stop)
+
         self.plugin = servers_plugin.ServerIndex()
         self._create_fixtures()
 
@@ -233,6 +243,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'config_drive': u'True',
             u'flavor': {u'id': u'1'},
             u'hostId': u'host1',
+            u'host_name': u'devstack',
             u'id': u'6c41b4d1-f0fa-42d6-9d8d-e3b99695aa69',
             u'image': {u'id': u'a'},
             u'key_name': u'key',
@@ -241,7 +252,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'os-extended-volumes:volumes_attached': [],
             u'owner': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'security_groups': [u'default'],
-            u'status': u'ACTIVE',
+            u'status': u'active',
             u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'project_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'updated': updated_now,
@@ -301,6 +312,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'config_drive': u'True',
             u'flavor': {u'id': u'1'},
             u'hostId': u'host1',
+            u'host_name': u'devstack',
             u'id': u'a380287d-1f61-4887-959c-8c5ab8f75f8f',
             u'key_name': u'key',
             u'metadata': {},
@@ -309,7 +321,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'owner': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'project_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'security_groups': [u'default'],
-            u'status': u'ACTIVE',
+            u'status': u'active',
             u'tenant_id': u'4d64ac83-87af-4d2a-b884-cc42c3e8f2c0',
             u'updated': updated_now,
             u'user_id': u'27f4d76b-be62-4e4e-aa33bb11cc55',
@@ -349,10 +361,11 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
                           'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
         expected_facet_names = [
-            'OS-EXT-AZ:availability_zone', 'created_at', 'description',
+            'OS-EXT-AZ:availability_zone',
+            'created_at', 'description',
             'flavor.id', 'id', 'image.id', 'locked', 'name',
             'owner', 'security_groups', 'status', 'tags', 'updated_at',
-            'user_id']
+            'user_id', 'OS-EXT-STS:vm_state']
         expected_facet_names.extend(['networks.' + f for f in network_facets])
 
         self.assertEqual(set(expected_facet_names), set(facet_names))
@@ -408,10 +421,12 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
         network_facets = ('name', 'version', 'ipv6_addr', 'ipv4_addr',
                           'OS-EXT-IPS-MAC:mac_addr', 'OS-EXT-IPS:type')
         expected_facet_names = [
+            'OS-EXT-SRV-ATTR:hypervisor_hostname',
             'OS-EXT-AZ:availability_zone', 'created_at', 'description',
             'flavor.id', 'host_status', 'id', 'image.id', 'locked',
             'name', 'owner', 'project_id', 'security_groups', 'status',
-            'tags', 'tenant_id', 'updated_at', 'user_id']
+            'tags', 'tenant_id', 'updated_at', 'user_id',
+            'OS-EXT-STS:vm_state']
         expected_facet_names.extend(['networks.' + f for f in network_facets])
 
         self.assertEqual(set(expected_facet_names), set(facet_names))
@@ -1315,6 +1330,88 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                        return_value=self.instance1) as nova_getter:
 
                 type_handler('compute.instance.update', update_event,
-                             '2016-07-17 19:52:13.523135')
+                             '2016-03-17 19:52:13.523135')
                 nova_getter.assert_called_with(instance_id)
                 self.assertEqual(1, mock_save.call_count)
+
+
+class TestVersionedServerNotifications(test_utils.BaseTestCase):
+    def setUp(self):
+        super(TestVersionedServerNotifications, self).setUp()
+
+        self.plugin = servers_plugin.ServerIndex()
+
+    def test_versioned_create(self):
+        create_event = {
+            "nova_object.name": "InstanceActionPayload",
+            "nova_object.namespace": "nova",
+            "nova_object.version": "1.1",
+            "nova_object.data": {
+                "image_uuid": "155d900f-4e14-4e4c-a73d-069cbf4541e6",
+                "tenant_id": "6f70656e737461636b20342065766572",
+                "created_at": "2017-03-17T19:52:13Z",
+                "display_name": "some-server",
+                "display_description": "some-server",
+                "state": "active",
+                "flavor": {
+                    "nova_object.name": "FlavorPayload",
+                    "nova_object.data": {
+                        "flavorid": "a22d5517-147c-4147-a0d1-e698df5cd4e3",
+                        "name": "test_flavor",
+                        "root_gb": 1,
+                        "vcpus": 1,
+                        "ephemeral_gb": 0,
+                        "memory_mb": 512
+                    }
+                },
+                "uuid": "178b0921-8f85-4257-88b6-2e743b5a975c",
+                "power_state": "running",
+                "ip_addresses": [{
+                    "nova_object.name": "IpPayload",
+                    "nova_object.data": {
+                        "mac": "fa:16:3e:4c:2c:30",
+                        "address": "192.168.1.3",
+                        "port_uuid": "ce531f90-199f-48c0-816c-13e38010b442",
+                        "version": 4,
+                        "label": "private-network",
+                        "device_name": "tapce531f90-19"
+                    }
+                }],
+                'OS-EXT-STS:vm_state': 'active',
+            }
+        }
+
+        handler = self.plugin.get_notification_handler()
+        event_handlers = handler.get_event_handlers()
+
+        expected = {
+            'image': {'id': "155d900f-4e14-4e4c-a73d-069cbf4541e6"},
+            'tenant_id': "6f70656e737461636b20342065766572",
+            'project_id': "6f70656e737461636b20342065766572",
+            "created_at": "2017-03-17T19:52:13Z",
+            "name": "some-server",
+            "description": "some-server",
+            "flavor": {"id": "a22d5517-147c-4147-a0d1-e698df5cd4e3"},
+            "id": "178b0921-8f85-4257-88b6-2e743b5a975c",
+            "power_state": "running",
+            "status": "active",
+            'OS-EXT-STS:vm_state': 'active',
+            "networks": [{
+                "version": 4,
+                "ipv4_addr": "192.168.1.3",
+                "OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:4c:2c:30",
+                "name": "tapce531f90-19"
+            }],
+        }
+        expected_version = 489780333780333818
+
+        with mock.patch.object(self.plugin.index_helper,
+                               'save_documents') as mock_save:
+            handler = event_handlers.get('instance.create.end')
+            self.assertIsNotNone(handler)
+            handler(payload=create_event,
+                    event_type='instance.create.end',
+                    timestamp='2017-03-17 19:52:13.818362')
+
+            self.assertEqual(1, mock_save.call_count)
+            mock_save.assert_called_with([expected], [expected_version])

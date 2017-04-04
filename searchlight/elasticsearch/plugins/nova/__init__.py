@@ -39,6 +39,12 @@ FLAVOR_FIELDS_MAP = {
 }
 FLAVOR_BLACKLISTED_FIELDS = ['vcpu_weight', 'flavorid']
 
+EXTENDED_FIELDS = {'OS-EXT-STS:task_state': 'task_state',
+                   'OS-EXT-STS:vm_state': 'state',
+                   'OS-EXT-AZ:availability_zone': 'availability_zone',
+                   'OS-EXT-SRV-ATTR:hypervisor_hostname': 'host_name',
+                   'OS-EXT-SRV-ATTR:host': 'host'}
+
 
 def _get_flavor_access(flavor):
     if flavor.is_public:
@@ -80,7 +86,105 @@ def serialize_nova_server(server):
 
     utils.normalize_date_fields(serialized)
 
+    serialized['status'] = serialized['status'].lower()
+
+    # Pop the fault stracktrace if any - it's big
+    fault = serialized.get('fault', None)
+    if fault and isinstance(fault, dict):
+        fault.pop('details', None)
+
     return serialized
+
+
+# TODO(sjmc7) - if https://review.openstack.org/#/c/485525/ lands, remove this
+# If it doesn't, make it more accurate
+def _get_server_status(vm_state, task_state):
+    # https://github.com/openstack/nova/blob/master/nova/api/openstack/common.py#L113
+    # Simplified version of that
+    if vm_state:
+        vm_state = vm_state.lower()
+    if task_state:
+        task_state = task_state.lower()
+
+    return {
+        'active': 'active',
+        'building': 'build',
+        'stopped': 'shutoff',
+        'resized': 'verify_resize',
+        'paused': 'paused',
+        'suspended': 'suspended',
+        'rescued': 'rescue',
+        'error': 'error',
+        'deleted': 'deleted',
+        'soft-delete': 'soft_deleted',
+        'shelved': 'shelved',
+        'shelved_offloaded': 'shelved_offloaded',
+    }.get(vm_state)
+
+
+def serialize_server_versioned(payload):
+    # Based loosely on currently documented 1.1 InstanceActionPayload
+
+    # Some transforms - maybe these could be made the same in nova?
+    transform_keys = [('display_description', 'description'),
+                      ('display_name', 'name'), ('uuid', 'id')]
+    for src, dest in transform_keys:
+        payload[dest] = payload.pop(src)
+
+    copy_keys = [('tenant_id', 'project_id')]
+    for src, dest in copy_keys:
+        if src in payload:
+            payload[dest] = payload.get(src)
+
+    delete_keys = ['audit_period', 'node']
+    for key in delete_keys:
+        payload.pop(key, None)
+
+    # We should denormalize this because it'd be better for searching
+    flavor_id = payload.pop('flavor')['nova_object.data']['flavorid']
+    payload['flavor'] = {'id': flavor_id}
+
+    image_id = payload.pop('image_uuid')
+    payload['image'] = {'id': image_id}
+
+    # Translate the status, kind of. state and task_state will get
+    # popped off shortly
+    vm_state = payload.get('state', None)
+    task_state = payload.get('task_state', None)
+    payload['status'] = _get_server_status(vm_state, task_state)
+
+    # Map backwards to the OS-EXT- attributes
+    for ext_attr, simple_attr in EXTENDED_FIELDS.items():
+        attribute = payload.pop(simple_attr, None)
+        if attribute:
+            payload[ext_attr] = attribute
+
+    # Network information. This has to be transformed
+    # TODO(sjmc7) Try to better reconcile this with the API format
+    ip_addresses = [address['nova_object.data'] for address in
+                    payload.pop("ip_addresses", [])]
+
+    def map_address(addr):
+        # TODO(sjmc7) Think this should be network name. Missing net type
+        net = {
+            "version": addr["version"],
+            "name": addr["device_name"],
+            "OS-EXT-IPS-MAC:mac_addr": addr["mac"],
+        }
+        if net["version"] == 4:
+            net["ipv4_addr"] = addr["address"]
+        else:
+            net["ipv6_addr"] = addr["address"]
+        return net
+
+    payload["networks"] = [map_address(address) for address in ip_addresses]
+
+    # Pop the fault stracktrace if any - it's big
+    fault = payload.get('fault', None)
+    if fault and isinstance(fault, dict):
+        fault.pop('details', None)
+
+    return payload
 
 
 def serialize_nova_hypervisor(hypervisor, updated_at=None):

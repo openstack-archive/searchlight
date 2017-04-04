@@ -329,8 +329,8 @@ class TestSearchApi(functional.FunctionalTest):
         expected = {
             u'name': u'status',
             u'options': [
-                {u'doc_count': 2, u'key': u'ACTIVE'},
-                {u'doc_count': 1, u'key': u'RESUMING'},
+                {u'doc_count': 2, u'key': u'active'},
+                {u'doc_count': 1, u'key': u'resuming'},
             ],
             u'type': u'string'
         }
@@ -967,6 +967,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'id': 'abcdef',
             u'tenant_id': TENANT1,
             u'user_id': USER1,
+            u'status': 'ACTIVE',
             u'image': {u'id': u'a'},
             u'flavor': {u'id': u'1'},
             u'created_at': u'2016-04-07T15:49:35Z',
@@ -977,6 +978,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'id': '12341234',
             u'tenant_id': TENANT2,
             u'user_id': USER1,
+            u'status': 'ACTIVE',
             u'image': {u'id': u'a'},
             u'flavor': {u'id': u'1'},
             u'created_at': u'2016-04-07T15:49:35Z',

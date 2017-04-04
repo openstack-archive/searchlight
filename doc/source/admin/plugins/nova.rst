@@ -59,6 +59,8 @@ Plugin: OS::Nova::Server
     [resource_plugin:os_nova_server]
     enabled = true
     resource_group_name = searchlight
+    notifications_topics_exchanges = versioned_notifications,nova
+    use_versioned_notifications = true
 
 Plugin: OS::Nova::Hypervisor
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -125,12 +127,17 @@ incremental updates. Enable notifications using the following::
 
     [notifications]
     notify_on_state_change = vm_and_task_state
+    # notification_format = versioned
 
 .. note::
 
     Restart Nova API and Nova scheduler (n-api, n-sch) after making changes.
     See :ref:`plugin_notifications` for more information on
     notification topics.
+
+    The default setting for notification_format is 'both' which sends both
+    versioned and unversioned notifications. Searchlight uses
+    'use_versioned_notifications' to decide which to use.
 
 local.conf (devstack)
 ---------------------

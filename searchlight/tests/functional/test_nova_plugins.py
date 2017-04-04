@@ -126,9 +126,8 @@ class TestNovaPlugins(functional.FunctionalTest):
                                                       TENANT_ID)
         self.assertEqual(200, response.status)
         self.assertEqual(1, json_content['hits']['total'])
-
-        hits = json_content['hits']['hits']
         host_id = u'41d7069823d74c9ea8debda9a3a02bb00b2f7d53a0accd1f79429407'
+        hits = json_content['hits']['hits']
         expected_sources = [{
             u'OS-DCF:diskConfig': u'MANUAL',
             u'OS-EXT-AZ:availability_zone': u'nova',
@@ -163,7 +162,7 @@ class TestNovaPlugins(functional.FunctionalTest):
             u'owner': u'1dd2c5280b4e45fc9d7d08a81228c891',
             u'project_id': u'1dd2c5280b4e45fc9d7d08a81228c891',
             u'security_groups': [{u'name': u'default'}],
-            u'status': u'ACTIVE',
+            u'status': u'active',
             u'tenant_id': u'1dd2c5280b4e45fc9d7d08a81228c891',
             u'updated': u'2016-03-08T08:40:22Z',
             u'user_id': u'7c97202cf58d43a9ab33016fc403f093'}]
@@ -269,31 +268,6 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
         )
         self.listener_alias = self.servers_plugin.alias_name_listener
 
-    @mock.patch(nova_version_getter, return_value=fake_version_list)
-    @mock.patch(nova_server_getter)
-    def test_error_state_transition(self, mock_nova, mock_version_list):
-        inst_id = "4b86f534-16db-4de8-8ce0-f1ee68894835"
-
-        mock_nova.return_value = utils.DictObj(**{
-            'id': inst_id,
-            'name': 'test-error',
-            'tenant_id': EV_TENANT,
-            'addresses': {},
-            'image': {'id': '1'},
-            'flavor': {'id': 'a'},
-            'created': '2016-08-31T23:32:11Z',
-            'updated': '2016-08-31T23:32:11Z',
-        })
-
-        error_update = self.server_events[
-            'instance-update-error-final'
-        ]
-        self._send_event_to_listener(error_update,
-                                     self.listener_alias)
-        result = self._verify_event_processing(error_update, owner=EV_TENANT)
-        self._verify_result(error_update, ['tenant_id'], result)
-        mock_nova.assert_called_with(inst_id)
-
     def test_server_group_create_delete(self):
         # Test #1: Create a server group.
         create_event = self.server_group_events["servergroup.create"]
@@ -393,3 +367,53 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
 
         self.assertEqual(200, response.status)
         self.assertEqual(0, json_content['hits']['total'])
+
+
+class TestNovaUnversionedListener(test_listener.TestSearchListenerBase):
+    def setUp(self):
+        version_notifications = \
+            'searchlight.elasticsearch.plugins.nova.notification_handler'\
+            '.InstanceHandler._use_versioned_notifications'
+        mock_versioned = mock.patch(version_notifications,
+                                    return_value=False)
+        mock_versioned.start()
+        self.addCleanup(mock_versioned.stop)
+
+        super(TestNovaUnversionedListener, self).setUp()
+        self.servers_plugin = self.initialized_plugins['OS::Nova::Server']
+        self.server_events = self._load_fixture_data('events/servers.json')
+
+        sp = self.servers_plugin
+        notification_plugins = {sp.document_type: utils.StevedoreMock(sp)}
+
+        self.notification_endpoint = NotificationEndpoint(
+            notification_plugins,
+            PipelineManager(notification_plugins)
+        )
+        self.listener_alias = self.servers_plugin.alias_name_listener
+
+    @mock.patch(nova_version_getter, return_value=fake_version_list)
+    @mock.patch(nova_server_getter)
+    def test_error_state_transition(self, mock_nova, mock_version_list):
+        inst_id = "4b86f534-16db-4de8-8ce0-f1ee68894835"
+
+        mock_nova.return_value = utils.DictObj(**{
+            'id': inst_id,
+            'name': 'test-error',
+            'tenant_id': EV_TENANT,
+            'addresses': {},
+            'image': {'id': '1'},
+            'flavor': {'id': 'a'},
+            'status': 'ERROR',
+            'created': '2016-08-31T23:32:11Z',
+            'updated': '2016-08-31T23:32:11Z',
+        })
+
+        error_update = self.server_events[
+            'instance-update-error-final'
+        ]
+        self._send_event_to_listener(error_update,
+                                     self.listener_alias)
+        result = self._verify_event_processing(error_update, owner=EV_TENANT)
+        self._verify_result(error_update, ['tenant_id'], result)
+        mock_nova.assert_called_with(inst_id)

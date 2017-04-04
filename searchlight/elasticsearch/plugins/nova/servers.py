@@ -29,6 +29,7 @@ class ServerIndex(base.IndexBase):
     NotificationHandlerCls = notification_handler.InstanceHandler
 
     # Will be combined with 'admin_only_fields' from config
+    # https://developer.openstack.org/api-ref/compute/?expanded=show-server-details-detail
     ADMIN_ONLY_FIELDS = ['OS-EXT-SRV-ATTR:*', 'host_status']
 
     @classmethod
@@ -89,6 +90,22 @@ class ServerIndex(base.IndexBase):
                 'OS-EXT-AZ:availability_zone': {
                     'type': 'string',
                     'index': 'not_analyzed'
+                },
+                'OS-EXT-SRV-ATTR:hypervisor_hostname': {
+                    'type': 'string',
+                    'index': 'not_analyzed'
+                },
+                'OS-EXT-STS:vm_state': {
+                    'type': 'string',
+                    'index': 'not_analyzed'
+                },
+                'fault': {
+                    'type': 'object',
+                    'properties': {
+                        'code': {'type': 'integer'},
+                        'created': {'type': 'date'},
+                        'message': {'type': 'string'},
+                    }
                 },
                 # Nova gives security group names, where neutron ports
                 # give ids in the same field. There's no solution that
@@ -163,7 +180,8 @@ class ServerIndex(base.IndexBase):
         only be available to administrators.
         """
         return {'tenant_id': True, 'project_id': True, 'host_status': True,
-                'created': False, 'updated': False}
+                'created': False, 'updated': False,
+                'OS-EXT-SRV-ATTR:hypervisor_hostname': True, 'fault': False}
 
     @property
     def resource_allowed_policy_target(self):

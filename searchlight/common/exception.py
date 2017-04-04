@@ -125,3 +125,9 @@ class InvalidAPIVersionProvided(SearchlightException):
     message = _("The provided API version is not supported, "
                 "the current available version range for %(service)s "
                 "is: from %(min_version)s to %(max_version)s.")
+
+
+class VersionedNotificationMismatch(SearchlightException):
+    message = _("Provided notification version "
+                "%(provided_maj)s.%(provided_min)s did not match expected "
+                "%(expected_maj)s.%(expected_min)s for %(type)s")

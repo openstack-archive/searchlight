@@ -1,0 +1,17 @@
+---
+prelude: >
+    Adds support for versioned nova server notifications.
+features:
+  - |
+    Support for versioned nova server notifications (and related notifications
+    where supported, like volume attach). This has to be enabled (it is not
+    yet the default).
+
+    This reduces the callbacks to the nova API significantly.
+issues:
+  - |
+    Payload versioning is somewhat manual; a given release will support a
+    maxmimum major payload version and warn on later minor versions.
+upgrade:
+  - |
+    Configuration needs changing to support versioned notifications; see docs.

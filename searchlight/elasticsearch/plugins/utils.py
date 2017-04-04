@@ -23,6 +23,7 @@ import six
 from oslo_config import cfg
 from oslo_utils import encodeutils
 
+from searchlight.common import exception as sl_exc
 from searchlight.common import utils
 from searchlight.context import RequestContext
 import searchlight.elasticsearch
@@ -526,3 +527,28 @@ def normalize_es_document(es_doc, plugin):
     admin_context = RequestContext()
     plugin.filter_result({'_source': es_doc}, admin_context)
     return es_doc
+
+
+def check_notification_version(expected, actual, notification_type):
+    """
+    If actual's major version is different from expected, a
+    VersionedNotificationMismatch error is raised.
+    If the minor versions are different, a DEBUG level log
+    message is output
+    """
+    maj_ver, min_ver = map(int, actual.split('.'))
+    expected_maj, expected_min = map(int, expected.split('.'))
+    if maj_ver != expected_maj:
+        raise sl_exc.VersionedNotificationMismatch(
+            provided_maj=maj_ver, provided_min=min_ver,
+            expected_maj=expected_maj, expected_min=expected_min,
+            type=notification_type)
+
+    if min_ver != expected_min:
+        LOG.debug(
+            "Notification minor version mismatch. "
+            "Provided: %(provided_maj)s, %(provided_min)s. "
+            "Expected: %(expected_maj)s.%(expected_min)s." % {
+                "provided_maj": maj_ver, "provided_min": min_ver,
+                "expected_maj": expected_maj, "expected_min": expected_min}
+        )

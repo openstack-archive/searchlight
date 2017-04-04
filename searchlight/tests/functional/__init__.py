@@ -270,6 +270,7 @@ service_policy_path = %(service_policy_path)s
 workers = 0
 bind_host = 127.0.0.1
 bind_port = %(bind_port)s
+
 """
         self.paste_conf_base = """[pipeline:searchlight]
 pipeline = versionnegotiation unauthenticated-context rootapp

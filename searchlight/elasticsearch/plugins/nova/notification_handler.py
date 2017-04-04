@@ -15,12 +15,14 @@
 
 from copy import deepcopy
 import novaclient.exceptions
+from oslo_config import cfg
 from oslo_log import log as logging
 
 from elasticsearch import helpers
 from searchlight.elasticsearch.plugins import base
 from searchlight.elasticsearch.plugins.nova import serialize_nova_flavor
 from searchlight.elasticsearch.plugins.nova import serialize_nova_server
+from searchlight.elasticsearch.plugins.nova import serialize_server_versioned
 from searchlight.elasticsearch.plugins import utils
 from searchlight import pipeline
 
@@ -67,6 +69,14 @@ class InstanceHandler(base.NotificationBase):
         'spawning': 'unshelving'
     }
 
+    # Supported major/minor notification versions. Major changes will likely
+    # require code changes.
+    notification_versions = {
+        'InstanceActionPayload': '1.2',
+        'InstanceUpdatePayload': '1.3',
+        'InstanceActionVolumeSwapPayload': '1.1',
+    }
+
     @classmethod
     def _get_notification_exchanges(cls):
         return ['nova']
@@ -78,38 +88,68 @@ class InstanceHandler(base.NotificationBase):
                 ('old_task_state', payload.get('old_task_state')),
                 ('new_task_state', payload.get('new_task_state')))
 
+    @classmethod
+    def get_plugin_opts(cls):
+        opts = super(InstanceHandler, cls).get_plugin_opts()
+        opts.extend([
+            cfg.BoolOpt(
+                'use_versioned_notifications',
+                help='Expect versioned notifications and ignore unversioned',
+                default=True)
+        ])
+        return opts
+
+    def _use_versioned_notifications(self):
+        return self.plugin_options.use_versioned_notifications
+
     def get_event_handlers(self):
-        return {
-            # compute.instance.update seems to be the event set as a
-            # result of a state change etc
-            'compute.instance.update': self.index_from_update,
+        if not self._use_versioned_notifications():
+            return {
+                # compute.instance.update seems to be the event set as a
+                # result of a state change etc
+                'compute.instance.update': self.index_from_update,
 
-            'compute.instance.create.start': self.index_from_api,
-            'compute.instance.create.end': self.index_from_api,
+                'compute.instance.create.start': self.index_from_api,
+                'compute.instance.create.end': self.index_from_api,
 
-            'compute.instance.power_on.end': self.index_from_api,
-            'compute.instance.power_off.end': self.index_from_api,
-            'compute.instance.resume.end': self.index_from_api,
-            'compute.instance.suspend.end': self.index_from_api,
-            'compute.instance.pause.end': self.index_from_api,
-            'compute.instance.unpause.end': self.index_from_api,
+                'compute.instance.power_on.end': self.index_from_api,
+                'compute.instance.power_off.end': self.index_from_api,
+                'compute.instance.resume.end': self.index_from_api,
+                'compute.instance.suspend.end': self.index_from_api,
+                'compute.instance.pause.end': self.index_from_api,
+                'compute.instance.unpause.end': self.index_from_api,
 
-            'compute.instance.shutdown.end': self.index_from_api,
-            'compute.instance.reboot.end': self.index_from_api,
-            'compute.instance.delete.end': self.delete,
+                'compute.instance.shutdown.end': self.index_from_api,
+                'compute.instance.reboot.end': self.index_from_api,
+                'compute.instance.delete.end': self.delete,
 
-            'compute.instance.shelve.end': self.index_from_api,
-            'compute.instance.shelve_offload.end': self.index_from_api,
-            'compute.instance.unshelve.end': self.index_from_api,
+                'compute.instance.shelve.end': self.index_from_api,
+                'compute.instance.shelve_offload.end': self.index_from_api,
+                'compute.instance.unshelve.end': self.index_from_api,
 
-            'compute.instance.volume.attach': self.index_from_api,
-            'compute.instance.volume.detach': self.index_from_api,
+                'compute.instance.volume.attach': self.index_from_api,
+                'compute.instance.volume.detach': self.index_from_api,
 
-            # Removing neutron port events for now; waiting on nova
-            # to implement interface notifications as with volumes
-            # https://launchpad.net/bugs/1567525
-            # https://blueprints.launchpad.net/nova/+spec/interface-notifications
-        }
+                # Removing neutron port events for now; waiting on nova
+                # to implement interface notifications as with volumes
+                # https://launchpad.net/bugs/1567525
+                # bps/nova/+spec/interface-notifications
+            }
+        # Otherwise listen for versioned notifications!
+        # Nova versioned notifications all include the entire payload
+        end_events = ['create', 'pause', 'power_off', 'power_on',
+                      'reboot', 'rebuild', 'resize', 'restore', 'resume',
+                      'shelve', 'shutdown', 'snapshot', 'suspend', 'unpause',
+                      'unshelve', 'volume_attach', 'volume_detach']
+        notifications = {('instance.%s.end' % ev): self.index_from_versioned
+                         for ev in end_events}
+
+        # instance.update has no start or end
+        notifications['instance.update'] = self.index_from_versioned
+
+        # This should become soft delete once that is supported
+        notifications['instance.delete.end'] = self.delete_from_versioned
+        return notifications
 
     def index_from_update(self, event_type, payload, timestamp):
         """Determine whether or not to process a full update. The updates, and
@@ -309,6 +349,49 @@ class InstanceHandler(base.NotificationBase):
         if not instance_id:
             return
 
+        try:
+            version = self.get_version(payload, timestamp,
+                                       preferred_date_field='deleted_at')
+            self.index_helper.delete_document(
+                {'_id': instance_id, '_version': version})
+            return pipeline.DeleteItem(self.index_helper.plugin,
+                                       event_type,
+                                       payload,
+                                       instance_id
+                                       )
+        except Exception as exc:
+            LOG.error(
+                'Error deleting instance %(instance_id)s '
+                'from index: %(exc)s' %
+                {'instance_id': instance_id, 'exc': exc})
+
+    def index_from_versioned(self, event_type, payload, timestamp):
+        notification_version = payload['nova_object.version']
+        notification_name = payload['nova_object.name']
+        expected_version = self.notification_versions.get(notification_name,
+                                                          None)
+        if expected_version:
+            utils.check_notification_version(
+                expected_version, notification_version, notification_name)
+        else:
+            LOG.warning("No expected notification version for %s; "
+                        "processing anyway", notification_name)
+
+        versioned_payload = payload['nova_object.data']
+        serialized = serialize_server_versioned(versioned_payload)
+        self.index_helper.save_document(
+            serialized,
+            version=self.get_version(serialized, timestamp))
+        return pipeline.IndexItem(self.index_helper.plugin,
+                                  event_type,
+                                  payload,
+                                  serialized)
+
+    def delete_from_versioned(self, event_type, payload, timestamp):
+        payload = payload['nova_object.data']
+        instance_id = payload['uuid']
+        version = self.get_version(payload, timestamp,
+                                   preferred_date_field='deleted_at')
         try:
             version = self.get_version(payload, timestamp,
                                        preferred_date_field='deleted_at')

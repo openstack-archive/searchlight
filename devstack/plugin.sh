@@ -151,6 +151,10 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF resource_plugin:os_nova_flavor enabled True
     iniset $SEARCHLIGHT_CONF resource_plugin:os_nova_flavor notifications_topics_exchanges versioned_notifications,nova
 
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_nova_server enabled True
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_nova_server notifications_topics_exchanges versioned_notifications,nova
+    iniset $SEARCHLIGHT_CONF resource_plugin:os_nova_server use_versioned_notifications True
+
     # Plugin config - disable swift by default since it's not typically installed
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_account enabled False
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_container enabled False
