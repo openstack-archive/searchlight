@@ -55,6 +55,11 @@ Existing local.conf customization
      enable_service searchlight-api
      enable_service searchlight-listener
 
+   To use stable branches, make sure devstack is on that branch, and specify
+   the branch name to enable_plugin, for example::
+
+     enable_plugin searchlight https://git.openstack.org/openstack/searchlight stable/mitaka
+
 2. Configure desired searchlight plugins
 
 The search service is driven using a plugin mechanism for integrating to other
