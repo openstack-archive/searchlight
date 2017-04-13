@@ -1,0 +1,1 @@
+ProxyPass "/search" "unix:/var/run/uwsgi/searchlight-api-wsgi.socket" retry=0
