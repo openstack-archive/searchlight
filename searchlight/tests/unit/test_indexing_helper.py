@@ -451,7 +451,9 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         with mock.patch(bulk_name) as mock_bulk:
             mock_bulk.side_effect = helpers.BulkIndexError(
                 "1 document(s) failed to index",
-                [{'index': {"_id": "1", "error": "VersionConflict",
+                [{'index': {"_id": "1",
+                            "error": {
+                                "type": "version_conflict_engine_exception"},
                             "status": 409}}]
             )
             indexing_helper.save_documents([{'id': '1'}])
