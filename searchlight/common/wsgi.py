@@ -36,7 +36,6 @@ import eventlet.wsgi
 from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import log as logging
-from oslo_log import loggers
 from oslo_serialization import jsonutils
 import routes
 import routes.middleware
@@ -47,6 +46,7 @@ from webob import multidict
 
 from searchlight.common import config
 from searchlight.common import exception
+from searchlight.common import loggers
 from searchlight.common import utils
 from searchlight import i18n
 from searchlight.i18n import _
