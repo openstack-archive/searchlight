@@ -93,7 +93,7 @@ function configure_searchlight {
 
     # Install the policy file for the API server
     cp $SEARCHLIGHT_DIR/etc/policy.json $SEARCHLIGHT_CONF_DIR/policy.json
-    iniset $SEARCHLIGHT_CONF DEFAULT policy_file $SEARCHLIGHT_CONF_DIR/policy.json
+    iniset $SEARCHLIGHT_CONF oslo_policy policy_file $SEARCHLIGHT_CONF_DIR/policy.json
 
     # API Configuration
     sudo cp $SEARCHLIGHT_DIR/etc/api-paste.ini $SEARCHLIGHT_APIPASTE_CONF
