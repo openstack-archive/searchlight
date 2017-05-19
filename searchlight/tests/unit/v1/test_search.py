@@ -476,7 +476,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             '_source': 1234,
         }))
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,
             "'_source' must be a string, dict or list",
             self.deserializer.search,
@@ -580,7 +580,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'offset': 10,
             'from': 10
         }))
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,
             "Provide 'offset' or 'from', but not both",
             self.deserializer.search, request)
@@ -594,7 +594,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'size': 10,
             'limit': 10
         }))
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,
             "Provide 'limit' or 'size', but not both",
             self.deserializer.search, request)
@@ -706,7 +706,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
         mock_query_filters.side_effect = Exception("Bad RBAC")
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPInternalServerError,
             "Error processing OS::Nova::Server RBAC filter",
             self.deserializer.search,
@@ -926,7 +926,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
             'aggregations': aggs,
             'aggs': aggs}))
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,
             "A request cannot include both 'aggs' and 'aggregations'",
             self.deserializer.search, request)

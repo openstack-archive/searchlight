@@ -144,7 +144,7 @@ class TestPlugin(test_utils.BaseTestCase):
                                                     child_plugin)
         expected_error = ("Mapping for 'fake-child' contains a _parent 'this "
                           "is not my parent' that doesn't match 'fake-simple'")
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             exception.IndexingException,
             expected_error,
             parent_plugin.setup_index_mapping,
@@ -281,8 +281,8 @@ class TestPlugin(test_utils.BaseTestCase):
             message = ("Field 'name' for searchlight-listener/fake-simple "
                        "must contain a subfield whose name is 'raw' for "
                        "sorting.")
-            self.assertRaisesRegexp(Exception, message,
-                                    plugin.prepare_index, index_name='fake')
+            self.assertRaisesRegex(Exception, message,
+                                   plugin.prepare_index, index_name='fake')
             mock_mapping.assert_not_called()
 
         # Test #3: Plugin with two children. No "raw" mapping fields.
