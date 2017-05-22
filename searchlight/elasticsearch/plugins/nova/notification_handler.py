@@ -425,6 +425,7 @@ class ServerGroupHandler(base.NotificationBase):
         search_results = self.index_helper.simple_search(
             query=query, type="OS::Nova::ServerGroup")
 
+        server_group = None
         try:
             result = search_results['hits'][0]
             server_group_id = result['_id']
