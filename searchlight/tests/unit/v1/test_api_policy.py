@@ -247,7 +247,7 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             "There are no resource types accessible to you to serve "
             "your request. You do not have access to the following "
             "resource types: OS::Glance::Image")
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPForbidden, expected_message,
             search_deserializer._filter_types_by_policy,
             request.context, types)
@@ -257,7 +257,7 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             "There are no resource types accessible to you to serve "
             "your request. You do not have access to the following "
             "resource types: OS::Glance::Image, OS::Nova::Server")
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             webob.exc.HTTPForbidden, expected_message,
             search_deserializer._filter_types_by_policy,
             request.context, types)
