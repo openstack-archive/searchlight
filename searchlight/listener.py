@@ -24,6 +24,7 @@ from oslo_policy import opts as oslo_policy_opts
 from oslo_service import service as os_service
 
 from searchlight.common import utils
+from searchlight.i18n import _
 from searchlight.pipeline import PipelineManager
 
 LOG = logging.getLogger(__name__)
