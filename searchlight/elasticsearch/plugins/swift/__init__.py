@@ -26,7 +26,7 @@ AUTH_PREFIX = ""
 ID_SEP = "/"
 
 # _accounts is populated when get_swift_accounts() is called; which is
-# guaranteed to be called before get_swift_containers and get_swfit_objects
+# guaranteed to be called before get_swift_containers and get_swift_objects
 # since account plugin is parent and grandparent of container and object
 _accounts = []
 

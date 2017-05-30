@@ -2,7 +2,7 @@
 prelude: >
   No longer index the data of child plugins as part of
   indexing a parent plugin, which fixes ConflictErrors
-  occuring specifying parent plugins as the argument
+  occurring specifying parent plugins as the argument
   to searchlight-manage index sync --type.
 fixes:
   - Bug 1584148 Version conflict during re-indexing
