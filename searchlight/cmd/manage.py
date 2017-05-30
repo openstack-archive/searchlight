@@ -128,17 +128,33 @@ class IndexCommands(object):
     def sync(self, group=None, _type=None, force=False, force_es=False,
              notification_less=False):
         def wait_for_threads():
-            """Patiently wait for all running threads to complete.
+            """Patiently wait for all running threads to complete. Returns true
+            if everything finished successfully, false on cancellation or error
             """
             threads_running = True
             while threads_running:
+
                 # Are any threads still running?
                 threads_running = False
-                for future in futures:
+                for name, future in futures:
                     if not future.done():
                         threads_running = True
                         break
+
                 time.sleep(1)
+
+            # If they're all done, did they all complete successfully?
+            unsuccessful = []
+            for name, future in futures:
+                if future.cancelled() or future.exception(timeout=0):
+                    unsuccessful.append(name)
+
+            if unsuccessful:
+                LOG.error("The following indexing threads did not complete "
+                          "successfully, due to error or cancellation: %s",
+                          ", ".join(unsuccessful))
+                return False
+            return True
 
         # Signal handler to catch interrupts from the user (ctl-c)
         def sig_handler(signum, frame):
@@ -150,19 +166,12 @@ class IndexCommands(object):
                    3. We created new indices in Elasticsearch. Remove them.
             """
             # Cancel any and all threads.
-            for future in futures:
+            LOG.error("Cancelling running threads")
+            for name, future in futures:
+                # At this point, because the futures have been cancelled,
+                # they'll break out of the wait loop with an error state.
+                LOG.info("Cancelling '%s' thread", name)
                 future.cancel()
-
-            # Politely wait for the current threads to finish.
-            LOG.warning("Interrupt received, waiting for threads to finish"
-                        " before cleaning up")
-            wait_for_threads()
-
-            # Rudely remove any newly created Elasticsearch indices.
-            if index_names:
-                es_utils.alias_error_cleanup(index_names)
-
-            sys.exit(0)
 
         if _type and notification_less:
             LOG.error("Ignoring --type since --notification-less is "
@@ -381,6 +390,7 @@ class IndexCommands(object):
         # if interrupted. Set index_names/futures here for cleaner code
         # in the signal handler.
         index_names = {}
+        # futures will contain tuples (name, future)
         futures = []
         signal.signal(signal.SIGINT, sig_handler)
 
@@ -462,16 +472,26 @@ class IndexCommands(object):
                 for res, ext in plugins_to_index:
                     # Throw the plugin into the thread pool.
                     plugin_obj = ext.obj
-                    futures.append(executor.submit(self._plugin_api,
-                                   plugin_obj, index_names))
+                    futures.append((res, executor.submit(self._plugin_api,
+                                   plugin_obj, index_names)))
 
                 # Start the single thread for ES re-index.
                 if es_reindex:
-                    futures.append(executor.submit(self._es_reindex_worker,
-                                   es_reindex, resource_groups, index_names))
+                    futures.append(
+                        ('elasticsearch-reindex',
+                         executor.submit(self._es_reindex_worker, es_reindex,
+                                         resource_groups, index_names))
+                    )
 
                 # Sit back, relax and wait for the threads to complete.
-                wait_for_threads()
+                finished_successfully = wait_for_threads()
+
+                if not finished_successfully:
+                    if index_names:
+                        es_utils.alias_error_cleanup(index_names)
+                    LOG.error("Rolled back; exiting")
+                    sys.exit(1)
+
             except Exception as e:
                 # An exception occurred. Start cleaning up ElasticSearch and
                 # inform the user.
