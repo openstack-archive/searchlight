@@ -16,9 +16,7 @@
 import datetime
 import time
 
-
-from oslo_utils import timeutils
-
+from searchlight.common import utils
 import searchlight.elasticsearch.plugins.swift as swift_plugin
 from searchlight.elasticsearch.plugins.swift import\
     accounts as accounts_plugin
@@ -48,7 +46,7 @@ TENANT1 = "15b9a454cee34dbe9933ad575a0a6930"
 DOMAIN_ID = "default"
 
 DATETIME = datetime.datetime(2016, 2, 20, 1, 13, 24, 215337)
-DATE1 = timeutils.isotime(DATETIME)
+DATE1 = utils.isotime(DATETIME)
 
 
 def _account_fixture(account_id, domain_id, name, **kwargs):

@@ -14,8 +14,9 @@
 
 from datetime import datetime
 
-from oslo_utils import timeutils
 from wsme import types as wsme_types
+
+from searchlight.common import utils
 
 
 class WSMEModelTransformer(object):
@@ -41,7 +42,7 @@ class WSMEModelTransformer(object):
             value = getattr(db_entity, name, None)
             if value is not None:
                 if type(value) == datetime:
-                    iso_datetime_value = timeutils.isotime(value)
+                    iso_datetime_value = utils.isotime(value)
                     values.update({name: iso_datetime_value})
                 else:
                     values.update({name: value})

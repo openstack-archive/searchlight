@@ -22,6 +22,8 @@ import six
 
 from oslo_config import cfg
 from oslo_utils import encodeutils
+
+from searchlight.common import utils
 from searchlight.context import RequestContext
 import searchlight.elasticsearch
 
@@ -39,7 +41,7 @@ def get_now_str():
     """Wrapping this to make testing easier (mocking utcnow's troublesome)
     and keep it in one place in case oslo changes
     """
-    return oslo_utils.timeutils.isotime(oslo_utils.timeutils.utcnow())
+    return utils.isotime(oslo_utils.timeutils.utcnow())
 
 
 def timestamp_to_isotime(timestamp):
@@ -48,7 +50,7 @@ def timestamp_to_isotime(timestamp):
     """
     fmt = '%Y-%m-%d %H:%M:%S.%f'
     parsed_time = datetime.datetime.strptime(timestamp, fmt)
-    return oslo_utils.timeutils.isotime(parsed_time)
+    return utils.isotime(parsed_time)
 
 
 def helper_reindex(client, source_index, target_index, query=None,

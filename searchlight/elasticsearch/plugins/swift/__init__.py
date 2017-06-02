@@ -16,8 +16,7 @@
 import datetime
 import logging
 
-from oslo_utils import timeutils
-
+from searchlight.common import utils
 from searchlight.elasticsearch.plugins import openstack_clients
 
 LOG = logging.getLogger(__name__)
@@ -43,7 +42,7 @@ def serialize_swift_account(account):
     if account.get('x-timestamp'):
         timestamp = float(account.get('x-timestamp'))
         document['created_at'] = \
-            timeutils.isotime(datetime.datetime.fromtimestamp(timestamp))
+            utils.isotime(datetime.datetime.fromtimestamp(timestamp))
 
     # lakshmiS: swift get_account() doesn't include update datetime field(?)
     if account.get('updated_at'):
@@ -76,7 +75,7 @@ def serialize_swift_container(container):
     if container.get('x-timestamp'):
         timestamp = float(container.get('x-timestamp'))
         document['created_at'] = \
-            timeutils.isotime(datetime.datetime.fromtimestamp(timestamp))
+            utils.isotime(datetime.datetime.fromtimestamp(timestamp))
 
     # (laskhmiS) get_container doesn't include last_modified field even
     # though the swift api documentation says it returns it. Include it
@@ -119,11 +118,11 @@ def serialize_swift_object(sobject):
     if sobject.get('x-timestamp'):
         timestamp = float(sobject.get('x-timestamp'))
         document['created_at'] = \
-            timeutils.isotime(datetime.datetime.fromtimestamp(timestamp))
+            utils.isotime(datetime.datetime.fromtimestamp(timestamp))
     if sobject.get('last-modified'):
         updated_dt = datetime.datetime.strptime(
             sobject['last-modified'], dateformat)
-        document['updated_at'] = timeutils.isotime(updated_dt)
+        document['updated_at'] = utils.isotime(updated_dt)
     document.update(metadocument)
     return document
 

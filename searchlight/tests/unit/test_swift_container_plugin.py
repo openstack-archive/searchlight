@@ -16,9 +16,7 @@
 import datetime
 import time
 
-
-from oslo_utils import timeutils
-
+from searchlight.common import utils
 import searchlight.elasticsearch.plugins.swift as swift_plugin
 from searchlight.elasticsearch.plugins.swift import\
     containers as containers_plugin
@@ -54,7 +52,7 @@ TENANT2 = "a7ba963f71bb43818f631febbc9df8e6"
 DOMAIN_ID = "default"
 
 DATETIME = datetime.datetime(2016, 2, 21, 4, 41, 33, 325314)
-DATE1 = timeutils.isotime(DATETIME)
+DATE1 = utils.isotime(DATETIME)
 
 
 def _container_fixture(container_id, container_name, account,

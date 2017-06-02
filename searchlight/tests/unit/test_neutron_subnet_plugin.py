@@ -14,15 +14,15 @@
 # limitations under the License.
 
 import datetime
-from oslo_utils import timeutils
 
+from searchlight.common import utils
 from searchlight.elasticsearch.plugins.neutron import\
     subnets as subnets_plugin
 import searchlight.tests.unit.utils as unit_test_utils
 import searchlight.tests.utils as test_utils
 
 
-_now_str = timeutils.isotime(datetime.datetime.utcnow())
+_now_str = utils.isotime(datetime.datetime.utcnow())
 USER1 = u'27f4d76b-be62-4e4e-aa33bb11cc55'
 ID1 = "813dd936-663e-4e5b-877c-986021b73e2c"
 NETID1 = "98dcb60c-59b9-4b3c-bf6a-b8504112e978"

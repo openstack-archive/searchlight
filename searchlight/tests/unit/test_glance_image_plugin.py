@@ -18,8 +18,8 @@ import datetime
 import mock
 
 import glanceclient.exc
-from oslo_utils import timeutils
 
+from searchlight.common import utils
 from searchlight.elasticsearch.plugins.base import NotificationBase
 from searchlight.elasticsearch.plugins.glance import images as images_plugin
 from searchlight.elasticsearch import ROLE_USER_FIELD
@@ -28,7 +28,7 @@ import searchlight.tests.utils as test_utils
 
 
 DATETIME = datetime.datetime(2012, 5, 16, 15, 27, 36, 325355)
-DATE1 = timeutils.isotime(DATETIME)
+DATE1 = utils.isotime(DATETIME)
 
 # General
 USER1 = '54492ba0-f4df-4e4e-be62-27f4d76b29cf'
