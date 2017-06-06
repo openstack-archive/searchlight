@@ -51,7 +51,7 @@ def main():
     exchange = sys.argv[1]
     pool = sys.argv[2] if len(sys.argv) > 2 else None
 
-    transport = oslo_messaging.get_transport(
+    transport = oslo_messaging.get_notification_transport(
         cfg.CONF,
         url='rabbit://%s:%s@%s' % (username, password, host))
     targets = [oslo_messaging.Target(topic=topic, exchange=exchange)]

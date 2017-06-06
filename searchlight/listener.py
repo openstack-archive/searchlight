@@ -161,7 +161,7 @@ class ListenerService(os_service.Service):
 
     def start(self):
         super(ListenerService, self).start()
-        transport = oslo_messaging.get_transport(CONF)
+        transport = oslo_messaging.get_notification_transport(CONF)
         targets = [
             oslo_messaging.Target(topic=pl_topic, exchange=pl_exchange)
             for pl_topic, pl_exchange in self.topics_exchanges_set
