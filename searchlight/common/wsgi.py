@@ -347,7 +347,7 @@ class Server(object):
         Apply configuration settings
 
         :param old_conf: Cached old configuration settings (if any)
-        :param has changed: callable to determine if a parameter has changed
+        :param has_changed: callable to determine if a parameter has changed
         """
         eventlet.wsgi.MAX_HEADER_LINE = CONF.api.max_header_line
         self.configure_socket(old_conf, has_changed)
@@ -467,7 +467,7 @@ class Server(object):
         the existing socket is reused.
 
         :param old_conf: Cached old configuration settings (if any)
-        :param has changed: callable to determine if a parameter has changed
+        :param has_changed: callable to determine if a parameter has changed
         """
         # Do we need a fresh socket?
         new_sock = (old_conf is None or (

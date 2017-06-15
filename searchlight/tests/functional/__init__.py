@@ -585,7 +585,7 @@ class FunctionalTest(test_utils.BaseTestCase):
 
     def _get_elasticsearch_aliases(self, indices):
         """Return all aliases associated with a specified index(es). The
-           caller can specify a list of indcies. If the list is empty, we
+           caller can specify a list of indices. If the list is empty, we
            will query all indices.
         """
         index = ','.join(indices)

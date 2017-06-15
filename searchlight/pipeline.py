@@ -102,7 +102,7 @@ class DeleteItem(PipelineItem):
     def __init__(self, resource_type, event_type, payload, doc_id):
         """
         :param resource_type: Heat resource type of modified resources,
-        see searchilght/common/resource_types.py for more detail.
+        see searchlight/common/resource_types.py for more detail.
         :param event_type: event type of the notification.
         :param payload: notification payload received, Note that payload may
         contain sensitive information shouldn't be passed on.

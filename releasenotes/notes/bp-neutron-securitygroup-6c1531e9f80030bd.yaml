@@ -1,6 +1,6 @@
 ---
 prelude: >
-  Added suppport for neutron security groups and
+  Added support for neutron security groups and
   security group rules.
 features:
   - Added suppport for neutron security groups and

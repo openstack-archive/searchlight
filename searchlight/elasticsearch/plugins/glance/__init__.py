@@ -73,7 +73,7 @@ def serialize_glance_image(image):
 
     members = list(members)
     older_glance_version = False
-    # Make it backward compatibe with older glance version
+    # Make it backward compatible with older glance version
     if members and len(members) > 0 and "deleted" in members[0]:
         older_glance_version = True
 
