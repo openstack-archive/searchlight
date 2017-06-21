@@ -68,27 +68,30 @@ def fail(e):
     sys.exit(return_code)
 
 
+def configure_wsgi():
+    config.parse_args()
+    config.set_config_defaults()
+    logging.setup(CONF, 'searchlight')
+    utils.register_plugin_opts()
+
+    # Fail fast if service policy files aren't found
+    service_policies.check_policy_files()
+
+    if CONF.profiler.enabled:
+        _notifier = osprofiler.notifier.create("Messaging",
+                                               notifier.messaging, {},
+                                               notifier.get_transport(),
+                                               "searchlight", "search",
+                                               CONF.api.bind_host)
+        osprofiler.notifier.set(_notifier)
+    else:
+        osprofiler.web.disable()
+
+
 def main():
     try:
-        config.parse_args()
-        config.set_config_defaults()
+        configure_wsgi()
         wsgi.set_eventlet_hub()
-        logging.setup(CONF, 'searchlight')
-        utils.register_plugin_opts()
-
-        # Fail fast if service policy files aren't found
-        service_policies.check_policy_files()
-
-        if CONF.profiler.enabled:
-            _notifier = osprofiler.notifier.create("Messaging",
-                                                   notifier.messaging, {},
-                                                   notifier.get_transport(),
-                                                   "searchlight", "search",
-                                                   CONF.api.bind_host)
-            osprofiler.notifier.set(_notifier)
-        else:
-            osprofiler.web.disable()
-
         server = wsgi.Server(workers=CONF.api.workers)
         server.start(config.load_paste_app('searchlight'),
                      default_port=9393)

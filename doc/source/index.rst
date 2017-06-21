@@ -97,3 +97,4 @@ Installation and Setup
 
    dev-environment
    elasticsearch
+   uwsgi

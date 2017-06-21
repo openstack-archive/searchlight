@@ -34,6 +34,12 @@ SEARCHLIGHT_CONF=$SEARCHLIGHT_CONF_DIR/searchlight.conf
 SEARCHLIGHT_LOG_DIR=/var/log/searchlight
 SEARCHLIGHT_AUTH_CACHE_DIR=${SEARCHLIGHT_AUTH_CACHE_DIR:-/var/cache/searchlight}
 SEARCHLIGHT_APIPASTE_CONF=$SEARCHLIGHT_CONF_DIR/api-paste.ini
+SEARCHLIGHT_UWSGI_CONF=$SEARCHLIGHT_CONF_DIR/searchlight-uwsgi.ini
+SEARCHLIGHT_UWSGI_APP=$SEARCHLIGHT_BIN_DIR/searchlight-api-wsgi
+
+if is_service_enabled tls-proxy; then
+    SEARCHLIGHT_SERVICE_PROTOCOL="https"
+fi
 
 # Public IP/Port Settings
 SEARCHLIGHT_SERVICE_PROTOCOL=${SEARCHLIGHT_SERVICE_PROTOCOL:-$SERVICE_PROTOCOL}
@@ -72,6 +78,7 @@ function setup_colorized_logging_searchlight {
 function cleanup_searchlight {
     _stop_elasticsearch
     sudo rm -rf $SEARCHLIGHT_STATE_PATH $SEARCHLIGHT_AUTH_CACHE_DIR
+    sudo rm -f $(apache_site_config_for searchlight_api)
 }
 
 # configure_searchlight - Set config files, create data dirs, etc
@@ -97,7 +104,7 @@ function configure_searchlight {
 
     # API Configuration
     sudo cp $SEARCHLIGHT_DIR/etc/api-paste.ini $SEARCHLIGHT_APIPASTE_CONF
-    iniset $SEARCHLIGHT_CONF api public_endpoint $SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/
+    iniset $SEARCHLIGHT_CONF api public_endpoint $SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST/search
 
     # OpenStack users
     iniset $SEARCHLIGHT_CONF service_credentials auth_type password
@@ -154,6 +161,9 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_account enabled False
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_container enabled False
     iniset $SEARCHLIGHT_CONF resource_plugin:os_swift_object enabled False
+
+    # uWSGI configuration
+    write_uwsgi_config "$SEARCHLIGHT_UWSGI_CONF" "$SEARCHLIGHT_UWSGI_APP" "/search"
 }
 
 # create_searchlight_accounts - Set up common required searchlight accounts
@@ -169,9 +179,9 @@ function create_searchlight_accounts {
             get_or_create_service "searchlight" "search" "Searchlight Service"
             get_or_create_endpoint "search" \
                 "$REGION_NAME" \
-                "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/" \
-                "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/" \
-                "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST:$SEARCHLIGHT_SERVICE_PORT/"
+                "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST/search" \
+                "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST/search" \
+                "$SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST/search"
         fi
     fi
 }
@@ -194,6 +204,7 @@ function install_searchlight {
     setup_develop $SEARCHLIGHT_DIR
     _download_elasticsearch
     _install_elasticsearch
+    pip_install uwsgi
 }
 
 # install_searchlightclient - Collect source and prepare
@@ -205,12 +216,7 @@ function install_searchlightclient {
 # start_searchlight - Start running processes, including screen
 function start_searchlight {
     if is_service_enabled searchlight-api; then
-        run_process searchlight-api "$SEARCHLIGHT_BIN_DIR/searchlight-api --config-file $SEARCHLIGHT_CONF"
-
-        # Start proxies if enabled
-        if is_service_enabled searchlight-api && is_service_enabled tls-proxy; then
-            start_tls_proxy '*' $SEARCHLIGHT_SERVICE_PORT $SEARCHLIGHT_SERVICE_HOST $SEARCHLIGHT_SERVICE_PORT_INT &
-        fi
+        run_process searchlight-api "$SEARCHLIGHT_BIN_DIR/uwsgi --ini $SEARCHLIGHT_UWSGI_CONF"
     fi
     if is_service_enabled searchlight-listener; then
         run_process searchlight-listener "$SEARCHLIGHT_BIN_DIR/searchlight-listener --config-file $SEARCHLIGHT_CONF"
@@ -222,6 +228,7 @@ function stop_searchlight {
     # Kill the searchlight screen windows
     stop_process searchlight-api
     stop_process searchlight-listener
+    remove_uwsgi_config "$SEARCHLIGHT_UWSGI_CONF" "$SEARCHLIGHT_UWSGI_APP"
 }
 
 

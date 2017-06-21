@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Provide a script of WSGI application for web servers to deploy
+    Searchlight API service.

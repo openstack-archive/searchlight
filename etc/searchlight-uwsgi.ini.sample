@@ -1,0 +1,25 @@
+[uwsgi]
+wsgi-file = /usr/local/bin/searchlight-api-wsgi
+
+chmod-socket = 666
+
+socket = /var/run/uwsgi/searchlight-api-wsgi.socket
+
+# Override the default size for headers from the 4k default.
+buffer-size = 65535
+
+# This is running standalone
+master = true
+
+enable-threads = true
+
+# Tune this to your environment.
+processes = 4
+
+# uwsgi recommends this to prevent thundering herd on accept.
+thunder-lock = true
+
+plugins = python
+
+# This ensures that file descriptors aren't shared between Searchlight processes.
+lazy-apps = true
