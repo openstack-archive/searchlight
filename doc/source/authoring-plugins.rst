@@ -394,7 +394,8 @@ from SL. See below for an example on nova server plugin mapping::
           parent resource type.
 
 Doc values
-**********
+^^^^^^^^^^
+
 For many field types Searchlight will alter the mapping to change the format in
 which field data is stored. Prior to Elasticsearch 2.x field values by default
 were stored in 'fielddata' format, which could result in high memory usage under

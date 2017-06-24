@@ -125,7 +125,7 @@ Neutron RBAC Reference
 
 RBAC Filters
 ------------
-RBAC in searchlight neutron plugin is implemented as::
+RBAC in searchlight neutron plugin is implemented as:
 
 Networks are visible within a tenant OR if they are shared OR if they are external.
 Subnets are visible within a tenant OR if their network is shared (OR for admins if their network is external).

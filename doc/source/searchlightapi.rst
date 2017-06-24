@@ -211,9 +211,10 @@ More example searches
 
 Results are shown here only where it would help illustrate the example. The
 ``query`` parameter supports anything that Elasticsearch exposes via its
-`query DSL <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-queries.html>`_.
-There are normally multiple ways to represent the same query, often with some
-subtle differences, but some common examples are shown here.
+`query DSL`_. There are normally multiple ways to represent the same query,
+often with some subtle differences, but some common examples are shown here.
+
+.. _`query DLS`: http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-queries.html
 
 Administrators - search all resources
 *************************************

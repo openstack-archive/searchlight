@@ -139,7 +139,7 @@ To reindex resources only without notification::
 .. note::
 
     We *strongly* recommend putting the notification-less plugins in their own
-    resource group and scheduling a `cron https://en.wikipedia.org/wiki/Cron`_
+    resource group and scheduling a cron_
     job to periodically re-sync the notification plugins to keep the documents
     up to date.
 
@@ -149,6 +149,7 @@ or very little impact on search requests during this process.
 
 .. _scroll: https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html
 .. _bulk: https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-bulk.html
+.. _cron: https://en.wikipedia.org/wiki/Cron
 
 Parent/child relationships
 --------------------------

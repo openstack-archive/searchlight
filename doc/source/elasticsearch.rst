@@ -147,7 +147,7 @@ default, and you may wish to disable clustering behavior.
     index.number_of_replicas: 0
 
 JVM settings
-------------
+************
 Setting the ES_HEAP_SIZE environment variable will restrict how much memory
 Elasticsearch uses, equivalent to setting -Xmx and -Xms to the same value for
 the Java runtime. For development you can set it as low as a few tens of MB::
@@ -190,7 +190,7 @@ Some settings you may wish to change for production::
 For more details see Elasticsearch's `configuration information <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup-configuration.html>`_.
 
 Specifying nodes in a cluster
------------------------------
+*****************************
 Elasticsearch's default discovery relies on multicast requests. If this isn't
 a good fit, you can use unicast discovery::
 
@@ -202,7 +202,7 @@ See `<http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modu
 for more details.
 
 JVM settings
-------------
+************
 For production, Elasticsearch recommends setting the ES_HEAP_SIZE environment
 variable to a value around 60% of a dedicated machine's memory::
 
