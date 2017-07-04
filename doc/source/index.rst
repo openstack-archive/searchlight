@@ -41,25 +41,37 @@ Additional documentation on Searchlight can be found on the `OpenStack wiki`_.
 
 .. _`OpenStack wiki`: https://wiki.openstack.org/wiki/Searchlight
 
+Indexes
+-------
+.. toctree::
+   :maxdepth: 2
+
+   user/index
+   admin/index
+   install/index
+   configuration/index
+   contributor/index
+
+
 Contributing
 ------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   feature-requests-bugs
-   authoring-plugins
+   contributor/feature-requests-bugs
+   contributor/authoring-plugins
 
 Overview
 --------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   architecture
-   searchlightapi
-   indexingservice
-   authentication
+   admin/architecture
+   user/searchlightapi
+   admin/indexingservice
+   configuration/authentication
 
 Client and UI
 ^^^^^^^^^^^^^
@@ -77,24 +89,24 @@ The search service determines the type of information that is indexed and
 searchable via a plugin mechanism.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   plugins
-   authoring-plugins
+   configuration/plugins
+   contributor/authoring-plugins
 
 See each plugin below for detailed information about specific plugins:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :glob:
 
-   plugins/*
+   admin/plugins/*
 
 Installation and Setup
 ----------------------
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   dev-environment
-   elasticsearch
-   uwsgi
+   install/dev-environment
+   install/elasticsearch
+   install/uwsgi

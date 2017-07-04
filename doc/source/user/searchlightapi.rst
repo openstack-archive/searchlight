@@ -28,7 +28,7 @@ OpenStack Identity API to handle authentication. You must obtain an
 authentication token from Keystone and pass it to Searchlight in API requests
 with the ``X-Auth-Token`` header.
 
-See :doc:`authentication` for more information on integrating with Keystone.
+See :doc:`../configuration/authentication` for more information on integrating with Keystone.
 
 Using v1
 --------

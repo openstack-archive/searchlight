@@ -173,7 +173,7 @@ integration
 .. toctree::
    :maxdepth: 2
 
-   authentication
+   ../configuration/authentication
 
 Other development environment configuration
 -------------------------------------------
@@ -207,10 +207,10 @@ See each plugin below for detailed information about specific plugins:
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :glob:
 
-   plugins/*
+   ../admin/plugins/*
 
 Initialize the Elasticsearch Index
 ==================================
@@ -337,7 +337,7 @@ Exercising the API
 
 Using a web browser, curl statement, or a REST client, calls can be made to the
 Searchlight API using the following format where "api_version" is v1
-and "command" is any of the commands listed under the :doc:`searchlightapi`
+and "command" is any of the commands listed under the :doc:`../user/searchlightapi`
 
 ::
 
