@@ -46,7 +46,7 @@ sys.path = [
 extensions = ['sphinx.ext.coverage',
               'sphinx.ext.ifconfig',
               'sphinx.ext.graphviz',
-              'oslosphinx',
+              'openstackdocstheme'
               ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -64,6 +64,11 @@ master_doc = 'index'
 # General information about the project.
 project = u'Searchlight'
 copyright = u'2010-2015, OpenStack Foundation.'
+
+# openstackdocstheme options
+repository_name = 'openstack/searchlight'
+bug_project = 'searchlight'
+bug_tag = 'searchlight'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -131,7 +136,7 @@ modindex_common_prefix = ['searchlight.']
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
 # html_theme_path = ["."]
-# html_theme = '_theme'
+html_theme = 'openstackdocs'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -139,7 +144,7 @@ modindex_common_prefix = ['searchlight.']
 #html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = ['_theme']
+#html_theme_path = []
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -164,10 +169,7 @@ modindex_common_prefix = ['searchlight.']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-#html_last_updated_fmt = '%b %d, %Y'
-git_cmd = ["git", "log", "--pretty=format:'%ad, commit %h'", "--date=local",
-    "-n1"]
-html_last_updated_fmt = subprocess.check_output(git_cmd).decode('utf-8')
+html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
