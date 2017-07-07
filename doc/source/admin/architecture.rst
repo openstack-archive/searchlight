@@ -74,7 +74,7 @@ interact.
 
 **Figure 1: Architecture Diagram**
 
-.. image:: ../../images/Figure1.png
+.. image:: ../../../images/Figure1.png
 
 Figure 1 shows the relationship between all of the Searchlight components. The
 external Searchlight components are colored light-grey. The internal
@@ -206,7 +206,7 @@ analyze the state of Searchlight Eco-system or make corrections to it.
 
 **Figure 2: Searchlight Eco-System**
 
-.. image:: ../../images/Figure2.png
+.. image:: ../../../images/Figure2.png
 
 Searchlight Flow
 ----------------
@@ -227,7 +227,7 @@ Searchlight API or indirectly through the Horizon dashboard.
 
 **Figure 3: Searchlight Flow**
 
-.. image:: ../../images/Figure3.png
+.. image:: ../../../images/Figure3.png
 
 Searchlight Scaling
 -------------------
@@ -263,7 +263,7 @@ Elasticsearch:
 
 **Figure 4: Searchlight Scaling**
 
-.. image:: ../../images/Figure4.png
+.. image:: ../../../images/Figure4.png
 
 Component Interfaces
 --------------------

@@ -54,7 +54,7 @@ After installation, plugins are configured in ``searchlight.conf``.
        ``searchlight-listener`` processes.
 
     2. ``Re-index affected types``: You will need to re-index any resource
-       types affected by the change. (See :doc:`indexingservice`).
+       types affected by the change. (See :doc:`../admin/indexingservice`).
 
 .. note::
 
@@ -378,7 +378,7 @@ that service.
 Please review each plugin's documentation for more information:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :glob:
 
-   plugins/*
+   ../admin/plugins/*
