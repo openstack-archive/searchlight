@@ -41,10 +41,10 @@ asse_equal_end_with_none_re = re.compile(
 asse_equal_start_with_none_re = re.compile(
     r"(.)*assertEqual\(None, (\w|\.|\'|\"|\[|\])+\)")
 unicode_func_re = re.compile(r"(\s|\W|^)unicode\(")
-log_translation = re.compile(
-    r"(.)*LOG\.(audit)\(\s*('|\")")
 doubled_words_re = re.compile(
     r"\b(then?|[iao]n|i[fst]|but|f?or|at|and|[dt]o)\s+\1\b")
+translated_logs = re.compile(
+    r"(.)*LOG.(critical|debug|error|exception|info|warning)\(\s*_\(")
 
 
 def assert_true_instance(logical_line):
@@ -77,7 +77,7 @@ def assert_equal_none(logical_line):
                "sentences not allowed")
 
 
-def no_translate_debug_logs(logical_line, filename):
+def no_translate_logs(logical_line, filename):
     dirs = [
         "searchlight/api",
         "searchlight/cmd",
@@ -87,8 +87,8 @@ def no_translate_debug_logs(logical_line, filename):
     ]
 
     if max([name in filename for name in dirs]):
-        if logical_line.startswith("LOG.debug(_("):
-            yield(0, "SL319: Don't translate debug level logs")
+        if translated_logs.match(logical_line):
+            yield(0, "SL319: Don't translate logs")
 
 
 def no_direct_use_of_unicode_function(logical_line):
@@ -126,7 +126,7 @@ def factory(register):
     register(assert_true_instance)
     register(assert_equal_type)
     register(assert_equal_none)
-    register(no_translate_debug_logs)
+    register(no_translate_logs)
     register(no_direct_use_of_unicode_function)
     register(check_no_contextlib_nested)
     register(check_doubled_words)
