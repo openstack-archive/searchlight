@@ -49,7 +49,7 @@ Nova microversions
 .. note::
 
     Nova adds/removes fields using microversion mechanism, check
-    https://docs.openstack.org/developer/nova/api_microversion_history.html
+    https://docs.openstack.org/nova/latest/api_microversion_history.html
     for detailed Nova microversion history.
 
 Plugin: OS::Nova::Server
