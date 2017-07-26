@@ -60,7 +60,7 @@ to the file in ``searchlight.conf``. For example::
 
     property_protection_file = /etc/searchlight/property-protections-roles.conf
 
-See also: `Glance Property Protections <http://docs.openstack.org/developer/glance/property-protections.html>`_
+See also: `Glance Property Protections <https://docs.openstack.org/glance/latest/admin/property-protections.html>`_
 
 Plugin: OS::Glance::Metadef
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -70,7 +70,7 @@ Plugin: OS::Glance::Metadef
     enabled = true
     resource_group_name = searchlight
 
-See also: `Metadata Definitions Catalog <http://docs.openstack.org/developer/glance/metadefs-concepts.html>`_
+See also: `Metadata Definitions Catalog <https://docs.openstack.org/glance/latest/user/metadefs-concepts.html>`_
 
 Glance Configuration
 ====================

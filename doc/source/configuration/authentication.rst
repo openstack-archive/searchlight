@@ -44,7 +44,7 @@ The ``authtoken`` middleware performs the authentication token validation
 and retrieves actual user authentication information. It can be found in
 the keystone distribution. For more information, please refer to the Keystone
 documentation on the ``auth_token`` middleware:
-http://docs.openstack.org/developer/keystonemiddleware/middlewarearchitecture.html
+https://docs.openstack.org/keystonemiddleware/latest/middlewarearchitecture.html
 
 api-paste.ini
 `````````````
@@ -133,7 +133,7 @@ keystone. Typically, this is done with the following commands (v3 keystone)::
 
 For more information on keystone service accounts, see:
 
-http://docs.openstack.org/developer/keystone/configuringservices.html#creating-service-users
+https://docs.openstack.org/keystone/latest/admin/cli-keystone-manage-services.html#create-service-users
 
 Policy restriction
 ==================
@@ -143,7 +143,7 @@ access a user has based on their authenticated roles. Policy rules are defined
 in a configuration file (by default, `etc/policy.json`). By default, all
 operations are allowed.
 
-See http://docs.openstack.org/developer/oslo.policy/api.html for details on
+https://docs.openstack.org/oslo.policy/latest/reference/index.html
 rule formatting.
 
 During the last few cycles concerns were raised about the scope of the
@@ -247,4 +247,4 @@ are in different directories absolute paths should be used, and
    ``policy.json`` would allow access but a service policy file would disallow
    it (or vice versa), the more restrictive rule will be used.
 
-.. _logic: http://docs.openstack.org/developer/oslo.config/configopts.html#oslo_config.cfg.ConfigOpts.find_file
+.. _logic: https://docs.openstack.org/oslo.config/latest/reference/configopts.html
