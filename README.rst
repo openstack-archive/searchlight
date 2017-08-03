@@ -22,4 +22,4 @@ querying combined with near real-time indexing.
 
 Use the following resources to learn more:
 
-* `Official Searchlight documentation <http://docs.openstack.org/developer/searchlight/>`_
+* `Official Searchlight documentation <https://docs.openstack.org/searchlight/latest>`_

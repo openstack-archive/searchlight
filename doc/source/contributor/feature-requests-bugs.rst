@@ -171,7 +171,7 @@ If any of the following applies to the patch, a release note is required:
 A release note is suggested if a long-standing or important bug is fixed.
 Otherwise, a release note is not required.
 
-Searchlight uses `reno <http://docs.openstack.org/developer/reno/usage.html>`_ to
+Searchlight uses `reno <https://docs.openstack.org/reno/latest/user/usage.html>`_ to
 generate release notes. Please read the docs for details. In summary, use
 the following:
 

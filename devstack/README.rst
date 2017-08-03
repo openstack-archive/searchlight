@@ -70,7 +70,7 @@ driver in each service's configuration.
 
 Please review the plugin documentation and add configuration appropriately:
 
- * `Searchlight Plugins <http://docs.openstack.org/developer/searchlight/plugins.html>`_
+ * `Searchlight Plugins <https://docs.openstack.org/searchlight/latest/configuration/plugins.html>`_
 
 3. Customize searchlight configuration
 
