@@ -118,7 +118,7 @@ All further commands in this section should be run with the venv active:
 
 ::
 
-   $ source .tox/venv/bin/activate
+   $ . .tox/venv/bin/activate
 
 .. note::
    When ALL steps are complete, deactivate the virtualenv: $ deactivate
@@ -228,7 +228,7 @@ registered in keystone (e.g. glance).
    $ cd <install dir. eg: openstack/searchlight>
 
    # Make sure your virtualenv is sourced
-   $ source .tox/venv/bin/activate
+   $ . .tox/venv/bin/activate
 
    # Run the index operation.
    (venv) $ searchlight-manage index sync
@@ -296,7 +296,7 @@ images).
    $ cd <install dir. eg: openstack/searchlight>
 
    # Make sure your virtualenv is sourced
-   $ source .tox/venv/bin/activate
+   $ . .tox/venv/bin/activate
 
    # Start the index update monitoring.
    (venv) $ searchlight-listener --config-file etc/searchlight.conf
@@ -319,7 +319,7 @@ communicating with your server).
    $ cd <install dir. eg: openstack/searchlight>
 
    # Make sure your virtualenv is sourced
-   $ source .tox/venv/bin/activate
+   $ . .tox/venv/bin/activate
 
    # Start the API Service.
    (venv) $ searchlight-api --config-file etc/searchlight.conf
