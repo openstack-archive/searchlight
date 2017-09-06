@@ -171,7 +171,7 @@ configured to use and then to allow Searchlight to consume messages from
 that topic using a pool, touched on in the `messaging documentation`_.
 Searchlight uses this configuration by default.
 
-.. _`messaging documentation`: https://docs.openstack.org/oslo.messaging/latest/configration/opts.html
+.. _`messaging documentation`: https://docs.openstack.org/oslo.messaging/latest/configuration/opts.html
 
 **Topics**
 
