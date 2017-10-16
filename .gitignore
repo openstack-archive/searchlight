@@ -32,6 +32,7 @@ etc/searchlight/policy.yaml.sample
 
 # Files created by doc build
 doc/source/api
+_static/
 
 # IDE files
 .project

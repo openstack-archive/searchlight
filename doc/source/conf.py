@@ -46,7 +46,9 @@ sys.path = [
 extensions = ['sphinx.ext.coverage',
               'sphinx.ext.ifconfig',
               'sphinx.ext.graphviz',
-              'openstackdocstheme'
+              'openstackdocstheme',
+              'oslo_policy.sphinxext',
+              'oslo_policy.sphinxpolicygen',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -64,6 +66,10 @@ master_doc = 'index'
 # General information about the project.
 project = u'Searchlight'
 copyright = u'2010-2015, OpenStack Foundation.'
+
+policy_generator_config_file = \
+    '../../etc/oslo-policy-generator/searchlight.conf'
+sample_policy_basename = '_static/searchlight'
 
 # openstackdocstheme options
 repository_name = 'openstack/searchlight'

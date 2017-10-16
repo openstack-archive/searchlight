@@ -7,3 +7,5 @@
 
    authentication
    plugins
+   policy
+   sample-policy-yaml
