@@ -27,6 +27,9 @@ releasenotes/build
 # Swap files range from .saa to .swp
 *.s[a-w][a-p]
 
+# generated policy file
+etc/searchlight/policy.yaml.sample
+
 # Files created by doc build
 doc/source/api
 
