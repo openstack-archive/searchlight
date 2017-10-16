@@ -159,7 +159,8 @@ class PropertyRules(object):
         create = searchlight_creator
         then the corresponding policy rule would be:
         "prop_a:create": "rule:searchlight_creator"
-        where searchlight_creator is defined in policy.json. For example:
+        where searchlight_creator is defined in policy.json or policy.yaml.
+        For example:
         "searchlight_creator": "role:admin or role:searchlight_create_user"
         """
         rule = "rule:%s" % rule

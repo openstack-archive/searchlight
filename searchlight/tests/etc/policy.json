@@ -4,6 +4,26 @@
     "default": "",
 
     "search:query": "rule:admin_or_owner",
+    "search:query:aggregations": "",
     "search:plugins_info": "rule:admin_or_owner",
-    "search:facets": "rule:admin_or_owner"
+    "search:facets": "rule:admin_or_owner",
+
+    "resource:OS::Glance::Image": "",
+    "resource:OS::Glance::Metadef": "",
+    "resource:OS::Nova::Server": "",
+    "resource:OS::Nova::Hypervisor": "",
+    "resource:OS::Nova::ServerGroup": "",
+    "resource:OS::Nova::Flavor": "",
+    "resource:OS::Cinder::Volume": "",
+    "resource:OS::Cinder::Snapshot": "",
+    "resource:OS::Designate::Zone": "",
+    "resource:OS::Designate::RecordSet": "",
+    "resource:OS::Neutron::Net": "",
+    "resource:OS::Neutron::Port": "",
+    "resource:OS::Neutron::Subnet": "",
+    "resource:OS::Neutron::Router": "",
+    "resource:OS::Neutron::SecurityGroup": "",
+    "resource:OS::Ironic::Chassis": "",
+    "resource:OS::Ironic::Node": "",
+    "resource:OS::Ironic::Port": ""
 }
