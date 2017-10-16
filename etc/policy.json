@@ -1,11 +1,6 @@
 {
     "default": "",
 
-    "search:query": "rule:admin_or_owner",
-    "search:query:aggregations": "rule:admin_or_owner",
-    "search:plugins_info": "rule:admin_or_owner",
-    "search:facets": "rule:admin_or_owner",
-
     "resource:OS::Glance::Image": "rule:admin_or_owner",
     "resource:OS::Glance::Metadef": "rule:admin_or_owner",
     "resource:OS::Nova::Server": "rule:admin_or_owner",

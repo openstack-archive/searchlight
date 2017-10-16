@@ -15,9 +15,11 @@
 import itertools
 
 from searchlight.common.policies import base
+from searchlight.common.policies import search
 
 
 def list_rules():
     return itertools.chain(
-        base.list_rules()
+        base.list_rules(),
+        search.list_rules()
     )
