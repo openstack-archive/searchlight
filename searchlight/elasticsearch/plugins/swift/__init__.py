@@ -157,7 +157,7 @@ def get_swift_accounts(auth_prefix):
     # TODO(lakshmiS): Add support for SERVICE_ accounts
     AUTH_PREFIX = auth_prefix
     ks_client = openstack_clients.get_keystoneclient()
-    for tenant in ks_client.tenants.list():
+    for tenant in ks_client.projects.list():
         storage_url = _get_storage_url_prefix() + tenant.id
         sclient = openstack_clients.get_swiftclient_st(storage_url)
         # 0 index has account summary

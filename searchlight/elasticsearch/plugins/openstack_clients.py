@@ -23,7 +23,7 @@ from ironicclient import exc as ironic_exceptions
 from keystoneauth1 import loading as ka_loading
 from keystoneclient import exceptions as keystone_exceptions
 
-import keystoneclient.v2_0.client as ks_client
+import keystoneclient.v3.client as ks_client
 import neutronclient.v2_0.client as neutron_client
 from novaclient import client as nova_client
 import swiftclient
