@@ -18,7 +18,7 @@
 #    under the License.
 
 """
-Installation script for Glance's development virtualenv
+Installation script for SearchLight's development virtualenv
 """
 
 from __future__ import print_function
@@ -29,16 +29,17 @@ import sys
 import install_venv_common as install_venv  # noqa
 
 
-def print_help():
+def print_help(project):
     help = """
- Glance development environment setup is complete.
+ %(project)s development environment setup is complete.
 
- Glance development uses virtualenv to track and manage Python dependencies
- while in development and testing.
+ %(project)s development uses virtualenv to track and manage Python
+ dependencies while in development and testing.
 
- To activate the Glance virtualenv for the extent of your current shell session
- you can run:
+ To activate the %(project)s virtualenv for the extent of your current
+ shell session, you can run:
 
+ $ source .venv/bin/activate
  $ source .venv/bin/activate
 
  Or, if you prefer, you can run commands in the virtualenv on a case by case
@@ -48,7 +49,7 @@ def print_help():
 
  Also, make test will automatically use the virtualenv.
     """
-    print(help)
+    print(help % {"project": project})
 
 
 def main(argv):
@@ -57,7 +58,7 @@ def main(argv):
     pip_requires = os.path.join(root, 'requirements.txt')
     test_requires = os.path.join(root, 'test-requirements.txt')
     py_version = "python%s.%s" % (sys.version_info[0], sys.version_info[1])
-    project = 'Glance'
+    project = 'SearchLight'
     install = install_venv.InstallVenv(root, venv, pip_requires, test_requires,
                                        py_version, project)
     options = install.parse_args(argv)
@@ -67,7 +68,7 @@ def main(argv):
     install.install_dependencies()
     install.run_command([os.path.join(venv, 'bin/python'),
                         'setup.py', 'develop'])
-    print_help()
+    print_help(project)
 
 if __name__ == '__main__':
     main(sys.argv)

@@ -116,8 +116,13 @@ class InstallVenv(object):
         self.pip_install('pip>=1.4')
         self.pip_install('setuptools')
         self.pip_install('pbr')
-
-        self.pip_install('-r', self.requirements, '-r', self.test_requirements)
+        upper_constraints = (
+            os.environ.get("UPPER_CONSTRAINTS_FILE")
+            or ("https://git.openstack.org/cgit/openstack/requirements"
+                "/plain/upper-constraints.txt"))
+        self.pip_install('-c', upper_constraints,
+                         '-r', self.requirements,
+                         '-r', self.test_requirements)
 
     def parse_args(self, argv):
         """Parses command-line arguments."""
