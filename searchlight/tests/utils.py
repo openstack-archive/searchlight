@@ -60,6 +60,7 @@ class BaseTestCase(testtools.TestCase):
         self.test_dir = self.useFixture(fixtures.TempDir()).path
         self.conf_dir = os.path.join(self.test_dir, 'etc')
         utils.safe_mkdirs(self.conf_dir)
+        service_policies._ENFORCERS = None
         self.set_policy()
 
         utils.register_plugin_opts()

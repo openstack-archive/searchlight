@@ -19,6 +19,8 @@ import os
 from oslo_config import cfg
 from oslo_policy import policy
 
+from searchlight.common import policies
+
 
 LOG = logging.getLogger(__name__)
 
@@ -60,6 +62,7 @@ def _get_enforcers():
             # changing; current master doesn't raise an exception
             try:
                 enforcer.load_rules()
+                enforcer.register_defaults(policies.list_rules())
                 if not enforcer.policy_path:
                     missing_config_file = True
             except cfg.ConfigFilesNotFoundError:
