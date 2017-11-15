@@ -5,7 +5,7 @@
 #
 # Specify regular expression for which properties will be protected in []
 # For each section, specify CRUD permissions. You may refer to policies defined
-# in policy.json.
+# in policy.json or policy.yaml.
 # The property rules will be applied in the order specified. Once
 # a match is found the remaining property rules will not be applied.
 #

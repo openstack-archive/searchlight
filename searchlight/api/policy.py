@@ -21,6 +21,7 @@ from oslo_log import log as logging
 from oslo_policy import policy
 
 from searchlight.common import exception
+from searchlight.common import policies
 from searchlight import service_policies
 
 
@@ -42,6 +43,7 @@ class Enforcer(policy.Enforcer):
         else:
             kwargs = {'rules': DEFAULT_RULES, 'use_conf': False}
         super(Enforcer, self).__init__(CONF, overwrite=False, **kwargs)
+        self.register_defaults(policies.list_rules())
 
     def add_rules(self, rules):
         """Add new rules to the Rules object"""
