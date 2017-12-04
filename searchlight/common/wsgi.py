@@ -257,9 +257,9 @@ class Server(object):
             self.pgid = 0
 
     def hup(self, *args):
-        """
-        Reloads configuration files with zero down time
-        """
+        """Reloads configuration files with zero down time"""
+
+        LOG.error('SIGHUP received')
         signal.signal(signal.SIGHUP, signal.SIG_IGN)
         raise exception.SIGHUPInterrupt
 
