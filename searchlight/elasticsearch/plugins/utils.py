@@ -231,7 +231,7 @@ def get_index_refresh_interval(index_name):
     except Exception as e:
         # If we cannot get index setting, something must be wrong,
         # no need to continue, log the error message and raise.
-        LOG.error(encodeutils.exeception_to_unicode(e))
+        LOG.error(encodeutils.exception_to_unicode(e))
         raise
 
     if result:
@@ -259,7 +259,7 @@ def set_index_refresh_interval(index_name, refresh_interval):
     try:
         es_engine.indices.put_settings(body, index_name)
     except Exception as e:
-        LOG.error(encodeutils.exeception_to_unicode(e))
+        LOG.error(encodeutils.exception_to_unicode(e))
         raise
 
 
