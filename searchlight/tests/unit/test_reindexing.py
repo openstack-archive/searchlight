@@ -91,7 +91,7 @@ class TestReindexingUtils(test_utils.BaseTestCase):
             # Test #1: Create a new index.
             index_name = plugin_utils.create_new_index(group)
 
-            self.assertRegexpMatches(index_name, group + '-' + TS_FORMAT)
+            self.assertRegex(index_name, group + '-' + TS_FORMAT)
             mock_api.assert_called_with()
             mock_engine.indices.create.assert_called_with(index=index_name)
 
