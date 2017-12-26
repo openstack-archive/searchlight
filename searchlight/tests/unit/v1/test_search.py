@@ -20,7 +20,7 @@ from oslo_serialization import jsonutils
 import six
 import webob.exc
 
-from searchlight.api.v1 import search as search
+from searchlight.api.v1 import search
 from searchlight.common import exception
 from searchlight.common import utils
 import searchlight.elasticsearch
