@@ -618,7 +618,7 @@ def _is_multiple_alias_exception(e):
            execute a single index op]
 
        We will be dirty and parse the exception message. We need to
-       check the validity of ALIAS_EXCPTION_STRING in future
+       check the validity of ALIAS_EXCEPTION_STRING in future
        ElasticSearch versions.
     """
     if ALIAS_EXCEPTION_STRING in getattr(e, 'error', ''):
