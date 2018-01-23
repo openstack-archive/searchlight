@@ -52,9 +52,6 @@ ELASTICSEARCH_BASEURL=${ELASTICSEARCH_BASEURL:-https://download.elastic.co/elast
 ELASTICSEARCH_BASEURL_DEB=${ELASTICSEARCH_BASEURL}/deb/elasticsearch
 ELASTICSEARCH_BASEURL_RPM=${ELASTICSEARCH_BASEURL}/rpm/elasticsearch
 
-# Tell Tempest this project is present
-TEMPEST_SERVICES+=,searchlight
-
 # Helper Functions
 # ----------------
 function setup_colorized_logging_searchlight {
