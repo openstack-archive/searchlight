@@ -115,7 +115,9 @@ There are then two ways to configure the service to send notifications that
 Searchlight can receive. The recommended method is to use notification pools,
 touched on in the `messaging documentation`_.
 
-.. _`messaging documentation`: http://docs.openstack.org/developer/oslo.messaging/notification_listener.html
+.. _`messaging documentation`:
+
+https://docs.openstack.org/oslo.messaging/latest/reference/notification_listener.html
 
 Notification pools
 ##################
@@ -250,8 +252,8 @@ it in Heat_)::
 
         python setup.py develop
 
-.. _Stevedore: http://docs.openstack.org/developer/stevedore/
-.. _Heat: http://docs.openstack.org/developer/heat/template_guide/openstack.html
+.. _Stevedore: https://docs.openstack.org/stevedore/latest/
+.. _Heat: https://docs.openstack.org/heat/latest/template_guide/openstack.html
 
 Writing some code
 -----------------
@@ -284,7 +286,7 @@ ElasticSearch document type) as the `resource name`_ Heat uses to identify it::
     def get_document_type(self):
         return "OS::Neutron::Net"
 
-.. _`resource name`: http://docs.openstack.org/developer/heat/template_guide/openstack.html
+.. _`resource name`: https://docs.openstack.org/heat/latest/template_guide/openstack.html
 
 Retrieving object for initial indexing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -480,7 +482,7 @@ For example::
 
 See :ref:`service-policy-controls` for configuration information.
 
-.. _oslo.policy: http://docs.openstack.org/developer/oslo.policy/
+.. _oslo.policy: https://docs.openstack.org/oslo.policy/latest/
 
 Faceting
 ^^^^^^^^
