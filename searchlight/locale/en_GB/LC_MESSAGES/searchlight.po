@@ -1,0 +1,524 @@
+# OpenStack Infra <zanata@openstack.org>, 2015. #zanata
+# Andreas Jaeger <jaegerandi@gmail.com>, 2016. #zanata
+# Andi Chandler <andi@gowling.com>, 2018. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: searchlight VERSION\n"
+"Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
+"POT-Creation-Date: 2018-01-26 18:27+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2018-02-09 08:23+0000\n"
+"Last-Translator: Andi Chandler <andi@gowling.com>\n"
+"Language-Team: English (United Kingdom)\n"
+"Language: en-GB\n"
+"X-Generator: Zanata 3.9.6\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#, python-format
+msgid "\t%s"
+msgstr "\t%s"
+
+#, python-format
+msgid "%(param_name)s param must be greater than or equal to %(gte)s"
+msgstr "%(param_name)s param must be greater than or equal to %(gte)s"
+
+#, python-format
+msgid "%(serv)s (pid %(pid)s) is running..."
+msgstr "%(serv)s (pid %(pid)s) is running..."
+
+#, python-format
+msgid "%(serv)s appears to already be running: %(pid)s"
+msgstr "%(serv)s appears to already be running: %(pid)s"
+
+#, python-format
+msgid "%(verb)sing %(serv)s"
+msgstr "%(verb)sing %(serv)s"
+
+#, python-format
+msgid "%(verb)sing %(serv)s with %(conf)s"
+msgstr "%(verb)sing %(serv)s with %(conf)s"
+
+#, python-format
+msgid ""
+"%s Please specify a host:port pair, where host is an IPv4 address, IPv6 "
+"address, hostname, or FQDN. If using an IPv6 address, enclose it in brackets "
+"separately from the port (i.e., \"[fe80::a:b:c]:9876\")."
+msgstr ""
+"%s Please specify a host:port pair, where host is an IPv4 address, IPv6 "
+"address, hostname, or FQDN. If using an IPv6 address, enclose it in brackets "
+"separately from the port (i.e., \"[fe80::a:b:c]:9876\")."
+
+#, python-format
+msgid "%s can't contain 4 byte unicode characters."
+msgstr "%s can't contain 4 byte Unicode characters."
+
+#, python-format
+msgid "%s is already stopped"
+msgstr "%s is already stopped"
+
+#, python-format
+msgid "%s is stopped"
+msgstr "%s is stopped"
+
+#, python-format
+msgid "%s param must be an integer"
+msgstr "%s param must be an integer"
+
+msgid "'_source' must be a string, dict or list"
+msgstr "'_source' must be a string, dict or list"
+
+msgid "'sort' must be a string, dict or list"
+msgstr "'sort' must be a string, dict or list"
+
+msgid ""
+"AES key for encrypting store 'location' metadata. This includes, if used, "
+"Swift or S3 credentials. Should be set to a random string of length 16, 24 "
+"or 32 bytes"
+msgstr ""
+"AES key for encrypting store 'location' metadata. This includes, if used, "
+"Swift or S3 credentials. Should be set to a random string of length 16, 24 "
+"or 32 bytes"
+
+#, python-format
+msgid "Action type '%s' requires ID of the document."
+msgstr "Action type '%s' requires ID of the document."
+
+#, python-format
+msgid "Action type '%s' requires data or script param."
+msgstr "Action type '%s' requires data or script param."
+
+msgid ""
+"Address to bind the server.  Useful when selecting a particular network "
+"interface."
+msgstr ""
+"Address to bind the server.  Useful when selecting a particular network "
+"interface."
+
+#, python-format
+msgid "Aggregation '%s' contains the 'global' aggregation which is not allowed"
+msgstr ""
+"Aggregation '%s' contains the 'global' aggregation which is not allowed"
+
+msgid ""
+"Allow unauthenticated users to access the API with read-only privileges. "
+"This only applies when using ContextMiddleware."
+msgstr ""
+"Allow unauthenticated users to access the API with read-only privileges. "
+"This only applies when using ContextMiddleware."
+
+msgid "An error occurred during index creation or initial loading"
+msgstr "An error occurred during index creation or initial loading"
+
+msgid "An object with the same identifier already exists."
+msgstr "An object with the same identifier already exists."
+
+msgid "An object with the specified identifier was not found."
+msgstr "An object with the specified identifier was not found."
+
+msgid "An unknown exception occurred"
+msgstr "An unknown exception occurred"
+
+#, python-format
+msgid "Attribute '%(property)s' is reserved."
+msgstr "Attribute '%(property)s' is reserved."
+
+#, python-format
+msgid "Attribute '%s' is read-only."
+msgstr "Attribute '%s' is read-only."
+
+msgid "Available commands:"
+msgstr "Available commands:"
+
+msgid "Body expected in request."
+msgstr "Body expected in request."
+
+msgid "CA certificate file to use to verify connecting clients."
+msgstr "CA certificate file to use to verify connecting clients."
+
+msgid "Certificate file to use when starting API server securely."
+msgstr "Certificate file to use when starting API server securely."
+
+#, python-format
+msgid "Could not bind to %(host)s:%(port)s after trying for 30 seconds"
+msgstr "Could not bind to %(host)s:%(port)s after trying for 30 seconds"
+
+msgid "Data supplied was not valid."
+msgstr "Data supplied was not valid."
+
+msgid ""
+"Default value for the number of items returned by a request if not specified "
+"explicitly in the request"
+msgstr ""
+"Default value for the number of items returned by a request if not specified "
+"explicitly in the request"
+
+#, python-format
+msgid "Determining version of request: %(method)s %(path)s Accept: %(accept)s"
+msgstr "Determining version of request: %(method)s %(path)s Accept: %(accept)s"
+
+msgid ""
+"Digest algorithm which will be used for digital signature; the default is "
+"sha1 the default in Kilo for a smooth upgrade process, and it will be "
+"updated with sha256 in next release(L). Use the command \"openssl list-"
+"message-digest-algorithms\" to get the available algorithms supported by the "
+"version of OpenSSL on the platform. Examples are \"sha1\", \"sha256\", "
+"\"sha512\", etc."
+msgstr ""
+"Digest algorithm which will be used for digital signature; the default is "
+"sha1 the default in Kilo for a smooth upgrade process, and it will be "
+"updated with SHA256 in next release(L). Use the command \"openssl list-"
+"message-digest-algorithms\" to get the available algorithms supported by the "
+"version of OpenSSL on the platform. Examples are \"SHA1\", \"SHA256\", "
+"\"SHA512\", etc."
+
+#, python-format
+msgid "Document type '%s' is not supported."
+msgstr "Document type '%s' is not supported."
+
+#, python-format
+msgid "Error processing %s RBAC filter"
+msgstr "Error processing %s RBAC filter"
+
+#, python-format
+msgid "Host \"%s\" is not valid."
+msgstr "Host \"%s\" is not valid."
+
+#, python-format
+msgid "Host and port \"%s\" is not valid."
+msgstr "Host and port \"%s\" is not valid."
+
+msgid "If False doesn't trace SQL requests."
+msgstr "If False doesn't trace SQL requests."
+
+msgid "If False fully disable profiling feature."
+msgstr "If False fully disable profiling feature."
+
+msgid ""
+"If False, server will return the header \"Connection: close\", If True, "
+"server will return \"Connection: Keep-Alive\" in its responses. In order to "
+"close the client socket connection explicitly after the response is sent and "
+"read successfully by the client, you simply have to set this option to False "
+"when you create a wsgi server."
+msgstr ""
+"If False, server will return the header \"Connection: close\", If True, "
+"server will return \"Connection: Keep-Alive\" in its responses. In order to "
+"close the client socket connection explicitly after the response is sent and "
+"read successfully by the client, you simply have to set this option to False "
+"when you create a wsgi server."
+
+#, python-format
+msgid "Index '%s' is not in the list of enabled plugins"
+msgstr "Index '%s' is not in the list of enabled plugins"
+
+#, python-format
+msgid "Index '%s' is not supported."
+msgstr "Index '%s' is not supported."
+
+#, python-format
+msgid "Invalid action type: '%s'"
+msgstr "Invalid action type: '%s'"
+
+msgid "Invalid configuration in property protection file."
+msgstr "Invalid configuration in property protection file."
+
+#, python-format
+msgid "Invalid content type %(content_type)s"
+msgstr "Invalid content type %(content_type)s"
+
+msgid "Invalid jsonpatch request"
+msgstr "Invalid jsonpatch request"
+
+msgid "Invalid service catalog json."
+msgstr "Invalid service catalogue json."
+
+#, python-format
+msgid ""
+"It appears that the eventlet module has been imported prior to setting "
+"%s='yes'. It is currently necessary to disable eventlet.greendns if using "
+"ipv6 since eventlet.greendns currently breaks with ipv6 addresses. Please "
+"ensure that eventlet is not imported prior to this being set."
+msgstr ""
+"It appears that the eventlet module has been imported prior to setting "
+"%s='yes'. It is currently necessary to disable eventlet.greendns if using "
+"IPv6 since eventlet.greendns currently breaks with IPv6 addresses. Please "
+"ensure that eventlet is not imported prior to this being set."
+
+#, python-format
+msgid "Malformed Content-Range header: %s"
+msgstr "Malformed Content-Range header: %s"
+
+msgid "Malformed JSON in request body."
+msgstr "Malformed JSON in request body."
+
+#, python-format
+msgid ""
+"Mapping for '%(doc_type)s' contains a _parent '%(actual)s' that doesn't "
+"match '%(expected)s'"
+msgstr ""
+"Mapping for '%(doc_type)s' contains a _parent '%(actual)s' that doesn't "
+"match '%(expected)s'"
+
+msgid ""
+"Maximum line size of message headers to be accepted. max_header_line may "
+"need to be increased when using large tokens (typically those generated by "
+"the Keystone v3 API with big service catalogs"
+msgstr ""
+"Maximum line size of message headers to be accepted. max_header_line may "
+"need to be increased when using large tokens (typically those generated by "
+"the Keystone v3 API with big service catalogues"
+
+msgid "Maximum permissible number of items that could be returned by a request"
+msgstr ""
+"Maximum permissible number of items that could be returned by a request"
+
+msgid "Param values can't contain 4 byte unicode."
+msgstr "Param values can't contain 4 byte Unicode."
+
+msgid ""
+"Partial name of a pipeline in your paste configuration file with the service "
+"name removed. For example, if your paste section name is [pipeline:"
+"searchlight-api-keystone] use the value \"keystone\""
+msgstr ""
+"Partial name of a pipeline in your paste configuration file with the service "
+"name removed. For example, if your paste section name is [pipeline:"
+"searchlight-api-keystone] use the value \"keystone\""
+
+#, python-format
+msgid "Plugin %s should return a list of topicexchange pairs"
+msgstr "Plugin %s should return a list of topic exchange pairs"
+
+#, python-format
+msgid "Port \"%s\" is not valid."
+msgstr "Port \"%s\" is not valid."
+
+msgid "Private key file to use when starting API server securely."
+msgstr "Private key file to use when starting API server securely."
+
+#, python-format
+msgid "Process %d not running"
+msgstr "Process %d not running"
+
+msgid "Property names can't contain 4 byte unicode."
+msgstr "Property names can't contain 4 byte Unicode."
+
+#, python-format
+msgid "Provided object does not match schema '%(schema)s': %(reason)s"
+msgstr "Provided object does not match schema '%(schema)s': %(reason)s"
+
+msgid ""
+"Public url to use for versions endpoint. The default is None, which will use "
+"the request's host_url attribute to populate the URL base. If Searchlight is "
+"operating behind a proxy, you will want to change this to represent the "
+"proxy's URL."
+msgstr ""
+"Public URL to use for versions endpoint. The default is None, which will use "
+"the request's host_url attribute to populate the URL base. If Searchlight is "
+"operating behind a proxy, you will want to change this to represent the "
+"proxy's URL."
+
+msgid "Query malformed or search parse failure, please check the syntax"
+msgstr "Query malformed or search parse failure, please check the syntax"
+
+#, python-format
+msgid "Reload of %(serv)s not supported"
+msgstr "Reload of %(serv)s not supported"
+
+#, python-format
+msgid "Reloading %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr "Reloading %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+
+#, python-format
+msgid "Removing stale pid file %s"
+msgstr "Removing stale pid file %s"
+
+#, python-format
+msgid "Resource type '%s' is not in the list of enabled plugins"
+msgstr "Resource type '%s' is not in the list of enabled plugins"
+
+#, python-format
+msgid "Resource type '%s' is not supported."
+msgstr "Resource type '%s' is not supported."
+
+msgid "Role used to identify an authenticated user as administrator."
+msgstr "Role used to identify an authenticated user as administrator."
+
+#, python-format
+msgid "Server %(serv)s is stopped"
+msgstr "Server %(serv)s is stopped"
+
+#, python-format
+msgid "Server worker creation failed: %(reason)s."
+msgstr "Server worker creation failed: %(reason)s."
+
+#, python-format
+msgid "Stopping %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+msgstr "Stopping %(serv)s (pid %(pid)s) with signal(%(sig)s)"
+
+#, python-format
+msgid "Suppressed respawn as %(serv)s was %(rsn)s."
+msgstr "Suppressed respawn as %(serv)s was %(rsn)s."
+
+msgid "System SIGHUP signal received."
+msgstr "System SIGHUP signal received."
+
+msgid "The API paste config file to use."
+msgstr "The API paste config file to use."
+
+msgid ""
+"The backlog value that will be used when creating the TCP listener socket."
+msgstr ""
+"The backlog value that will be used when creating the TCP listener socket."
+
+msgid "The hostname/IP of the pydev process listening for debug connections"
+msgstr "The hostname/IP of the pydev process listening for debug connections"
+
+msgid ""
+"The location of the property protection file.This file contains the rules "
+"for property protections and the roles/policies associated with it. If this "
+"config value is not specified, by default, property protections won't be "
+"enforced. If a value is specified and the file is not found, then the "
+"searchlight-api service will not start."
+msgstr ""
+"The location of the property protection file.This file contains the rules "
+"for property protections and the roles/policies associated with it. If this "
+"config value is not specified, by default, property protections won't be "
+"enforced. If a value is specified and the file is not found, then the "
+"searchlight-api service will not start."
+
+msgid ""
+"The number of child process workers that will be created to service "
+"requests. The default will be equal to the number of CPUs available."
+msgstr ""
+"The number of child process workers that will be created to service "
+"requests. The default will be equal to the number of CPUs available."
+
+msgid "The port on which a pydev process is listening for connections."
+msgstr "The port on which a pydev process is listening for connections."
+
+msgid "The port on which the server will listen."
+msgstr "The port on which the server will listen."
+
+#, python-format
+msgid ""
+"The provided API version is not supported, the current available version "
+"range for %(service)s is: from %(min_version)s to %(max_version)s."
+msgstr ""
+"The provided API version is not supported, the current available version "
+"range for %(service)s is: from %(min_version)s to %(max_version)s."
+
+#, python-format
+msgid "The provided body %(body)s is invalid under given schema: %(schema)s"
+msgstr "The provided body %(body)s is invalid under given schema: %(schema)s"
+
+#, python-format
+msgid "The provided path '%(path)s' is invalid: %(explanation)s"
+msgstr "The provided path '%(path)s' is invalid: %(explanation)s"
+
+msgid ""
+"The value for the socket option TCP_KEEPIDLE.  This is the time in seconds "
+"that the connection must be idle before TCP starts sending keepalive probes."
+msgstr ""
+"The value for the socket option TCP_KEEPIDLE.  This is the time in seconds "
+"that the connection must be idle before TCP starts sending keepalive probes."
+
+#, python-format
+msgid ""
+"There are no resource types accessible to you to serve your request. You do "
+"not have access to the following resource types: %s"
+msgstr ""
+"There are no resource types accessible to you to serve your request. You do "
+"not have access to the following resource types: %s"
+
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it.  Error: %(ioe)s"
+msgstr ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it.  Error: %(ioe)s"
+
+#, python-format
+msgid ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it. OpenSSL error: %(ce)s"
+msgstr ""
+"There is a problem with your %(error_key_name)s %(error_filename)s.  Please "
+"verify it. OpenSSL error: %(ce)s"
+
+#, python-format
+msgid ""
+"There is a problem with your key pair.  Please verify that cert "
+"%(cert_file)s and key %(key_file)s belong together.  OpenSSL error %(ce)s"
+msgstr ""
+"There is a problem with your key pair.  Please verify that cert "
+"%(cert_file)s and key %(key_file)s belong together.  OpenSSL error %(ce)s"
+
+msgid ""
+"This config value indicates whether \"roles\" or \"policies\" are used in "
+"the property protection file."
+msgstr ""
+"This config value indicates whether \"roles\" or \"policies\" are used in "
+"the property protection file."
+
+#, python-format
+msgid ""
+"Unable to create pid file %(pid)s.  Running as non-root?\n"
+"Falling back to a temp file, you can stop %(service)s service using:\n"
+"  %(file)s %(server)s stop --pid-file %(fb)s"
+msgstr ""
+"Unable to create pid file %(pid)s.  Running as non-root?\n"
+"Falling back to a temp file, you can stop %(service)s service using:\n"
+"  %(file)s %(server)s stop --pid-file %(fb)s"
+
+msgid "Unable to increase file descriptor limit.  Running as non-root?"
+msgstr "Unable to increase file descriptor limit.  Running as non-root?"
+
+#, python-format
+msgid ""
+"Unable to load %(app_name)s from configuration file %(conf_file)s.\n"
+"Got: %(e)r"
+msgstr ""
+"Unable to load %(app_name)s from configuration file %(conf_file)s.\n"
+"Got: %(e)r"
+
+#, python-format
+msgid "Unable to load schema: %(reason)s"
+msgstr "Unable to load schema: %(reason)s"
+
+msgid "Unable to locate config file"
+msgstr "Unable to locate config file"
+
+#, python-format
+msgid "Waited 15 seconds for pid %(pid)s (%(file)s) to die; giving up"
+msgstr "Waited 15 seconds for pid %(pid)s (%(file)s) to die; giving up"
+
+msgid ""
+"When running server in SSL mode, you must specify both a cert_file and "
+"key_file option value in your configuration file"
+msgstr ""
+"When running server in SSL mode, you must specify both a cert_file and "
+"key_file option value in your configuration file"
+
+msgid ""
+"When true, this option sets the owner of an image to be the tenant. "
+"Otherwise, the owner of the  image will be the authenticated user issuing "
+"the request."
+msgstr ""
+"When true, this option sets the owner of an image to be the tenant. "
+"Otherwise, the owner of the  image will be the authenticated user issuing "
+"the request."
+
+msgid "You are not authorized to complete this action."
+msgstr "You are not authorised to complete this action."
+
+msgid "actions param cannot be empty"
+msgstr "actions param cannot be empty"
+
+msgid "eventlet 'poll' nor 'selects' hubs are available on this platform"
+msgstr "eventlet 'poll' nor 'selects' hubs are available on this platform"
+
+#, python-format
+msgid "unable to launch %(serv)s. Got error: %(e)s"
+msgstr "unable to launch %(serv)s. Got error: %(e)s"
