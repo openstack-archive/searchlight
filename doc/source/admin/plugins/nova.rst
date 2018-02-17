@@ -200,7 +200,7 @@ incremental updates. Searchlight must use its own topic. Use the following::
     notification_driver = messaging
     notification_topics = searchlight_indexer
 
-The following fields are exposed to adminstrators only for nova instances:
+The following fields are exposed to administrators only for nova instances:
  * OS-EXT-SRV-ATTR:*
 
 Additional properties can be similarly protected with the `admin_only_fields`
