@@ -1,24 +1,29 @@
 # OpenStack Infra <zanata@openstack.org>, 2015. #zanata
 # Tom Cocozzello <tjcocozz@us.ibm.com>, 2015. #zanata
 # Andreas Jaeger <jaegerandi@gmail.com>, 2016. #zanata
+# Frank Kloeker <eumel@arcor.de>, 2018. #zanata
 msgid ""
 msgstr ""
-"Project-Id-Version: searchlight 2.0.0.0rc2.dev22\n"
+"Project-Id-Version: searchlight VERSION\n"
 "Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
-"POT-Creation-Date: 2017-03-21 15:40+0000\n"
+"POT-Creation-Date: 2018-02-20 19:18+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2016-06-06 06:14+0000\n"
-"Last-Translator: Andreas Jaeger <jaegerandi@gmail.com>\n"
+"PO-Revision-Date: 2018-02-10 10:26+0000\n"
+"Last-Translator: Frank Kloeker <eumel@arcor.de>\n"
 "Language-Team: German\n"
 "Language: de\n"
-"X-Generator: Zanata 3.9.6\n"
+"X-Generator: Zanata 4.3.3\n"
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 
 #, python-format
 msgid "\t%s"
 msgstr "\t%s"
+
+#, python-format
+msgid "%(param_name)s param must be greater than or equal to %(gte)s"
+msgstr "%(param_name)s param muss größer oder gleich %(gte)s sein"
 
 #, python-format
 msgid "%(serv)s (pid %(pid)s) is running..."
@@ -59,6 +64,16 @@ msgstr "%s ist bereits gestoppt"
 msgid "%s is stopped"
 msgstr "%s ist gestoppt"
 
+#, python-format
+msgid "%s param must be an integer"
+msgstr "%s param muss eine ganze Zahl sein"
+
+msgid "'_source' must be a string, dict or list"
+msgstr "'_source' muss eine Zeichenfolge, Dictionary oder Liste sein"
+
+msgid "'sort' must be a string, dict or list"
+msgstr "'sort' muss eine Zeichenfolge sein, ein Dictionary oder eine Liste"
+
 msgid ""
 "AES key for encrypting store 'location' metadata. This includes, if used, "
 "Swift or S3 credentials. Should be set to a random string of length 16, 24 "
@@ -69,6 +84,14 @@ msgstr ""
 "sollte eine zufällige Zeichenfolge mit der Länge 16, 24 oder 32 Byte "
 "festgelegt werden. "
 
+#, python-format
+msgid "Action type '%s' requires ID of the document."
+msgstr "Aktionstyp '%s' benötigt ID des Dokuments."
+
+#, python-format
+msgid "Action type '%s' requires data or script param."
+msgstr "Aktionstyp '%s' benötigt Daten oder Scriptparameter."
+
 msgid ""
 "Address to bind the server.  Useful when selecting a particular network "
 "interface."
@@ -76,12 +99,22 @@ msgstr ""
 "Adresse zum Binden des Servers. Nützlich bei der Auswahl einer bestimmten "
 "Netzwerkschnittstelle."
 
+#, python-format
+msgid "Aggregation '%s' contains the 'global' aggregation which is not allowed"
+msgstr ""
+"Aggregation '%s' beinhaltet die 'globale' Aggregation, was nicht erlaubt ist"
+
 msgid ""
 "Allow unauthenticated users to access the API with read-only privileges. "
 "This only applies when using ContextMiddleware."
 msgstr ""
 "Erlaube nicht angemeldeten Benutzern nur-lese Zugriff auf das API. Dies "
 "trifft nur bei der Verwendung von ContextMiddleware zu."
+
+msgid "An error occurred during index creation or initial loading"
+msgstr ""
+"Bei der Indexerstellung oder beim erstmaligen Laden ist ein Fehler "
+"aufgetreten"
 
 msgid "An object with the same identifier already exists."
 msgstr "Ein Objekt mit der gleichen ID ist bereits vorhanden."
@@ -134,9 +167,29 @@ msgstr ""
 "Bestimmen von Version der Anforderung: %(method)s %(path)s Akzeptieren: "
 "%(accept)s"
 
+msgid ""
+"Digest algorithm which will be used for digital signature; the default is "
+"sha1 the default in Kilo for a smooth upgrade process, and it will be "
+"updated with sha256 in next release(L). Use the command \"openssl list-"
+"message-digest-algorithms\" to get the available algorithms supported by the "
+"version of OpenSSL on the platform. Examples are \"sha1\", \"sha256\", "
+"\"sha512\", etc."
+msgstr ""
+"Digest-Algorithmus, der für die digitale Signatur verwendet wird; Der "
+"Standardwert ist sha1, der Standard in Kilo für einen reibungslosen Upgrade-"
+"Prozess, und er wird in der nächsten Version mit sha256 aktualisiert. "
+"Verwenden Sie den Befehl \"openssl list-message-digest-algorithms\", um die "
+"verfügbaren Algorithmen zu erhalten, die von der Version von OpenSSL auf der "
+"Plattform unterstützt werden. Beispiele sind \"sha1\", \"sha256\", "
+"\"sha512\" usw."
+
 #, python-format
 msgid "Document type '%s' is not supported."
 msgstr "Dokumenttyp '%s' wird nicht unterstützt."
+
+#, python-format
+msgid "Error processing %s RBAC filter"
+msgstr "Fehler bei der Verarbeitung %s RBAC Filter"
 
 #, python-format
 msgid "Host \"%s\" is not valid."
@@ -164,6 +217,10 @@ msgstr ""
 "Socket-Verbindung explizit zu schließen, nachdem die Antwort gesendet und "
 "erfolgreich vom Client gelesen wurde, müssen Sie einfach diese Option auf "
 "'False' setzen, wenn Sie einen wsgi-Server erstellen. "
+
+#, python-format
+msgid "Index '%s' is not in the list of enabled plugins"
+msgstr "Index '%s' ist nicht in der Liste der aktivierten Plugins"
 
 #, python-format
 msgid "Index '%s' is not supported."
@@ -206,6 +263,14 @@ msgstr "Fehlerhafter Content-Range-Header: %s"
 msgid "Malformed JSON in request body."
 msgstr "Fehlerhafte JSON in Anforderungshauptteil."
 
+#, python-format
+msgid ""
+"Mapping for '%(doc_type)s' contains a _parent '%(actual)s' that doesn't "
+"match '%(expected)s'"
+msgstr ""
+"Mapping für '%(doc_type)s' beinhaltet a _parent '%(actual)s' was nicht "
+"übereinstimmt mit '%(expected)s'"
+
 msgid ""
 "Maximum line size of message headers to be accepted. max_header_line may "
 "need to be increased when using large tokens (typically those generated by "
@@ -223,6 +288,19 @@ msgstr ""
 
 msgid "Param values can't contain 4 byte unicode."
 msgstr "Parameterwerte dürfen kein 4-Byte-Unicode enthalten."
+
+msgid ""
+"Partial name of a pipeline in your paste configuration file with the service "
+"name removed. For example, if your paste section name is [pipeline:"
+"searchlight-api-keystone] use the value \"keystone\""
+msgstr ""
+"Partieller Name einer Pipeline in Ihrer Konfigurationsdatei mit entferntem "
+"Dienstnamen. Wenn der Name des Einfügeabschnitts beispielsweise [Pipeline: "
+"searchlight-api-keystone] lautet, verwenden Sie den Wert \"keystone\"."
+
+#, python-format
+msgid "Plugin %s should return a list of topicexchange pairs"
+msgstr "Plugin %s sollte eine Liste von Topicexchange-Paaren zurückgeben"
 
 #, python-format
 msgid "Port \"%s\" is not valid."
@@ -242,6 +320,22 @@ msgstr "Eigenschaftsnamen dürfen kein 4-Byte-Unicode enthalten."
 msgid "Provided object does not match schema '%(schema)s': %(reason)s"
 msgstr "Angegebenes Objekt passt nicht zu Schema '%(schema)s': %(reason)s"
 
+msgid ""
+"Public url to use for versions endpoint. The default is None, which will use "
+"the request's host_url attribute to populate the URL base. If Searchlight is "
+"operating behind a proxy, you will want to change this to represent the "
+"proxy's URL."
+msgstr ""
+"Öffentliche URL, die für den Endpunkt der Version verwendet werden soll. Der "
+"Standardwert ist None, der das Attribut host_url der Anfrage verwendet, um "
+"die URL-Basis aufzufüllen. Wenn Searchlight hinter einem Proxy betrieben "
+"wird, sollten Sie dies ändern, um die URL des Proxys darzustellen."
+
+msgid "Query malformed or search parse failure, please check the syntax"
+msgstr ""
+"Abfrage fehlgeschlagen oder Suchparse fehlgeschlagen, überprüfen Sie bitte "
+"die Syntax"
+
 #, python-format
 msgid "Reload of %(serv)s not supported"
 msgstr "Erneutes Laden von %(serv)s nicht unterstützt"
@@ -253,6 +347,10 @@ msgstr "%(serv)s (PID %(pid)s) wird mit Signal (%(sig)s) erneut geladen"
 #, python-format
 msgid "Removing stale pid file %s"
 msgstr "Veraltete PID-Datei %s wird entfernt"
+
+#, python-format
+msgid "Resource type '%s' is not in the list of enabled plugins"
+msgstr "Ressourcetyp '%s' ist nicht in der Liste der aktivierten Plugins"
 
 #, python-format
 msgid "Resource type '%s' is not supported."
@@ -297,6 +395,20 @@ msgstr ""
 "empfangsbereit ist"
 
 msgid ""
+"The location of the property protection file.This file contains the rules "
+"for property protections and the roles/policies associated with it. If this "
+"config value is not specified, by default, property protections won't be "
+"enforced. If a value is specified and the file is not found, then the "
+"searchlight-api service will not start."
+msgstr ""
+"Der Speicherort der Eigenschaftschutzdatei. Diese Datei enthält die Regeln "
+"für den Schutz von Eigenschaften und die damit verbundenen Rollen/"
+"Richtlinien. Wenn dieser Konfigurationswert nicht angegeben ist, werden "
+"Schutzfunktionen standardmäßig nicht erzwungen. Wenn ein Wert angegeben wird "
+"und die Datei nicht gefunden wird, wird der Searchlight-API-Dienst nicht "
+"gestartet."
+
+msgid ""
 "The number of child process workers that will be created to service "
 "requests. The default will be equal to the number of CPUs available."
 msgstr ""
@@ -310,6 +422,15 @@ msgstr ""
 
 msgid "The port on which the server will listen."
 msgstr "Der Port, auf dem der Server hört."
+
+#, python-format
+msgid ""
+"The provided API version is not supported, the current available version "
+"range for %(service)s is: from %(min_version)s to %(max_version)s."
+msgstr ""
+"Die bereitgestellte API-Version wird nicht unterstützt. Der aktuell "
+"verfügbare Versionsbereich für %(service)s ist: von %(min_version)s bis "
+"%(max_version)s."
 
 #, python-format
 msgid "The provided body %(body)s is invalid under given schema: %(schema)s"
@@ -328,6 +449,14 @@ msgstr ""
 "Der Wert für die Socket-Option TCP_KEEPIDLE. Dies ist die Zeit in Sekunden, "
 "die die Verbindung inaktiv sein muss, bevor TCP beginnt, Keepalive-"
 "Stichproben zu senden. "
+
+#, python-format
+msgid ""
+"There are no resource types accessible to you to serve your request. You do "
+"not have access to the following resource types: %s"
+msgstr ""
+"Es sind keine Ressourcentypen verfügbar, die Sie für Ihre Anfrage benötigen. "
+"Sie haben keinen Zugriff auf die folgenden Ressourcentypen: %s"
 
 #, python-format
 msgid ""
