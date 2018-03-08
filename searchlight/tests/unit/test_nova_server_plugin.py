@@ -565,8 +565,7 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
                     fake_timestamp)
                 mock_get.assert_called_once_with(u'missing')
                 mock_deleter.assert_called_once_with(
-                    # Version should really be integer; see bug #1  550494
-                    {'_id': u'missing', '_version': '454284800097855282'})
+                    {'_id': u'missing', '_version': 454284800097855282})
 
     def test_vol_events_supported(self):
         not_handler = self.plugin.get_notification_handler()
