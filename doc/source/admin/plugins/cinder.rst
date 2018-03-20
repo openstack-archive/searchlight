@@ -101,7 +101,7 @@ incremental updates. Searchlight must use its own topic. Use the following::
     notification_driver = messaging
     notification_topics = searchlight_indexer
 
-The following fields are exposed to adminstrators only for cinder volumes:
+The following fields are exposed to administrators only for cinder volumes:
  * os-vol-mig-status-attr:*
  * os-vol-host-attr:*
  * migration
