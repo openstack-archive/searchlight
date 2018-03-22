@@ -95,10 +95,6 @@ function configure_searchlight {
     iniset $SEARCHLIGHT_CONF DEFAULT debug $ENABLE_DEBUG_LOG_LEVEL
     iniset $SEARCHLIGHT_CONF DEFAULT state_path $SEARCHLIGHT_STATE_PATH
 
-    # Install the policy file for the API server
-    cp $SEARCHLIGHT_DIR/etc/policy.json $SEARCHLIGHT_CONF_DIR/policy.json
-    iniset $SEARCHLIGHT_CONF oslo_policy policy_file $SEARCHLIGHT_CONF_DIR/policy.json
-
     # API Configuration
     sudo cp $SEARCHLIGHT_DIR/etc/api-paste.ini $SEARCHLIGHT_APIPASTE_CONF
     iniset $SEARCHLIGHT_CONF api public_endpoint $SEARCHLIGHT_SERVICE_PROTOCOL://$SEARCHLIGHT_SERVICE_HOST/search
