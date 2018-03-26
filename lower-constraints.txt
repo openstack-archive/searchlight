@@ -57,8 +57,8 @@ os-client-config==1.29.0
 os-service-types==1.2.0
 osc-lib==1.10.0
 oslo.cache==1.29.0
-oslo.concurrency==3.25.0
-oslo.config==5.1.0
+oslo.concurrency==3.26.0
+oslo.config==5.2.0
 oslo.context==2.19.2
 oslo.i18n==3.15.3
 oslo.log==3.36.0
@@ -84,14 +84,14 @@ pycparser==2.18
 pyflakes==0.8.1
 Pygments==2.2.0
 pyinotify==0.9.6
-pyOpenSSL==16.2.0
+pyOpenSSL==17.1.0
 pyparsing==2.2.0
 pyperclip==1.6.0
 python-cinderclient==3.3.0
 python-dateutil==2.7.0
 python-designateclient==2.7.0
 python-glanceclient==2.8.0
-python-ironicclient==2.2.0
+python-ironicclient==2.3.0
 python-keystoneclient==3.8.0
 python-mimeparse==1.6.0
 python-neutronclient==6.7.0
