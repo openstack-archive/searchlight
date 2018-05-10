@@ -76,7 +76,7 @@ The actual options and values in this section will need to be set according
 to your environment::
 
   [keystone_authtoken]
-  auth_url = http://127.0.0.1:35357
+  auth_url = http://127.0.0.1:5000
   auth_type = password
   project_domain_id = default
   project_name = service
@@ -100,7 +100,7 @@ valid token based on the integration account credentials::
  user_domain_id = default
  project_domain_id = default
  project_name = service
- auth_url = http://127.0.0.1:35357
+ auth_url = http://127.0.0.1:5000
 
  # If resource_plugin.include_region_name is set, this value will be
  # the default value for the 'region_name' field on all documents
