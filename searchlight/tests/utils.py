@@ -27,6 +27,7 @@ import subprocess
 import fixtures
 import mock
 from oslo_config import cfg
+from oslotest import moxstubout
 import six
 from six.moves import BaseHTTPServer
 import testtools
@@ -52,6 +53,8 @@ class BaseTestCase(testtools.TestCase):
         # the following policy tests
         config.parse_args(args=[], default_config_files=[])
         self.addCleanup(CONF.reset)
+        mox_fixture = self.useFixture(moxstubout.MoxStubout())
+        self.stubs = mox_fixture.stubs
 
         self.mock_exception = mock.patch(
             'searchlight.common.exception',

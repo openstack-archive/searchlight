@@ -51,6 +51,13 @@ from searchlight.common import utils
 from searchlight import i18n
 from searchlight.i18n import _
 
+
+try:
+    from webob.acceptparse import AcceptLanguageValidHeader  # noqa
+    USING_WEBOB_1_8 = True
+except ImportError:
+    USING_WEBOB_1_8 = False
+
 bind_opts = [
     cfg.HostAddressOpt('bind_host', default='0.0.0.0',
                        help=_('Address to bind the server.  Useful when '
@@ -714,7 +721,7 @@ class Request(webob.Request):
         else:
             return content_type
 
-    def best_match_language(self):
+    def best_match_language_1_7(self):
         """Determines best available locale from the Accept-Language header.
 
         :returns: the best language match or None if the 'Accept-Language'
@@ -725,7 +732,31 @@ class Request(webob.Request):
         langs = i18n.get_available_languages('searchlight')
         return self.accept_language.best_match(langs)
 
-    def get_content_range(self):
+    def _best_match_language_1_8(self):
+        """Determines best available locale from the Accept-Language header.
+
+        :returns: the best language match or None if the 'Accept-Language'
+                  header was not available in the request.
+        """
+        if not self.accept_language:
+            return None
+        langs = i18n.get_available_languages('searchlight')
+        # NOTE(rosmaita): give the webob lookup() function a sentinal value
+        # for default so we can preserve the behavior of this function.
+        # See Launchpad bug #1765748 for details.
+        best_match = self.accept_language.lookup(langs, default='fake_LANG')
+        if best_match == 'fake_LANG':
+            best_match = None
+        return best_match
+
+    def best_match_language(self):
+        if USING_WEBOB_1_8:
+            return self._best_match_language_1_8()
+        else:
+            return self._best_match_language_1_7()
+
+
+def get_content_range(self):
         """Return the `Range` in a request."""
         range_str = self.headers.get('Content-Range')
         if range_str is not None:
@@ -748,9 +779,10 @@ class JSONRequestDeserializer(object):
         """
         request_encoding = request.headers.get('transfer-encoding', '').lower()
         is_valid_encoding = request_encoding in self.valid_transfer_encoding
+
         if is_valid_encoding and request.is_body_readable:
             return True
-        elif request.content_length > 0:
+        elif request.content_length is not None and request.content_length > 0:
             return True
 
         return False
