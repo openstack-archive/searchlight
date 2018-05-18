@@ -25,15 +25,14 @@ import socket
 import subprocess
 
 import fixtures
+import mock
 from oslo_config import cfg
-from oslotest import moxstubout
 import six
 from six.moves import BaseHTTPServer
 import testtools
 import webob
 
 from searchlight.common import config
-from searchlight.common import exception
 from searchlight.common import property_utils
 from searchlight.common import utils
 from searchlight.common import wsgi
@@ -54,9 +53,11 @@ class BaseTestCase(testtools.TestCase):
         config.parse_args(args=[], default_config_files=[])
         self.addCleanup(CONF.reset)
 
-        mox_fixture = self.useFixture(moxstubout.MoxStubout())
-        self.stubs = mox_fixture.stubs
-        self.stubs.Set(exception, '_FATAL_EXCEPTION_FORMAT_ERRORS', True)
+        self.mock_exception = mock.patch(
+            'searchlight.common.exception',
+            True)
+        self.mock_exception.start()
+
         self.test_dir = self.useFixture(fixtures.TempDir()).path
         self.conf_dir = os.path.join(self.test_dir, 'etc')
         utils.safe_mkdirs(self.conf_dir)
@@ -122,6 +123,7 @@ class BaseTestCase(testtools.TestCase):
 
 class requires(object):
     """Decorator that initiates additional test setup/teardown."""
+
     def __init__(self, setup=None, teardown=None):
         self.setup = setup
         self.teardown = teardown
@@ -140,6 +142,7 @@ class requires(object):
 
 class depends_on_exe(object):
     """Decorator to skip test if an executable is unavailable"""
+
     def __init__(self, exe):
         self.exe = exe
 
@@ -591,6 +594,7 @@ class FlavorDictObj(DictObj):
 
 class StevedoreMock(object):
     """Act like a stevedore-loaded plugin"""
+
     def __init__(self, plugin):
         self.obj = plugin
         self.name = plugin.document_type
