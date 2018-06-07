@@ -35,10 +35,10 @@ for complex requests, additional specifications ("specs") may be needed.
 
 The workflow is very simple:
 
- * If something is clearly broken, submit a `bug report`_ in Launchpad.
- * If you want to change or add a feature, submit a `blueprint`_ in Launchpad.
- * Searchlight drivers may request that you submit a `specification`_ to gerrit to elaborate on the feature request
- * Significant features require `Release Notes`_ to be included when the code is merged
+* If something is clearly broken, submit a `bug report`_ in Launchpad.
+* If you want to change or add a feature, submit a `blueprint`_ in Launchpad.
+* Searchlight drivers may request that you submit a `specification`_ to gerrit to elaborate on the feature request
+* Significant features require `Release Notes`_ to be included when the code is merged
 
 .. note::
 
@@ -62,11 +62,11 @@ Bug Reports
 
 Current Bugs are found here:
 
- * https://bugs.launchpad.net/searchlight
+* https://bugs.launchpad.net/searchlight
 
 A bug may be filed here:
 
- * https://bugs.launchpad.net/searchlight/+filebug
+* https://bugs.launchpad.net/searchlight/+filebug
 
 Please provide information on what the problem is, how to replicate it,
 any suggestions for fixing it, and a recommendation of the priority.
@@ -83,8 +83,8 @@ To mark a bug as a private security bug, set the value for the field "This bug
 contains information that is:" from "Public" to "Private Security". If you have
 questions, please contact either of the following groups:
 
- * `Searchlight Core Security Team <https://launchpad.net/~searchlight-coresec>`_
- * `OpenStack Vulnerability Management Process <https://security.openstack.org/vmt-process.html>`_
+* `Searchlight Core Security Team <https://launchpad.net/~searchlight-coresec>`_
+* `OpenStack Vulnerability Management Process <https://security.openstack.org/vmt-process.html>`_
 
 In the event that a bug filed as a private security bug is determined not to
 have security implications, the bug will be moved to a public bug report.
@@ -96,11 +96,11 @@ Blueprints
 
 Current blueprints are found here:
 
- * https://blueprints.launchpad.net/searchlight
+* https://blueprints.launchpad.net/searchlight
 
 A blueprint may be filed here:
 
- * https://blueprints.launchpad.net/searchlight/+addspec
+* https://blueprints.launchpad.net/searchlight/+addspec
 
 The initial blueprint primarily needs to express the intent of the idea with
 enough details that the idea can be evaluated for compatibility with the
@@ -112,7 +112,7 @@ Searchlight team members will request more information as needed.
 
 The following template provides guidance on the type of information to include:
 
- * https://blueprints.launchpad.net/searchlight/+spec/searchlight-blueprint-template
+* https://blueprints.launchpad.net/searchlight/+spec/searchlight-blueprint-template
 
 If the blueprint starts to seem non-trivial, or seem like it will benefit
 from a better tool for comments and change tracking, then you should
@@ -128,9 +128,9 @@ We use the `searchlight-specs
 <http://git.openstack.org/cgit/openstack/searchlight-specs>`_ repository for
 specification reviews. Specifications:
 
- * Provide a review tool for collaborating on feedback and reviews for complex features
- * Serve as the basis for documenting the feature once implemented
- * Ensure that the overall impact on the system is considered
+* Provide a review tool for collaborating on feedback and reviews for complex features
+* Serve as the basis for documenting the feature once implemented
+* Ensure that the overall impact on the system is considered
 
 The Searchlight team does not enforce deadlines for specs. These can be submitted
 throughout the release cycle. The drivers team will review this on a regular
