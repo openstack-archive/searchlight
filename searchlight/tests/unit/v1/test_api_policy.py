@@ -291,7 +291,8 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             'service_user_domain_id': None,
             'service_project_id': None,
             'service_project_domain_id': None,
-            'service_roles': []
+            'service_roles': [],
+            'system_scope': None
         }
 
         fake_target = {
