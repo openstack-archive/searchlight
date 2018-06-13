@@ -405,7 +405,7 @@ def no_4byte_params(f):
     def wrapper(*args, **kwargs):
 
         def _is_match(some_str):
-            return (isinstance(some_str, unicode) and
+            return (isinstance(some_str, six.text_type) and
                     REGEX_4BYTE_UNICODE.findall(some_str) != [])
 
         def _check_dict(data_dict):
