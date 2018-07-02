@@ -16,6 +16,17 @@ Team and repository tags
 Searchlight
 ===========
 
+Horizon panels and libraries for searchlight
+
+* Free software: Apache license
+* Documentation: https://docs.openstack.org/searchlight/latest/
+* Launchpad project: https://launchpad.net/searchlight
+* Blueprints: https://blueprints.launchpad.net/searchlight
+* Source: http://git.openstack.org/cgit/openstack/searchlight
+* Bugs: https://bugs.launchpad.net/searchlight
+* Release notes: https://docs.openstack.org/releasenotes/searchlight/
+* Specs: https://specs.openstack.org/openstack/searchlight-specs/
+
 The Searchlight project provides indexing and search capabilities across
 OpenStack resources. Its goal is to achieve high performance and flexible
 querying combined with near real-time indexing.
