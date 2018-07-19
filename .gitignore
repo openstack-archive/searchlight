@@ -2,7 +2,7 @@
 *.log
 .searchlight-venv
 .venv
-.testrepository/
+.stestr/
 .tox
 .coverage*
 cover/*
