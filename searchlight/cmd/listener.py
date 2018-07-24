@@ -26,7 +26,7 @@ CONF.import_group("listener", "searchlight.listener")
 
 def main():
     service.prepare_service()
-    launcher = os_service.ProcessLauncher(CONF)
+    launcher = os_service.ProcessLauncher(CONF, restart_method='mutate')
     launcher.launch_service(
         listener.ListenerService(),
         workers=CONF.listener.workers)
