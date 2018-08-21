@@ -12,25 +12,56 @@ Team and repository tags
 
 .. Change things from this point on
 
-===========
-Searchlight
-===========
-
-Horizon panels and libraries for searchlight
-
-* Free software: Apache license
-* Documentation: https://docs.openstack.org/searchlight/latest/
-* Launchpad project: https://launchpad.net/searchlight
-* Blueprints: https://blueprints.launchpad.net/searchlight
-* Source: http://git.openstack.org/cgit/openstack/searchlight
-* Bugs: https://bugs.launchpad.net/searchlight
-* Release notes: https://docs.openstack.org/releasenotes/searchlight/
-* Specs: https://specs.openstack.org/openstack/searchlight-specs/
+========
+Welcome!
+========
 
 The Searchlight project provides indexing and search capabilities across
 OpenStack resources. Its goal is to achieve high performance and flexible
-querying combined with near real-time indexing.
+querying combined with near real-time indexing. It uses Elasticsearch, a
+real-time distributed indexing and search engine built on Apache Lucene, but
+adds OpenStack authentication and Role Based Access Control to provide
+appropriate protection of data.
+
+Documentations
+==============
+
+* Installation instruction and user guides:
+  https://docs.openstack.org/searchlight/latest
+* Searchlight wiki:
+  https://wiki.openstack.org/wiki/Searchlight
+* Release notes: https://docs.openstack.org/releasenotes/searchlight/
+* Specs: https://specs.openstack.org/openstack/searchlight-specs/
+
+Code
+====
+
+Searchlight code is available in the following repositories:
+
+* Searchlight API and Listener:
+  https://git.openstack.org/cgit/openstack/searchlight
+* Searchlight Python client:
+  https://git.openstack.org/cgit/openstack/python-searchlightclient
+* Searchlight Horizon UI:
+  https://git.openstack.org/cgit/openstack/searchlight-ui
+
+Bugs
+====
+
+Please report bugs at https://bugs.launchpad.net/searchlight
+
+License
+=======
+
+Apache Licence 2.0
+
+Other Resources
+===============
 
 Use the following resources to learn more:
 
-* `Official Searchlight documentation <https://docs.openstack.org/searchlight/latest>`_
+* Launchpad project: https://launchpad.net/searchlight
+* Blueprints: https://blueprints.launchpad.net/searchlight
+* Send mail to openstack-dev@lists.openstack.org with [Searchlight]
+  tag for help and hacking of Searchlight
+* IRC channel: #openstack-searchlight
