@@ -2,12 +2,17 @@
     templates:
       - openstack-python-jobs
       - openstack-python35-jobs
+      - openstack-python36-jobs
       - publish-openstack-docs-pti
       - check-requirements
       - release-notes-jobs-python3
     check:
       jobs:
         - openstack-tox-lower-constraints
+        - openstack-tox-py36:
+            voting: false
     gate:
       jobs:
         - openstack-tox-lower-constraints
+        - openstack-tox-py36:
+            voting: false
