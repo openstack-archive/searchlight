@@ -250,7 +250,7 @@ option. Specifying both options on the command line will result in an error.
 .. _ES-Index-Cleanup:
 
 Elasticsearch Index Cleanup
-===========================
+---------------------------
 
 In some cases, there may be orphaned Searchlight indices in Elasticsearch.
 An orphaned index is one that is no longer used by Searchlight, either
@@ -296,3 +296,35 @@ Searchlight configuration. NOTE: If there are other Searchlight
 instances running with a different configuration, their indices and aliases
 will not by displayed by this command. The user will need to rerun the
 ``index aliases`` command using these other configuration files.
+
+.. _Notifications:
+
+Notifications
+=============
+Aside from periodic reindexing, Searchlight can index in close to real-time
+by subscribing to oslo.messaging notifications_. To configure services to send
+them, it's typically only necessary to enable a driver in their configuration
+files::
+
+  [oslo_messaging_notifications]
+  driver = messaging
+
+Most notifications are emitted by a service's API but some services also emit
+them in scheduler or conductor components.
+
+Searchlight subscribes to notifications using a listener pool_ so it will not
+steal notifications from e.g. telemetry projects.
+
+.. _oslo-notifications: https://wiki.openstack.org/wiki/Oslo/Messaging#Emitting_Notifications
+.. _pool: https://specs.openstack.org/openstack/oslo-specs/specs/kilo/notification-listener-pools.html
+
+RabbitMQ
+--------
+The rabbitmq driver is the most commonly used. The permissions_ required for
+searchlight are::
+
+* configure: '^(searchlight-listener|openstack|nova|neutron|cinder|glance)$'
+* write: '^(searchlight-listener)$'
+* read: '^(searchlight-listener|nova|glance|cinder|neutron|openstack)$'
+
+.. _permissions: https://www.rabbitmq.com/access-control.html
