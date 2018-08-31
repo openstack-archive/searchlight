@@ -30,17 +30,21 @@ class TestExternalVersion(testtools.TestCase):
         self.timestamp = '2015-12-15 06:40:55.012316'
 
     def get_interval(self, version1, version2):
-        return int(version1[:9]) - int(version2[:9])
+        '''
+            We're only interested in the resource data, not
+            the messaging one
+        '''
+        return (version1 // 10 ** 9) - (version2 // 10 ** 9)
 
     def test_use_update_with_timestamp(self):
         version = NotificationBase.get_version(self.payload, self.timestamp)
-        self.assertEqual('450161655161655012', version)
-        self.assertEqual(18, len(version))
+        self.assertEqual(450161655161655012, version)
+        self.assertGreater(version, 10 ** 17)
 
         aware_version = NotificationBase.get_version(self.aware_payload,
                                                      self.timestamp)
-        self.assertEqual('450132855161655012', aware_version)
-        self.assertEqual(18, len(aware_version))
+        self.assertEqual(450132855161655012, aware_version)
+        self.assertEqual(18, len(str(aware_version)))
 
         self.assertEqual(self.get_interval(version, aware_version), 28800)
 
@@ -49,24 +53,24 @@ class TestExternalVersion(testtools.TestCase):
         self.aware_payload.pop('updated_at')
 
         version = NotificationBase.get_version(self.payload, self.timestamp)
-        self.assertEqual('449902455161655012', version)
-        self.assertEqual(18, len(version))
+        self.assertEqual(449902455161655012, version)
+        self.assertEqual(18, len(str(version)))
 
         aware_version = NotificationBase.get_version(self.aware_payload,
                                                      self.timestamp)
-        self.assertEqual('449873655161655012', aware_version)
-        self.assertEqual(18, len(aware_version))
+        self.assertEqual(449873655161655012, aware_version)
+        self.assertEqual(18, len(str(aware_version)))
 
         self.assertEqual(self.get_interval(version, aware_version), 28800)
 
     def test_use_update_without_timestamp(self):
         version = NotificationBase.get_version(self.payload)
-        self.assertEqual('450161655000000000', version)
-        self.assertEqual(18, len(version))
+        self.assertEqual(450161655000000000, version)
+        self.assertEqual(18, len(str(version)))
 
         aware_version = NotificationBase.get_version(self.aware_payload)
-        self.assertEqual('450132855000000000', aware_version)
-        self.assertEqual(18, len(aware_version))
+        self.assertEqual(450132855000000000, aware_version)
+        self.assertEqual(18, len(str(aware_version)))
 
         self.assertEqual(self.get_interval(version, aware_version), 28800)
 
@@ -75,12 +79,12 @@ class TestExternalVersion(testtools.TestCase):
         self.aware_payload.pop('updated_at')
 
         version = NotificationBase.get_version(self.payload)
-        self.assertEqual('449902455000000000', version)
-        self.assertEqual(18, len(version))
+        self.assertEqual(449902455000000000, version)
+        self.assertEqual(18, len(str(version)))
 
         aware_version = NotificationBase.get_version(self.aware_payload)
-        self.assertEqual('449873655000000000', aware_version)
-        self.assertEqual(18, len(aware_version))
+        self.assertEqual(449873655000000000, aware_version)
+        self.assertEqual(18, len(str(aware_version)))
 
         self.assertEqual(self.get_interval(version, aware_version), 28800)
 

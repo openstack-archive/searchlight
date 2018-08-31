@@ -797,6 +797,8 @@ class NotificationBase(object):
                                timestamp_obj.microsecond // 1000)
             truncate_timestamp = str(timestamp_milli)[-9:].zfill(9)
             # truncate updated epoch because we are run out of numbers.
-            return '%s%s' % (str(updated_epoch)[-9:], truncate_timestamp)
+            final_stamp = int(str(updated_epoch)[-9:] +
+                              str(truncate_timestamp))
         else:
-            return '%s%s' % (str(updated_epoch)[-9:], '0' * 9)
+            final_stamp = int(str(updated_epoch)[-9:] + '0' * 9)
+        return final_stamp
