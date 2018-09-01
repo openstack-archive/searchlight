@@ -11,9 +11,9 @@ the workflow documented at:
 
 Pull requests submitted through GitHub will be ignored.
 
-Bugs should be filed on Launchpad, not GitHub:
+Bugs should be filed on Storyboard, not GitHub:
 
-   https://bugs.launchpad.net/searchlight/
+   https://storyboard.openstack.org/#!/project_group/93
 
 Further documentation on feature request and bug report processes may be
 found here:
