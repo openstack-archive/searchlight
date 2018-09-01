@@ -29,14 +29,14 @@ Workflow
 ========
 
 Our process is meant to allow users, developers, and operators to express
-their desires for new features using Launchpad blueprints. A review of
+their desires for new features using Storyboard blueprints. A review of
 blueprints is done regularly. These may turn directly into features, or
 for complex requests, additional specifications ("specs") may be needed.
 
 The workflow is very simple:
 
-* If something is clearly broken, submit a `bug report`_ in Launchpad.
-* If you want to change or add a feature, submit a `blueprint`_ in Launchpad.
+* If something is clearly broken, submit a `bug report`_ in Storyboard.
+* If you want to change or add a feature, submit a `blueprint`_ in Storyboard.
 * Searchlight drivers may request that you submit a `specification`_ to gerrit to elaborate on the feature request
 * Significant features require `Release Notes`_ to be included when the code is merged
 
@@ -62,11 +62,9 @@ Bug Reports
 
 Current Bugs are found here:
 
-* https://bugs.launchpad.net/searchlight
+* https://storyboard.openstack.org/#!/project_group/93
 
-A bug may be filed here:
-
-* https://bugs.launchpad.net/searchlight/+filebug
+A bug may be filed by adding a story.
 
 Please provide information on what the problem is, how to replicate it,
 any suggestions for fixing it, and a recommendation of the priority.
@@ -96,11 +94,9 @@ Blueprints
 
 Current blueprints are found here:
 
-* https://blueprints.launchpad.net/searchlight
+* https://storyboard.openstack.org/#!/project_group/93
 
-A blueprint may be filed here:
-
-* https://blueprints.launchpad.net/searchlight/+addspec
+A blueprint may be filed by adding a story.
 
 The initial blueprint primarily needs to express the intent of the idea with
 enough details that the idea can be evaluated for compatibility with the
@@ -110,14 +106,11 @@ expected to contain all of the implementation details. If the feature
 is very simple and well understood by the team, then describe it simply.
 Searchlight team members will request more information as needed.
 
-The following template provides guidance on the type of information to include:
-
-* https://blueprints.launchpad.net/searchlight/+spec/searchlight-blueprint-template
-
 If the blueprint starts to seem non-trivial, or seem like it will benefit
 from a better tool for comments and change tracking, then you should
 submit a `specification`_ to gerrit proactively and simply
 link to it from your blueprint to accommodate better reviews.
+
 
 .. _specification:
 
