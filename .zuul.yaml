@@ -9,10 +9,6 @@
     check:
       jobs:
         - openstack-tox-lower-constraints
-        - openstack-tox-py36:
-            voting: false
     gate:
       jobs:
         - openstack-tox-lower-constraints
-        - openstack-tox-py36:
-            voting: false
