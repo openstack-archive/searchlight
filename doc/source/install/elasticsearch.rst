@@ -36,10 +36,10 @@ be found in the `installation instructions <http://www.elasticsearch.org/guide/e
 Installing from packages
 ########################
 
-See the `latest Elasticsearch instructions <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup-repositories.html>`_
+See the `latest Elasticsearch instructions <https://www.elastic.co/guide/en/elasticsearch/reference/2.3/setup-repositories.html>`_
 for instructions about installing in Debian/Ubuntu and Red Hat/Fedora.
 Installing from a package has the advantage of including scripts to run
-`Elasticsearch as a service <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup-service.html>`_.
+`Elasticsearch as a service <https://www.elastic.co/guide/en/elasticsearch/reference/2.3/setup-service.html>`_.
 
 Installing from a download
 ##########################
