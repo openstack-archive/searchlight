@@ -294,8 +294,8 @@ two aliases: ``sl-swift-listener`` and ``sl-swift-search``.
 Any other indices or aliases in Elasticsearch are not used by this specific
 Searchlight configuration. NOTE: If there are other Searchlight
 instances running with a different configuration, their indices and aliases
-will not by displayed by this command. The user will need to rerun the
-``index aliases`` command using these other configuration files.
+will not be displayed by this command. The user will need to rerun the
+``index aliases`` command using other configuration files.
 
 .. _Notifications:
 
