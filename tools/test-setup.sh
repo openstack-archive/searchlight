@@ -13,7 +13,7 @@ if [[ $VERSION_CODENAME = bionic ]]; then
 else
     sudo apt-get install -y default-jre
 fi
-wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.2/elasticsearch-2.3.2.deb
-sudo dpkg -i elasticsearch-2.3.2.deb
+wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+sudo dpkg -i elasticsearch-2.3.4.deb
 # Make 'elasticsearch' binary callable from within functional tests
 sudo ln -s /usr/share/elasticsearch/bin/elasticsearch /usr/local/bin/elasticsearch
