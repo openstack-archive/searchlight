@@ -13,7 +13,16 @@ if [[ $VERSION_CODENAME = bionic ]]; then
 else
     sudo apt-get install -y default-jre
 fi
-wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
-sudo dpkg -i elasticsearch-2.3.4.deb
+
+ELASTICSEARCH_MAJOR_VERSION=${ELASTICSEARCH_MAJOR_VERSION:"2"}
+if [[ "$ELASTICSEARCH_MAJOR_VERSION" == "5" ]]; then
+  echo "Downloading and installing elasticsearch 5.6.11"
+  wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.11.deb
+  sudo dpkg -i elasticsearch-5.6.11.deb
+else
+  echo "Downloading and installing elasticsearch 2.3.4"
+  wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
+  sudo dpkg -i elasticsearch-2.3.4.deb
+fi
 # Make 'elasticsearch' binary callable from within functional tests
 sudo ln -s /usr/share/elasticsearch/bin/elasticsearch /usr/local/bin/elasticsearch

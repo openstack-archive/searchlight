@@ -48,9 +48,10 @@ SEARCHLIGHT_SERVICE_PORT=${SEARCHLIGHT_SERVICE_PORT:-9393}
 SEARCHLIGHT_SERVICE_PORT_INT=${SEARCHLIGHT_SERVICE_PORT_INT:-19393}
 
 ELASTICSEARCH_VERSION=${ELASTICSEARCH_VERSION:-2.3.4}
-ELASTICSEARCH_BASEURL=${ELASTICSEARCH_BASEURL:-https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution}
-ELASTICSEARCH_BASEURL_DEB=${ELASTICSEARCH_BASEURL}/deb/elasticsearch
-ELASTICSEARCH_BASEURL_RPM=${ELASTICSEARCH_BASEURL}/rpm/elasticsearch
+# Base URL for ElasticSearch 5.x and 6.x
+ELASTICSEARCH_BASEURL=https://artifacts.elastic.co/downloads/elasticsearch
+# Base URL for ElasticSearch 2.x
+ELASTICSEARCH_BASEURL_LEGACY=https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution
 
 # Helper Functions
 # ----------------
@@ -191,10 +192,26 @@ function init_searchlight {
     $SEARCHLIGHT_BIN_DIR/searchlight-manage --config-file $SEARCHLIGHT_CONF index sync --force
 }
 
+# Install Searchlight's requirements
+# See https://elasticsearch-py.readthedocs.io/en/master/#compatibility
+function _setup_searchlight_dev {
+    setup_develop $SEARCHLIGHT_DIR
+    if [[ $ELASTICSEARCH_VERSION =~ ^5 ]]; then
+        echo "Installing python elasticsearch for ES 5.x"
+        $REQUIREMENTS_DIR/.venv/bin/edit-constraints $REQUIREMENTS_DIR/upper-constraints.txt elasticsearch
+        pip_install -U -r $SEARCHLIGHT_DIR/elasticsearch5.txt
+    elif [[ $ELASTICSEARCH_VERSION =~ ^6 ]]; then
+        echo "WARNING - Searchlight is not tested with ES 6.x!!!"
+        # echo "Installing python elasticsearch for ES 6.x"
+        # $REQUIREMENTS_DIR/.venv/bin/edit-constraints $REQUIREMENTS_DIR/upper-constraints.txt eleasticsearch
+        # pip install -c $REQUIREMENTS_DIR/upper-constraints.txt -U -r $SEARCHLIGHT_DIR/elasticsearch6.txt
+    fi
+}
+
 # install_searchlight - Collect source and prepare
 function install_searchlight {
     git_clone $SEARCHLIGHT_REPO $SEARCHLIGHT_DIR $SEARCHLIGHT_BRANCH
-    setup_develop $SEARCHLIGHT_DIR
+    _setup_searchlight_dev
     _download_elasticsearch
     _install_elasticsearch
     pip_install uwsgi
@@ -256,12 +273,25 @@ function _wget_elasticsearch {
 }
 
 function _download_elasticsearch {
-    echo "Downloading elasticsearch"
     if is_ubuntu; then
-        _wget_elasticsearch $ELASTICSEARCH_BASEURL_DEB/${ELASTICSEARCH_VERSION} elasticsearch-${ELASTICSEARCH_VERSION}.deb
+        arch="deb"
     elif is_fedora; then
-        _wget_elasticsearch $ELASTICSEARCH_BASEURL_RPM/${ELASTICSEARCH_VERSION} elasticsearch-${ELASTICSEARCH_VERSION}.rpm
+        arch="rpm"
+    else
+        echo "Unknown architecture; can't download ElasticSearch"
     fi
+    ELASTICSEARCH_FILENAME=elasticsearch-${ELASTICSEARCH_VERSION}.${arch}
+
+    if [[ $ELASTICSEARCH_VERSION =~ ^2 ]]; then
+        ELASTICSEARCH_URL=${ELASTICSEARCH_BASEURL_LEGACY}/${arch}/elasticsearch/${ELASTICSEARCH_VERSION}
+    elif [[ $ELASTICSEARCH_VERSION =~ ^5 ]]; then
+        ELASTICSEARCH_URL=${ELASTICSEARCH_BASEURL}
+    else
+        echo "Current Searchlight only supports ElasticSearch 2.x and 5.x"
+    fi
+    echo "Downloading ElasticSearch $ELASTICSEARCH_VERSION"
+    echo "ElasticSearch URL is $ELASTICSEARCH_URL"
+    _wget_elasticsearch $ELASTICSEARCH_URL $ELASTICSEARCH_FILENAME
 }
 
 function _check_elasticsearch_ready {
@@ -280,7 +310,7 @@ function _start_elasticsearch {
         sudo /bin/systemctl start elasticsearch.service
         _check_elasticsearch_ready
     else
-        echo "Unsupported architecture...can not start elasticsearch."
+        echo "Unsupported architecture... Can not start elasticsearch."
     fi
 }
 
@@ -296,15 +326,14 @@ function _stop_elasticsearch {
 }
 
 function _install_elasticsearch {
-    echo "Installing elasticsearch"
-    pip_install_gr elasticsearch
+    # echo "Installing elasticsearch"
+    # pip_install_gr elasticsearch
     if is_package_installed elasticsearch; then
         echo "Note: elasticsearch was already installed."
         return
     fi
     if is_ubuntu; then
         is_package_installed default-jdk-headless || install_package default-jdk-headless
-
         sudo dpkg -i ${FILES}/elasticsearch-${ELASTICSEARCH_VERSION}.deb
         sudo update-rc.d elasticsearch defaults 95 10
     elif is_fedora; then

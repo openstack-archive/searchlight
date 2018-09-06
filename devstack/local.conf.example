@@ -64,6 +64,9 @@ IMAGE_URLS+=",https://cloud-images.ubuntu.com/releases/xenial/release/ubuntu-16.
 # Fedora 21 cloud image (e.g. for AWS LoadBalancer resource in Heat)
 #IMAGE_URLS+=",http://download.fedoraproject.org/pub/fedora/linux/releases/21/Cloud/Images/x86_64/Fedora-Cloud-Base-20141203-21.x86_64.qcow2"
 
+# ElasticSearch version
+# Currently, only ElasticSearch 2.x and 5.x are supported
+ELASTICSEARCH_VERSION=5.6.11
 
 ### CONFIGURE INSTALLED SERVICES ###
 #
