@@ -5,10 +5,5 @@
       - openstack-python36-jobs
       - publish-openstack-docs-pti
       - check-requirements
+      - openstack-lower-constraints-jobs
       - release-notes-jobs-python3
-    check:
-      jobs:
-        - openstack-tox-lower-constraints
-    gate:
-      jobs:
-        - openstack-tox-lower-constraints
