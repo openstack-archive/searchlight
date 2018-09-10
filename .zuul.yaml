@@ -7,6 +7,3 @@
       - check-requirements
       - openstack-lower-constraints-jobs
       - release-notes-jobs-python3
-      - translation-jobs-master-stable
-      - api-ref-jobs
-      - release-openstack-server
