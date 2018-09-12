@@ -36,9 +36,7 @@ local.conf.
 Full example local.conf
 =======================
 
-The example local.conf MAY not be up to date with the rest of devstack.
-
-:download:`local.conf <local.conf>`
+The example `local.conf <local.conf>`_ MAY not be up to date with the rest of devstack.
 
 .. note::
    You will need to look through the settings and potentially customize it to your
