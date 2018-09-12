@@ -48,7 +48,7 @@ Searchlight code is available in the following repositories:
 Bugs
 ====
 
-Please report bugs at https://storyboard.openstack.org/#!/project_group/93
+Please report bugs at https://storyboard.openstack.org/#!/project_group/searchlight
 
 License
 =======
@@ -60,7 +60,7 @@ Other Resources
 
 Use the following resources to learn more:
 
-* Storyboard project: https://storyboard.openstack.org/#!/project_group/93
+* Storyboard project: https://storyboard.openstack.org/#!/project_group/searchlight
 * Send mail to openstack-dev@lists.openstack.org with [Searchlight]
   tag for help and hacking of Searchlight
 * IRC channel: #openstack-searchlight
