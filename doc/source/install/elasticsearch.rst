@@ -17,56 +17,59 @@
 
 Installing and Configuring Elasticsearch
 ========================================
-The Searchlight indexing service is responsible for indexing data in
-`Elasticsearch <http://www.elastic.co>`_;
-Elasticsearch has very good documentation on installation but some pointers
-are provided here.
 
-.. IMPORTANT:: We *strongly* recommend using Elasticsearch 2.x and the
-   accompanying python client version. Searchlight has not been tested
-   with v5.
+The Searchlight indexing service is responsible for indexing data in
+Elasticsearch [1]_; Elasticsearch has very good documentation on
+installation but some pointers are provided here.
+
+.. IMPORTANT:: We *strongly* recommend using ElasticSearch 5.x and the
+   accompanying python client version [2]_. ElasticSearch 2.x is still
+   supported and will be removed after Stein cycle.
 
 Installation
 ~~~~~~~~~~~~
 
 Elasticsearch requires a Java Runtime Environment (or Java Development Kit). OpenJDK
 and Oracle's Java are supported. Information on the current recommended version can
-be found in the `installation instructions <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html>`_.
+be found in the installation instructions [3]_.
 
-Installing from packages
-########################
+Installing from a download package
+##################################
 
-See the `latest Elasticsearch instructions <https://www.elastic.co/guide/en/elasticsearch/reference/2.3/setup-repositories.html>`_
-for instructions about installing in Debian/Ubuntu and Red Hat/Fedora.
-Installing from a package has the advantage of including scripts to run
-`Elasticsearch as a service <https://www.elastic.co/guide/en/elasticsearch/reference/2.3/setup-service.html>`_.
-
-Installing from a download
-##########################
 Links to various formats and also older versions of Elasticsearch can be found
-on the `download page <http://www.elasticsearch.org/download>`_. Once
-downloaded and extracted, you can start Elasticsearch with::
+on the download page [4]_. Once downloaded and extracted, you can start
+Elasticsearch with:
 
-    $ bin/elasticsearch
+.. code-block:: console
 
-For more details see the `installation instructions <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup.html>`_.
+    bin/elasticsearch
 
-Quick command line example with 2.3.4:
+For more details see the installation instructions [5]_
+
+Quick command line example with 5.6.11:
 
 .. note::
 
     Do the following commands as "root" or via sudo <command>
 
-Download the ES package::
+Download the ES package:
 
-    $ cd ~
-    $ wget https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/deb/elasticsearch/2.3.4/elasticsearch-2.3.4.deb
-    $ sudo dpkg -i elasticsearch-2.3.4.deb
-    $ sudo update-rc.d elasticsearch defaults 95 10
-    $ sudo /etc/init.d/elasticsearch start
+.. code-block:: console
+
+    cd ~
+    wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.11.deb
+    sudo dpkg -i elasticsearch-5.6.11.deb
+    sudo update-rc.d elasticsearch defaults 95 10
+    sudo /etc/init.d/elasticsearch start
+
+.. note::
+
+    If you install ElasticSearch 5.x, You should install
+    python-elasticsearch>=5.0.0. global-requirements currently constrains it to v2.x
 
 Configuration
 ~~~~~~~~~~~~~
+
 Elasticsearch comes with very a very sensible default configuration that
 allows for clustering and high performance out of the box. There are some
 settings, both general and specific to Searchlight's indexing service, that might
@@ -78,6 +81,7 @@ a superset of JSON.
 
 Indices
 #######
+
 Elasticsearch (and Lucene) store information in indices. Within an index can
 be one or more document types. Searchlight's indexing service uses an index
 per service that has a plugin available, and each plugin generally will have
@@ -86,7 +90,9 @@ its own document type. For instance, the glance plugin has *glance.image* and
 Elasticsearch it may make sense to change the default sharing and replication
 mechanism. We also recommend disabling implicit index creation, though if you
 are sharing an Elasticsearch installation this may be inadvisable. The
-following options control indexing behavior::
+following options control indexing behavior:
+
+.. code-block:: yaml
 
     # Number of shards for each index (performance)
     index.number_of_shards: 5
@@ -99,10 +105,13 @@ following options control indexing behavior::
 
 Index settings
 **************
+
 In addition to server-wide index settings it's possible to configure
 Searchlight to apply settings to indices it creates with
 ``searchlight-manage``. Index settings can be specified as follows in
-``searchlight.conf``::
+``searchlight.conf``:
+
+.. code-block:: yaml
 
     [elasticsearch]
     index_settings = refresh_interval:2s,number_of_replicas:1
@@ -115,29 +124,31 @@ Index settings are applied at creation time and so are not limited to the
 are created. If you wish to update settings for an existing index, you
 should use the Elasticsearch API to do so or reindex.
 
-See also:
-
-* http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-index\_.html
-* http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/indices-update-settings.html
+See also [9]_, [10]_.
 
 Scripts
 #######
-The scripting module allows to use scripts in order to evaluate custom expressions.
-Scripting is turned off by default in elasticsearch latest versions.
-Searchlight doesn't allow scripts in the search api but requires scripts to sync Index updates
-from notifications. For security purpose index updates are allowed only for admin role::
+
+The scripting module allows to use scripts in order to evaluate custom
+expressions. Scripting is turned off by default in elasticsearch latest
+versions. Searchlight doesn't allow scripts in the search api but requires
+scripts to sync Index updates from notifications. For security purpose index
+updates are allowed only for admin role.
+
+.. code-block:: yaml
 
     script.engine.groovy.inline.update: on
 
-See also:
-
-* https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html#modules-scripting
+See also [8]_.
 
 Development
 ###########
+
 For development, Elasticsearch's default configuration is overkill. It's
 possible to run Elasticsearch with a much lower memory footprint than by
 default, and you may wish to disable clustering behavior.
+
+.. code-block:: yaml
 
     # Configures elasticsearch as a single node (no discovery)
     node.local: true
@@ -148,9 +159,12 @@ default, and you may wish to disable clustering behavior.
 
 JVM settings
 ************
+
 Setting the ES_HEAP_SIZE environment variable will restrict how much memory
 Elasticsearch uses, equivalent to setting -Xmx and -Xms to the same value for
-the Java runtime. For development you can set it as low as a few tens of MB::
+the Java runtime. For development you can set it as low as a few tens of MB:
+
+.. code-block:: console
 
     export ES_HEAP_SIZE=40m
 
@@ -159,7 +173,10 @@ requires memory on top of that.
 
 Production
 ##########
-Some settings you may wish to change for production::
+
+Some settings you may wish to change for production:
+
+.. code-block:: yaml
 
     # Cluster name is used by cluster discovery; it's important to ensure
     # this is set across all nodes you wish to be in the cluster
@@ -187,23 +204,43 @@ Some settings you may wish to change for production::
     # ES_HEAP_SIZE appropriately (see below). Linux only.
     bootstrap.mlockall: true
 
-For more details see Elasticsearch's `configuration information <http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/setup-configuration.html>`_.
+For more details see Elasticsearch's configuration information [6]_.
 
 Specifying nodes in a cluster
 *****************************
+
 Elasticsearch's default discovery relies on multicast requests. If this isn't
-a good fit, you can use unicast discovery::
+a good fit, you can use unicast discovery:
+
+.. code-block:: yaml
 
     discovery.zen.ping.multicast.enabled: false
     discovery.zen.ping.unicast.hosts: ['w.x.y.z', 'w.x.y.z']
 
 
-See `<http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modules-discovery-zen.html>`_
-for more details.
+See [7]_ for more details.
 
 JVM settings
 ************
+
 For production, Elasticsearch recommends setting the ES_HEAP_SIZE environment
-variable to a value around 60% of a dedicated machine's memory::
+variable to a value around 60% of a dedicated machine's memory:
+
+.. code-block:: yaml
 
     export ES_HEAP_SIZE=2g
+
+
+References
+~~~~~~~~~~
+
+.. [1] https://www.elastic.co/
+.. [2] https://elasticsearch-py.readthedocs.io/en/master/#compatibility
+.. [3] https://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html
+.. [4] https://www.elastic.co/downloads/elasticsearch
+.. [5] https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html
+.. [6] https://www.elastic.co/guide/en/elasticsearch/reference/current/settings.html
+.. [7] https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery-zen.html
+.. [8] https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-scripting.html#modules-scripting
+.. [9] https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index\_.html
+.. [10] https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-update-settings.html

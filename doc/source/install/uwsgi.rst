@@ -16,7 +16,7 @@
 
 
 Running Searchlight API using uWSGI
-========================================
+===================================
 The recommended way to deploy Searchlight is have a web server such as Apache
 or nginx to handle http requests and proxy these requests to Searchlight WSGI
 app running in uWSGI. Searchlight comes with some configuration templates on
