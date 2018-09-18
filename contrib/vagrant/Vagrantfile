@@ -54,7 +54,7 @@ fi
 SCRIPT
 
   config.vm.define "searchlight-ubuntu" do |ubuntu|
-    ubuntu.vm.box = "ubuntu/trusty64"
+    ubuntu.vm.box = "ubuntu/xenial64"
 
     ubuntu.vm.network :private_network, ip: "192.168.27.100"
 
