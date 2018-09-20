@@ -36,11 +36,12 @@ local.conf.
 Full example local.conf
 =======================
 
-The example `local.conf <local.conf>`_ MAY not be up to date with the rest of devstack.
+The example `local.conf.example <local.conf.example>`_ MAY not be up to date
+with the rest of devstack.
 
 .. note::
-   You will need to look through the settings and potentially customize it to your
-   environment, especially ``HOST_IP``.
+   You will need to look through the settings and potentially customize it to
+   your environment, especially ``HOST_IP``.
 
 Existing local.conf customization
 =================================
