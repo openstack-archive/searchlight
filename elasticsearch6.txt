@@ -1,2 +1,2 @@
 # Elasticsearch 6.x
-elasticsearch>=6.0.0,<7.0.0
+elasticsearch>=6.0.0,<7.0.0 # Apache-2.0
