@@ -44,6 +44,7 @@ UUID2 = 'a85abd86-55b3-4d5b-b0b4-5d0a6e6042fc'
 UUID3 = '971ec09a-8067-4bc8-a91f-ae3557f1c4c7'
 UUID4 = '6bbe7cc2-eae7-4c0f-b50d-a7160b0c6a86'
 UUID5 = 'KERNEL-eae7-4c0f-b50d-RAMDISK'
+UUID6 = 'c69d23df-4b3e-4e61-893a-a1dd12200bd3'
 
 CHECKSUM = '93264c3edf5972c9f1cb309543d38a5c'
 
@@ -100,7 +101,8 @@ def _notification_fixture(image_id, **kwargs):
         'size': None,
         'created_at': DATE1,
         'updated_at': DATE1,
-        'properties': {}
+        'properties': {},
+        'visibility': None
     }
     for k, v in kwargs.items():
         if k in notification:
@@ -146,6 +148,10 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             extra_properties={'mysql_version': '5.6', 'hypervisor': 'lxc'}
         )
         self.members_image = _image_fixture(
+            UUID6, owner=TENANT2, checksum=CHECKSUM, name='complex', size=256,
+            visibility='shared', status='active',
+        )
+        self.private_image = _image_fixture(
             UUID3, owner=TENANT2, checksum=CHECKSUM, name='complex', size=256,
             visibility='private', status='active',
         )
@@ -163,7 +169,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
         )
         self.images = [self.simple_image, self.tagged_image,
                        self.complex_image, self.members_image,
-                       self.kernel_ramdisk_image]
+                       self.kernel_ramdisk_image, self.private_image]
 
     def test_resource_group_name(self):
         self.assertEqual('searchlight', self.plugin.resource_group_name)
@@ -288,7 +294,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'checksum': '93264c3edf5972c9f1cb309543d38a5c',
             'container_format': None,
             'disk_format': None,
-            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'id': 'c69d23df-4b3e-4e61-893a-a1dd12200bd3',
             'image_type': 'image',
             'kernel_id': None,
             'members': ['6838eb7b-6ded-434a-882c-b344c77fe8df',
@@ -304,7 +310,7 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'status': 'active',
             'tags': [],
             'virtual_size': None,
-            'visibility': 'private',
+            'visibility': 'shared',
             'created_at': DATE1,
             'updated_at': DATE1
         }
@@ -446,13 +452,13 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                                 '2c014f32-55eb-467d-8fcb-4bd706012f81',
                                 '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'
                             ],
-                            'visibility': 'private',
+                            'visibility': 'shared',
                             'owner': TENANT2,
                             'project_id': TENANT2,
                             'disk_format': None,
                             'name': 'complex',
                             'created_at': '2012-05-16T15:27:36Z',
-                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+                            'id': 'c69d23df-4b3e-4e61-893a-a1dd12200bd3',
                             'image_type': 'image'
                         },
                         {
@@ -475,6 +481,27 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
                             'name': 'kernel_ramdisk',
                             'created_at': '2012-05-16T15:27:36Z',
                             'id': 'KERNEL-eae7-4c0f-b50d-RAMDISK',
+                            'image_type': 'image'
+                        },
+                        {
+                            'kernel_id': None, 'tags': [],
+                            'protected': False,
+                            'min_disk': None,
+                            'min_ram': None,
+                            'virtual_size': None,
+                            'size': 256,
+                            'container_format': None,
+                            'status': 'active',
+                            'updated_at': '2012-05-16T15:27:36Z',
+                            'checksum': '93264c3edf5972c9f1cb309543d38a5c',
+                            'members': [],
+                            'visibility': 'private',
+                            'owner': TENANT2,
+                            'project_id': TENANT2,
+                            'disk_format': None,
+                            'name': 'complex',
+                            'created_at': '2012-05-16T15:27:36Z',
+                            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
                             'image_type': 'image'
                         }
                     ], index=None, versions=versions)
@@ -677,14 +704,10 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'visibility': 'private',
             'owner': '2c014f32-55eb-467d-8fcb-4bd706012f81',
             'project_id': '2c014f32-55eb-467d-8fcb-4bd706012f81',
-            'members': [
-                '6838eb7b-6ded-434a-882c-b344c77fe8df',
-                '2c014f32-55eb-467d-8fcb-4bd706012f81',
-                '5a3e60e8-cfa9-4a9e-a90a-62b42cea92b8'
-            ],
+            'members': [],
             'min_disk': None,
             'virtual_size': None,
-            'id': '971ec09a-8067-4bc8-a91f-ae3557f1c4c7',
+            'id': 'c69d23df-4b3e-4e61-893a-a1dd12200bd3',
             'image_type': 'image',
             'size': 256,
             'name': 'complex',
@@ -762,7 +785,8 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             name=self.members_image['name'],
             is_public=False,
             size=self.members_image['size'],
-            owner=self.members_image['owner'])
+            owner=self.members_image['owner'],
+            visibility='shared')
 
         with mock.patch('glanceclient.v2.image_members.Controller.list',
                         side_effect=glanceclient.exc.NotFound):

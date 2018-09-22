@@ -27,7 +27,7 @@ LOG = logging.getLogger(__name__)
 
 
 def _get_image_members(image):
-    if image['visibility'] == 'public':
+    if image['visibility'] in ['public', 'private']:
         return []
 
     try:
@@ -42,9 +42,12 @@ def _get_image_members(image):
 
 def _normalize_visibility(image_doc):
     """Adjust for a difference in v1 (and notifications) versus v2 where
-    v1 uses 'is_public' (bool) and v2 uses 'visibility' (public/private).
+    v1 uses 'is_public' (bool) and v2 uses 'visibility'
+    (public/private/shared).
     Normalize everything to the v2 model.
     """
+    if image_doc.get('visibility'):
+        return
     is_public = image_doc.pop('is_public', None)
     if is_public is not None:
         image_doc['visibility'] = 'public' if is_public else 'private'

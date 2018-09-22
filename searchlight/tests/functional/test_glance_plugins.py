@@ -112,7 +112,7 @@ class TestGlancePlugins(functional.FunctionalTest):
             "id": uuidutils.generate_uuid(),
             "name": "abc",
             "visibility": "private",
-            "members": [test_api.TENANT1],
+            "members": [],
             "created_at": "2016-04-06T12:48:18Z"
         }
         metadef_doc = {
@@ -223,14 +223,14 @@ class TestGlancePlugins(functional.FunctionalTest):
         accessible_doc = {
             "owner": owner,
             "id": uuidutils.generate_uuid(),
-            "visibility": "private",
+            "visibility": "shared",
             "name": "accessible doc",
             "created_at": "2016-04-06T12:48:18Z"
         }
         inaccessible_doc = {
             "owner": uuidutils.generate_uuid(),
             "id": uuidutils.generate_uuid(),
-            "visibility": "private",
+            "visibility": "shared",
             "name": "inaccessible_doc doc",
             "created_at": "2016-04-06T12:48:18Z"
         }
