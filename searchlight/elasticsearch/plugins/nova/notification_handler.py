@@ -465,8 +465,8 @@ class ServerGroupHandler(base.NotificationBase):
 
 class FlavorHandler(base.NotificationBase):
     """Handles nova flavor versioned notifications. The payload samples are:
-       http://docs.openstack.org/developer/nova/notifications.html#existing-versioned-notifications
-    """
+       https://docs.openstack.org/nova/latest/reference/notifications.html#existing-versioned-notifications
+"""
 
     @classmethod
     def _get_notification_exchanges(cls):
