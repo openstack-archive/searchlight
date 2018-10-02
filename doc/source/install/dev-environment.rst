@@ -143,13 +143,13 @@ All further commands in this section should be run with the venv active:
    $ cd etc/
    $ ls *.sample | while read f; do cp $f $(echo $f | sed "s/.sample$//g"); done
 
-7. Make the directory for Searchlight’s log files
+7. Make the directory for Searchlight's log files
 
 ::
 
    $ mkdir -p ../log
 
-8. Make the directory for Searchlight’s state files
+8. Make the directory for Searchlight's state files
 
 ::
 
@@ -311,7 +311,7 @@ Initialize & Start the API Service
 .. index::
    double: install; api
 
-Open up a new ssh window and log in to your server (or however you’re
+Open up a new ssh window and log in to your server (or however you're
 communicating with your server).
 
 ::

@@ -223,13 +223,13 @@ register publishers in ``setup.cfg``. This is similar to
 plugins to use. Don't forget to re-install the python package(`pip install -e`)
 if you have made changes to publisher entry points.
 Example::
-	
+
     [entry_points]
     searchlight.publisher =
         log_publisher = searchlight.publisher.log.LogPublisher
 
 Publishers can be specified in a default configuration group of `[resource_plugin]`
-in `searchlight.conf` or overridden in a specific plugin’s configuration.
+in `searchlight.conf` or overridden in a specific plugin's configuration.
 Example::
 
     [resource_plugin]
@@ -237,7 +237,7 @@ Example::
 
 Currently publishers only work for incremental updates. Bulk api updates are not
 supported.
- 
+
 Global Configuration Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
