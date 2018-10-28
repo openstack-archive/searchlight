@@ -51,6 +51,7 @@ Indexes
    install/index
    configuration/index
    contributor/index
+   cli/index
 
 
 Contributing
