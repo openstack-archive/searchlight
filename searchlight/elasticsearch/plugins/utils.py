@@ -324,7 +324,7 @@ def setup_alias(index_name, alias_search, alias_listener):
 def alias_search_update(alias_search, index_name):
     """Replace the current index with the specified index in the
        search alias. To avoid a race condition we will need to
-       perform the remove and add atomically (within ElasticSearch).
+       perform the remove and add automatically (within ElasticSearch).
     """
     if not index_name:
         return None

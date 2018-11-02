@@ -203,7 +203,7 @@ The Searchlight Swift plugin resource types follow the hierarchy similar to
 Swift concepts
 ::
 
-    OS::Swift:Acccount(Parent)
+    OS::Swift:Account(Parent)
      -> OS:Swift::Container(Child)
        -> OS::Swift::Object(Grand Child)
 

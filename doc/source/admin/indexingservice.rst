@@ -180,7 +180,7 @@ Incremental Updates
 
 Once a resource has been indexed, typically you will only need to consume
 incremental updates rather than re-index the entire data set again. The
-preferred methodolgy is to set up notification listening.
+preferred methodology is to set up notification listening.
 
 Notifications
 ^^^^^^^^^^^^^
