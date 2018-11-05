@@ -18,7 +18,6 @@ import sys
 
 import oslo_utils.strutils as strutils
 
-from searchlight import i18n
 from searchlight.i18n import _
 
 try:
@@ -50,5 +49,4 @@ def fix_greendns_ipv6():
         os.environ[nogreendns] = 'yes'
 
 
-i18n.enable_lazy()
 fix_greendns_ipv6()
