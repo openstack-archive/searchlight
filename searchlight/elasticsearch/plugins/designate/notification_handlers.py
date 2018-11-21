@@ -76,7 +76,7 @@ class ZoneHandler(base.NotificationBase):
             # event.
             if event_type == 'dns.zone.create':
                 if not items:
-                    LOG.warning("Not writing initial recordsets; exception"
+                    LOG.warning("Not writing initial recordsets; exception "
                                 "occurred during zone indexing")
                     return None
 
