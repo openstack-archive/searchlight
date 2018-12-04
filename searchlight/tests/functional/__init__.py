@@ -845,7 +845,6 @@ class ElasticsearchWrapper(object):
         }
         cmd = 'elasticsearch '
         cmd += ' '.join('--%s=%s' % kv for kv in es_options.items())
-
         # Fork and retain the PID
         self.elasticsearch_pid = test_utils.fork_exec(cmd,
                                                       logfile=os.devnull,
@@ -868,6 +867,7 @@ class ElasticsearchWrapper(object):
         # Wait for elasticsearch to spin up; it takes a while to initialize
         http = httplib2.Http()
         es_url = 'http://localhost:%s' % self.elasticsearch_port
+        time.sleep(10)
         for _ in range(6):
             try:
                 response, content = http.request(es_url)
@@ -876,7 +876,7 @@ class ElasticsearchWrapper(object):
             except socket.error:
                 # Expect 'connection refused' a couple of times
                 pass
-            time.sleep(5)
+            time.sleep(10)
         else:
             raise Exception("Elasticsearch failed to start")
 

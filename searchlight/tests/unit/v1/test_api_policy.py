@@ -285,6 +285,7 @@ class TestSearchPolicy(test_utils.BaseTestCase):
             'roles': ['member'],
             'is_admin_project': True,
             'is_admin': False,
+            'domain_id': None,
             'user_domain_id': None,
             'project_domain_id': None,
             'service_user_id': None,
