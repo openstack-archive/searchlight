@@ -476,7 +476,7 @@ class ServerGroupHandler(base.NotificationBase):
         server_group['members'] = []
         server_group['updated_at'] = utils.get_now_str()
 
-        LOG.debug("creating nova server group"
+        LOG.debug("creating nova server group "
                   "information for %s", server_group['id'])
         version = self.get_version(server_group, timestamp)
         self.index_helper.save_document(server_group, version=version)
@@ -588,6 +588,6 @@ class FlavorHandler(base.NotificationBase):
                                        payload,
                                        flavor_id)
         except Exception as exc:
-            LOG.error('Error deleting flavor %(flavor_id)s'
+            LOG.error('Error deleting flavor %(flavor_id)s '
                       'from index: %(exc)s' %
                       {'flavor_id': flavor_id, 'exc': exc})

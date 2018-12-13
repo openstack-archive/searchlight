@@ -147,7 +147,7 @@ class ListenerService(os_service.Service):
                     for plugin_topic in topic_exchanges:
                         if isinstance(plugin_topic, six.string_types):
                             raise Exception(
-                                _("Plugin %s should return a list of topic"
+                                _("Plugin %s should return a list of topic "
                                   "exchange pairs") %
                                 plugin.__class__.__name__)
                         topics_exchanges.add(plugin_topic)
