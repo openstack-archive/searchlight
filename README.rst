@@ -61,6 +61,6 @@ Other Resources
 Use the following resources to learn more:
 
 * Storyboard project: https://storyboard.openstack.org/#!/project_group/searchlight
-* Send mail to openstack-dev@lists.openstack.org with [Searchlight]
+* Send mail to openstack-discuss@lists.openstack.org with [Searchlight]
   tag for help and hacking of Searchlight
 * IRC channel: #openstack-searchlight
