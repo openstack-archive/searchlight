@@ -25,6 +25,7 @@ import os
 import sys
 
 import eventlet
+from oslo_reports import guru_meditation_report as gmr
 from oslo_utils import encodeutils
 
 
@@ -56,6 +57,7 @@ from searchlight.common import utils
 from searchlight.common import wsgi
 from searchlight import notifier
 from searchlight import service_policies
+from searchlight import version
 
 CONF = cfg.CONF
 CONF.import_group("profiler", "searchlight.common.wsgi")
@@ -77,6 +79,7 @@ def configure_wsgi():
     config.parse_args()
     config.set_config_defaults()
     logging.setup(CONF, 'searchlight')
+    gmr.TextGuruMeditation.setup_autorun(version)
     utils.register_plugin_opts()
 
     # Fail fast if service policy files aren't found

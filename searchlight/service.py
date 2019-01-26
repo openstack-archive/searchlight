@@ -21,8 +21,10 @@ from oslo_config import cfg
 import oslo_i18n
 from oslo_log import log
 import oslo_messaging
+from oslo_reports import guru_meditation_report as gmr
 
 from searchlight.common import utils
+from searchlight import version
 
 CONF = cfg.CONF
 
@@ -38,7 +40,7 @@ def prepare_service(argv=None):
     oslo_i18n.enable_lazy()
     log.set_defaults(_DEFAULT_LOG_LEVELS)
     log.register_options(CONF)
-
+    gmr.TextGuruMeditation.setup_autorun(version)
     utils.register_plugin_opts()
 
     if argv is None:
