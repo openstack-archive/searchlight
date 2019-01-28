@@ -14,8 +14,12 @@
 # limitations under the License.
 
 import os
-
 import simplejson as json
+
+from glanceclient.v2 import client as glance
+from keystoneauth1 import session
+from keystoneclient.auth.identity import v2
+import novaclient.client
 
 IMAGES_FILE = "searchlight/tests/functional/data/load/images.json"
 METADEFS_FILE = "searchlight/tests/functional/data/load/metadefs.json"
@@ -25,12 +29,6 @@ SERVERS_FILE = "searchlight/tests/functional/data/load/servers.json"
 FLAVORS_FILE = "searchlight/tests/functional/data/load/flavors.json"
 SERVER_GROUP_FILE = \
     "searchlight/tests/functional/data/load/server_groups.json"
-
-
-from glanceclient.v2 import client as glance
-from keystoneauth1 import session
-from keystoneclient.auth.identity import v2
-import novaclient.client
 
 _session = None
 

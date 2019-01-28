@@ -13,7 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_i18n import *  # noqa
+from oslo_i18n import get_available_languages  # noqa
+from oslo_i18n import translate  # noqa
+from oslo_i18n import TranslatorFactory  # noqa
 
 _translators = TranslatorFactory(domain='searchlight')
 

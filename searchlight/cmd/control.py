@@ -31,6 +31,13 @@ import sys
 import tempfile
 import time
 
+from oslo_config import cfg
+from oslo_utils import units
+from six.moves import range
+
+from searchlight.common import config
+from searchlight.i18n import _
+
 # If ../searchlight/__init__.py exists, add ../ to Python search path, so that
 # it will override what happens to be installed in /usr/(local/)lib/python...
 possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
@@ -38,14 +45,6 @@ possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir))
 if os.path.exists(os.path.join(possible_topdir, 'searchlight', '__init__.py')):
     sys.path.insert(0, possible_topdir)
-
-from oslo_config import cfg
-from oslo_utils import units
-# NOTE(jokke): simplified transition to py3, behaves like py2 xrange
-from six.moves import range
-
-from searchlight.common import config
-from searchlight.i18n import _
 
 CONF = cfg.CONF
 

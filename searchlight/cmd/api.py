@@ -21,13 +21,24 @@
 Searchlight API Server
 """
 
+import eventlet
 import os
 import sys
 
-import eventlet
+from oslo_config import cfg
+from oslo_log import log as logging
 from oslo_reports import guru_meditation_report as gmr
 from oslo_utils import encodeutils
+import osprofiler.notifier
+import osprofiler.web
 
+from searchlight.common import config
+from searchlight.common import exception
+from searchlight.common import utils
+from searchlight.common import wsgi
+from searchlight import notifier
+from searchlight import service_policies
+from searchlight import version
 
 # Monkey patch socket, time, select, threads
 # NOTE(sjmc7): to workaround issue with 2.7.12-1ubuntu0~16.04.3 and
@@ -45,19 +56,6 @@ possible_topdir = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
                                    os.pardir))
 if os.path.exists(os.path.join(possible_topdir, 'searchlight', '__init__.py')):
     sys.path.insert(0, possible_topdir)
-
-from oslo_config import cfg
-from oslo_log import log as logging
-import osprofiler.notifier
-import osprofiler.web
-
-from searchlight.common import config
-from searchlight.common import exception
-from searchlight.common import utils
-from searchlight.common import wsgi
-from searchlight import notifier
-from searchlight import service_policies
-from searchlight import version
 
 CONF = cfg.CONF
 CONF.import_group("profiler", "searchlight.common.wsgi")
