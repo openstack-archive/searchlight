@@ -1,0 +1,24 @@
+version: "3"
+services:
+  searchlight-api:
+    build: .
+    ports:
+    - 9393:9393
+    environment:
+      PROCESS: api
+      AUTH_URL: http://192.168.53.31:5000/v3
+      TRANSPORT_URL: rabbitmq://openstack:openstack@192.168.53.31
+      SEARCHLIGHT_PASS: openstack
+      ELASTICSEARCH_HOST: elasticsearch:9200
+
+  searchlight-listener:
+    build: .
+    environment:
+      PROCESS: listener
+      AUTH_URL: http://192.168.53.31:5000/v3
+      TRANSPORT_URL: rabbitmq://openstack:openstack@192.168.53.31
+      SEARCHLIGHT_PASS: openstack
+      ELASTICSEARCH_HOST: elasticsearch:9200
+
+  elasticsearch:
+    image: elasticsearch:5.6
