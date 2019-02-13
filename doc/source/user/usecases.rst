@@ -12,22 +12,10 @@
       under the License.
 
 
-Searchlight Use Cases and Our Vision
-====================================
+Searchlight Use Cases
+=====================
 
-Searchlight was originally developed and released in the Kilo release of
-Glance as the Catalog Index Service [#]_. At the Liberty Summit, we decided
-to broaden the scope to provide advanced and scalable search across
-multi-tenant cloud resources. Over the years, we gathered feedbacks and
-comments both from the cloud developers and users to clarify the real use
-cases of Searchlight. We also developed a grand vision for Searchlight to help
-sustain the project in a rapid changing world.
-
-
-Use Cases
----------
-
-Searchlight can be used in several scenarios such as:
+Below are the use cases of Searchlight:
 
 * **Cloud resources lookup:** whenever the user needs to query some
   information of the desired OpenStack services (e.g. Nova, Neutron, etc.),
@@ -52,31 +40,8 @@ Searchlight can be used in several scenarios such as:
   management operation.
 
 
-Our Vision
-----------
-
-With the modular architecture of Searchlight and based on the discussions of
-the Searchlight team, we envisioned making Searchlight a universal search
-interface not only for OpenStack but also other cloud platforms such as
-Microsoft Azure [#]_, AWS [#]_, or even Kubernetes [#]_, etc.. The final
-product of this vision could be building a multi-cloud management application
-and a unified API for multi-cloud resource discovery, which serves as a
-cloud information base for automation application, e.g., VIM management,
-NFV MANO. This requires new designs of additional data models, APIs,
-communication, and features which are analyzed further in specific use
-case analysis & design documents. References will be provided when available.
-
-.. figure:: ../../../images/SeaaS.png
-   :width: 100%
-   :alt: Search as a Service
-
-
 References
 ----------
 
-.. [#] http://specs.openstack.org/openstack/glance-specs/specs/kilo/catalog-index-service.html
 .. [#] https://storyboard.openstack.org/#!/story/2004721
 .. [#] https://www.slideshare.net/vietstack/building-a-universal-search-interface-for-the-cloud
-.. [#] https://storyboard.openstack.org/#!/story/2004718
-.. [#] https://storyboard.openstack.org/#!/story/2004719
-.. [#] https://storyboard.openstack.org/#!/story/2004382
