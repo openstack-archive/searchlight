@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
+from oslo_serialization import jsonutils
 
 from searchlight.tests.functional import generate_load_data
 
@@ -107,8 +107,8 @@ class FakeGlanceClient(object):
     def __init__(self):
         # Load Images from file
         self._images = []
-        with open(generate_load_data.IMAGES_FILE, "r") as file:
-            image_data = json.load(file)
+        with open(generate_load_data.IMAGES_FILE, "r+b") as file:
+            image_data = jsonutils.load(file)
         for image in image_data:
             fake_image = FakeImage(**image)
             self._images.append(fake_image)
@@ -117,8 +117,8 @@ class FakeGlanceClient(object):
         # Load Images members from file
         self._images_members_dict = dict()
         self._image_members_list = []
-        with open(generate_load_data.IMAGE_MEMBERS_FILE, "r") as file:
-            image_members_data = json.load(file)
+        with open(generate_load_data.IMAGE_MEMBERS_FILE, "r+b") as file:
+            image_members_data = jsonutils.load(file)
         for image_id, image_members in image_members_data.items():
             for image_member in image_members:
                 fake_image_member = FakeImageMember(**image_member)
@@ -129,8 +129,8 @@ class FakeGlanceClient(object):
         # Load Metadef namespaces from file
         self._metadefs_namespace = []
         self.metadefs_namespace = []
-        with open(generate_load_data.METADEFS_FILE, "r") as file:
-            metadefs_namespace_data = json.load(file)
+        with open(generate_load_data.METADEFS_FILE, "r+b") as file:
+            metadefs_namespace_data = jsonutils.load(file)
         for metadef_namespace in metadefs_namespace_data:
             fake_namespace = FakeNamespace(**metadef_namespace)
             self._metadefs_namespace.append(fake_namespace)

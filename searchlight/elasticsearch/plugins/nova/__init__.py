@@ -14,11 +14,12 @@
 # limitations under the License.
 
 import copy
-import json
 import logging
 import novaclient.exceptions
 import novaclient.v2.flavors
 import six
+
+from oslo_serialization import jsonutils
 
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
@@ -196,7 +197,7 @@ def serialize_nova_hypervisor(hypervisor, updated_at=None):
     # to JSON object in microversion 2.28, we should be able to
     # deal with JSON object here.
     if not isinstance(serialized['cpu_info'], dict):
-        serialized['cpu_info'] = json.loads(serialized['cpu_info'])
+        serialized['cpu_info'] = jsonutils.loads(serialized['cpu_info'])
     if not getattr(hypervisor, 'updated_at', None):
         serialized['updated_at'] = updated_at or utils.get_now_str()
     # TODO(lyj): Remove this once hypervisor notifications supported.

@@ -15,15 +15,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-import json
 import os
 from oslo_config import cfg
 import oslo_messaging
+from oslo_serialization import jsonutils
 import six.moves.urllib.parse as urlparse
 import sys
 import time
-
 
 topic = 'notifications'
 password = os.environ.get('RABBIT_PASSWORD', os.environ.get('OS_PASSWORD'))
@@ -35,12 +33,12 @@ class EP(object):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         all_locals = locals()
         all_locals.pop('self')
-        print(json.dumps(all_locals))
+        print(jsonutils.dumps(all_locals))
 
     def error(self, ctxt, publisher_id, event_type, payload, metadata):
         all_locals = locals()
         all_locals.pop('self')
-        print(json.dumps(all_locals))
+        print(jsonutils.dumps(all_locals))
 
 
 def main():

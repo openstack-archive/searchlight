@@ -14,7 +14,8 @@
 # limitations under the License.
 
 import os
-import simplejson as json
+
+from oslo_serialization import jsonutils
 
 from glanceclient.v2 import client as glance
 from keystoneauth1 import session
@@ -78,7 +79,7 @@ def get_glance_images_and_members_with_pyclient():
 
     glance_client = get_glanceclient()
     images = glance_client.images.list()
-    images_json = json.dumps(list(images), indent=4)
+    images_json = jsonutils.dumps(list(images), indent=4)
     with open(IMAGES_FILE, "w") as f:
         f.write(images_json)
 
@@ -92,7 +93,7 @@ def get_glance_images_and_members_with_pyclient():
                 image_members_list = list(image_members)
             if len(image_members_list) > 0:
                 image_members_dict[image['id']] = image_members_list
-    image_members_json = json.dumps(image_members_dict, indent=4)
+    image_members_json = jsonutils.dumps(image_members_dict, indent=4)
     with open(IMAGE_MEMBERS_FILE, "w") as f:
         f.write(image_members_json)
 
@@ -108,7 +109,7 @@ def get_glance_metadefs_with_pyclient():
             namespace['namespace'])
         namespace_list.append(_namespace)
 
-    metadef_namespace_json = json.dumps(namespace_list, indent=4)
+    metadef_namespace_json = jsonutils.dumps(namespace_list, indent=4)
 
     with open(METADEFS_FILE, "w") as f:
         f.write(metadef_namespace_json)
@@ -121,7 +122,7 @@ def get_nova_servers_with_pyclient():
     servers_list = []
     for each in servers:
         servers_list.append(each.to_dict())
-    servers_json = json.dumps(list(servers_list), indent=4)
+    servers_json = jsonutils.dumps(list(servers_list), indent=4)
     with open(SERVERS_FILE, "w") as f:
         f.write(servers_json)
 
@@ -134,7 +135,7 @@ def get_nova_flavors_with_pyclient():
     flavor_dict.pop("links")
     flavor_dict.update({"tenant_id": _get_flavor_tenant(flavor)})
     flavor_dict.update({"extra_spec": flavor.get_keys()})
-    flavors_json = json.dumps([flavor_dict], indent=4)
+    flavors_json = jsonutils.dumps([flavor_dict], indent=4)
     with open(FLAVORS_FILE, "w") as f:
         f.write(flavors_json)
 
@@ -146,7 +147,8 @@ def get_nova_server_groups_with_pyclient():
     server_groups_list = []
     for each in server_groups:
         server_groups_list.append(each.to_dict())
-        server_groups_json = json.dumps(list(server_groups_list), indent=4)
+        server_groups_json = jsonutils.dumps(list(server_groups_list),
+                                             indent=4)
     with open(SERVERS_FILE, "w") as f:
         f.write(server_groups_json)
 

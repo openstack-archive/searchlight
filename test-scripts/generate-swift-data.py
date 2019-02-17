@@ -16,7 +16,6 @@
 # limitations under the License.
 
 
-import json
 from keystoneclient.auth.identity import v2
 from keystoneclient import session
 import os
@@ -25,6 +24,8 @@ from six.moves import range
 import string
 import swiftclient
 import sys
+
+from oslo_serialization import jsonutils
 
 container_base_name = "scale_"
 object_base_name = "object_"
@@ -43,7 +44,7 @@ object_contents = (
                 transform="translate(-70,150)"/>
     </g>
 </svg>"""),
-    ("application/json", json.dumps({"key": ["some", "json", "vals"]})),
+    ("application/json", jsonutils.dumps({"key": ["some", "json", "vals"]})),
     ("text/html", """<html><body>This is some html</body></html>"""),
     ("application/octet-stream", "This is some octet stream"),
     ("application/text", "This is some text")

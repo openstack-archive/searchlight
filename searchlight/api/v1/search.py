@@ -13,11 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-
 from elasticsearch import exceptions as es_exc
 from oslo_config import cfg
 from oslo_log import log as logging
+from oslo_serialization import jsonutils
 from oslo_utils import encodeutils
 import six
 import webob.exc
@@ -553,17 +552,17 @@ class ResponseSerializer(wsgi.JSONResponseSerializer):
         self.schema = schema
 
     def search(self, response, query_result):
-        body = json.dumps(query_result, ensure_ascii=False)
+        body = jsonutils.dumps(query_result, ensure_ascii=False)
         response.unicode_body = six.text_type(body)
         response.content_type = 'application/json'
 
     def plugins_info(self, response, query_result):
-        body = json.dumps(query_result, ensure_ascii=False)
+        body = jsonutils.dumps(query_result, ensure_ascii=False)
         response.unicode_body = six.text_type(body)
         response.content_type = 'application/json'
 
     def facets(self, response, query_result):
-        body = json.dumps(query_result, ensure_ascii=False)
+        body = jsonutils.dumps(query_result, ensure_ascii=False)
         response.unicode_body = six.text_type(body)
         response.content_type = 'application/json'
 

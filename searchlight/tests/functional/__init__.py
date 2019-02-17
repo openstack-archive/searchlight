@@ -26,7 +26,6 @@ import datetime
 import elasticsearch
 import httplib2
 import importlib
-import json
 import logging
 import mock
 import os
@@ -597,8 +596,9 @@ class FunctionalTest(test_utils.BaseTestCase):
 
     def _load_fixture_data(self, name):
         base_dir = "searchlight/tests/functional/data"
-        with open(os.path.join(base_dir, name), 'r') as f:
-            return json.load(f)
+        # binary mode is needed due to bug/1515231
+        with open(os.path.join(base_dir, name), 'r+b') as f:
+            return jsonutils.load(f)
 
     def set_policy_rules(self, rules):
         fap = open(self.policy_file, 'w')

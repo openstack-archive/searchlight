@@ -13,12 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import mock
 import os
 import six
 import time
 
+from oslo_serialization import jsonutils
 from oslo_utils import uuidutils
 
 from searchlight.elasticsearch import ROLE_USER_FIELD
@@ -48,13 +48,13 @@ class TestSearchApi(functional.FunctionalTest):
     it can use plugins for the sake of making requests
     """
     def _modify_policy_file(self, rules):
-        with open(self.policy_file, 'r') as policy_file:
-            existing_policy = json.load(policy_file)
+        with open(self.policy_file, 'r+b') as policy_file:
+            existing_policy = jsonutils.load(policy_file)
 
         existing_policy.update(rules)
 
         with open(self.policy_file, 'w') as policy_file:
-            json.dump(existing_policy, policy_file)
+            jsonutils.dump(existing_policy, policy_file)
 
         time.sleep(2)
 
@@ -1025,7 +1025,7 @@ class TestSearchApi(functional.FunctionalTest):
 class TestServerServicePolicies(functional.FunctionalTest):
     def _write_policy_file(self, filename, rules):
         with open(os.path.join(self.conf_dir, filename), 'w') as pol_file:
-            json.dump(rules, pol_file)
+            jsonutils.dump(rules, pol_file)
 
     def _additional_server_config(self):
         """Create some service policy files"""

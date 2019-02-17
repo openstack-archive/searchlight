@@ -40,8 +40,9 @@ In the case of neutron networks, the initial data will come from
 ``neutronclient``. Some browsing of the API documentation reveals that the
 call I want is ``list_networks``::
 
-    import json
     import os
+
+    from oslo_serialization import jsonutils
 
     from keystoneclient.auth.identity import v2
     from keystoneclient import session
@@ -59,7 +60,7 @@ call I want is ``list_networks``::
     nc = nc_20.Client(session=get_session())
     networks = nc.list_networks()
 
-    print(json.dumps(networks, indent=4, sort_keys=True))
+    print(jsonutils.dumps(networks, indent=4, sort_keys=True))
 
 This outputs::
 

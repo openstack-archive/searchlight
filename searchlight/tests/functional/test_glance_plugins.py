@@ -14,9 +14,9 @@
 # limitations under the License.
 
 import copy
-import json
 import mock
 
+from oslo_serialization import jsonutils
 from oslo_utils import uuidutils
 
 from searchlight.listener import NotificationEndpoint
@@ -784,14 +784,14 @@ class TestGlanceLoad(functional.FunctionalTest):
         self.metadefs_plugin = self.initialized_plugins['OS::Glance::Metadef']
 
     def _get_glance_image_owner_and_count(self):
-        with open(generate_load_data.IMAGES_FILE, "r") as file:
-            images_data = json.load(file)
+        with open(generate_load_data.IMAGES_FILE, "r+b") as file:
+            images_data = jsonutils.load(file)
         if len(images_data) > 0:
             return len(images_data), images_data[0]['owner']
 
     def _get_glance_metadefs_owner_and_count(self):
-        with open(generate_load_data.METADEFS_FILE, "r") as file:
-            metadefs_data = json.load(file)
+        with open(generate_load_data.METADEFS_FILE, "r+b") as file:
+            metadefs_data = jsonutils.load(file)
         if len(metadefs_data) > 0:
             return len(metadefs_data), metadefs_data[0]['owner']
 
