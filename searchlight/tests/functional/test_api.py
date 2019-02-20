@@ -95,7 +95,7 @@ class TestSearchApi(functional.FunctionalTest):
     def test_empty_results(self):
         """Test an empty dataset gets empty results."""
         response, json_content = self._search_request(MATCH_ALL, TENANT1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([], self._get_hit_source(json_content))
 
     def test_nested_objects(self):
@@ -207,7 +207,7 @@ class TestSearchApi(functional.FunctionalTest):
 
         response, json_content = self._search_request({"all_projects": True},
                                                       TENANT1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         tenant1_doc["members"] = []
         tenant1_doc["project_id"] = tenant1_doc["owner"]
         self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
@@ -229,7 +229,7 @@ class TestSearchApi(functional.FunctionalTest):
             TENANT1,
             include_fields=False,
             doc_type="OS::Nova::Server")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(set(["doc_count"]),
                          set(six.iterkeys(json_content["OS::Nova::Server"])))
         self.assertEqual(0, json_content["OS::Nova::Server"]["doc_count"])
@@ -549,7 +549,7 @@ class TestSearchApi(functional.FunctionalTest):
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
                                                       role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(json_content['hits']['hits']))
         hit = json_content['hits']['hits'][0]
         self.assertEqual(doc_id + "_ADMIN", hit['_id'])
@@ -562,7 +562,7 @@ class TestSearchApi(functional.FunctionalTest):
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
                                                       role="member")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, len(json_content['hits']['hits']))
         hit = json_content['hits']['hits'][0]
         self.assertEqual(doc_id + "_USER", hit['_id'])
@@ -612,7 +612,7 @@ class TestSearchApi(functional.FunctionalTest):
             response, json_content = self._search_request(full_query,
                                                           TENANT1,
                                                           role="admin")
-            self.assertEqual(200, response.status)
+            self.assertEqual(200, response.status_code)
             self.assertEqual(1, json_content['hits']['total'],
                              "No results for: %s" % query)
             self.assertEqual(doc_id + '_ADMIN',
@@ -622,7 +622,7 @@ class TestSearchApi(functional.FunctionalTest):
             response, json_content = self._search_request(full_query,
                                                           TENANT1,
                                                           role="user")
-            self.assertEqual(200, response.status)
+            self.assertEqual(200, response.status_code)
             self.assertEqual(0, json_content['hits']['total'])
 
         # Run the same queries against 'name'; should get results
@@ -637,7 +637,7 @@ class TestSearchApi(functional.FunctionalTest):
             response, json_content = self._search_request(full_query,
                                                           TENANT1,
                                                           role="user")
-            self.assertEqual(200, response.status)
+            self.assertEqual(200, response.status_code)
             self.assertEqual(1, json_content['hits']['total'],
                              "No results for: %s %s" % (query, json_content))
             self.assertEqual(doc_id + '_USER',
@@ -717,7 +717,7 @@ class TestSearchApi(functional.FunctionalTest):
             "POST", "/search", tenant_id, {"query": {"match_all": {}}},
             decode_json=False,
             extra_headers={"X-Domain-Id": domain_id})
-        self.assertEqual(401, response.status)
+        self.assertEqual(401, response.status_code)
 
     def test_search_version(self):
         id_1 = uuidutils.generate_uuid()
@@ -916,8 +916,8 @@ class TestSearchApi(functional.FunctionalTest):
                                                       role="admin",
                                                       decode_json=False)
         # TODO(sjmc7) Grr! https://bugs.launchpad.net/searchlight/+bug/1610398
-        self.assertNotEqual(200, response.status)
-        # self.assertEqual(403, response.status)
+        self.assertNotEqual(200, response.status_code)
+        # self.assertEqual(403, response.status_code)
 
     def test_aggregation_policy(self):
         query = {
@@ -935,12 +935,12 @@ class TestSearchApi(functional.FunctionalTest):
                                                       TENANT1,
                                                       role="member",
                                                       decode_json=False)
-        self.assertEqual(403, response.status)
+        self.assertEqual(403, response.status_code)
 
         response, json_content = self._search_request(query,
                                                       TENANT1,
                                                       role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
 
         # Now let nobody use aggregations
         self._modify_policy_file({'search:query:aggregations': '!'})
@@ -949,13 +949,13 @@ class TestSearchApi(functional.FunctionalTest):
                                                       TENANT1,
                                                       role="member",
                                                       decode_json=False)
-        self.assertEqual(403, response.status)
+        self.assertEqual(403, response.status_code)
 
         response, json_content = self._search_request(query,
                                                       TENANT1,
                                                       role="admin",
                                                       decode_json=False)
-        self.assertEqual(403, response.status)
+        self.assertEqual(403, response.status_code)
 
     def test_is_admin_project(self):
         """The X-IS-ADMIN-PROJECT header is the current solution to the
@@ -1056,7 +1056,7 @@ class TestServerServicePolicies(functional.FunctionalTest):
     def test_service_policy_facet(self):
         response, json_content = self._facet_request(TENANT1,
                                                      role="user")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertIn('OS::Nova::Server', json_content)
         self.assertIn('OS::Cinder::Volume', json_content)
         self.assertNotIn('OS::Glance::Image', json_content)
@@ -1065,7 +1065,7 @@ class TestServerServicePolicies(functional.FunctionalTest):
 
         response, json_content = self._facet_request(TENANT1,
                                                      role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertIn('OS::Nova::Server', json_content)
         self.assertIn('OS::Glance::Image', json_content)
         self.assertIn('OS::Cinder::Volume', json_content)
@@ -1114,7 +1114,7 @@ class TestServerServicePolicies(functional.FunctionalTest):
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
                                                       role="user")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(2, json_content['hits']['total'])
         self.assertEqual(
             set([server_doc['id'], volume_doc['id']]),
@@ -1123,7 +1123,7 @@ class TestServerServicePolicies(functional.FunctionalTest):
         response, json_content = self._search_request(MATCH_ALL,
                                                       TENANT1,
                                                       role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(3, json_content['hits']['total'])
         self.assertEqual(
             set([server_doc['id'], image_doc['id'], volume_doc['id']]),
@@ -1135,4 +1135,4 @@ class TestServerServicePolicies(functional.FunctionalTest):
                                                       TENANT1,
                                                       role="user",
                                                       decode_json=False)
-        self.assertEqual(403, response.status)
+        self.assertEqual(403, response.status_code)

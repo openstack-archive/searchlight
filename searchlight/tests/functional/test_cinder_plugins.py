@@ -88,7 +88,7 @@ class TestCinderPlugins(functional.FunctionalTest):
         }
         response, json_content = self._search_request(query,
                                                       TENANT_ID1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
 
     def test_snapshots_of_volume(self):
@@ -106,7 +106,7 @@ class TestCinderPlugins(functional.FunctionalTest):
         }
         response, json_content = self._search_request(query,
                                                       TENANT_ID1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual(SNAP_ID1,
                          json_content['hits']['hits'][0]['_source']['id'])
@@ -115,7 +115,7 @@ class TestCinderPlugins(functional.FunctionalTest):
         self._index_data()
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       TENANT_ID1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         hits = [hit['_source'] for hit in json_content['hits']['hits']]
         self.assertEqual(set([VOLUME_ID1, VOLUME_ID2, SNAP_ID1]),
                          set(h['id'] for h in hits))

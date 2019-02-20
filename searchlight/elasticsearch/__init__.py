@@ -16,8 +16,12 @@
 import elasticsearch
 import operator
 from oslo_config import cfg
+from oslo_log import log as logging
 
 from searchlight.common import utils as common_utils
+
+
+LOG = logging.getLogger(__name__)
 
 # Fields that require special handling for sort to avoid sorting
 # on tokenized values

@@ -58,7 +58,7 @@ class TestGlancePlugins(functional.FunctionalTest):
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         # Image_type is metadata on image and not a 'core' glance property.
         # Property protection policy defines access similar to other metadata
         # here.
@@ -79,7 +79,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1,
                                                       role="spl_role")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         expect_removed = ["x_none_permitted", "x_foo_matcher", "x_none_read",
                           "any_old_property", "x_owner_anything",
                           "image_type"]
@@ -94,7 +94,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1,
                                                       role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         expect_removed = ["x_none_permitted", "x_none_read"]
         expected_result = dict((k, v)
                                for k, v in doc_with_properties.items()
@@ -199,12 +199,12 @@ class TestGlancePlugins(functional.FunctionalTest):
         # Query for everything as one tenant then the other
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([tenant1_doc], self._get_hit_source(json_content))
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT2)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([tenant2_doc], self._get_hit_source(json_content))
 
         # Query the hidden doc explicitly
@@ -255,20 +255,20 @@ class TestGlancePlugins(functional.FunctionalTest):
         accessible_doc["members"] = [test_api.TENANT1]
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([accessible_doc], self._get_hit_source(json_content))
 
         accessible_doc["members"] = [test_api.TENANT2]
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT2)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([accessible_doc], self._get_hit_source(json_content))
 
         # A user in 'owner' should see the member list
         accessible_doc["members"] = [test_api.TENANT1, test_api.TENANT2]
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       owner)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([accessible_doc], self._get_hit_source(json_content))
 
         # An admin should see the member list even if they're in another tenant
@@ -278,13 +278,13 @@ class TestGlancePlugins(functional.FunctionalTest):
             {"query": {"term": {"owner": owner}}, "all_projects": True},
             uuidutils.generate_uuid(),
             role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([accessible_doc], self._get_hit_source(json_content))
 
         # A user in another tenant shouldn't see it at all
         response, json_content = self._search_request(
             test_api.MATCH_ALL, uuidutils.generate_uuid())
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([], self._get_hit_source(json_content))
 
     def test_image_rbac_visibility(self):
@@ -318,7 +318,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         # visible doc should be visible to any user
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT2)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([visible_doc], self._get_hit_source(json_content))
 
     def test_metadef_rbac_visibility(self):
@@ -361,7 +361,7 @@ class TestGlancePlugins(functional.FunctionalTest):
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT2)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([visible_doc], self._get_hit_source(json_content))
 
     def test_metadef_rbac_owner(self):
@@ -400,12 +400,12 @@ class TestGlancePlugins(functional.FunctionalTest):
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([visible_doc], self._get_hit_source(json_content))
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT2)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual([], self._get_hit_source(json_content))
 
     def test_index_with_dot_in_field(self):
@@ -422,7 +422,7 @@ class TestGlancePlugins(functional.FunctionalTest):
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       test_api.TENANT1,
                                                       role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         expected = test_doc.copy()
         expected.update(image_type="image", members=[],
                         project_id=test_api.TENANT1)

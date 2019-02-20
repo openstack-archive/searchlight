@@ -72,7 +72,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
 
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       TENANT2)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(5, json_content['hits']['total'])
 
         hits = json_content['hits']['hits']
@@ -86,7 +86,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         response, json_content = self._search_request(
             {"query": {"match_all": {}}, "all_projects": True},
             TENANT2, role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(6, json_content['hits']['total'])
 
     def test_network_rbac_shared_external(self):
@@ -98,7 +98,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         response, json_content = self._search_request(test_api.MATCH_ALL,
                                                       TENANT1)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(5, json_content['hits']['total'])
 
         hits = json_content['hits']['hits']
@@ -118,7 +118,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         response, json_content = self._search_request(
             {"query": {"match_all": {}}, "type": "OS::Neutron::Subnet"},
             TENANT3)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual(
             "doesnt-exist",
@@ -176,7 +176,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         response, json_content = self._search_request(
             {"query": {"match_all": {}}, "type": "OS::Neutron::Port",
              "all_projects": False}, TENANT1, role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(2, json_content['hits']['total'])
 
     def test_router_rbac(self):
@@ -186,14 +186,14 @@ class TestNeutronPlugins(functional.FunctionalTest):
         query = {"query": {"match_all": {}}, "type": "OS::Neutron::Router"}
         response, json_content = self._search_request(query,
                                                       TENANT3)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual('0b143748-44d2-4545-9230-864c3abbc786',
                          json_content['hits']['hits'][0]['_source']['id'])
 
         response, json_content = self._search_request(query,
                                                       TENANT4)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual('324d16fc-c381-4ea4-8f77-feda17cea1d7',
                          json_content['hits']['hits'][0]['_source']['id'])
@@ -215,7 +215,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         }
         response, json_content = self._search_request(query,
                                                       TENANT4)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
 
         fixed_ip_path = "external_gateway_info.external_fixed_ips"
@@ -242,7 +242,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         }
         response, json_content = self._search_request(query,
                                                       TENANT4)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
 
     def test_floatingip_rbac_admin(self):
@@ -251,7 +251,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         query = {"query": {"match_all": {}}, "type": "OS::Neutron::FloatingIP"}
         response, json_content = self._search_request(query,
                                                       TENANT3)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual('f0ff4710-e6f6-42c3-b6af-1b15f91e84b0',
                          json_content['hits']['hits'][0]['_source']['id'])
@@ -259,7 +259,7 @@ class TestNeutronPlugins(functional.FunctionalTest):
         query['all_projects'] = True
         response, json_content = self._search_request(query, TENANT3,
                                                       role='admin')
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(2, json_content['hits']['total'])
 
     def test_secgroup_rbac(self):
@@ -268,13 +268,13 @@ class TestNeutronPlugins(functional.FunctionalTest):
         query = {"query": {"match_all": {}},
                  "type": "OS::Neutron::SecurityGroup"}
         response, json_content = self._search_request(query, TENANT1)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual('223c7074-e593-43f2-a0e6-f6d87ee8fb36',
                          json_content['hits']['hits'][0]['_source']['id'])
 
         response, json_content = self._search_request(query, TENANT3)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual('57512cb7-aa80-9129-b8cc-ddc93612760a',
                          json_content['hits']['hits'][0]['_source']['id'])
@@ -481,7 +481,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         }
         response, json_content = self._search_request(query,
                                                       EV_TENANT)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         hit = json_content['hits']['hits'][0]['_source']
 
@@ -507,7 +507,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
         query = {"type": "OS::Neutron::Port", "query": {"match_all": {}}}
         response, json_content = self._search_request(query,
                                                       EV_TENANT)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual(create_event['payload']['port']['id'],
                          json_content['hits']['hits'][0]['_source']['id'])
@@ -554,7 +554,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Neutron::SecurityGroup"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual(create_event['payload']['security_group']['id'],
                          json_content['hits']['hits'][0]['_source']['id'])
@@ -571,7 +571,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Neutron::SecurityGroup"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         # Verify the new rule was added to the security group.
         groups = (
             json_content['hits']['hits'][0]['_source']['security_group_rules'])
@@ -584,7 +584,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
                  "path": "security_group_rules",
                  "query": {"term": {"security_group_rules.id": rule_id}}}}}
         response, json_content = self._search_request(query, EV_TENANT)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
 
         group = json_content['hits']['hits']
         self.assertEqual(1, len(group))
@@ -596,7 +596,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
                  "path": "security_group_rules",
                  "query": {"term": {"security_group_rules.id": rule_id}}}}}
         response, json_content = self._search_request(query, EV_TENANT)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
 
         group = json_content['hits']['hits']
         self.assertEqual(0, len(group))
@@ -609,7 +609,7 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Neutron::SecurityGroup"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         # Verify the new rule was deleted from the security group.
         groups = (
             json_content['hits']['hits'][0]['_source']['security_group_rules'])
@@ -623,5 +623,5 @@ class TestNeutronListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Neutron::SecurityGroup"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(0, json_content['hits']['total'])

@@ -52,7 +52,7 @@ class TestNovaPlugins(functional.FunctionalTest):
         response, json_content = self._search_request(
             {"query": {"match_all": {}}, "all_projects": True},
             TENANT1, role="admin")
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(2, json_content['hits']['total'])
 
         hits = json_content['hits']['hits']
@@ -124,7 +124,7 @@ class TestNovaPlugins(functional.FunctionalTest):
         }
         response, json_content = self._search_request(query,
                                                       TENANT_ID)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         host_id = u'41d7069823d74c9ea8debda9a3a02bb00b2f7d53a0accd1f79429407'
         hits = json_content['hits']['hits']
@@ -207,7 +207,7 @@ class TestNovaPlugins(functional.FunctionalTest):
             source.pop("updated_at")
         actual_sources = [hit["_source"] for hit in hits]
         self.assertEqual(expected_sources, actual_sources)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
 
     def test_server_groups_rbac(self):
@@ -240,7 +240,7 @@ class TestNovaPlugins(functional.FunctionalTest):
             source.pop("updated_at")
         actual_sources = [hit["_source"] for hit in hits]
         self.assertEqual(expected_sources, actual_sources)
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
 
 
@@ -280,7 +280,7 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
 
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual(create_event['payload']['server_group_id'],
                          json_content['hits']['hits'][0]['_source']['id'])
@@ -293,7 +293,7 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Nova::ServerGroup"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         # Verify the new member was added to the server group.
         members = (
             json_content['hits']['hits'][0]['_source']['members'])
@@ -308,7 +308,7 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Nova::ServerGroup"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         # Verify the new member was deleted from the server group.
         members = (
             json_content['hits']['hits'][0]['_source']['members'])
@@ -322,7 +322,7 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Nova::ServerGroup"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(0, json_content['hits']['total'])
 
     def test_flavor_create_update_delete(self):
@@ -337,7 +337,7 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
 
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(1, json_content['hits']['total'])
         self.assertEqual(
             create_event['payload']['nova_object.data']['flavorid'],
@@ -351,7 +351,7 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Nova::Flavor"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         # Verify the new extra_specs was added to the flavor.
         extra_specs = (
             json_content['hits']['hits'][0]['_source']['extra_specs'])
@@ -365,7 +365,7 @@ class TestNovaListeners(test_listener.TestSearchListenerBase):
                  "type": "OS::Nova::Flavor"}
         response, json_content = self._search_request(query, EV_TENANT)
 
-        self.assertEqual(200, response.status)
+        self.assertEqual(200, response.status_code)
         self.assertEqual(0, json_content['hits']['total'])
 
 

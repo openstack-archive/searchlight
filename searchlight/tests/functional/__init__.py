@@ -24,12 +24,12 @@ and spinning down the servers.
 import atexit
 import datetime
 import elasticsearch
-import httplib2
 import importlib
-import logging
+import logging as std_logging
 import mock
 import os
 import platform
+import requests
 import shutil
 import signal
 import six
@@ -39,8 +39,8 @@ import tempfile
 import time
 
 import fixtures
+from oslo_log import log as logging
 from oslo_serialization import jsonutils
-# NOTE(jokke): simplified transition to py3, behaves like py2 xrange
 from six.moves import range
 from six.moves import urllib
 import testtools
@@ -49,6 +49,11 @@ from searchlight.common import utils
 from searchlight.elasticsearch.plugins import utils as es_utils
 from searchlight.tests import utils as test_utils
 
+
+LOG = logging.getLogger(__name__)
+tracer = std_logging.getLogger('elasticsearch.trace')
+tracer.setLevel(std_logging.INFO)
+tracer.addHandler(std_logging.NullHandler())
 
 execute, get_unused_port = test_utils.execute, test_utils.get_unused_port
 tracecmd_osmap = {'Linux': 'strace', 'FreeBSD': 'truss'}
@@ -213,7 +218,7 @@ class Server(object):
         return (rc, '', '')
 
     def dump_log(self, name):
-        log = logging.getLogger(name)
+        log = std_logging.getLogger(name)
         if not self.log_file or not os.path.exists(self.log_file):
             return
         fptr = open(self.log_file, 'r')
@@ -506,16 +511,16 @@ class FunctionalTest(test_utils.BaseTestCase):
             "headers": headers
         }
         if body:
-            kwargs["body"] = jsonutils.dumps(body)
+            kwargs["data"] = jsonutils.dumps(body)
 
-        http = httplib2.Http()
-        response, content = http.request(
-            self.base_url + uri,
+        response = requests.request(
             method,
+            self.base_url + uri,
             **kwargs
         )
+        content = response.content
         if decode_json:
-            content = jsonutils.loads(content)
+            content = response.json()
         return response, content
 
     def _search_request(self, body, tenant, role="member", decode_json=True,
@@ -563,25 +568,23 @@ class FunctionalTest(test_utils.BaseTestCase):
         index = ','.join(indices)
         es_url = "http://localhost:%s/%s/_search" % (
             self.api_server.elasticsearch_port, index)
-        response, content = httplib2.Http().request(es_url)
-        self.assertEqual(200, response.status)
-        return jsonutils.loads(content)
+        response = requests.get(es_url)
+        self.assertEqual(200, response.status_code)
+        return response.json()
 
     def _get_elasticsearch_doc(self, index_name, doc_type, doc_id):
         es_url = "http://localhost:%s/%s/%s/%s" % (
             self.api_server.elasticsearch_port, index_name, doc_type, doc_id)
 
-        response, content = httplib2.Http().request(es_url)
-        json_content = jsonutils.loads(content)
-        return json_content
+        response = requests.get(es_url)
+        return response.json()
 
     def _delete_elasticsearch_doc(self, index_name, doc_type, doc_id):
         es_url = "http://localhost:%s/%s/%s/%s" % (
             self.api_server.elasticsearch_port, index_name, doc_type, doc_id)
 
-        response, content = httplib2.Http().request(es_url, "DELETE")
-        json_content = jsonutils.loads(content)
-        return json_content
+        response = requests.delete(es_url)
+        return response.json()
 
     def _get_elasticsearch_aliases(self, indices):
         """Return all aliases associated with a specified index(es). The
@@ -591,8 +594,8 @@ class FunctionalTest(test_utils.BaseTestCase):
         index = ','.join(indices)
         es_url = "http://localhost:%s/%s/_aliases" % (
             self.api_server.elasticsearch_port, index)
-        response, content = httplib2.Http().request(es_url)
-        return jsonutils.loads(content)
+        response = requests.get(es_url)
+        return response.json()
 
     def _load_fixture_data(self, name):
         base_dir = "searchlight/tests/functional/data"
@@ -865,16 +868,14 @@ class ElasticsearchWrapper(object):
         atexit.register(_stop_elasticsearch)
 
         # Wait for elasticsearch to spin up; it takes a while to initialize
-        http = httplib2.Http()
         es_url = 'http://localhost:%s' % self.elasticsearch_port
         time.sleep(10)
-        for _ in range(6):
+        for _ in range(10):
             try:
-                response, content = http.request(es_url)
-                if response.status == 200:
+                response = requests.get(es_url)
+                if response.status_code == 200:
                     break
-            except socket.error:
-                # Expect 'connection refused' a couple of times
+            except Exception:
                 pass
             time.sleep(10)
         else:
