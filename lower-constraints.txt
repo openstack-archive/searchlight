@@ -38,7 +38,7 @@ python-neutronclient==6.11.0
 python-novaclient==9.1.0
 python-swiftclient==3.2.0
 reno==2.5.0
-requests==2.20.1
+requests==2.21.0
 Routes==2.3.1
 simplejson==3.5.1
 six==1.10.0

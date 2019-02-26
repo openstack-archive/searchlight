@@ -731,7 +731,7 @@ class FunctionalTest(test_utils.BaseTestCase):
         :param servers: Searchlight server ports to ping
         :param expect_launch: Optional, true iff the server(s) are
                               expected to successfully start
-        :param timeout: Optional, defaults to 3 seconds
+        :param timeout: Optional, defaults to 10 seconds
         :return: None if launch expectation is met, otherwise an
                  assertion message
         """
@@ -875,8 +875,8 @@ class ElasticsearchWrapper(object):
                 response = requests.get(es_url)
                 if response.status_code == 200:
                     break
-            except Exception:
-                pass
+            except requests.exceptions.RequestException as e:
+                LOG.debug("ES startup: Request Exception occured: %s" % e)
             time.sleep(10)
         else:
             raise Exception("Elasticsearch failed to start")
