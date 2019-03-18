@@ -337,7 +337,11 @@ function _install_elasticsearch {
         return
     fi
     if is_ubuntu; then
-        is_package_installed default-jdk-headless || install_package default-jdk-headless
+        if [[ ${DISTRO} == "bionic" ]]; then
+            is_package_installed openjdk-8-jdk-headless || install_package openjdk-8-jdk-headless
+        else
+            is_package_installed default-jdk-headless || install_package default-jdk-headless
+        fi
         sudo dpkg -i ${FILES}/elasticsearch-${ELASTICSEARCH_VERSION}.deb
         sudo update-rc.d elasticsearch defaults 95 10
     elif is_fedora; then
