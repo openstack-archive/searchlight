@@ -44,7 +44,7 @@ call I want is ``list_networks``::
 
     from oslo_serialization import jsonutils
 
-    from keystoneclient.auth.identity import v2
+    from keystoneclient.auth.identity import v3
     from keystoneclient import session
     from neutronclient.v2_0 import client as nc_20
 
@@ -53,7 +53,7 @@ call I want is ``list_networks``::
         password = os.environ['OS_PASSWORD']
         auth_url = os.environ['OS_AUTH_URL']
         tenant_name = os.environ['OS_TENANT_NAME']
-        auth = v2.Password(**locals())
+        auth = v3.Password(**locals())
         return session.Session(auth=auth)
 
 

@@ -19,7 +19,7 @@ from oslo_serialization import jsonutils
 
 from glanceclient.v2 import client as glance
 from keystoneauth1 import session
-from keystoneclient.auth.identity import v2
+from keystoneclient.auth.identity import v3
 import novaclient.client
 
 IMAGES_FILE = "searchlight/tests/functional/data/load/images.json"
@@ -47,7 +47,7 @@ def _get_session():
 
     global _session
     if not _session:
-        auth = v2.Password(auth_url=os.environ.get('OS_AUTH_URL'),
+        auth = v3.Password(auth_url=os.environ.get('OS_AUTH_URL'),
                            username=os.environ.get('OS_USERNAME'),
                            password=os.environ.get('OS_PASSWORD'),
                            tenant_name=os.environ.get('OS_TENANT_NAME'))

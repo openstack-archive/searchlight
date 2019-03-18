@@ -16,7 +16,7 @@
 # limitations under the License.
 
 
-from keystoneclient.auth.identity import v2
+from keystoneclient.auth.identity import v3
 from keystoneclient import session
 import os
 import random
@@ -68,7 +68,7 @@ def get_session():
               "OS_PROJECT_NAME or OS_TENANT_NAME are set")
         sys.exit(1)
 
-    auth = v2.Password(
+    auth = v3.Password(
         auth_url=auth_url,
         username=username,
         password=password,
