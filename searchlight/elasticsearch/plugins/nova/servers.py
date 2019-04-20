@@ -113,7 +113,7 @@ class ServerIndex(base.IndexBase):
                 'security_groups': {'type': 'string', 'index': 'not_analyzed'},
                 'status': {'type': 'string', 'index': 'not_analyzed'},
                 # Nova adds/removes fields using microversion mechanism, check
-                # http://git.openstack.org/cgit/openstack/nova/tree/nova/api/openstack/rest_api_version_history.rst
+                # https://opendev.org/openstack/nova/src/branch/master/nova/api/openstack/compute/rest_api_version_history.rst
                 # for detailed Nova microversion history.
                 # Added in microversion 2.9
                 'locked': {'type': 'string', 'index': 'not_analyzed'},

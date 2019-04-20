@@ -9,7 +9,7 @@ RUN apt install -y python-dev libssl-dev python-pip libxml2-dev \
 ### Clone searchlight source code
 RUN apt install wget -y
 WORKDIR /home
-RUN git clone https://git.openstack.org/openstack/searchlight
+RUN git clone https://opendev.org/openstack/searchlight
 WORKDIR /home/searchlight
 
 ### Install Searchlight

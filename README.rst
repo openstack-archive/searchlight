@@ -39,11 +39,11 @@ Code
 Searchlight code is available in the following repositories:
 
 * Searchlight API and Listener:
-  https://git.openstack.org/cgit/openstack/searchlight
+  https://opendev.org/openstack/searchlight
 * Searchlight Python client:
-  https://git.openstack.org/cgit/openstack/python-searchlightclient
+  https://opendev.org/openstack/python-searchlightclient
 * Searchlight Horizon UI:
-  https://git.openstack.org/cgit/openstack/searchlight-ui
+  https://opendev.org/openstack/searchlight-ui
 
 Bugs
 ====

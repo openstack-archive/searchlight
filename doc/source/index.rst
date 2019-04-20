@@ -80,8 +80,8 @@ Client and UI
 * `Horizon UI Plugin`_
 * `OpenStack Client Plugin`_
 
-.. _`Horizon UI Plugin`: https://git.openstack.org/cgit/openstack/searchlight-ui
-.. _`OpenStack Client Plugin`: https://git.openstack.org/cgit/openstack/python-searchlightclient
+.. _`Horizon UI Plugin`: https://opendev.org/openstack/searchlight-ui
+.. _`OpenStack Client Plugin`: https://opendev.org/openstack/python-searchlightclient
 
 Search plugins
 --------------

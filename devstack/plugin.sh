@@ -1,7 +1,7 @@
 # Install and start **Searchlight** service
 
 # To enable Searchlight services, add the following to localrc
-# enable_plugin searchlight https://git.openstack.org/openstack/searchlight
+# enable_plugin searchlight https://opendev.org/openstack/searchlight
 # enable_service searchlight-api
 # enable_service searchlight-listener
 

@@ -44,7 +44,7 @@ from searchlight import version
 # NOTE(sjmc7): to workaround issue with 2.7.12-1ubuntu0~16.04.3 and
 # eventlet < 0.22.0 we need to sleep before monkey patching.
 # For details please check https://bugs.launchpad.net/neutron/+bug/1745013
-# See https://review.openstack.org/#/c/537863
+# See https://review.opendev.org/#/c/537863
 eventlet.sleep()
 eventlet.patcher.monkey_patch(socket=True, time=True, select=True,
                               thread=True, os=True)

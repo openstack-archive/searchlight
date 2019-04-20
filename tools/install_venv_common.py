@@ -118,8 +118,8 @@ class InstallVenv(object):
         self.pip_install('pbr')
         upper_constraints = (
             os.environ.get("UPPER_CONSTRAINTS_FILE") or
-            ("https://git.openstack.org/cgit/openstack/requirements"
-             "/plain/upper-constraints.txt"))
+            ("https://opendev.org/openstack/requirements"
+             "/raw/branch/master/upper-constraints.txt"))
         self.pip_install('-c', upper_constraints,
                          '-r', self.requirements,
                          '-r', self.test_requirements)

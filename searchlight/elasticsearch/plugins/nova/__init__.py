@@ -97,10 +97,10 @@ def serialize_nova_server(server):
     return serialized
 
 
-# TODO(sjmc7) - if https://review.openstack.org/#/c/485525/ lands, remove this
+# TODO(sjmc7) - if https://review.opendev.org/#/c/485525/ lands, remove this
 # If it doesn't, make it more accurate
 def _get_server_status(vm_state, task_state):
-    # https://github.com/openstack/nova/blob/master/nova/api/openstack/common.py#L113
+    # https://opendev.org/openstack/nova/src/branch/master/nova/api/openstack/common.py#L113
     # Simplified version of that
     if vm_state:
         vm_state = vm_state.lower()

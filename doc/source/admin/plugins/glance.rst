@@ -126,7 +126,7 @@ visibility is ``public`` or ``private``, but ``shared`` images will only be
 included in search results for the owning project without additional deployment
 configuration.
 
-The patch (https://review.openstack.org/221307) implements this feature and
+The patch (https://review.opendev.org/221307) implements this feature and
 will be included/merged in the Glance Mitaka release.
 
 Searchlight developers/installers should apply the above patch in Glance when

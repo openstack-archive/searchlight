@@ -35,7 +35,7 @@ SERVICE_TOKEN=$ADMIN_PASSWORD
 # access to install prerequisites and fetch repositories.
 #OFFLINE=True
 
-GIT_BASE=${GIT_BASE:-https://git.openstack.org}
+GIT_BASE=${GIT_BASE:-https://opendev.org}
 
 # Reclone will ensure any repos already present are not re-cloned
 #
@@ -130,15 +130,15 @@ SWIFT_DATA_DIR=$DEST/data/swift
 
 ### DESIGNATE ###
 #
-enable_plugin designate https://git.openstack.org/openstack/designate
+enable_plugin designate https://opendev.org/openstack/designate
 
 # Searchlight
 #
-enable_plugin searchlight https://git.openstack.org/openstack/searchlight
+enable_plugin searchlight https://opendev.org/openstack/searchlight
 enable_service searchlight-api
 enable_service searchlight-listener
 
-enable_plugin searchlight-ui https://git.openstack.org/openstack/searchlight-ui
+enable_plugin searchlight-ui https://opendev.org/openstack/searchlight-ui
 
 ### POST CONFIG STAGE SETTINGS ###
 #

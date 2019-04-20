@@ -60,7 +60,7 @@ work has been started to investigate more performant ways to achieve
 indexing.  In the meantime, experimental support for providing notifications
 via middleware is provided in the following patch:
 
- * https://review.openstack.org/#/c/249471
+ * https://review.opendev.org/#/c/249471
 
  #. Apply the patch to the Swift proxy server
  #. Make the below configuration changes to `proxy-server.conf`
@@ -178,7 +178,7 @@ during the Mitaka release. This means that search results will not include
 incremental updates after the initial indexing. However, there is a patch
 available to enable notifications via oslo messaging for the Mitaka release.
 
-* https://review.openstack.org/#/c/249471
+* https://review.opendev.org/#/c/249471
 
 For devstack, the easiest way to test is::
 

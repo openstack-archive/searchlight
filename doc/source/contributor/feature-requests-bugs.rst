@@ -118,7 +118,7 @@ Specifications
 --------------
 
 We use the `searchlight-specs
-<http://git.openstack.org/cgit/openstack/searchlight-specs>`_ repository for
+<https://opendev.org/openstack/searchlight-specs>`_ repository for
 specification reviews. Specifications:
 
 * Provide a review tool for collaborating on feedback and reviews for complex features
@@ -132,7 +132,7 @@ assign these into milestones or move them to the backlog for selection into
 a future release.
 
 Please note that we use a `template
-<http://git.openstack.org/cgit/openstack/searchlight-specs/tree/specs/template.rst>`_
+<https://opendev.org/openstack/searchlight-specs/src/branch/master/specs/template.rst>`_
 for spec submissions. It is not required to fill out all sections in the
 template. Review of the spec may require filling in information left out by
 the submitter.
