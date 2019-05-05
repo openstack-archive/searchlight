@@ -31,7 +31,7 @@ class NetworkIndex(base.IndexBase):
         super(NetworkIndex, self).__init__()
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NEUTRON_NETWORK
 
     def get_mapping(self):

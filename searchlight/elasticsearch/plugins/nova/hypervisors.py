@@ -22,7 +22,7 @@ from searchlight.elasticsearch.plugins import openstack_clients
 class HypervisorIndex(base.IndexBase):
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NOVA_HYPERVISOR
 
     def get_mapping(self):

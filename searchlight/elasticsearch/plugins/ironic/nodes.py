@@ -31,7 +31,7 @@ class NodeIndex(base.IndexBase):
             port_helper=self.child_plugins[0].index_helper)
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.IRONIC_NODE
 
     def get_mapping(self):

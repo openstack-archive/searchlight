@@ -26,7 +26,7 @@ class PortIndex(base.IndexBase):
     ADMIN_ONLY_FIELDS = ["binding:*"]
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NEUTRON_PORT
 
     @classmethod

@@ -25,7 +25,7 @@ class ServerGroupIndex(base.IndexBase):
     NotificationHandlerCls = notification_handler.ServerGroupHandler
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NOVA_SERVERGROUP
 
     def get_mapping(self):

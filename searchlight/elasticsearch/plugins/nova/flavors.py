@@ -25,7 +25,7 @@ class FlavorIndex(base.IndexBase):
     NotificationHandlerCls = notification_handler.FlavorHandler
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NOVA_FLAVOR
 
     def get_mapping(self):

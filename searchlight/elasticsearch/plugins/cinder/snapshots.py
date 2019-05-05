@@ -35,7 +35,7 @@ class SnapshotIndex(base.IndexBase):
     ADMIN_ONLY_FIELDS = []
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         """Unusually, this doesn't have a heat resource type equivalent"""
         return resource_types.CINDER_SNAPSHOT
 

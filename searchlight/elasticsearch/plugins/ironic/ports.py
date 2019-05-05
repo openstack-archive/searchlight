@@ -29,7 +29,7 @@ class PortIndex(base.IndexBase):
         return resource_types.IRONIC_NODE
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.IRONIC_PORT
 
     def get_mapping(self):

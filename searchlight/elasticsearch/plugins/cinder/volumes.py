@@ -37,7 +37,7 @@ class VolumeIndex(base.IndexBase):
                          'migration_status']
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.CINDER_VOLUME
 
     def get_mapping(self):

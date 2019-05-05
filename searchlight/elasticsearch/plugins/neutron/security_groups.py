@@ -24,7 +24,7 @@ class SecurityGroupIndex(base.IndexBase):
     NotificationHandlerCls = notification_handlers.SecurityGroupHandler
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NEUTRON_SECURITY_GROUP
 
     def get_mapping(self):

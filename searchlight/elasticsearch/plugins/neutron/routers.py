@@ -26,7 +26,7 @@ class RouterIndex(base.IndexBase):
     ADMIN_ONLY_FIELDS = ['distributed', 'ha']
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NEUTRON_ROUTER
 
     def get_mapping(self):

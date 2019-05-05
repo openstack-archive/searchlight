@@ -25,7 +25,7 @@ class RecordSetIndex(designate.DesignateBase):
         return "OS::Designate::Zone"
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.DESIGNATE_RECORDSET
 
     def get_mapping(self):

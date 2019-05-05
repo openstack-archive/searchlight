@@ -24,7 +24,7 @@ class SubnetIndex(base.IndexBase):
     NotificationHandlerCls = notification_handlers.SubnetHandler
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NEUTRON_SUBNET
 
     @classmethod

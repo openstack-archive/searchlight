@@ -26,7 +26,7 @@ class ChassisIndex(base.IndexBase):
     NotificationHandlerCls = notification_handlers.ChassisHandler
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.IRONIC_CHASSIS
 
     def get_mapping(self):

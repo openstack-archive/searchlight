@@ -33,7 +33,7 @@ class ServerIndex(base.IndexBase):
     ADMIN_ONLY_FIELDS = ['OS-EXT-SRV-ATTR:*', 'host_status']
 
     @classmethod
-    def get_document_type(self):
+    def get_document_type(cls):
         return resource_types.NOVA_SERVER
 
     def get_mapping(self):
