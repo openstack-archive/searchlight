@@ -94,8 +94,7 @@ class IndexCommands(object):
             plugins_reindex = [
                 doc_type for doc_type, plugin in es_reindex.items()
                 if plugin.resource_group_name == group]
-            alias_search = \
-                [a for a in resource_groups if a[0] == group][0][1]
+            alias_search = [a for a in resource_groups if a[0] == group][0][1]
             LOG.info("ES Reindex start from %(src)s to %(dst)s "
                      "for types %(types)s" %
                      {'src': alias_search, 'dst': index_names[group],
