@@ -133,7 +133,7 @@ keystone. Typically, this is done with the following commands (v3 keystone)::
 
 For more information on keystone service accounts, see:
 
-https://docs.openstack.org/keystone/latest/admin/cli-keystone-manage-services.html#create-service-users
+https://docs.openstack.org/keystone/latest/admin/manage-services.html#create-service-users
 
 Policy restriction
 ==================
