@@ -29,7 +29,7 @@ class ServerIndex(base.IndexBase):
     NotificationHandlerCls = notification_handler.InstanceHandler
 
     # Will be combined with 'admin_only_fields' from config
-    # https://developer.openstack.org/api-ref/compute/?expanded=show-server-details-detail
+    # https://docs.openstack.org/api-ref/compute/?expanded=show-server-details-detail
     ADMIN_ONLY_FIELDS = ['OS-EXT-SRV-ATTR:*', 'host_status']
 
     @classmethod
