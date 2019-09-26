@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Copyright (c) 2010 OpenStack Foundation.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +48,7 @@ extensions = ['sphinx.ext.coverage',
               'openstackdocstheme',
               'oslo_policy.sphinxext',
               'oslo_policy.sphinxpolicygen',
+              'sphinxcontrib.rsvgconverter',
               ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -220,12 +220,24 @@ htmlhelp_basename = 'searchlightdoc'
 # The font size ('10pt', '11pt' or '12pt').
 #latex_font_size = '10pt'
 
+latex_use_xindy = False
+
+latex_domain_indices = False
+
+latex_elements = {
+    'makeindex': '',
+    'printindex': '',
+    'preamble': r'\setcounter{tocdepth}{3}',
+}
+
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author,
 # documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'Searchlight.tex', u'Searchlight Documentation',
-     u'Searchlight Team', 'manual'),
+    ('index',
+     'doc-Searchlight.tex',
+     u'Searchlight Documentation',
+     u'Searchlight Team', 'manual', True),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
