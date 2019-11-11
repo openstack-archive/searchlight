@@ -55,9 +55,6 @@ PIP_UPGRADE=False
 
 ### ADD SOME IMAGES TO GLANCE ###
 #
-# latest cirros qcow2 image instead of UEC ones
-IMAGE_URLS+=",http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img"
-
 # latest Ubuntu Xenial amd64 cloud image
 IMAGE_URLS+=",https://cloud-images.ubuntu.com/releases/xenial/release/ubuntu-16.04-server-cloudimg-amd64-disk1.img"
 
