@@ -2,6 +2,7 @@
 
 LOGFILE=$DEST/logs/stack.sh.log
 VERBOSE=TRUE
+USE_PYTHON3=True
 
 ### NETWORK SETTINGS ###
 #
