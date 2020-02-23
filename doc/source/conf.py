@@ -27,7 +27,6 @@
 # serve to show the default.
 
 import os
-import subprocess
 import sys
 
 # If extensions (or modules to document with autodoc) are in another directory,
