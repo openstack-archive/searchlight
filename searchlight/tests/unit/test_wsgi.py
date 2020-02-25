@@ -13,9 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import gettext
-
-from babel import localedata
+import fixtures
 import mock
 import webob
 
@@ -34,7 +32,9 @@ class RequestTest(test_utils.BaseTestCase):
         def returns_some_locales(*args, **kwargs):
             return all_locales
 
-        self.stubs.Set(localedata, 'locale_identifiers', returns_some_locales)
+        self.useFixture(fixtures.MonkeyPatch(
+            'babel.localedata.local_identifiers', returns_some_locales
+        ))
 
         # Override gettext.find to return other than None for some languages.
         def fake_gettext_find(lang_id, *args, **kwargs):
@@ -47,7 +47,9 @@ class RequestTest(test_utils.BaseTestCase):
                 return found_ret
             return None
 
-        self.stubs.Set(gettext, 'find', fake_gettext_find)
+        self.useFixture(fixtures.MonkeyPatch(
+            'gettext.find', fake_gettext_find
+        ))
 
     def test_language_accept_default(self):
         request = wsgi.Request.blank('/tests/123')
