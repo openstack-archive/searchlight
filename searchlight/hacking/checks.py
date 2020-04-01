@@ -14,6 +14,7 @@
 
 import re
 
+from hacking import core
 """
 Guidelines for writing new hacking checks
 
@@ -32,10 +33,10 @@ Guidelines for writing new hacking checks
 
 asse_trueinst_re = re.compile(
     r"(.)*assertTrue\(isinstance\((\w|\.|\'|\"|\[|\])+, "
-    "(\w|\.|\'|\"|\[|\])+\)\)")
+    r"(\w|\.|\'|\"|\[|\])+\)\)")
 asse_equal_type_re = re.compile(
     r"(.)*assertEqual\(type\((\w|\.|\'|\"|\[|\])+\), "
-    "(\w|\.|\'|\"|\[|\])+\)")
+    r"(\w|\.|\'|\"|\[|\])+\)")
 asse_equal_end_with_none_re = re.compile(
     r"(.)*assertEqual\((\w|\.|\'|\"|\[|\])+, None\)")
 asse_equal_start_with_none_re = re.compile(
@@ -47,6 +48,7 @@ translated_logs = re.compile(
     r"(.)*LOG.(critical|debug|error|exception|info|warning)\(\s*_\(")
 
 
+@core.flake8ext
 def assert_true_instance(logical_line):
     """Check for assertTrue(isinstance(a, b)) sentences
 
@@ -56,6 +58,7 @@ def assert_true_instance(logical_line):
         yield (0, "SL316: assertTrue(isinstance(a, b)) sentences not allowed")
 
 
+@core.flake8ext
 def assert_equal_type(logical_line):
     """Check for assertEqual(type(A), B) sentences
 
@@ -65,6 +68,7 @@ def assert_equal_type(logical_line):
         yield (0, "SL317: assertEqual(type(A), B) sentences not allowed")
 
 
+@core.flake8ext
 def assert_equal_none(logical_line):
     """Check for assertEqual(A, None) or assertEqual(None, A) sentences
 
@@ -77,6 +81,7 @@ def assert_equal_none(logical_line):
                "sentences not allowed")
 
 
+@core.flake8ext
 def no_translate_logs(logical_line, filename):
     dirs = [
         "searchlight/api",
@@ -91,6 +96,7 @@ def no_translate_logs(logical_line, filename):
             yield(0, "SL319: Don't translate logs")
 
 
+@core.flake8ext
 def no_direct_use_of_unicode_function(logical_line):
     """Check for use of unicode() builtin
 
@@ -100,6 +106,7 @@ def no_direct_use_of_unicode_function(logical_line):
         yield(0, "SL320: Use six.text_type() instead of unicode()")
 
 
+@core.flake8ext
 def check_no_contextlib_nested(logical_line):
     msg = ("SL327: contextlib.nested is deprecated since Python 2.7. See "
            "https://docs.python.org/2/library/contextlib.html#contextlib."
@@ -109,6 +116,7 @@ def check_no_contextlib_nested(logical_line):
         yield(0, msg)
 
 
+@core.flake8ext
 def check_doubled_words(physical_line, filename):
     """Check for the common doubled-word typos
 
@@ -120,13 +128,3 @@ def check_doubled_words(physical_line, filename):
 
     if match:
         return (0, msg % {'word': match.group(1)})
-
-
-def factory(register):
-    register(assert_true_instance)
-    register(assert_equal_type)
-    register(assert_equal_none)
-    register(no_translate_logs)
-    register(no_direct_use_of_unicode_function)
-    register(check_no_contextlib_nested)
-    register(check_doubled_words)

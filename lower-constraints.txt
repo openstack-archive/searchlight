@@ -4,7 +4,6 @@ elasticsearch==2.0.0
 eventlet==0.18.2
 fixtures==3.0.0
 greenlet==0.4.10
-hacking==1.1.0
 keystonemiddleware==4.17.0
 mock==2.0.0
 openstackdocstheme==1.18.1

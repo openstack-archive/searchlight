@@ -189,7 +189,7 @@ class IndexCommands(object):
 
         try:
             max_workers = cfg.CONF.manage.workers
-        except cfg.ConfigFileValueError as e:
+        except cfg.ConfigFileValueError:
             LOG.error("Invalid value for config file option "
                       "'manage.workers'. The number of thread workers "
                       "must be greater than 0.")
@@ -491,7 +491,7 @@ class IndexCommands(object):
                     LOG.error("Rolled back; exiting")
                     sys.exit(1)
 
-            except Exception as e:
+            except Exception:
                 # An exception occurred. Start cleaning up ElasticSearch and
                 # inform the user.
                 es_utils.alias_error_cleanup(index_names)

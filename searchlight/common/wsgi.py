@@ -620,7 +620,7 @@ class APIMapper(routes.Mapper):
     """
 
     def routematch(self, url=None, environ=None):
-        if url is "":
+        if url == "":
             result = self._match("", environ)
             return result[0], result[1]
         return routes.Mapper.routematch(self, url, environ)
@@ -757,14 +757,14 @@ class Request(webob.Request):
 
 
 def get_content_range(self):
-        """Return the `Range` in a request."""
-        range_str = self.headers.get('Content-Range')
-        if range_str is not None:
-            range_ = webob.byterange.ContentRange.parse(range_str)
-            if range_ is None:
-                msg = _('Malformed Content-Range header: %s') % range_str
-                raise webob.exc.HTTPBadRequest(explanation=msg)
-            return range_
+    """Return the `Range` in a request."""
+    range_str = self.headers.get('Content-Range')
+    if range_str is not None:
+        range_ = webob.byterange.ContentRange.parse(range_str)
+        if range_ is None:
+            msg = _('Malformed Content-Range header: %s') % range_str
+            raise webob.exc.HTTPBadRequest(explanation=msg)
+        return range_
 
 
 class JSONRequestDeserializer(object):

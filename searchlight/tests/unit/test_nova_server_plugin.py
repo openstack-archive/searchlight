@@ -227,19 +227,6 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'OS-SRV-USG:terminated_at': None,
             u'accessIPv4': u'',
             u'accessIPv6': u'',
-            u'addresses': {
-                u'public': [{
-                    u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
-                    u'OS-EXT-IPS:type': u'fixed',
-                    u'addr': u'172.25.0.3',
-                    u'version': 4
-                }, {
-                    u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
-                    u'OS-EXT-IPS:type': u'fixed',
-                    u'addr': u'2001:db8::3',
-                    u'version': 6
-                }]
-            },
             u'config_drive': u'True',
             u'flavor': {u'id': u'1'},
             u'hostId': u'host1',
@@ -296,19 +283,6 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             u'OS-SRV-USG:terminated_at': None,
             u'accessIPv4': u'',
             u'accessIPv6': u'',
-            u'addresses': {
-                u'public': [{
-                    u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
-                    u'OS-EXT-IPS:type': u'fixed',
-                    u'addr': u'172.25.0.3',
-                    u'version': 4
-                }, {
-                    u'OS-EXT-IPS-MAC:mac_addr': u'fa:16:3e:1e:37:32',
-                    u'OS-EXT-IPS:type': u'fixed',
-                    u'addr': u'2001:db8::3',
-                    u'version': 6
-                }]
-            },
             u'config_drive': u'True',
             u'flavor': {u'id': u'1'},
             u'hostId': u'host1',
@@ -700,89 +674,89 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                def assert_call_counts(get, save):
-                    # Helper to reduce copy pasta
-                    self.assertEqual(get, nova_getter.call_count)
-                    self.assertEqual(save, mock_save.call_count)
+            def assert_call_counts(get, save):
+                # Helper to reduce copy pasta
+                self.assertEqual(get, nova_getter.call_count)
+                self.assertEqual(save, mock_save.call_count)
 
-                # Expect a nova API hit from the first update
-                handle_message(successful_boot_events[0],
-                               "compute.instance.update")
-                assert_call_counts(get=1, save=1)
+            # Expect a nova API hit from the first update
+            handle_message(successful_boot_events[0],
+                           "compute.instance.update")
+            assert_call_counts(get=1, save=1)
 
-                # Expect nothing for the next update (should be ignored)
-                handle_message(successful_boot_events[1],
-                               "compute.instance.update")
-                assert_call_counts(get=1, save=1)
+            # Expect nothing for the next update (should be ignored)
+            handle_message(successful_boot_events[1],
+                           "compute.instance.update")
+            assert_call_counts(get=1, save=1)
 
-                # Causes a nova GET
-                handle_message(successful_boot_events[2],
-                               "compute.instance.create.start")
-                assert_call_counts(get=2, save=2)
+            # Causes a nova GET
+            handle_message(successful_boot_events[2],
+                           "compute.instance.create.start")
+            assert_call_counts(get=2, save=2)
 
-                # Update after create.start is ignored
-                handle_message(successful_boot_events[3],
-                               "compute.instance.update")
-                assert_call_counts(get=2, save=2)
+            # Update after create.start is ignored
+            handle_message(successful_boot_events[3],
+                           "compute.instance.update")
+            assert_call_counts(get=2, save=2)
 
-                # Then networking, disk mapping etc
-                mock_engine.get.return_value = {
-                    '_version': 3,
-                    '_source': {
-                        'OS-EXT-STS:vm_state': 'building',
-                        'OS-EXT-STS:task_state': None,
-                        'id': 1
-                    }
+            # Then networking, disk mapping etc
+            mock_engine.get.return_value = {
+                '_version': 3,
+                '_source': {
+                    'OS-EXT-STS:vm_state': 'building',
+                    'OS-EXT-STS:task_state': None,
+                    'id': 1
                 }
-                handle_message(successful_boot_events[4],
-                               "compute.instance.update")
-                assert_call_counts(get=2, save=3)
+            }
+            handle_message(successful_boot_events[4],
+                           "compute.instance.update")
+            assert_call_counts(get=2, save=3)
 
-                mock_engine.get.return_value = {
-                    '_version': 4,
-                    '_source': {
-                        'OS-EXT-STS:vm_state': 'building',
-                        'OS-EXT-STS:task_state': 'networking',
-                        'id': 1
-                    }
+            mock_engine.get.return_value = {
+                '_version': 4,
+                '_source': {
+                    'OS-EXT-STS:vm_state': 'building',
+                    'OS-EXT-STS:task_state': 'networking',
+                    'id': 1
                 }
-                handle_message(successful_boot_events[5],
-                               "compute.instance.update")
-                assert_call_counts(get=2, save=4)
+            }
+            handle_message(successful_boot_events[5],
+                           "compute.instance.update")
+            assert_call_counts(get=2, save=4)
 
-                mock_engine.get.return_value = {
-                    '_version': 5,
-                    '_source': {
-                        'OS-EXT-STS:vm_state': 'building',
-                        'OS-EXT-STS:task_state': 'block_device_mapping',
-                        'id': 1
-                    }
+            mock_engine.get.return_value = {
+                '_version': 5,
+                '_source': {
+                    'OS-EXT-STS:vm_state': 'building',
+                    'OS-EXT-STS:task_state': 'block_device_mapping',
+                    'id': 1
                 }
-                handle_message(successful_boot_events[6],
-                               "compute.instance.update")
-                assert_call_counts(get=2, save=5)
+            }
+            handle_message(successful_boot_events[6],
+                           "compute.instance.update")
+            assert_call_counts(get=2, save=5)
 
-                # port.create events are ignored
-                handle_message(successful_boot_events[7],
-                               "port.create.start")
-                handle_message(successful_boot_events[8],
-                               "port.create.end")
-                assert_call_counts(get=2, save=5)
+            # port.create events are ignored
+            handle_message(successful_boot_events[7],
+                           "port.create.start")
+            handle_message(successful_boot_events[8],
+                           "port.create.end")
+            assert_call_counts(get=2, save=5)
 
-                # image.send ignored
-                handle_message(successful_boot_events[9], "image.send")
-                handle_message(successful_boot_events[10], "image.send")
-                assert_call_counts(get=2, save=5)
+            # image.send ignored
+            handle_message(successful_boot_events[9], "image.send")
+            handle_message(successful_boot_events[10], "image.send")
+            assert_call_counts(get=2, save=5)
 
-                # final update is also ignored because create.end follows
-                handle_message(successful_boot_events[11],
-                               "compute.instance.update")
-                assert_call_counts(get=2, save=5)
+            # final update is also ignored because create.end follows
+            handle_message(successful_boot_events[11],
+                           "compute.instance.update")
+            assert_call_counts(get=2, save=5)
 
-                # create.end causes full save
-                handle_message(successful_boot_events[12],
-                               "compute.instance.create.end")
-                assert_call_counts(get=3, save=6)
+            # create.end causes full save
+            handle_message(successful_boot_events[12],
+                           "compute.instance.create.end")
+            assert_call_counts(get=3, save=6)
 
     def test_racing_state_change_notifications(self):
         """Test that a 'state update' change doesn't get applied if it looks
@@ -879,50 +853,50 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                def assert_call_counts(get=0, save=0, es_gets=0):
-                    # Helper to reduce copy pasta
-                    self.assertEqual(get, nova_getter.call_count)
-                    self.assertEqual(save, mock_save.call_count)
-                    self.assertEqual(es_gets, mock_es_getter.call_count)
+            def assert_call_counts(get=0, save=0, es_gets=0):
+                # Helper to reduce copy pasta
+                self.assertEqual(get, nova_getter.call_count)
+                self.assertEqual(save, mock_save.call_count)
+                self.assertEqual(es_gets, mock_es_getter.call_count)
 
-                handle_message(delete_events[0],
-                               "compute.instance.update")
-                assert_call_counts(es_gets=1)
+            handle_message(delete_events[0],
+                           "compute.instance.update")
+            assert_call_counts(es_gets=1)
 
-                handle_message(delete_events[1],
-                               "compute.instance.delete.start",
-                               expect_handled=False)
+            handle_message(delete_events[1],
+                           "compute.instance.delete.start",
+                           expect_handled=False)
 
-                handle_message(delete_events[2],
-                               "compute.instance.shutdown.start",
-                               expect_handled=False)
-                assert_call_counts(es_gets=1)
+            handle_message(delete_events[2],
+                           "compute.instance.shutdown.start",
+                           expect_handled=False)
+            assert_call_counts(es_gets=1)
 
-                handle_message(delete_events[3],
-                               "compute.instance.update")
-                assert_call_counts(es_gets=2)
+            handle_message(delete_events[3],
+                           "compute.instance.update")
+            assert_call_counts(es_gets=2)
 
-                # Ignore port events
-                handle_message(delete_events[4],
-                               "port.delete.start",
-                               expect_handled=False)
-                handle_message(delete_events[5],
-                               "port.delete.end",
-                               expect_handled=False)
+            # Ignore port events
+            handle_message(delete_events[4],
+                           "port.delete.start",
+                           expect_handled=False)
+            handle_message(delete_events[5],
+                           "port.delete.end",
+                           expect_handled=False)
 
-                handle_message(delete_events[6],
-                               "compute.instance.shutdown.end")
-                assert_call_counts(get=1, save=1, es_gets=2)
+            handle_message(delete_events[6],
+                           "compute.instance.shutdown.end")
+            assert_call_counts(get=1, save=1, es_gets=2)
 
-                # Ignore this one too
-                handle_message(delete_events[7],
-                               "compute.instance.update")
-                assert_call_counts(get=1, save=1, es_gets=2)
+            # Ignore this one too
+            handle_message(delete_events[7],
+                           "compute.instance.update")
+            assert_call_counts(get=1, save=1, es_gets=2)
 
-                handle_message(delete_events[8],
-                               "compute.instance.delete.end")
-                assert_call_counts(get=1, save=1, es_gets=2)
-                self.assertEqual(1, mock_delete.call_count)
+            handle_message(delete_events[8],
+                           "compute.instance.delete.end")
+            assert_call_counts(get=1, save=1, es_gets=2)
+            self.assertEqual(1, mock_delete.call_count)
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_pause_state_change_notifications(self, mock_version):
@@ -972,29 +946,29 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                def assert_call_counts(get=0, save=0, es_gets=0):
-                    # Helper to reduce copy pasta
-                    self.assertEqual(get, nova_getter.call_count)
-                    self.assertEqual(save, mock_save.call_count)
-                    self.assertEqual(es_gets, mock_es_getter.call_count)
+            def assert_call_counts(get=0, save=0, es_gets=0):
+                # Helper to reduce copy pasta
+                self.assertEqual(get, nova_getter.call_count)
+                self.assertEqual(save, mock_save.call_count)
+                self.assertEqual(es_gets, mock_es_getter.call_count)
 
-                handle_message(pause_events[0],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(pause_events[0],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(pause_events[1],
-                               "compute.instance.pause.start",
-                               expect_handled=False)
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(pause_events[1],
+                           "compute.instance.pause.start",
+                           expect_handled=False)
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(pause_events[2],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(pause_events[2],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(pause_events[3],
-                               "compute.instance.pause.end",
-                               expect_handled=False)
-                assert_call_counts(get=1, save=1, es_gets=1)
+            handle_message(pause_events[3],
+                           "compute.instance.pause.end",
+                           expect_handled=False)
+            assert_call_counts(get=1, save=1, es_gets=1)
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_reboot_state_change_notifications(self, mock_version):
@@ -1053,37 +1027,37 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                def assert_call_counts(get=0, save=0, es_gets=0):
-                    # Helper to reduce copy pasta
-                    self.assertEqual(get, nova_getter.call_count)
-                    self.assertEqual(save, mock_save.call_count)
-                    self.assertEqual(es_gets, mock_es_getter.call_count)
+            def assert_call_counts(get=0, save=0, es_gets=0):
+                # Helper to reduce copy pasta
+                self.assertEqual(get, nova_getter.call_count)
+                self.assertEqual(save, mock_save.call_count)
+                self.assertEqual(es_gets, mock_es_getter.call_count)
 
-                handle_message(reboot_events[0],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(reboot_events[0],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(reboot_events[1],
-                               "compute.instance.reboot.start",
-                               expect_handled=False)
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(reboot_events[1],
+                           "compute.instance.reboot.start",
+                           expect_handled=False)
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(reboot_events[2],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=2)
+            handle_message(reboot_events[2],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=2)
 
-                handle_message(reboot_events[3],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=3)
+            handle_message(reboot_events[3],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=3)
 
-                handle_message(reboot_events[4],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=3)
+            handle_message(reboot_events[4],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=3)
 
-                handle_message(reboot_events[5],
-                               "compute.instance.reboot.end",
-                               expect_handled=False)
-                assert_call_counts(get=1, save=1, es_gets=3)
+            handle_message(reboot_events[5],
+                           "compute.instance.reboot.end",
+                           expect_handled=False)
+            assert_call_counts(get=1, save=1, es_gets=3)
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_shelve_state_change_notifications(self, mock_version):
@@ -1164,53 +1138,53 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                def assert_call_counts(get=0, save=0, es_gets=0):
-                    # Helper to reduce copy pasta
-                    self.assertEqual(get, nova_getter.call_count)
-                    self.assertEqual(save, mock_save.call_count)
-                    self.assertEqual(es_gets, mock_es_getter.call_count)
+            def assert_call_counts(get=0, save=0, es_gets=0):
+                # Helper to reduce copy pasta
+                self.assertEqual(get, nova_getter.call_count)
+                self.assertEqual(save, mock_save.call_count)
+                self.assertEqual(es_gets, mock_es_getter.call_count)
 
-                handle_message(shelve_events[0],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(shelve_events[0],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(shelve_events[1],
-                               "compute.instance.shelve.start",
-                               expect_handled=False)
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(shelve_events[1],
+                           "compute.instance.shelve.start",
+                           expect_handled=False)
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(shelve_events[2],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=2)
+            handle_message(shelve_events[2],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=2)
 
-                handle_message(shelve_events[3],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=3)
+            handle_message(shelve_events[3],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=3)
 
-                handle_message(shelve_events[4],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=4)
+            handle_message(shelve_events[4],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=4)
 
-                handle_message(shelve_events[5],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=5)
+            handle_message(shelve_events[5],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=5)
 
-                handle_message(shelve_events[6],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=6)
+            handle_message(shelve_events[6],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=6)
 
-                handle_message(shelve_events[7],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=6)
+            handle_message(shelve_events[7],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=6)
 
-                handle_message(shelve_events[8],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=6)
+            handle_message(shelve_events[8],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=6)
 
-                handle_message(shelve_events[9],
-                               "compute.instance.shelve.end",
-                               expect_handled=False)
-                assert_call_counts(get=1, save=1, es_gets=6)
+            handle_message(shelve_events[9],
+                           "compute.instance.shelve.end",
+                           expect_handled=False)
+            assert_call_counts(get=1, save=1, es_gets=6)
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_unshelve_state_change_notifications(self, mock_version):
@@ -1273,41 +1247,41 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                def assert_call_counts(get=0, save=0, es_gets=0):
-                    # Helper to reduce copy pasta
-                    self.assertEqual(get, nova_getter.call_count)
-                    self.assertEqual(save, mock_save.call_count)
-                    self.assertEqual(es_gets, mock_es_getter.call_count)
+            def assert_call_counts(get=0, save=0, es_gets=0):
+                # Helper to reduce copy pasta
+                self.assertEqual(get, nova_getter.call_count)
+                self.assertEqual(save, mock_save.call_count)
+                self.assertEqual(es_gets, mock_es_getter.call_count)
 
-                handle_message(unshelve_events[0],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(unshelve_events[0],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(unshelve_events[1],
-                               "compute.instance.unshelve.start",
-                               expect_handled=False)
-                assert_call_counts(get=0, save=0, es_gets=1)
+            handle_message(unshelve_events[1],
+                           "compute.instance.unshelve.start",
+                           expect_handled=False)
+            assert_call_counts(get=0, save=0, es_gets=1)
 
-                handle_message(unshelve_events[2],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=2)
+            handle_message(unshelve_events[2],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=2)
 
-                handle_message(unshelve_events[3],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=3)
+            handle_message(unshelve_events[3],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=3)
 
-                handle_message(unshelve_events[4],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=3)
+            handle_message(unshelve_events[4],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=3)
 
-                handle_message(unshelve_events[5],
-                               "compute.instance.update")
-                assert_call_counts(get=0, save=0, es_gets=3)
+            handle_message(unshelve_events[5],
+                           "compute.instance.update")
+            assert_call_counts(get=0, save=0, es_gets=3)
 
-                handle_message(unshelve_events[6],
-                               "compute.instance.unshelve.end",
-                               expect_handled=False)
-                assert_call_counts(get=1, save=1, es_gets=3)
+            handle_message(unshelve_events[6],
+                           "compute.instance.unshelve.end",
+                           expect_handled=False)
+            assert_call_counts(get=1, save=1, es_gets=3)
 
     @mock.patch(nova_version_getter, return_value=fake_version_list)
     def test_server_rename(self, mock_version):
@@ -1329,10 +1303,10 @@ class TestServerLoaderPlugin(test_utils.BaseTestCase):
             mock.patch(nova_server_getter,
                        return_value=self.instance1) as nova_getter:
 
-                type_handler('compute.instance.update', update_event,
-                             '2016-03-17 19:52:13.523135')
-                nova_getter.assert_called_with(instance_id)
-                self.assertEqual(1, mock_save.call_count)
+            type_handler('compute.instance.update', update_event,
+                         '2016-03-17 19:52:13.523135')
+            nova_getter.assert_called_with(instance_id)
+            self.assertEqual(1, mock_save.call_count)
 
 
 class TestVersionedServerNotifications(test_utils.BaseTestCase):

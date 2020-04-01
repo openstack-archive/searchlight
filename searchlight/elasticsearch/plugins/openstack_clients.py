@@ -141,6 +141,7 @@ def get_cinderclient():
         endpoint_type=CONF.service_credentials.os_endpoint_type
     )
 
+
 # Swift still needs special handling because it doesn't support
 # keystone sessions. Rather than maintain two codepaths, we'll do this
 _swiftclient = None

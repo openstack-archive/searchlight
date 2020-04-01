@@ -160,5 +160,6 @@ def generate():
     get_nova_flavors_with_pyclient()
     get_nova_server_groups_with_pyclient()
 
+
 if __name__ == "__main__":
     generate()

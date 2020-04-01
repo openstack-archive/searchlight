@@ -79,7 +79,7 @@ class TestReindexingUtils(test_utils.BaseTestCase):
         # specifying "^" and "$" in the Regex. We elected to make the unit
         # test more complicated, rather than artificially wrap datetime
         # functionality in the code just for the tests.
-        TS_FORMAT = '\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}$'
+        TS_FORMAT = r'\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}$'
         group = 'searchlight'
 
         # Set up the ES mock.

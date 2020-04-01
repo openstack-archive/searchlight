@@ -35,7 +35,6 @@ def _secgroup_fixture(secgroup_id, tenant_id, name, **kwargs):
         "security_group_rules": [{
             "remote_group_id": "855560aa-ff43-ee09-993e-6609342abccd",
             "direction": "ingress",
-            "protocol": "ipv4",
             "description": "",
             "protocol": "",
             "ethertype": "",

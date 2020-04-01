@@ -209,7 +209,6 @@ class TestImageLoaderPlugin(test_utils.BaseTestCase):
             'container_format': None,
             'disk_format': None,
             'id': UUID1,
-            'image_type': 'image',
             'kernel_id': None,
             'members': [],
             'min_disk': None,
