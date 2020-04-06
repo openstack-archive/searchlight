@@ -23,9 +23,9 @@ import shlex
 import shutil
 import socket
 import subprocess
+from unittest import mock
 
 import fixtures
-import mock
 from oslo_config import cfg
 import six
 from six.moves import BaseHTTPServer

@@ -26,7 +26,6 @@ import datetime
 import elasticsearch
 import importlib
 import logging as std_logging
-import mock
 import os
 import platform
 import requests
@@ -37,6 +36,7 @@ import socket
 import sys
 import tempfile
 import time
+from unittest import mock
 
 import fixtures
 from oslo_log import log as logging

@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import mock
+from unittest import mock
 
 from elasticsearch import exceptions as es_exc
 from searchlight.common import utils as common_utils

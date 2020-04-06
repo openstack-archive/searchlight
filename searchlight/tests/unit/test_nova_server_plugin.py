@@ -14,9 +14,9 @@
 #    under the License.
 
 import datetime
-import mock
 import novaclient.exceptions
 import novaclient.v2.servers as novaclient_servers
+from unittest import mock
 
 from searchlight.elasticsearch.plugins.nova import\
     servers as servers_plugin

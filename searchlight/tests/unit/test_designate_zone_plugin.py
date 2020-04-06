@@ -14,7 +14,7 @@
 #    under the License.
 
 import datetime
-import mock
+from unittest import mock
 
 from searchlight.elasticsearch.plugins import designate
 from searchlight.elasticsearch import ROLE_USER_FIELD

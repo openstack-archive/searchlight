@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import datetime
-import mock
+from unittest import mock
 
 from oslo_config import cfg
 import oslo_utils

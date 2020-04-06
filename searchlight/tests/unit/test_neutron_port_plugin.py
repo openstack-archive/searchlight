@@ -14,8 +14,8 @@
 # limitations under the License.
 
 import datetime
-import mock
 from oslo_utils import uuidutils
+from unittest import mock
 
 from searchlight.common import utils
 from searchlight.elasticsearch.plugins.neutron import\

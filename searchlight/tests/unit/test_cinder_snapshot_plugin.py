@@ -14,7 +14,7 @@
 #    under the License.
 
 import datetime
-import mock
+from unittest import mock
 
 from searchlight.elasticsearch.plugins.cinder import serialize_cinder_snapshot
 from searchlight.elasticsearch.plugins.cinder \

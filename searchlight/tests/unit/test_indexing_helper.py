@@ -15,9 +15,9 @@
 
 import copy
 from elasticsearch import exceptions as es_exceptions
-import mock
 from oslo_config import cfg
 import six
+from unittest import mock
 
 from searchlight.elasticsearch.plugins import helper
 from searchlight.elasticsearch import ROLE_USER_FIELD

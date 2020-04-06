@@ -13,7 +13,7 @@
 #    under the License.
 
 import datetime
-import mock
+from unittest import mock
 
 import novaclient.v2.hypervisors as novaclient_hypervisors
 

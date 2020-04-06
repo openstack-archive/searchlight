@@ -15,7 +15,7 @@
 
 import copy
 import datetime
-import mock
+from unittest import mock
 
 from searchlight.elasticsearch.plugins.base import NotificationBase
 from searchlight.elasticsearch.plugins.glance import metadefs as md_plugin

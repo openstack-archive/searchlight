@@ -14,7 +14,7 @@
 #    under the License.
 
 import copy
-import mock
+from unittest import mock
 
 from searchlight.elasticsearch.plugins import base
 

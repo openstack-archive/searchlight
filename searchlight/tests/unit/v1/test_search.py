@@ -14,10 +14,10 @@
 #    under the License.
 
 from elasticsearch import exceptions as es_exc
-import mock
 import operator
 from oslo_serialization import jsonutils
 import six
+from unittest import mock
 import webob.exc
 
 from searchlight.api.v1 import search

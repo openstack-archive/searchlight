@@ -15,10 +15,10 @@
 
 import collections
 import copy
-import mock
 import operator
 import six
 import types
+from unittest import mock
 
 from oslo_config import cfg
 

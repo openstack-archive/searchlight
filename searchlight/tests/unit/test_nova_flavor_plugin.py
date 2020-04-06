@@ -11,7 +11,7 @@
 #    under the License.
 
 import datetime
-import mock
+from unittest import mock
 
 import novaclient.v2.flavors as novaclient_flavors
 

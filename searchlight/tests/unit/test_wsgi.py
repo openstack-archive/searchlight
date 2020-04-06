@@ -14,7 +14,7 @@
 #    under the License.
 
 import fixtures
-import mock
+from unittest import mock
 import webob
 
 from searchlight.common import wsgi
