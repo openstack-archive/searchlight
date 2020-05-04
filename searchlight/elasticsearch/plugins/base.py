@@ -21,7 +21,6 @@ from oslo_config import types
 from oslo_utils import encodeutils
 from oslo_utils import timeutils
 import re
-import six
 
 from searchlight.common import exception
 import searchlight.elasticsearch
@@ -60,8 +59,7 @@ CONF = cfg.CONF
 CONF.register_opts(indexer_opts, group='resource_plugin')
 
 
-@six.add_metaclass(abc.ABCMeta)
-class IndexBase(plugin.Plugin):
+class IndexBase(plugin.Plugin, metaclass=abc.ABCMeta):
     NotificationHandlerCls = None
 
     def __init__(self):
@@ -663,8 +661,7 @@ class IndexBase(plugin.Plugin):
         return "resource_plugin:%s" % config_name
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NotificationBase(object):
+class NotificationBase(object, metaclass=abc.ABCMeta):
 
     def __init__(self, index_helper, options):
         self.index_helper = index_helper
@@ -672,7 +669,7 @@ class NotificationBase(object):
 
     def get_notification_supported_events(self):
         """Get the list of event types this plugin responds to."""
-        return list(six.iterkeys(self.get_event_handlers()))
+        return list(self.get_event_handlers().keys())
 
     def get_log_fields(self, event_type, payload):
         """Return an iterable of key value pairs in payload that will be

@@ -18,7 +18,6 @@ from elasticsearch import exceptions as es_exc
 from elasticsearch import helpers
 import logging
 import oslo_utils
-import six
 
 from oslo_config import cfg
 from oslo_utils import encodeutils
@@ -503,7 +502,7 @@ def find_missing_types(index_type_mapping):
 
     es_engine = searchlight.elasticsearch.get_api()
 
-    for index in six.iterkeys(index_type_mapping):
+    for index in index_type_mapping.keys():
         for doc_type in index_type_mapping[index]:
             try:
                 mapping = es_engine.indices.get_mapping(index, doc_type)

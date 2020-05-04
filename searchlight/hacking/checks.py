@@ -103,7 +103,7 @@ def no_direct_use_of_unicode_function(logical_line):
     SL320
     """
     if unicode_func_re.match(logical_line):
-        yield(0, "SL320: Use six.text_type() instead of unicode()")
+        yield(0, "SL320: Use str() instead of unicode()")
 
 
 @core.flake8ext

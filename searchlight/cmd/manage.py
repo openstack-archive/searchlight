@@ -16,7 +16,6 @@
 import concurrent.futures
 import copy
 import signal
-import six
 import sys
 import time
 
@@ -87,7 +86,7 @@ class IndexCommands(object):
            re-indexes to occur simultaneously. We may need to cleanup. See
            sig_handler() for more info.
         """
-        for group in six.iterkeys(index_names):
+        for group in index_names.keys():
             # Grab the correct tuple as a list, convert list to a
             # single tuple, extract second member (the search
             # alias) of tuple.
@@ -206,7 +205,7 @@ class IndexCommands(object):
         _plugins_without_notification = []
 
         _type = utils.expand_type_matches(
-            _type, six.viewkeys(search_plugins))
+            _type, search_plugins.keys())
         LOG.debug("After expansion, 'type' argument: %s", ", ".join(_type))
 
         group_set = set(group)
@@ -377,7 +376,7 @@ class IndexCommands(object):
                       "should be disabled.\n")
 
             if not notification_less:
-                ans = six.moves.input(
+                ans = input(
                     "\nUse '--force' to suppress this message.\n"
                     "OK to continue? [y/n]: ")
                 if ans.lower() != 'y':
@@ -649,7 +648,7 @@ def main():
             v = getattr(CONF.command, 'action_kwarg_' + k)
             if v is None:
                 continue
-            if isinstance(v, six.string_types):
+            if isinstance(v, str):
                 v = encodeutils.safe_decode(v)
             func_kwargs[k] = v
         func_args = [encodeutils.safe_decode(arg)

@@ -18,7 +18,6 @@ import abc
 
 from oslo_config import cfg
 import oslo_messaging
-import six
 
 
 notifier_opts = [
@@ -95,8 +94,7 @@ class NotificationBase(object):
         _send_notification(self.notifier.info, notification_id, payload)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NotificationProxy(NotificationBase):
+class NotificationProxy(NotificationBase, metaclass=abc.ABCMeta):
     def __init__(self, repo, context, notifier):
         self.repo = repo
         self.context = context
@@ -110,8 +108,7 @@ class NotificationProxy(NotificationBase):
         pass
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NotificationRepoProxy(NotificationBase):
+class NotificationRepoProxy(NotificationBase, metaclass=abc.ABCMeta):
     def __init__(self, repo, context, notifier):
         self.repo = repo
         self.context = context
@@ -131,8 +128,7 @@ class NotificationRepoProxy(NotificationBase):
         pass
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NotificationFactoryProxy(object):
+class NotificationFactoryProxy(object, metaclass=abc.ABCMeta):
     def __init__(self, factory, context, notifier):
         kwargs = {'context': context, 'notifier': notifier}
 

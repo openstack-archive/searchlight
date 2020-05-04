@@ -15,6 +15,5 @@ Searchlight Specific Commandments
 - [SL318] Change assertEqual(A, None) or assertEqual(None, A) by optimal assert like
   assertIsNone(A)
 - [SL319] Validate that logs are not translated
-- [SL320] For python 3 compatibility, use six.text_type() instead of unicode()
 - [SL327] Prevent use of deprecated contextlib.nested
 - [SL343] Check for common double word typos

@@ -31,7 +31,6 @@ import platform
 import requests
 import shutil
 import signal
-import six
 import socket
 import sys
 import tempfile
@@ -556,7 +555,7 @@ class FunctionalTest(test_utils.BaseTestCase):
 
     def _get_hit_source(self, es_response):
         """Parse the _source from the elasticsearch hits"""
-        if isinstance(es_response, six.string_types):
+        if isinstance(es_response, str):
             es_response = jsonutils.loads(es_response)
         return [h["_source"] for h in es_response["hits"]["hits"]]
 

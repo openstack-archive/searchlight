@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import os
-import six
 import time
 from unittest import mock
 
@@ -231,7 +230,7 @@ class TestSearchApi(functional.FunctionalTest):
             doc_type="OS::Nova::Server")
         self.assertEqual(200, response.status_code)
         self.assertEqual(set(["doc_count"]),
-                         set(six.iterkeys(json_content["OS::Nova::Server"])))
+                         set(json_content["OS::Nova::Server"].keys()))
         self.assertEqual(0, json_content["OS::Nova::Server"]["doc_count"])
 
         response, json_content = self._facet_request(
@@ -335,7 +334,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'type': u'string'
         }
 
-        status_facet = list(six.moves.filter(
+        status_facet = list(filter(
             lambda f: f['name'] == 'status',
             json_content['OS::Nova::Server']['facets']
         ))[0]
@@ -356,7 +355,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'type': u'string'
         }
 
-        status_facet = list(six.moves.filter(
+        status_facet = list(filter(
             lambda f: f['name'] == 'status',
             json_content['OS::Nova::Server']['facets']
         ))[0]
@@ -478,7 +477,7 @@ class TestSearchApi(functional.FunctionalTest):
         self.assertEqual(2, json_content['OS::Nova::Server']['doc_count'])
 
         self.assertEqual(['OS::Nova::Server'],
-                         list(six.iterkeys(json_content)))
+                         list(json_content.keys()))
 
         # server1 has two fixed addresses (which should be rolled up into one
         # match). server2 has fixed and floating addresses.
@@ -491,7 +490,7 @@ class TestSearchApi(functional.FunctionalTest):
             u'type': u'string',
             u'nested': True
         }
-        fixed_network_facet = list(six.moves.filter(
+        fixed_network_facet = list(filter(
             lambda f: f['name'] == 'networks.OS-EXT-IPS:type',
             json_content['OS::Nova::Server']['facets']
         ))[0]
@@ -510,7 +509,7 @@ class TestSearchApi(functional.FunctionalTest):
                 {u'doc_count': 2, u'key': u'a'}
             ]
         }
-        image_facet = list(six.moves.filter(
+        image_facet = list(filter(
             lambda f: f['name'] == 'image.id',
             json_content['OS::Nova::Server']['facets']
         ))[0]

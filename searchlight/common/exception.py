@@ -16,7 +16,6 @@
 
 """Searchlight exception subclasses"""
 
-import six
 
 from searchlight.i18n import _
 
@@ -52,7 +51,7 @@ class SearchlightException(Exception):
         # NOTE(flwang): By default, self.msg is an instance of Message, which
         # can't be converted by str(). Based on the definition of
         # __unicode__, it should return unicode always.
-        return six.text_type(self.msg)
+        return str(self.msg)
 
 
 class NotFound(SearchlightException):

@@ -45,7 +45,6 @@ import heapq
 import sys
 import unittest
 
-import six
 import subunit
 import testtools
 
@@ -272,7 +271,7 @@ class SubunitTestResult(testtools.TestResult):
         self.stopTestRun()
 
     def stopTestRun(self):
-        for cls in six.iterkeys(self.results):
+        for cls in self.results.keys():
             self.writeTestCase(cls)
         self.stream.writeln()
         self.writeSlowTests()

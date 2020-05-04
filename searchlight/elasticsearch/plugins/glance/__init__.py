@@ -18,7 +18,6 @@ import logging
 import operator
 
 import glanceclient.exc
-import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
 from searchlight.elasticsearch.plugins import utils
@@ -56,7 +55,7 @@ def _normalize_visibility(image_doc):
 def serialize_glance_image(image):
 
     # If we're being asked to index an ID, retrieve the full image information
-    if isinstance(image, six.text_type):
+    if isinstance(image, str):
         g_client = openstack_clients.get_glanceclient()
         image = g_client.images.get(image)
 

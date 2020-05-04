@@ -14,7 +14,6 @@
 # limitations under the License.
 
 import logging
-import six
 
 from searchlight.elasticsearch.plugins import openstack_clients
 
@@ -26,7 +25,7 @@ BLACKLISTED_FIELDS = set((u'links', u'manager', '_loaded', '_info'))
 
 def serialize_cinder_volume(volume):
     """volume can be an id or a 'volume' object from cinderclient"""
-    if isinstance(volume, six.string_types):
+    if isinstance(volume, str):
         cinder_client = openstack_clients.get_cinderclient()
         volume = cinder_client.volumes.get(volume)
 
@@ -47,7 +46,7 @@ def serialize_cinder_volume(volume):
 
 def serialize_cinder_snapshot(snapshot):
     """snapshot can be an id or a 'Snapshot' object from cinderclient"""
-    if isinstance(snapshot, six.string_types):
+    if isinstance(snapshot, str):
         cinder_client = openstack_clients.get_cinderclient()
         snapshot = cinder_client.volume_snapshots.get(snapshot)
 

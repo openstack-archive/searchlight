@@ -16,7 +16,6 @@
 from elasticsearch import exceptions as es_exc
 import operator
 from oslo_serialization import jsonutils
-import six
 from unittest import mock
 import webob.exc
 
@@ -318,18 +317,18 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_single_index(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'index': 'searchlight-search',
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight-search'], output['index'])
 
     def test_single_type(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': 'OS::Glance::Image',
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight-search'], output['index'])
@@ -338,7 +337,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_empty_request(self):
         """Tests that ALL registered resource types are searched"""
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({}))
+        request.body = jsonutils.dumps({}).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight-search'], output['index'])
@@ -370,29 +369,29 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_forbidden_schema(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'schema': {},
-        }))
+        }).encode("latin-1")
 
         self.assertRaises(webob.exc.HTTPForbidden, self.deserializer.search,
                           request)
 
     def test_forbidden_self(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'self': {},
-        }))
+        }).encode("latin-1")
 
         self.assertRaises(webob.exc.HTTPForbidden, self.deserializer.search,
                           request)
 
     def test_fields_restriction(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             '_source': ['description'],
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight-search'], output['index'])
@@ -401,14 +400,14 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_fields_include_exclude(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             '_source': {
                 'include': ['some', 'thing.*'],
                 'exclude': ['other.*', 'thing']
             }
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertNotIn('_source', output)
@@ -421,35 +420,35 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         """Test various forms for source_exclude"""
         role_field = searchlight.elasticsearch.ROLE_USER_FIELD
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             '_source': {
                 'exclude': ['something', 'other thing']
             }
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         self.assertEqual([role_field, 'something', 'other thing'],
                          output['_source_exclude'])
 
         # Test with a single field
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             '_source': {
                 'exclude': "something"
             }
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         self.assertEqual([role_field, 'something'],
                          output['_source_exclude'])
 
         # Test with a single field
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             '_source': "includeme"
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         self.assertEqual([role_field],
                          output['_source_exclude'])
@@ -457,11 +456,11 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
                          output['_source_include'])
 
         # Test with a single field
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             '_source': ["includeme", "andme"]
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         self.assertEqual([role_field],
                          output['_source_exclude'])
@@ -470,11 +469,11 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_bad_field_include(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             '_source': 1234,
-        }))
+        }).encode("latin-1")
 
         self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,
@@ -492,7 +491,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
         # Apply highlighting to 'name' explicitly setting require_field_match
         # and 'content' explicitly setting a highlight_query
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'highlight': {
@@ -503,7 +502,7 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
                     }
                 }
             }
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(['searchlight-search'], output['index'])
@@ -529,44 +528,44 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_invalid_limit(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'limit': 'invalid',
-        }))
+        }).encode("latin-1")
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
     def test_negative_limit(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'limit': -1,
-        }))
+        }).encode("latin-1")
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
     def test_invalid_offset(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'offset': 'invalid',
-        }))
+        }).encode("latin-1")
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
 
     def test_negative_offset(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'offset': -1,
-        }))
+        }).encode("latin-1")
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
@@ -574,12 +573,12 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_offset_from_error(self):
         """Test that providing offset and from cause errors"""
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'offset': 10,
             'from': 10
-        }))
+        }).encode("latin-1")
         self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,
             "Provide 'offset' or 'from', but not both",
@@ -588,12 +587,12 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_limit_size_error(self):
         """Test that providing limit and size cause errors"""
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'size': 10,
             'limit': 10
-        }))
+        }).encode("latin-1")
         self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,
             "Provide 'limit' or 'size', but not both",
@@ -601,12 +600,12 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_limit_and_offset(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'limit': 1,
             'offset': 2,
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(1, output['size'])
@@ -614,12 +613,12 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_from_and_size(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'size': 1,
             'from': 2,
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         self.assertEqual(1, output['size'])
         self.assertEqual(2, output['from_'])
@@ -627,10 +626,10 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_single_sort(self):
         """Test that a single sort field is correctly transformed"""
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'sort': 'status'
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(['status'], output['query']['sort'])
@@ -638,10 +637,10 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_single_sort_dir(self):
         """Test that a single sort field & dir is correctly transformed"""
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'sort': {'status': 'desc'}
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual([{'status': 'desc'}], output['query']['sort'])
@@ -649,14 +648,14 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_multiple_sort(self):
         """Test multiple sort fields"""
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'sort': [
                 'status',
                 {'created_at': 'desc'},
                 {'members': {'order': 'asc', 'mode': 'max'}}
             ]
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         expected = [
@@ -669,13 +668,13 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_raw_field_sort(self):
         """Some fields (like name) are treated separately"""
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'sort': [
                 'name',
                 {'name': {'order': 'desc'}}
             ]
-        }))
+        }).encode("latin-1")
 
         output = self.deserializer.search(request)
         expected = [
@@ -686,12 +685,12 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_bad_sort(self):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'index': ['glance'],
             'type': ['OS::Glance::Image'],
             'query': {'match_all': {}},
             'sort': 1234
-        }))
+        }).encode("latin-1")
 
         self.assertRaises(webob.exc.HTTPBadRequest, self.deserializer.search,
                           request)
@@ -700,9 +699,9 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
                 'ServerIndex.get_query_filters')
     def test_rbac_exception(self, mock_query_filters):
         request = unit_test_utils.get_fake_request()
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
-        }))
+        }).encode("latin-1")
 
         mock_query_filters.side_effect = Exception("Bad RBAC")
 
@@ -715,10 +714,10 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_rbac_non_admin(self):
         """Test that a non-admin request results in an RBACed query"""
         request = unit_test_utils.get_fake_request(is_admin=False)
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'type': 'OS::Nova::Server',
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         tenant_id = '6838eb7b-6ded-dead-beef-b344c77fe8df'
 
@@ -764,10 +763,10 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
     def test_rbac_admin(self):
         """Test that admins have RBAC applied"""
         request = unit_test_utils.get_fake_request(is_admin=True)
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'type': 'OS::Nova::Server',
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         tenant_id = '6838eb7b-6ded-dead-beef-b344c77fe8df'
         nova_rbac_filter = {
@@ -811,11 +810,11 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         self.assertEqual(expected_query, output['query'])
 
         # Now test with all_projects
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'type': 'OS::Nova::Server',
             'all_projects': True,
-        }))
+        }).encode("latin-1")
 
         # Test that if a plugin doesn't allow RBAC to be ignored,
         # it isn't. Do it with mocking, because mocking is best
@@ -862,10 +861,10 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
     def test_search_version(self):
         request = unit_test_utils.get_fake_request(is_admin=True)
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'query': {'match_all': {}},
             'version': True
-        }))
+        }).encode("latin-1")
         output = self.deserializer.search(request)
         self.assertEqual(True, output['version'])
 
@@ -877,19 +876,19 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
 
         # Apply highlighting to 'name' explicitly setting require_field_match
         # and 'content' explicitly setting a highlight_query
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
-            'aggregations': aggs}))
+            'aggregations': aggs}).encode("latin-1")
 
         output = self.deserializer.search(request)
         self.assertEqual(aggs, output['query']['aggregations'])
 
         # Test 'aggs' too
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
-            'aggs': aggs}))
+            'aggs': aggs}).encode("latin-1")
         output = self.deserializer.search(request)
         self.assertEqual(aggs, output['query']['aggregations'])
 
@@ -906,10 +905,10 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
                 'aggregations': {'name': {'terms': {'field': 'name'}}}
             }
         }
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
-            'aggregations': aggs}))
+            'aggregations': aggs}).encode("latin-1")
 
         self.assertRaises(
             webob.exc.HTTPForbidden, self.deserializer.search,
@@ -920,11 +919,11 @@ class TestSearchDeserializer(test_utils.BaseTestCase):
         request = unit_test_utils.get_fake_request()
 
         aggs = {"something": "something"}
-        request.body = six.b(jsonutils.dumps({
+        request.body = jsonutils.dumps({
             'type': ['OS::Glance::Metadef'],
             'query': {'match_all': {}},
             'aggregations': aggs,
-            'aggs': aggs}))
+            'aggs': aggs}).encode("latin-1")
 
         self.assertRaisesRegex(
             webob.exc.HTTPBadRequest,

@@ -15,11 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from urllib import parse as urlparse
+
 import os
 from oslo_config import cfg
 import oslo_messaging
 from oslo_serialization import jsonutils
-import six.moves.urllib.parse as urlparse
 import sys
 import time
 

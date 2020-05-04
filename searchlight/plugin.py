@@ -15,7 +15,6 @@ import abc
 
 from oslo_config import cfg
 from oslo_log import log as logging
-import six
 from stevedore import extension
 
 
@@ -23,8 +22,7 @@ LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Plugin(object):
+class Plugin(object, metaclass=abc.ABCMeta):
     """This class exists as a point for plugins to define
     config options.
     """
@@ -48,7 +46,7 @@ class Plugin(object):
 
         for e in mgr:
             for group, opts in e.plugin.get_cfg_opts():
-                if isinstance(group, six.string_types):
+                if isinstance(group, str):
                     group = cfg.OptGroup(name=group)
 
                 CONF.register_group(group)

@@ -18,7 +18,6 @@ from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
 from oslo_utils import encodeutils
-import six
 import webob.exc
 
 from searchlight.api import policy
@@ -361,7 +360,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         return {'query': es_query}
 
     def _get_sort_order(self, sort_order):
-        if isinstance(sort_order, (six.text_type, dict)):
+        if isinstance(sort_order, (str, dict)):
             # Elasticsearch expects a list
             sort_order = [sort_order]
         elif not isinstance(sort_order, list):
@@ -371,7 +370,7 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
         def replace_sort_field(sort_field):
             # Make some alterations for fields that have a 'raw' field so
             # that documents aren't sorted by tokenized values
-            if isinstance(sort_field, six.text_type):
+            if isinstance(sort_field, str):
                 # Raw field name
                 if sort_field in searchlight.elasticsearch.RAW_SORT_FIELDS:
                     return sort_field + ".raw"
@@ -482,11 +481,11 @@ class RequestDeserializer(wsgi.JSONRequestDeserializer):
                 if 'include' in _source:
                     query_params['_source_include'] = _source['include']
                 if 'exclude' in _source:
-                    if isinstance(_source['exclude'], six.text_type):
+                    if isinstance(_source['exclude'], str):
                         source_exclude.append(_source['exclude'])
                     else:
                         source_exclude.extend(_source['exclude'])
-            elif isinstance(_source, (list, six.text_type)):
+            elif isinstance(_source, (list, str)):
                 query_params['_source_include'] = _source
             else:
                 msg = _("'_source' must be a string, dict or list")
@@ -553,17 +552,17 @@ class ResponseSerializer(wsgi.JSONResponseSerializer):
 
     def search(self, response, query_result):
         body = jsonutils.dumps(query_result, ensure_ascii=False)
-        response.unicode_body = six.text_type(body)
+        response.unicode_body = str(body)
         response.content_type = 'application/json'
 
     def plugins_info(self, response, query_result):
         body = jsonutils.dumps(query_result, ensure_ascii=False)
-        response.unicode_body = six.text_type(body)
+        response.unicode_body = str(body)
         response.content_type = 'application/json'
 
     def facets(self, response, query_result):
         body = jsonutils.dumps(query_result, ensure_ascii=False)
-        response.unicode_body = six.text_type(body)
+        response.unicode_body = str(body)
         response.content_type = 'application/json'
 
 

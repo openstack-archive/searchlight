@@ -17,7 +17,6 @@ import copy
 import logging
 import novaclient.exceptions
 import novaclient.v2.flavors
-import six
 
 from oslo_serialization import jsonutils
 
@@ -62,7 +61,7 @@ def _get_flavor_access(flavor):
 
 def serialize_nova_server(server):
     nc_client = openstack_clients.get_novaclient()
-    if isinstance(server, six.text_type):
+    if isinstance(server, str):
         server = nc_client.servers.get(server)
 
     LOG.debug("Serializing server %s for project %s",

@@ -18,6 +18,8 @@
 import copy
 import errno
 import functools
+from http import server as BaseHTTPServer
+import io
 import os
 import shlex
 import shutil
@@ -27,8 +29,6 @@ from unittest import mock
 
 import fixtures
 from oslo_config import cfg
-import six
-from six.moves import BaseHTTPServer
 import testtools
 import webob
 
@@ -497,7 +497,7 @@ class FakeAuthMiddleware(wsgi.Middleware):
 class FakeHTTPResponse(object):
     def __init__(self, status=200, headers=None, data=None, *args, **kwargs):
         data = data or 'I am a teapot, short and stout\n'
-        self.data = six.StringIO(data)
+        self.data = io.StringIO(data)
         self.read = self.data.read
         self.status = status
         self.headers = headers or {'content-length': len(data)}

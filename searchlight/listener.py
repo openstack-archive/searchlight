@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
 
 from oslo_config import cfg
 from oslo_log import log as logging
@@ -145,7 +144,7 @@ class ListenerService(os_service.Service):
                     topic_exchanges = (
                         handler.get_notification_topics_exchanges())
                     for plugin_topic in topic_exchanges:
-                        if isinstance(plugin_topic, six.string_types):
+                        if isinstance(plugin_topic, str):
                             raise Exception(
                                 _("Plugin %s should return a list of topic "
                                   "exchange pairs") %

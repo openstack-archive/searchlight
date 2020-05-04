@@ -16,7 +16,6 @@
 import copy
 from elasticsearch import exceptions as es_exceptions
 from oslo_config import cfg
-import six
 from unittest import mock
 
 from searchlight.elasticsearch.plugins import helper
@@ -108,7 +107,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
 
         indexing_helper = helper.IndexingHelper(plugin)
 
-        _, mapping = six.next(plugin.get_full_mapping())
+        _, mapping = next(plugin.get_full_mapping())
         self.assertIn('region_name', mapping['properties'])
 
         count = len(plugin.get_objects())
@@ -125,7 +124,7 @@ class TestIndexingHelper(test_utils.BaseTestCase):
         resource_plugin_conf.include_region_name = False
         mock_bulk.reset_mock()
 
-        _, mapping = six.next(plugin.get_full_mapping())
+        _, mapping = next(plugin.get_full_mapping())
         self.assertNotIn('region_name', mapping['properties'])
         indexing_helper.save_documents(plugin.get_objects(),
                                        fake_versions)

@@ -13,11 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import builtins as __builtin__
 import logging
 
 # See http://code.google.com/p/python-nose/issues/detail?id=373
 # The code below enables tests to work with i18n _() blocks
-import six.moves.builtins as __builtin__
 setattr(__builtin__, '_', lambda x: x)
 
 # Run the fix_greendns_ipv6 function

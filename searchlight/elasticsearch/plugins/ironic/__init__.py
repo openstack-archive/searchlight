@@ -10,7 +10,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
+import functools
 
 
 def serialize_resource(resource, fields):
@@ -37,7 +37,7 @@ def obj_payload(payload):
 
 
 def versioned_payload(func):
-    @six.wraps(func)
+    @functools.wraps(func)
     def wrapper(self, event_type, payload, timestamp):
         return func(self, event_type, obj_payload(payload), timestamp)
     return wrapper

@@ -16,7 +16,6 @@
 import collections
 import copy
 import operator
-import six
 import types
 from unittest import mock
 
@@ -194,7 +193,7 @@ class TestPlugin(test_utils.BaseTestCase):
         with mock.patch.object(plugin, 'get_mapping',
                                return_value=test_doc_value_mapping):
             # get_full_mapping is a generator
-            doc_type, mapping = six.next(plugin.get_full_mapping())
+            doc_type, mapping = next(plugin.get_full_mapping())
             props = mapping['properties']
 
             # These fields should all have doc_values. Explicitly testing
@@ -226,7 +225,7 @@ class TestPlugin(test_utils.BaseTestCase):
     def test_rbac_field_doc_values(self):
         mock_engine = mock.Mock()
         plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
-        doc_Type, mapping = six.next(plugin.get_full_mapping())
+        doc_Type, mapping = next(plugin.get_full_mapping())
         props = mapping['properties']
         self.assertEqual(True, props[ROLE_USER_FIELD]['doc_values'])
 
@@ -234,7 +233,7 @@ class TestPlugin(test_utils.BaseTestCase):
         mock_engine = mock.Mock()
         plugin = fake_plugins.FakeSimplePlugin(es_engine=mock_engine)
 
-        doc_type, mapping = six.next(plugin.get_full_mapping())
+        doc_type, mapping = next(plugin.get_full_mapping())
         self.assertEqual(True, mapping['properties']['id']['doc_values'])
 
         # Test the same but disabling doc values for the plugin
@@ -242,7 +241,7 @@ class TestPlugin(test_utils.BaseTestCase):
                                'mapping_use_doc_values',
                                new_callable=mock.PropertyMock) as conf_mock:
             conf_mock.return_value = False
-            doc_type, mapping = six.next(plugin.get_full_mapping())
+            doc_type, mapping = next(plugin.get_full_mapping())
             self.assertNotIn('doc_values', mapping['properties']['id'])
 
     @mock.patch('searchlight.elasticsearch.plugins.base.'

@@ -40,7 +40,6 @@ from oslo_utils import excutils
 from oslo_utils import netutils
 from oslo_utils import timeutils
 from oslo_utils import uuidutils
-import six
 from webob import exc
 
 from searchlight.common import exception
@@ -320,8 +319,6 @@ def get_test_suite_socket():
     if SEARCHLIGHT_TEST_SOCKET_FD_STR in os.environ:
         fd = int(os.environ[SEARCHLIGHT_TEST_SOCKET_FD_STR])
         sock = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
-        if six.PY2:
-            sock = socket.SocketType(_sock=sock)
         sock.listen(CONF.api.backlog)
         del os.environ[SEARCHLIGHT_TEST_SOCKET_FD_STR]
         os.close(fd)
@@ -405,7 +402,7 @@ def no_4byte_params(f):
     def wrapper(*args, **kwargs):
 
         def _is_match(some_str):
-            return (isinstance(some_str, six.text_type) and
+            return (isinstance(some_str, str) and
                     REGEX_4BYTE_UNICODE.findall(some_str) != [])
 
         def _check_dict(data_dict):

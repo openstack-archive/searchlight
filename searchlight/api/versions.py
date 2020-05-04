@@ -16,7 +16,6 @@
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
-import six
 from six.moves import http_client
 import webob.dec
 
@@ -65,8 +64,7 @@ class Controller(object):
                                   status=http_client.MULTIPLE_CHOICES,
                                   content_type='application/json')
         json = jsonutils.dumps(dict(versions=version_objs))
-        if six.PY3:
-            json = json.encode('utf-8')
+        json = json.encode('utf-8')
         response.body = json
         return response
 
