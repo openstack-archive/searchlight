@@ -20,7 +20,6 @@ from keystoneclient.auth.identity import v3
 from keystoneclient import session
 import os
 import random
-from six.moves import range
 import string
 import swiftclient
 import sys

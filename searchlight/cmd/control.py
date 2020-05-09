@@ -33,7 +33,6 @@ import time
 
 from oslo_config import cfg
 from oslo_utils import units
-from six.moves import range
 
 from searchlight.common import config
 from searchlight.i18n import _

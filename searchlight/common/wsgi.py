@@ -39,7 +39,6 @@ from oslo_log import log as logging
 from oslo_serialization import jsonutils
 import routes
 import routes.middleware
-import six
 import webob.dec
 import webob.exc
 from webob import multidict
@@ -888,7 +887,7 @@ class Resource(object):
         except webob.exc.WSGIHTTPException as e:
             exc_info = sys.exc_info()
             e = translate_exception(request, e)
-            six.reraise(type(e), e, exc_info[2])
+            utils.reraise(type(e), e, exc_info[2])
 
         try:
             response = webob.Response(request=request)

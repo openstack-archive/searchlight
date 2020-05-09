@@ -523,3 +523,15 @@ def replace_dots_in_field_names(document):
 
 def restore_dots_in_field_names(document):
     _convert_field(document, DOT_REPLACEMENT_KEY, '.')
+
+
+def reraise(tp, value, tb=None):
+    try:
+        if value is None:
+            value = tp()
+        if value.__traceback__ is not tb:
+            raise value.with_traceback(tb)
+        raise value
+    finally:
+        value = None
+        tb = None

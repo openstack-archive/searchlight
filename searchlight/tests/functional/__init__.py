@@ -36,12 +36,11 @@ import sys
 import tempfile
 import time
 from unittest import mock
+import urllib
 
 import fixtures
 from oslo_log import log as logging
 from oslo_serialization import jsonutils
-from six.moves import range
-from six.moves import urllib
 import testtools
 
 from searchlight.common import utils

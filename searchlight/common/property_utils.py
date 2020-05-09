@@ -13,8 +13,8 @@
 #    under the License.
 
 from collections import OrderedDict
+import configparser
 import re
-from six.moves import configparser
 
 from oslo_config import cfg
 from oslo_log import log as logging

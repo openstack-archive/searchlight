@@ -14,9 +14,10 @@
 #    under the License.
 
 
+from http import client as http_client
+
 from oslo_config import cfg
 from oslo_serialization import jsonutils
-from six.moves import http_client
 import webob.dec
 
 from searchlight.common import wsgi
