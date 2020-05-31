@@ -5,7 +5,6 @@ eventlet==0.18.2
 fixtures==3.0.0
 greenlet==0.4.10
 keystonemiddleware==4.17.0
-openstackdocstheme==1.18.1
 os-api-ref==1.4.0
 oslo.concurrency==3.26.0
 oslo.config==5.2.0
@@ -35,7 +34,6 @@ python-keystoneclient==3.8.0
 python-neutronclient==6.11.0
 python-novaclient==9.1.0
 python-swiftclient==3.2.0
-reno==2.5.0
 requests==2.21.0
 Routes==2.3.1
 simplejson==3.5.1

@@ -63,7 +63,6 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Searchlight'
 copyright = u'2010-2015, OpenStack Foundation.'
 
 policy_generator_config_file = \
@@ -71,14 +70,11 @@ policy_generator_config_file = \
 sample_policy_basename = '_static/searchlight'
 
 # openstackdocstheme options
-repository_name = 'openstack/searchlight'
-bug_project = 'searchlight'
-bug_tag = 'searchlight'
+openstackdocs_repo_name = 'openstack/searchlight'
+openstackdocs_pdf_link = True
+openstackdocs_bug_project = 'searchlight'
+openstackdocs_bug_tag = ''
 
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
 # The short X.Y version.
 from searchlight.version import version_info as searchlight_version
 # The full version, including alpha/beta/rc tags.

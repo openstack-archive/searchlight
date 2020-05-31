@@ -38,9 +38,11 @@ extensions = [
     'openstackdocstheme'
 ]
 
-repository_name = 'openstack/searchlight'
-bug_project = 'searchlight'
-bug_tag = 'searchlight'
+# openstackdocstheme options
+openstackdocs_repo_name = 'openstack/searchlight'
+openstackdocs_bug_project = 'searchlight'
+openstackdocs_bug_tag = ''
+openstackdocs_auto_name = False
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

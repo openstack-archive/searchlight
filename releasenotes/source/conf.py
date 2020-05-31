@@ -58,9 +58,11 @@ master_doc = 'index'
 project = u'Searchlight Release Notes'
 copyright = u'2015, OpenStack Foundation'
 
-repository_name = 'openstack/searchlight'
-bug_project = 'searchlight'
-bug_tag = 'searchlight'
+# openstackdocstheme options
+openstackdocs_repo_name = 'openstack/searchlight'
+openstackdocs_bug_project = 'searchlight'
+openstackdocs_bug_tag = ''
+openstackdocs_auto_name = False
 
 # Release  notes  are version independent.
 # The short X.Y version.
