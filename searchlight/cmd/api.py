@@ -74,6 +74,9 @@ def fail(e):
 
 
 def configure_wsgi():
+    # NOTE(hberaud): Call reset to ensure the ConfigOpts object doesn't
+    # already contain registered options if the app is reloaded.
+    CONF.reset()
     config.parse_args()
     config.set_config_defaults()
     logging.setup(CONF, 'searchlight')
