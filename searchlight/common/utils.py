@@ -505,7 +505,7 @@ def expand_type_matches(types, document_types):
 def _convert_field(document, original, current):
     """Convert field name by replacing original string with current"""
     if isinstance(document, dict):
-        for k, v in document.items():
+        for k, v in list(document.items()):
             if isinstance(v, list) or isinstance(v, dict):
                 _convert_field(v, original, current)
             if original in k:
