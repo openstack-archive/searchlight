@@ -18,9 +18,6 @@ Helper script for starting/stopping/reloading Searchlight server programs.
 Thanks for some of the code, Swifties and Glance Gladiators ;)
 """
 
-from __future__ import print_function
-from __future__ import with_statement
-
 import argparse
 import fcntl
 import os
