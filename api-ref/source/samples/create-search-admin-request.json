@@ -1,6 +1,0 @@
-{
-    "query": {
-        "match_all": {}
-    },
-    "all_projects": true
-}

@@ -1,8 +1,0 @@
-- project:
-    templates:
-      - openstack-python3-victoria-jobs
-      - openstack-cover-jobs
-      - publish-openstack-docs-pti
-      - check-requirements
-      - openstack-lower-constraints-jobs
-      - release-notes-jobs-python3

@@ -1,8 +1,0 @@
----
-prelude: >
-    Some Neutron ports that do not send notifications to Searchlight.
-    Do not initially index them.
-fixes:
-  - Searchlight is indexing unused Neutron ports. Some
-    Neutron ports do not result in notifications to
-    Searchlight. We do not want to initially index them.

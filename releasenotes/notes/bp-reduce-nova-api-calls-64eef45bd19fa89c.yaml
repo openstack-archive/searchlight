@@ -1,8 +1,0 @@
----
-prelude: >
-  Reduce the number of calls to the nova API on instance
-  boots.
-features:
-  - Replace some of the nova get server API calls with
-    partial document updates that just update the OS-EXT-STS
-    state fields.
